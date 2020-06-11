@@ -4,6 +4,12 @@ For full details, see the git log at:
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-06-11:
+
+- POSIX compliance fix: It is now possible to set shell functions named
+  'alias' or 'unalias', overriding the commands by the same names. In
+  technical terms, they are now regular builtins, not special builtins.
+
 2020-06-10:
 
 - The 'hash' utility is now a regular builtin instead of an alias to

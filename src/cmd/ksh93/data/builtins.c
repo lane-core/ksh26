@@ -56,7 +56,7 @@
  */
 const struct shtable3 shtab_builtins[] =
 {
-	"login",	NV_BLTIN|BLT_ENV|BLT_SPC,	Bltin(login),
+	"login",	NV_BLTIN|BLT_ENV,		Bltin(login),
 	"exec",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(exec),
 	"set",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(set),	
 	":",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(true),
@@ -76,11 +76,11 @@ const struct shtable3 shtab_builtins[] =
 	"local",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(typeset),
 #endif
 #if _bin_newgrp || _usr_bin_newgrp
-	"newgrp",	NV_BLTIN|BLT_ENV|BLT_SPC,	Bltin(login),
+	"newgrp",	NV_BLTIN|BLT_ENV,		Bltin(login),
 #endif	/* _bin_newgrp || _usr_bin_newgrp */
-	"alias",	NV_BLTIN,			bltin(alias),
-	"hash",		NV_BLTIN,			bltin(alias),
-	"enum",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(enum),
+	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
+	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
+	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
 	"eval",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_EXIT,bltin(eval),
 	"exit",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"fc",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(hist),
@@ -88,7 +88,7 @@ const struct shtable3 shtab_builtins[] =
 	"readonly",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(readonly),
 	"shift",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(shift),
 	"trap",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(trap),
-	"unalias",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(unalias),
+	"unalias",	NV_BLTIN|BLT_ENV,		bltin(unalias),
 	"unset",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(unset),
 	"builtin",	NV_BLTIN,			bltin(builtin),
 #if SHOPT_ECHOPRINT
