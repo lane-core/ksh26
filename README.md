@@ -1,36 +1,78 @@
-# AST
+# KornShell 93u+m
 
-This is the AT&amp;T Software Technology (AST) toolkit from AT&amp;T Research.
-It includes many tools and libraries, like KSH, NMAKE, SFIO, VMALLOC, VCODEX,
-etc. It also includes more efficient replacements for a lot of the POSIX tools.
-It was designed to be portable across many UNIX systems and also works
-under UWIN on Microsoft Windows (see UWIN repo on GitHub under att/uwin).
+This repository is used to develop bugfixes
+to the last stable release (93u+ 2012-08-01) of
+[ksh93](http://www.kornshell.com/),
+formerly developed by AT&T Software Technology (AST).
+The sources in this repository were forked from the
+Github [AST repository](https://github.com/att/ast)
+which is no longer under active development.
 
-## ksh93u+ and v-
+To see what's fixed, see [NEWS](https://github.com/modernish/ast/blame/master/NEWS)
+and click on commit messages for full details.
 
-This repo contains the **ksh93u+** and **ksh93v-** versions of KSH.
+To see what's left to fix, see [TODO](./TODO).
 
-* **ksh93u+**, the master branch, was the last version released by the main AST
-  authors in 2012, while they were at AT&amp;T. It also has some later build
-  fixes but it is not actively maintained.
-* ksh93v-, [ksh93v tag](https://github.com/att/ast/tree/ksh93v), contains
-  contributions from the main authors through 2014 (after they left) and is
-  considered less stable
+## Policy
 
-Please search the web for forks of this repo (or check the
-[Network graph](https://github.com/att/ast/network) on GitHub) if you are
-looking for an actively maintained version of ksh.
+1. No new features. Bug fixes only.
+2. No major rewrites. No refactoring code that is not fully understood.
+3. No changes in documented behaviour, except if required for compliance with the
+   [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
+   which David Korn [intended](http://www.kornshell.com/info/) for ksh to follow.
+4. No 100% bug compatibility. Broken and undocumented behaviour gets fixed.
+5. No bureaucracy, no formalities. Just fix it, or report it: create issues,
+   send pull requests. Every interested party is invited to contribute.
+6. To help increase everyone's understanding of this code base, fixes and
+   significant changes should be fully documented in commit messages.
+
+## Why?
+
+Between 2017 and 2020 there was an ultimately unsuccessful
+[attempt](https://github.com/att/ast/tree/2020.0.1)
+to breathe new life into the KornShell by extensively refactoring the last
+unstable AST beta version (93v-).
+While that ksh2020 branch is now abandoned and still has many critical bugs,
+it also had a lot of bugs fixed. More importantly, the AST issue tracker
+now contains a lot of documentation on how to fix those bugs, which makes
+it possible to backport many of them to the last stable release instead.
+
+In February 2020, having concluded the AST 93v- beta was too broken to
+base new work on, others decided to start a new fork based on the last stable
+93u+ 2012-08-01 release. Unfortunately, as of June 2020, the new
+[ksh-community](https://github.com/ksh-community/ksh/)
+organisation is yet to see any significant activity four months after its
+bootstrapping. I hope that will change; I am ready to join efforts with them
+at any time, as well as anyone else who wants to contribute.
+
+The last stable ksh93 release from 2012 is the least buggy release currently
+available, but it still has many serious bugs. So it is well past time to
+start fixing those bugs, leave the rest of the code alone, and get an
+improved release out there.
 
 ## Build
 
-This software is used to build itself, using NMAKE.  After cloning this repo, cd
-to the top directory of it and run:
-
+After cloning this repo, cd to the top directory of it and run:
+```sh
 ./bin/package make
+```
+If you have trouble or want to tune the binaries, you may pass additional
+compiler and linker flags by appending it to the command shown above. E.g.:
+```sh
+./bin/package make \
+    SHELL=/bin/bash CCFLAGS="-xc99 -D_XPG6 -m64 -xO4" LDFLAGS="-m64"
+```
+For more information run
+```sh
+        bin/package help
+```
+Many other commands in this repo self-document via the `--help`, `--man` and
+`--html` options; those that do have no separate manual page.
 
-Almost all the tools in this package (including the bin/package script are
-self-documenting; run <tool> --man (or --html) for the man page for the tool.
+## Test
 
-(If you were used to the old AST packaging mechanism, on www.research.att.com,
-this repo is equivalent to downloading the INIT and ast-open packages and
-running: ./bin/package read on them).
+After compiling, you can run the regression tests.
+Start by reading the information printed by:
+```sh
+./bin/shtests --man
+```

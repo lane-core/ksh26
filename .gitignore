@@ -1,0 +1,25 @@
+# Project-specific files
+=
+arch
+tgz
+lcl
+
+# This one keeps changing its license header, causing git to show an
+# uncommitted file. It's always re-copied anyway, and not for direct
+# invocation, so exclude. The source file is: src/cmd/INIT/execrate.sh
+bin/execrate
+
+# Miscellaneous artefacts
+*.bak
+*.sav
+*.old
+*.orig
+.*.swp
+*.DS_Store
+*~
+.nfs*
+*.tmp
+*.rej
+*.project
+*.core
+core
