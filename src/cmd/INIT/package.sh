@@ -3968,6 +3968,8 @@ capture() # file command ...
 		0)	if	executable ! $TEE
 			then	TEE=tee
 			fi
+			# Connect 'tee' to a FIFO instead of a pipe, so that the build is invoked from
+			# the main shell environment and its exit status can be used for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
 			$TEE -a $o < $o.fifo &
@@ -3977,9 +3979,7 @@ capture() # file command ...
 				esac
 				showenv $action
 				"$@"
-			} > $o.fifo 2>&1 &
-			rm $o.fifo 	# unlink early
-			wait "$!"	# get build's exit status
+			} < /dev/null > $o.fifo 2>&1
 			;;
 		*)	{
 				case $s in
