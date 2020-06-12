@@ -223,8 +223,8 @@ for ((i=0; i < 62; i++))
 do	printf "%.39c\n"  ${x:i:1}
 done >  $tmp/seek
 if	redirect 3<> $tmp/seek
-then	(( $(3<#) == 0 )) || err_exit "not at position 0"
-	(( $(3<# ((EOF))) == 40*62 )) || err_exit "not at end-of-file"
+then	[[ $(3<#) -eq 0 ]] || err_exit "not at position 0"
+	[[ $(3<# ((EOF))) -eq 40*62 ]] || err_exit "not at end-of-file"
 	redirect 3<# ((40*8)) || err_exit "absolute seek fails"
 	read -u3
 	[[ $REPLY == +(i) ]] || err_exit "expected iiii..., got $REPLY"
@@ -244,7 +244,7 @@ then	(( $(3<#) == 0 )) || err_exit "not at position 0"
 	[[ $REPLY == +(d) ]] || err_exit "expected ddd..., got $REPLY"
 	redirect 3># ((EOF))
 	print -u3 -f "%.39c\n"  ^
-	(( $(3<# ((CUR-0))) == 40*63 )) || err_exit "not at extended end-of-file"
+	[[ $(3<# ((CUR-0))) -eq 40*63 ]] || err_exit "not at extended end-of-file"
 	redirect 3<# ((40*62))
 	read -u3
 	[[ $REPLY == +(^) ]] || err_exit "expected ddd..., got $REPLY"
@@ -269,7 +269,7 @@ done >  $tmp/seek
 if	redirect {n}<> $tmp/seek
 then	{ redirect {n}<#((EOF)) ;} 2> /dev/null || err_exit '{n}<# not working'
 	if	$SHELL -c '{n}</dev/null' 2> /dev/null
-	then	(( $({n}<#) ==  40*62))  || err_exit '$({n}<#) not working'
+	then	[[ $({n}<#) -eq 40*62 ]]  || err_exit '$({n}<#) not working'
 	else	err_exit 'not able to parse {n}</dev/null'
 	fi
 fi
