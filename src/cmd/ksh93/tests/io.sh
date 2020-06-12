@@ -41,7 +41,7 @@ unset HISTFILE
 
 function fun
 {
-	while  command exec 3>&1
+	while  redirect 3>&1
 	do	break
 	done 2>   /dev/null
 	print -u3 good
@@ -85,7 +85,7 @@ do	[[ -e ${FDFS[fdfs].dir} ]] && { command : > ${FDFS[fdfs].dir}/1; } 2>/dev/nul
 done
 
 exec 3<> file1
-if	command exec 4< ${FDFS[fdfs].dir}/3
+if	redirect 4< ${FDFS[fdfs].dir}/3
 then	read -u3 got
 	read -u4 got
 	exp='foo|bar'
@@ -222,52 +222,52 @@ x="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNSPQRSTUVWXYZ1234567890"
 for ((i=0; i < 62; i++))
 do	printf "%.39c\n"  ${x:i:1}
 done >  $tmp/seek
-if	command exec 3<> $tmp/seek
+if	redirect 3<> $tmp/seek
 then	(( $(3<#) == 0 )) || err_exit "not at position 0"
 	(( $(3<# ((EOF))) == 40*62 )) || err_exit "not at end-of-file"
-	command exec 3<# ((40*8)) || err_exit "absolute seek fails"
+	redirect 3<# ((40*8)) || err_exit "absolute seek fails"
 	read -u3
 	[[ $REPLY == +(i) ]] || err_exit "expected iiii..., got $REPLY"
 	[[ $(3<#) == $(3<# ((CUR)) ) ]] || err_exit '$(3<#)!=$(3<#((CUR)))'
-	command exec 3<# ((CUR+80))
+	redirect 3<# ((CUR+80))
 	read -u3
 	[[ $REPLY == {39}(l) ]] || err_exit "expected lll..., got $REPLY"
-	command exec 3<# ((EOF-80))
+	redirect 3<# ((EOF-80))
 	read -u3
 	[[ $REPLY == +(9) ]] || err_exit "expected 999..., got $REPLY"
-	command exec 3># ((80))
+	redirect 3># ((80))
 	print -u3 -f "%.39c\n"  @
-	command exec 3># ((80))
+	redirect 3># ((80))
 	read -u3
 	[[ $REPLY == +(@) ]] || err_exit "expected @@@..., got $REPLY"
 	read -u3
 	[[ $REPLY == +(d) ]] || err_exit "expected ddd..., got $REPLY"
-	command exec 3># ((EOF))
+	redirect 3># ((EOF))
 	print -u3 -f "%.39c\n"  ^
 	(( $(3<# ((CUR-0))) == 40*63 )) || err_exit "not at extended end-of-file"
-	command exec 3<# ((40*62))
+	redirect 3<# ((40*62))
 	read -u3
 	[[ $REPLY == +(^) ]] || err_exit "expected ddd..., got $REPLY"
-	command exec 3<# ((0))
-	command exec 3<# *jjjj*
+	redirect 3<# ((0))
+	redirect 3<# *jjjj*
 	read -u3
 	[[  $REPLY == {39}(j) ]] || err_exit "<# pattern failed"
-	[[ $(command exec 3<## *llll*) == {39}(k) ]] || err_exit "<## pattern not saving standard output"
+	[[ $(redirect 3<## *llll*) == {39}(k) ]] || err_exit "<## pattern not saving standard output"
 	read -u3
 	[[  $REPLY == {39}(l) ]] || err_exit "<## pattern failed to position"
-	command exec 3<# *abc*
+	redirect 3<# *abc*
 	read -u3 && err_exit "not found pattern not positioning at eof"
 	cat $tmp/seek | read -r <# *WWW*
 	[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
 	{ < $tmp/seek <# ((2358336120)) ;} 2> /dev/null || err_exit 'long seek not working'
 else	err_exit "$tmp/seek: cannot open for reading"
 fi
-command exec 3<&- || 'cannot close 3'
+redirect 3<&- || 'cannot close 3'
 for ((i=0; i < 62; i++))
 do	printf "%.39c\n"  ${x:i:1}
 done >  $tmp/seek
-if	command exec {n}<> $tmp/seek
-then	{ command exec {n}<#((EOF)) ;} 2> /dev/null || err_exit '{n}<# not working'
+if	redirect {n}<> $tmp/seek
+then	{ redirect {n}<#((EOF)) ;} 2> /dev/null || err_exit '{n}<# not working'
 	if	$SHELL -c '{n}</dev/null' 2> /dev/null
 	then	(( $({n}<#) ==  40*62))  || err_exit '$({n}<#) not working'
 	else	err_exit 'not able to parse {n}</dev/null'
@@ -292,7 +292,7 @@ $SHELL -c "$SHELL -c ': 3>&1' 1>&- 2>/dev/null" && err_exit 'closed standard out
 [[ $(cat  <<- \EOF | $SHELL
 	do_it_all()
 	{
-	 	dd 2>/dev/null  # not a ksh93 builtin
+		dd 2>/dev/null  # not a ksh93 builtin
 	 	return $?
 	}
 	do_it_all ; exit $?
@@ -523,6 +523,21 @@ actual=$(cat "$tmp/nums2")
 [[ "$actual" = "$expect" ]] || err_exit "Failed to truncate file in -c script \
 (expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 INACTIVE
+
+# ======
+# Exit behaviour of 'exec', 'command exec', 'redirect' on redirections
+
+actual=$(exec 2>&- 3>&2; echo should not reach)
+[[ -z $actual ]] || err_exit "redirection error in 'exec' does not cause exit"
+actual=$(command exec 2>&- 3>&2; echo ok)
+[[ $actual == ok ]] || err_exit "redirection error in 'command exec' causes exit"
+actual=$(redirect 2>&- 3>&2; echo ok)
+[[ $actual == ok ]] || err_exit "redirection error in 'redirect' causes exit"
+
+# Test that 'redirect' does not accept non-redir args
+actual=$(redirect ls 2>&1)
+expect="*: redirect: incorrect syntax"
+[[ $actual == $expect ]] || err_exit "redirect command wrongly accepting non-redir args"
 
 # ======
 exit $((Errors<125?Errors:125))

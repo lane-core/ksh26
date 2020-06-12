@@ -60,6 +60,9 @@ struct login
 	char    *arg0;
 };
 
+/*
+ * 'exec' special builtin and 'redirect' builtin
+ */
 int    b_exec(int argc,char *argv[], Shbltin_t *context)
 {
 	struct login logdata;
@@ -68,7 +71,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	logdata.arg0 = 0;
 	logdata.sh = context->shp;
         logdata.sh->st.ioset = 0;
-	while (n = optget(argv, sh_optexec)) switch (n)
+	while (n = optget(argv, *argv[0]=='r' ? sh_optredirect : sh_optexec)) switch (n)
 	{
 	    case 'a':
 		logdata.arg0 = opt_info.arg;
@@ -84,9 +87,11 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
 		return(2);
 	}
-	argv += opt_info.index;
 	if(error_info.errors)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+	if(*argv[0]=='r' && argv[opt_info.index])  /* 'redirect' supports no args */
+		errormsg(SH_DICT,ERROR_exit(2),e_badsyntax);
+	argv += opt_info.index;
 	if(*argv)
                 B_login(0,argv,(Shbltin_t*)&logdata);
 	return(0);

@@ -52,12 +52,15 @@
 #undef	dirname
 
 /*
- * The order up through "[" is significant
++  * IMPORTANT: The order of these struct members must be synchronous
++  * with the offsets on the macros defined in include/builtins.h!
++  * The order up through "local" is significant.
  */
 const struct shtable3 shtab_builtins[] =
 {
 	"login",	NV_BLTIN|BLT_ENV,		Bltin(login),
 	"exec",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(exec),
+	"redirect",	NV_BLTIN|BLT_ENV,		bltin(exec),
 	"set",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(set),	
 	":",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(true),
 	"true",		NV_BLTIN|BLT_ENV,		bltin(true),
@@ -75,6 +78,9 @@ const struct shtable3 shtab_builtins[] =
 #if SHOPT_BASH
 	"local",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(typeset),
 #endif
+/*
+ * Builtins without offset macros in include/builtins.h follow.
+ */
 #if _bin_newgrp || _usr_bin_newgrp
 	"newgrp",	NV_BLTIN|BLT_ENV,		Bltin(login),
 #endif	/* _bin_newgrp || _usr_bin_newgrp */
@@ -580,7 +586,7 @@ USAGE_LICENSE
 ;
 
 const char sh_optexec[] =
-"[-1c?\n@(#)$Id: exec (AT&T Research) 1999-07-10 $\n]"
+"[-1c?\n@(#)$Id: exec (AT&T Research) 2020-06-11 $\n]"
 USAGE_LICENSE
 "[+NAME?exec - execute command, open/close and duplicate file descriptors]"
 "[+DESCRIPTION?\bexec\b is a special built-in command that can be used to "
@@ -591,18 +597,11 @@ USAGE_LICENSE
 	"for it to complete.  Note that there is no need to use "
 	"\bexec\b to enhance performance since the shell implicitly "
 	"uses the exec mechanism internally whenever possible.]"
-"[+?If no operands are specified, \bexec\b can be used to open or "
-	"close files, or to manipulate file descriptors from \b0\b to "
-	"\b9\b in the current shell environment using the standard "
-	"redirection mechanism available with all commands.  The " 
-	"close-on-exec flags will be set on file descriptor numbers "
-	"greater than \b2\b that are opened this way so that they "
-	"will be closed when another program is invoked.]"
+"[+?If no operands are specified, \bexec\b can be used to persistently open "
+	"or close files or manipulate file descriptors as in \bredirect\b(1).]"
 "[+?Because \bexec\b is a special command, any failure will cause the "
 	"script that invokes it to exit.  This can be prevented by "
 	"invoking \bexec\b from the \bcommand\b utility.]"
-"[+?\bexec\b cannot be invoked from a restricted shell to create "
-	"files or to open a file for writing or appending.]"
 "[c?Clear all environment variables before executions except variable "
 	"assignments that are part of the current \bexec\b command.]"
 "[a]:[name?\bargv[0]]\b will be set to \aname\a for \acommand\a]"
@@ -614,9 +613,8 @@ USAGE_LICENSE
 	"[+0?All I/O redirections were successful.]"
 	"[+>0?An error occurred.]"
 "}"
-"[+SEE ALSO?\bcommand\b(1), \beval\b(1)]"
+"[+SEE ALSO?\bcommand\b(1), \beval\b(1), \bredirect(1)\b]"
 ;
-
 
 const char sh_optexit[] =
 "[-1c?\n@(#)$Id: exit (AT&T Research) 1999-07-07 $\n]"
@@ -1353,6 +1351,31 @@ USAGE_LICENSE
 "}"
 
 "[+SEE ALSO?\bsh\b(1), \btypeset\b(1)]"
+;
+
+const char sh_optredirect[] =
+"[-1c?\n@(#)$Id: redirect (ksh community) 2020-06-11 $\n]"
+"[+NAME?redirect - open/close and duplicate file descriptors]"
+"[+DESCRIPTION?This command only accepts input/output redirection arguments. "
+	"It can open and close files and modify file descriptors from \b0\b "
+	"to \b9\b using the standard redirection mechanism available to all "
+	"commands, with the difference that the effect persists past the "
+	"execution of the \bredirect\b command.]"
+"[+?Unlike \bexec\b(1), \bredirect\b does not abort the script or command "
+	"line if an error occurs.]"
+"[+?Any file descriptor numbers greater than \b2\b that are opened with this "
+	"mechanism are closed when invoking another program, unless "
+	"explicitly redirected to themselves as part of that invocation.]"
+"[+?\bredirect\b cannot be invoked from a restricted shell to create "
+	"files or to open a file for writing or appending.]"
+"\n"
+"\n[redirection ...]\n"
+"\n"
+"[+EXIT STATUS?The exit status is one of the following:]{"
+	"[+0?All I/O redirections were successful.]"
+	"[+>0?An error occurred.]"
+"}"
+"[+SEE ALSO?\bexec\b(1)]"
 ;
 
 const char sh_optreturn[] =

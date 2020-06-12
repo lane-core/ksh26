@@ -20,14 +20,6 @@ Fix build system:
 ______
 Fix or remove broken or misguided default aliases:
 
-- Make a proper builtin out of the redirect='command exec' alias. It should
-  really only parse redirections. Currently, if an unwitting user notices this
-  alias and tries out something like 'redirect ls >file', it does 'exec ls
-  >file', so 'ls' replaces their shell and they get logged out. That is so
-  misdesigned I'm calling it a bug.
-     Alternatively, maybe just get rid? Who uses this anyway? 'redirect >&2'
-  takes four more keystrokes to type than 'exec >&2'.
-
 - Make proper builtins out of the following scripting-related aliases, so
   that 'unalias -a' does not eliminate them. If done correctly, this causes
   no other change in behaviour. It would be good practice to 'unalias -a' in

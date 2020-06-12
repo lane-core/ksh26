@@ -26,23 +26,31 @@
 #include	"FEATURE/dynamic"
 #include	"shtable.h"
 
-#define	SYSLOGIN	(shgd->bltin_cmds)
-#define SYSEXEC		(shgd->bltin_cmds+1)
-#define SYSSET		(shgd->bltin_cmds+2)
-#define SYSTRUE		(shgd->bltin_cmds+4)
-#define SYSCOMMAND	(shgd->bltin_cmds+5)
-#define SYSCD		(shgd->bltin_cmds+6)
-#define SYSBREAK	(shgd->bltin_cmds+7)
-#define SYSCONT		(shgd->bltin_cmds+8)
-#define SYSTYPESET	(shgd->bltin_cmds+9)
-#define SYSTEST		(shgd->bltin_cmds+10)
-#define SYSBRACKET	(shgd->bltin_cmds+11)
-#define SYSLET		(shgd->bltin_cmds+12)
-#define SYSEXPORT	(shgd->bltin_cmds+13)
-#define SYSDOT		(shgd->bltin_cmds+14)
-#define SYSRETURN	(shgd->bltin_cmds+15)
+/*
+ * IDs for the parser (parse.c) and parse tree executer (xec.c)
+ * to implement special handling for the corresponding builtins.
+ * IMPORTANT: The offsets on these macros must be synchronous
+ * with the order of shtab_builtins[] in data/builtins.c!
+ */
+#define	SYSLOGIN	(shgd->bltin_cmds)	/* login */
+#define SYSEXEC		(shgd->bltin_cmds+1)	/* exec */
+#define SYSREDIR	(shgd->bltin_cmds+2)	/* redirect */
+#define SYSSET		(shgd->bltin_cmds+3)	/* set */
+						/* : */
+#define SYSTRUE		(shgd->bltin_cmds+5)	/* true */
+#define SYSCOMMAND	(shgd->bltin_cmds+6)	/* command */
+#define SYSCD		(shgd->bltin_cmds+7)	/* cd */
+#define SYSBREAK	(shgd->bltin_cmds+8)	/* break */
+#define SYSCONT		(shgd->bltin_cmds+9)	/* continue */
+#define SYSTYPESET	(shgd->bltin_cmds+10)	/* typeset */
+#define SYSTEST		(shgd->bltin_cmds+11)	/* test */
+#define SYSBRACKET	(shgd->bltin_cmds+12)	/* [ */
+#define SYSLET		(shgd->bltin_cmds+13)	/* let */
+#define SYSEXPORT	(shgd->bltin_cmds+14)	/* export */
+#define SYSDOT		(shgd->bltin_cmds+15)	/* . */
+#define SYSRETURN	(shgd->bltin_cmds+16)	/* return */
 #if SHOPT_BASH
-#   define SYSLOCAL	(shgd->bltin_cmds+16)
+#   define SYSLOCAL	(shgd->bltin_cmds+17)	/* local */
 #else
 #   define SYSLOCAL	0
 #endif
@@ -153,6 +161,7 @@ extern const char sh_optdot[];
 #endif /* !ECHOPRINT */
 extern const char sh_opteval[];
 extern const char sh_optexec[];
+extern const char sh_optredirect[];
 extern const char sh_optexit[];
 extern const char sh_optexport[];
 extern const char sh_optgetopts[];

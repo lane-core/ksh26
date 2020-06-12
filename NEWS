@@ -10,6 +10,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   'alias' or 'unalias', overriding the commands by the same names. In
   technical terms, they are now regular builtins, not special builtins.
 
+- The redirect='command exec' alias has been converted to a regular
+  'redirect' builtin command that only accepts I/O redirections, which
+  persist as in 'exec'. This means that:
+  * 'unlias -a' no longer removes the 'redirect' command;
+  * users no longer accidentally get logged out of their shells if
+    they type something intuitive but wrong, like 'redirect ls >file'.
+
 2020-06-10:
 
 - The 'hash' utility is now a regular builtin instead of an alias to

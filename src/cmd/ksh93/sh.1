@@ -804,8 +804,6 @@ but can be unset or redefined:
 .TP
 .B "r=\(fmhist \-s\(fm"
 .TP
-.B "redirect=\(fmcommand exec\(fm"
-.TP
 .B "source=\(fmcommand \s+2.\s-2\(fm"
 .TP
 .B "stop=\(fmkill \-s \s-1STOP\s+1\(fm"
@@ -5802,10 +5800,11 @@ In addition, if
 refers to a special built-in,
 none of the special properties associated with the leading
 daggers will be honored.
-(For example, the predefined alias
-.B "redirect=\(fmcommand exec\(fm"
+(For example, using
+.B "command set -o"
+.I "option-name"
 prevents a script from terminating when an invalid
-redirection is given.)
+option name is given.)
 With the
 .B \-x
 option,
@@ -5916,18 +5915,11 @@ rather than the first
 to become
 .B argv[0]
 for the new process.
-Input/output arguments may appear and
-affect the current process.
 If
 .I arg\^
-is not given,
-the effect of this command is to
-modify file descriptors
-as prescribed by the input/output redirection list.
-In this case,
-any file descriptor numbers greater than 2 that are
-opened with this mechanism are closed when invoking
-another program.
+is not given and only I/O redirection arguments are given,
+then this command persistently modifies file descriptors as in
+.BR redirect.
 .TP
 \(dg \f3exit\fP \*(OK \f2n\^\fP \*(CK
 Causes the shell to exit
@@ -6769,6 +6761,23 @@ names cannot be changed
 by subsequent assignment.
 When defining a type, if the value of a readonly sub-variable is not defined
 the value is required when creating each instance.
+.TP
+\f3redirect\fP
+This command only accepts input/output redirection arguments.
+It can open and close files and modify file descriptors from
+.B 0
+to
+.B 9
+as specified by the input/output redirection list (see the
+.I Input/Output\^
+section above),
+with the difference that the effect persists past the execution of the
+.B redirect
+command.
+Any file descriptor numbers greater than
+.B 2
+that are opened with this mechanism are closed when invoking another program,
+unless explicitly redirected to themselves as part of that invocation.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
 Causes a shell
