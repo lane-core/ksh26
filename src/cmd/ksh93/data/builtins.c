@@ -341,7 +341,7 @@ USAGE_LICENSE
 
 const char sh_optalarm[]	= "r [varname seconds]";
 const char sh_optalias[] =
-"[-1c?\n@(#)$Id: alias (AT&T Research/ksh community) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: alias (AT&T Research/ksh93) 2020-06-10 $\n]"
 USAGE_LICENSE
 "[+NAME?alias - define or display aliases]"
 "[+DESCRIPTION?\balias\b creates or redefines alias definitions "
@@ -922,7 +922,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh community) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh93) 2020-06-10 $\n]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
 	"locations of recently used programs. If given no arguments, it lists "
@@ -1350,7 +1350,7 @@ USAGE_LICENSE
 ;
 
 const char sh_optredirect[] =
-"[-1c?\n@(#)$Id: redirect (ksh community) 2020-06-11 $\n]"
+"[-1c?\n@(#)$Id: redirect (ksh93) 2020-06-11 $\n]"
 "[+NAME?redirect - open/close and duplicate file descriptors]"
 "[+DESCRIPTION?This command only accepts input/output redirection arguments. "
 	"It can open and close files and modify file descriptors from \b0\b "
@@ -1795,7 +1795,7 @@ USAGE_LICENSE
 ;
 
 const char sh_opttimes[] =
-"[-1c?@(#)$Id: times (ksh community) 2020-06-06 $\n]"
+"[-1c?@(#)$Id: times (ksh93) 2020-06-06 $\n]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
 "one line with the times used by the shell and another with those used by "
