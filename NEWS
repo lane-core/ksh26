@@ -17,6 +17,14 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   * users no longer accidentally get logged out of their shells if
     they type something intuitive but wrong, like 'redirect ls >file'.
 
+- The undocumented 'login' and 'newgrp' builtin commands have been removed.
+  These replaced your shell session with the external commands by the same
+  name, as in 'exec'. If an error occurred (e.g. due to a typo), you would
+  end up immediately logged out.
+  If you do want this behaviour, you can restore it by setting:
+	alias login='exec login'
+	alias newgrp='exec newgrp'
+
 2020-06-10:
 
 - The 'hash' utility is now a regular builtin instead of an alias to

@@ -61,12 +61,24 @@ struct login
 };
 
 /*
+ * Handler function for nv_scan() that unsets a variable's export attribute
+ */
+static void     noexport(register Namval_t* np, void *data)
+{
+	NOT_USED(data);
+	nv_offattr(np,NV_EXPORT);
+}
+
+/*
  * 'exec' special builtin and 'redirect' builtin
  */
 int    b_exec(int argc,char *argv[], Shbltin_t *context)
 {
 	struct login logdata;
 	register int n;
+	struct checkpt *pp;
+	const char *pname;
+
 	logdata.clear = 0;
 	logdata.arg0 = 0;
 	logdata.sh = context->shp;
@@ -92,74 +104,54 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	if(*argv[0]=='r' && argv[opt_info.index])  /* 'redirect' supports no args */
 		errormsg(SH_DICT,ERROR_exit(2),e_badsyntax);
 	argv += opt_info.index;
-	if(*argv)
-                B_login(0,argv,(Shbltin_t*)&logdata);
-	return(0);
-}
+	if(!*argv)
+		return(0);
 
-static void     noexport(register Namval_t* np, void *data)
-{
-	NOT_USED(data);
-	nv_offattr(np,NV_EXPORT);
-}
-
-int    B_login(int argc,char *argv[],Shbltin_t *context)
-{
-	struct checkpt *pp;
-	register struct login *logp=0;
-	register Shell_t *shp;
-	const char *pname;
-	if(argc)
-		shp = context->shp;
-	else
-	{
-		logp = (struct login*)context;
-		shp = logp->sh;
-	}
-	pp = (struct checkpt*)shp->jmplist;
+	/* from here on, it's 'exec' with args, so we're replacing the shell */
 	if(sh_isoption(SH_RESTRICTED))
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted,argv[0]);
 	else
         {
-		register struct argnod *arg=shp->envlist;
+		register struct argnod *arg=logdata.sh->envlist;
 		register Namval_t* np;
 		register char *cp;
-		if(shp->subshell && !shp->subshare)
+		if(logdata.sh->subshell && !logdata.sh->subshare)
 			sh_subfork();
-		if(logp && logp->clear)
+		if(logdata.clear)
 		{
 #ifdef _ENV_H
-			env_close(shp->env);
-			shp->env = env_open((char**)0,3);
+			env_close(logdata.sh->env);
+			logdata.sh->env = env_open((char**)0,3);
 #else
-			nv_scan(shp->var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
+			nv_scan(logdata.sh->var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
 #endif
 		}
 		while(arg)
 		{
 			if((cp=strchr(arg->argval,'=')) &&
-				(*cp=0,np=nv_search(arg->argval,shp->var_tree,0)))
+				(*cp=0,np=nv_search(arg->argval,logdata.sh->var_tree,0)))
 			{
 				nv_onattr(np,NV_EXPORT);
-				sh_envput(shp->env,np);
+				sh_envput(logdata.sh->env,np);
 			}
 			if(cp)
 				*cp = '=';
 			arg=arg->argnxt.ap;
 		}
 		pname = argv[0];
-		if(logp && logp->arg0)
-			argv[0] = logp->arg0;
+		if(logdata.arg0)
+			argv[0] = logdata.arg0;
 #ifdef JOBS
-		if(job_close(shp) < 0)
+		if(job_close(logdata.sh) < 0)
 			return(1);
 #endif /* JOBS */
 		/* force bad exec to terminate shell */
+		pp = (struct checkpt*)logdata.sh->jmplist;
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
-		sh_freeup(shp);
-		path_exec(shp,pname,argv,NIL(struct argnod*));
-		sh_done(shp,0);
+		sh_freeup(logdata.sh);
+		path_exec(logdata.sh,pname,argv,NIL(struct argnod*));
+		sh_done(logdata.sh,0);
         }
 	return(1);
 }

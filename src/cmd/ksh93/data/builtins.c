@@ -58,7 +58,6 @@
  */
 const struct shtable3 shtab_builtins[] =
 {
-	"login",	NV_BLTIN|BLT_ENV,		Bltin(login),
 	"exec",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(exec),
 	"redirect",	NV_BLTIN|BLT_ENV,		bltin(exec),
 	"set",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(set),	
@@ -81,9 +80,6 @@ const struct shtable3 shtab_builtins[] =
 /*
  * Builtins without offset macros in include/builtins.h follow.
  */
-#if _bin_newgrp || _usr_bin_newgrp
-	"newgrp",	NV_BLTIN|BLT_ENV,		Bltin(login),
-#endif	/* _bin_newgrp || _usr_bin_newgrp */
 	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
 	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),

@@ -32,25 +32,24 @@
  * IMPORTANT: The offsets on these macros must be synchronous
  * with the order of shtab_builtins[] in data/builtins.c!
  */
-#define	SYSLOGIN	(shgd->bltin_cmds)	/* login */
-#define SYSEXEC		(shgd->bltin_cmds+1)	/* exec */
-#define SYSREDIR	(shgd->bltin_cmds+2)	/* redirect */
-#define SYSSET		(shgd->bltin_cmds+3)	/* set */
+#define SYSEXEC		(shgd->bltin_cmds)	/* exec */
+#define SYSREDIR	(shgd->bltin_cmds+1)	/* redirect */
+#define SYSSET		(shgd->bltin_cmds+2)	/* set */
 						/* : */
-#define SYSTRUE		(shgd->bltin_cmds+5)	/* true */
-#define SYSCOMMAND	(shgd->bltin_cmds+6)	/* command */
-#define SYSCD		(shgd->bltin_cmds+7)	/* cd */
-#define SYSBREAK	(shgd->bltin_cmds+8)	/* break */
-#define SYSCONT		(shgd->bltin_cmds+9)	/* continue */
-#define SYSTYPESET	(shgd->bltin_cmds+10)	/* typeset */
-#define SYSTEST		(shgd->bltin_cmds+11)	/* test */
-#define SYSBRACKET	(shgd->bltin_cmds+12)	/* [ */
-#define SYSLET		(shgd->bltin_cmds+13)	/* let */
-#define SYSEXPORT	(shgd->bltin_cmds+14)	/* export */
-#define SYSDOT		(shgd->bltin_cmds+15)	/* . */
-#define SYSRETURN	(shgd->bltin_cmds+16)	/* return */
+#define SYSTRUE		(shgd->bltin_cmds+4)	/* true */
+#define SYSCOMMAND	(shgd->bltin_cmds+5)	/* command */
+#define SYSCD		(shgd->bltin_cmds+6)	/* cd */
+#define SYSBREAK	(shgd->bltin_cmds+7)	/* break */
+#define SYSCONT		(shgd->bltin_cmds+8)	/* continue */
+#define SYSTYPESET	(shgd->bltin_cmds+9)	/* typeset */
+#define SYSTEST		(shgd->bltin_cmds+10)	/* test */
+#define SYSBRACKET	(shgd->bltin_cmds+11)	/* [ */
+#define SYSLET		(shgd->bltin_cmds+12)	/* let */
+#define SYSEXPORT	(shgd->bltin_cmds+13)	/* export */
+#define SYSDOT		(shgd->bltin_cmds+14)	/* . */
+#define SYSRETURN	(shgd->bltin_cmds+15)	/* return */
 #if SHOPT_BASH
-#   define SYSLOCAL	(shgd->bltin_cmds+17)	/* local */
+#   define SYSLOCAL	(shgd->bltin_cmds+16)	/* local */
 #else
 #   define SYSLOCAL	0
 #endif
