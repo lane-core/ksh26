@@ -6,6 +6,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2020-06-11:
 
+- Fixed a bug that caused running 'builtin -d' on a special builtin to
+  delete it. The man page for the 'builtin' command documents that special
+  builtins cannot be deleted.
+
 - POSIX compliance fix: It is now possible to set shell functions named
   'alias' or 'unalias', overriding the commands by the same names. In
   technical terms, they are now regular builtins, not special builtins.
