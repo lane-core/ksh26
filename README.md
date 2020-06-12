@@ -15,7 +15,8 @@ To see what's left to fix, see [TODO](./TODO).
 
 ## Policy
 
-1. No new features. Bug fixes only.
+1. No new features; bug fixes only (but see items 3 and 4).
+   Feature development is for a future separate branch.
 2. No major rewrites. No refactoring code that is not fully understood.
 3. No changes in documented behaviour, except if required for compliance with the
    [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
