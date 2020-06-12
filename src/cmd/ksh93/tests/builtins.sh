@@ -687,4 +687,10 @@ PATH=$tmp:$PATH $SHELL <<-\EOF || err_exit "'whence' gets wrong path on init"
 EOF
 
 # ======
+# `builtin -d` should not delete special builtins
+(builtin -d export 2> /dev/null
+PATH=/dev/null
+whence -q export) || err_exit '`builtin -d` deletes special builtins'
+
+# ======
 exit $((Errors<125?Errors:125))

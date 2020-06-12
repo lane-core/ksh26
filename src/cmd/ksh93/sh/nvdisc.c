@@ -1203,6 +1203,8 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		stakseek(offset);
 		if(extra == (void*)1)
 		{
+			if(nv_isattr(np,BLT_SPC))
+				errormsg(SH_DICT,ERROR_exit(1),"cannot delete: %s%s",name,is_spcbuiltin);
 			if(np->nvfun && !nv_isattr(np,NV_NOFREE))
 				free((void*)np->nvfun);
 			dtdelete(sh.bltin_tree,np);
