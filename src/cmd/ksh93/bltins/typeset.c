@@ -1208,11 +1208,9 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 	}
 
 	/*
-	 * Check for variables with internal trap/discipline functions (PATH, LANG, LC_*, LINENO, etc.).
-	 * Unsetting these in a virtual/non-forked subshell would cause them to lose their discipline actions,
-	 * so, for example, (unset PATH; PATH=/dev/null; ls) would run 'ls'! Until a fix is found, make the problem
-	 * go away by forking the subshell. To avoid crashing, this must be done before calling sh_pushcontext(),
-	 * so we need to loop through the args separately to check if any variable to unset has a discipline function.
+	 * Unsetting the PATH in a non-forked subshell will cause the parent shell's hash table to be reset,
+	 * so fork to work around the problem. To avoid crashing, this must be done before calling sh_pushcontext(),
+	 * so we need to loop through the args separately and check if any node is equal to PATHNOD.
 	 */
 	if(shp->subshell && !shp->subshare && troot==shp->var_tree)
 	{
@@ -1222,8 +1220,8 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 			np=nv_open(name,troot,NV_NOADD|nflag);
 			if(!np)
 				continue;
-			/* Has discipline function, and is not a nameref? */
-			if(np->nvfun && np->nvfun->disc && !nv_isref(np))
+			/* Are we changing the PATH? */
+			if(np==PATHNOD)
 			{
 				nv_close(np);
 				sh_subfork();
@@ -1276,7 +1274,18 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 				}
 					
 				if(shp->subshell)
-					np=sh_assignok(np,0);
+				{
+					if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
+					{
+						/*
+						 * Variables with internal trap/discipline functions (LC_*, LINENO, etc.) need to be
+						 * cloned, as moving them will remove the discipline function.
+						 */
+						np=sh_assignok(np,1);
+					}
+					else
+						np=sh_assignok(np,0);
+				}
 			}
 
 			if(!nv_isnull(np) || nv_size(np) || nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)))
