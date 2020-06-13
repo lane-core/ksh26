@@ -4,6 +4,10 @@ For full details, see the git log at:
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-06-13:
+- Fixed a timezone name determination bug on FreeBSD that caused the
+  output from `LC_ALL=C printf '%T' now` to print the wrong time zone name.
+
 2020-06-11:
 
 - Fixed a bug that caused running 'builtin -d' on a special builtin to
