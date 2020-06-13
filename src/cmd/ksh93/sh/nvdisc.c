@@ -962,7 +962,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	{
 		if(nv_isattr(np,NV_INTEGER))
 			mp->nvalue.ip = np->nvalue.ip;
-		np->nvfun = 0;
+		np->nvfun = 0; /* This will remove the discipline function, if there is one */
 		np->nvalue.cp = 0;
 		if(!nv_isattr(np,NV_MINIMAL) || nv_isattr(mp,NV_EXPORT))
 		{
