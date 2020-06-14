@@ -1,10 +1,10 @@
 This documents significant changes in the 93u+m branch of AT&T ksh93.
-For full details, see the git log at:
-	https://github.com/modernish/ksh
+For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
 2020-06-13:
+
 - Fixed a timezone name determination bug on FreeBSD that caused the
   output from `LC_ALL=C printf '%T' now` to print the wrong time zone name.
 
