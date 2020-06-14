@@ -149,9 +149,17 @@ extern struct jobs job;
 #define vmbusy()	0
 #endif
 
+/*
+ * Job locking and unlocking macros
+ */
+#if defined(__sync_fetch_and_add) && defined(__sync_fetch_and_sub)
+/*
+ * This version may prevent segfaults due to a GCC optimizer bug.
+ * See: https://bugzilla.redhat.com/show_bug.cgi?id=1112306
+ *	https://bugs.launchpad.net/ubuntu/+source/ksh/+bug/1697501
+ */
 #define asoincint(p)  __sync_fetch_and_add(p,1)
 #define asodecint(p)  __sync_fetch_and_sub(p,1)
-
 #define job_lock()	asoincint(&job.in_critical)
 #define job_unlock()	\
 	do { \
@@ -163,6 +171,22 @@ extern struct jobs job;
 			asodecint(&job.in_critical); \
 		} \
 	} while(0)
+#else
+/*
+ * Original ksh93 version.
+ */
+#define job_lock()	(job.in_critical++)
+#define job_unlock()	\
+	do { \
+		int	sig; \
+		if (!--job.in_critical && (sig = job.savesig)) \
+		{ \
+			if (!job.in_critical++ && !vmbusy()) \
+				job_reap(sig); \
+			job.in_critical--; \
+		} \
+	} while(0)
+#endif /* defined(__sync_fetch_and_add) && defined(__sync_fetch_and_sub) */
 
 extern const char	e_jobusage[];
 extern const char	e_done[];
