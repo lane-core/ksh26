@@ -185,6 +185,10 @@
 #   endif /* !FIORDCHK */
 #endif /* FIONREAD */
 
+#if _sys_ioctl
+#include        <sys/ioctl.h>
+#endif
+
 extern int	tty_alt(int);
 extern void	tty_cooked(int);
 extern int	tty_get(int,struct termios*);

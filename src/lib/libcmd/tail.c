@@ -104,6 +104,7 @@ USAGE_LICENSE
 #include <ls.h>
 #include <tv.h>
 #include <rev.h>
+#include <time.h>
 
 #define COUNT		(1<<0)
 #define ERROR		(1<<1)
