@@ -693,9 +693,4 @@ PATH=/dev/null
 whence -q export) || err_exit '`builtin -d` deletes special builtins'
 
 # ======
-# `read -S` should handle double quotes correctly
-IFS=',' read -S a b c <<<'foo,"""title"" data",bar'
-[[ $b == '"title" data' ]] || err_exit '"" inside "" not handled correctly with read -S'
-
-# ======
 exit $((Errors<125?Errors:125))
