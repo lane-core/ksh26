@@ -834,7 +834,7 @@ static int hist_write(Sfio_t *iop,const void *buff,register int insize,Sfdisc_t*
 	if(hp->auditfp)
 	{
 		time_t	t=time((time_t*)0);
-		sfprintf(hp->auditfp,"%u;%u;%s;%*s%c",sh_isoption(SH_PRIVILEGED)?shgd->euserid:shgd->userid,t,hp->tty,size,buff,0);
+		sfprintf(hp->auditfp,"%u;%lu;%s;%*s%c",sh_isoption(SH_PRIVILEGED)?shgd->euserid:shgd->userid,(unsigned long)t,hp->tty,size,buff,0);
 		sfsync(hp->auditfp);
 	}
 #endif	/* SHOPT_AUDIT */
