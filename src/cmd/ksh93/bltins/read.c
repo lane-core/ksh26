@@ -566,12 +566,20 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 #endif /*SHOPT_MULTIBYTE */
 		    case S_QUOTE:
 			c = shp->ifstable[*cp++];
-			inquote = !inquote;
+			if(inquote && c==S_QUOTE)
+				c = -1;
+			else
+				inquote = !inquote;
 			if(val)
 			{
 				stakputs(val);
 				use_stak = 1;
 				*val = 0;
+			}
+			if(c==-1)
+			{
+				stakputc('"');
+				c = shp->ifstable[*cp++];
 			}
 			continue;
 		    case S_ESC:
