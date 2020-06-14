@@ -29,15 +29,15 @@
 #include <ast.h>
 #include <ast_tty.h>
 
+#if _sys_ioctl
+#include <sys/ioctl.h>
+#endif
+
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
 __STDPP__directive pragma pp:hide ioctl sleep
 #else
 #define ioctl		______ioctl
 #define sleep		______sleep
-#endif
-
-#if _sys_ioctl
-#include <sys/ioctl.h>
 #endif
 
 #if defined(TIOCGWINSZ)
