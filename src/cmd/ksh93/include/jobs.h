@@ -149,15 +149,18 @@ extern struct jobs job;
 #define vmbusy()	0
 #endif
 
-#define job_lock()	(job.in_critical++)
+#define asoincint(p)  __sync_fetch_and_add(p,1)
+#define asodecint(p)  __sync_fetch_and_sub(p,1)
+
+#define job_lock()	asoincint(&job.in_critical)
 #define job_unlock()	\
 	do { \
 		int	sig; \
-		if (!--job.in_critical && (sig = job.savesig)) \
+		if (asodecint(&job.in_critical)==1 && (sig = job.savesig)) \
 		{ \
-			if (!job.in_critical++ && !vmbusy()) \
+			if (!asoincint(&job.in_critical) && !vmbusy()) \
 				job_reap(sig); \
-			job.in_critical--; \
+			asodecint(&job.in_critical); \
 		} \
 	} while(0)
 
