@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - The 'source' alias has been converted into a regular built-in command.
 
+- Functions that set variables in a virtual subshell will no longer affect
+  variables of the same name outside of the virtual subshell's environment.
+
 2020-06-14:
 
 - 'read -S' is now able to correctly handle strings with double quotes
