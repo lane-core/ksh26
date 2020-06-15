@@ -727,4 +727,17 @@ check_hash_table()
 [[ $(hash) == "chmod=$(whence -p chmod)" ]] || err_exit $'changes to a subshell\'s hash table affect the parent shell'
 
 # ======
+# Variables set in functions inside of a virtual subshell should not affect the
+# outside environment. This regression test must be run from the disk.
+testvars=$tmp/testvars.sh
+cat >| "$testvars" << 'EOF'
+c=0
+function set_ac { a=1; c=1; }
+function set_abc { ( set_ac ; b=1 ) }
+set_abc
+echo "a=$a b=$b c=$c"
+EOF
+v=$($SHELL $testvars) && [[ "$v" == "a= b= c=0" ]] || err_exit 'variables set in subshells are not confined to the subshell'
+
+# ======
 exit $((Errors<125?Errors:125))
