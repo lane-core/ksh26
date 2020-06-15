@@ -248,6 +248,9 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	Namval_t		*mpnext;
 	Namarr_t		*ap;
 	int			save;
+	/* don't bother to save if in a ${ subshare; } */
+	if(sp->subshare)
+		return(np);
 	/* don't bother with this */
 	if(!sp->shpwd || np==SH_LEVELNOD || np==L_ARGNOD || np==SH_SUBSCRNOD || np==SH_NAMENOD)
 		return(np);
