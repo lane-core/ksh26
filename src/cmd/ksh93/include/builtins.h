@@ -47,9 +47,10 @@
 #define SYSLET		(shgd->bltin_cmds+12)	/* let */
 #define SYSEXPORT	(shgd->bltin_cmds+13)	/* export */
 #define SYSDOT		(shgd->bltin_cmds+14)	/* . */
-#define SYSRETURN	(shgd->bltin_cmds+15)	/* return */
+#define SYSSOURCE	(shgd->bltin_cmds+15)	/* source */
+#define SYSRETURN	(shgd->bltin_cmds+16)	/* return */
 #if SHOPT_BASH
-#   define SYSLOCAL	(shgd->bltin_cmds+16)	/* local */
+#   define SYSLOCAL	(shgd->bltin_cmds+17)	/* local */
 #else
 #   define SYSLOCAL	0
 #endif

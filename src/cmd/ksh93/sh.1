@@ -804,8 +804,6 @@ but can be unset or redefined:
 .TP
 .B "r=\(fmhist \-s\(fm"
 .TP
-.B "source=\(fmcommand \s+2.\s-2\(fm"
-.TP
 .B "stop=\(fmkill \-s \s-1STOP\s+1\(fm"
 .TP
 .B "suspend=\(fmkill \-s \s-1STOP\s+1 $$\(fm"
@@ -7124,6 +7122,11 @@ number less than or equal to
 Suspends execution for the number of decimal seconds or fractions of a
 second given by
 .IR seconds .
+.TP
+\f3source\fP \f2name\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
+Same as
+.BR \|.\^ ,
+except it is not treated as a special built-in command.
 .TP
 \f3times\fP
 Displays the accumulated user and system CPU times, one line with the times

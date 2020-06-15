@@ -1023,7 +1023,11 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 	}
 	else if(n && n!=FUNCTSYM)
 		sh_syntax(lexp);
-	else if(type!=NV_ARRAY && n!=FUNCTSYM && !(lexp->arg->argflag&ARG_ASSIGN) && !((np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && (nv_isattr(np,BLT_DCL)|| np==SYSDOT)))
+	else if(type!=NV_ARRAY &&
+		n!=FUNCTSYM &&
+		!(lexp->arg->argflag&ARG_ASSIGN) &&
+		!((np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) &&
+		(nv_isattr(np,BLT_DCL) || np==SYSDOT || np==SYSSOURCE)))
 	{
 		array=SH_ARRAY;
 		if(fcgetc(n)==LPAREN)
@@ -1078,7 +1082,10 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 			if(array ||  n!=FUNCTSYM)
 				sh_syntax(lexp);
 		}
-		if((n!=FUNCTSYM) && !(lexp->arg->argflag&ARG_ASSIGN) && !((np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && (nv_isattr(np,BLT_DCL)||np==SYSDOT)))
+		if((n!=FUNCTSYM) &&
+			!(lexp->arg->argflag&ARG_ASSIGN) &&
+			!((np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) &&
+			(nv_isattr(np,BLT_DCL) || np==SYSDOT || np==SYSSOURCE)))
 		{
 			struct argnod *arg = lexp->arg;
 			if(n!=0)

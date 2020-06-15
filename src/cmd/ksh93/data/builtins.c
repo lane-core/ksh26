@@ -73,6 +73,7 @@ const struct shtable3 shtab_builtins[] =
 	"let",		NV_BLTIN|BLT_ENV,		bltin(let),
 	"export",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(readonly),
 	".",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(dot_cmd),
+	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 #if SHOPT_BASH
 	"local",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(typeset),
@@ -526,11 +527,12 @@ USAGE_LICENSE
 ;
 
 const char sh_optdot[]	 =
-"[-1c?@(#)$Id: \b.\b (AT&T Research) 2000-04-02 $\n]"
+"[-1c?@(#)$Id: \b.\b (AT&T Research/ksh93) 2020-06-15 $\n]"
 USAGE_LICENSE
-"[+NAME?\b.\b - execute commands in the current environment]"
-"[+DESCRIPTION?\b.\b is a special built-in command that executes commands "
-	"from a function or a file in the current environment.]"
+"[+NAME?\f?\f - execute commands in the current environment]"
+"[+DESCRIPTION?\b.\b and \bsource\b are built-in commands that execute "
+	"commands from a function or a file in the current environment. \b.\b "
+	"is a special built-in, whereas \bsource\b is a regular built-in.]"
 "[+?If \aname\a refers to a function defined with the \bfunction\b \aname\a "
 	"syntax, the function executes in the current environment as "
 	"if it had been defined with the \aname\a\b()\b syntax so that "
@@ -548,12 +550,11 @@ USAGE_LICENSE
 "\n"
 "\n name [arg ...]\n"
 "\n"
-"[+EXIT STATUS?If \aname\a is found, then the exit status is that "
-	"of the last command executed.  Otherwise, since this is a special "
-	"built-in, an error will cause a non-interactive shell to exit with "
-	"a non-zero exit status.  An interactive shell returns a non-zero exit "
-	"status to indicate an error.]"
-
+"[+EXIT STATUS?If \aname\a is found, then the exit status is that of the last "
+	"command executed. Otherwise, it is non-zero. \b.\b, being a special "
+	"built-in, will exit the current shell environment or abort execution "
+	"of the interactive command line upon error, whereas \bsource\b will "
+	"allow execution to continue.]"
 "[+SEE ALSO?\bcommand\b(1), \bksh\b(1)]"
 ;
 
