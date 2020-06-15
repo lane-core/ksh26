@@ -1627,7 +1627,7 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 	else
 	{
 		sep = ' ';
-		o = T(NiL, ID, "options");
+		o = T(NiL, ID, "options | --help | --man");
 		b = style == STYLE_nroff ? "\\ " : " ";
 		for (;;)
 		{

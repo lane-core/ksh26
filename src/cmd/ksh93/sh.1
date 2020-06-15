@@ -5471,16 +5471,21 @@ all built-in commands accept
 to indicate end of options.
 They also interpret the option
 .B \-\-man
-as a request to display the man page onto
-standard error and
+as a request to display that command's own manual page,
+.B \-\-help
+as a request to display the
+.I OPTIONS
+section from their manual page, and
 .B \-?
-as a help request which prints a
-.I usage\^
-message
-on standard error.
-Commands that are preceded by one or two \(dg symbols
-are special built-in commands and
-are treated specially in the following ways:
+as a request to print a brief usage message.
+All these are printed on standard error.
+There are advanced output options as well; see
+.B getopts --man
+for more information.
+.PP
+Commands that are preceded by one or two \(dg symbols below are
+.I special\ built-in\ commands
+and are treated specially in the following ways:
 .PD 0
 .TP
 1.

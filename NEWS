@@ -10,6 +10,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Functions that set variables in a virtual subshell will no longer affect
   variables of the same name outside of the virtual subshell's environment.
 
+- Terse usage messages written by builtin commands now point the user to
+  the --help and --man options for more information.
+
 2020-06-14:
 
 - 'read -S' is now able to correctly handle strings with double quotes
