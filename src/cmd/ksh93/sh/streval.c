@@ -37,6 +37,7 @@
 #include	"defs.h"	/* for sh.decomma */
 
 /* POSIX requires error status > 1 if called from test builtin */
+#undef ERROR_exit
 #define ERROR_exit(n) _ERROR_exit_b_test(n)
 
 #ifndef ERROR_dictionary

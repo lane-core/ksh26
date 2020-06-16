@@ -97,6 +97,7 @@ int _ERROR_exit_b_test(int exitval)
 	}
 	return(ERROR_exit(exitval));
 }
+#undef ERROR_exit
 #define ERROR_exit(n) _ERROR_exit_b_test(n)
 
 static int test_strmatch(Shell_t *shp,const char *str, const char *pat)
