@@ -723,15 +723,15 @@ v=${ eval 'al'; alias al='echo subshare'; } && [[ $v == 'mainalias' && $(eval 'a
 # Resetting a subshell's hash table should not affect the parent shell
 check_hash_table()
 {
-	[[ $(hash) ]] || err_exit $'resetting the hash table in a subshell affects the parent shell\'s hash table'
+	[[ $(hash) ]] || err_\exit $1 $'resetting the hash table in a subshell affects the parent shell\'s hash table'
 	# Ensure the hash table isn't empty before the next test is run
 	hash -r chmod
 }
 
-(hash -r); check_hash_table
-(PATH="$PATH"); check_hash_table
-(unset PATH); check_hash_table
-(nameref PATH_TWO=PATH; unset PATH_TWO); check_hash_table
+(hash -r); check_hash_table $LINENO					# err_exit (count me)
+(PATH="$PATH"); check_hash_table $LINENO				# err_exit (count me)
+(unset PATH); check_hash_table $LINENO					# err_exit (count me)
+(nameref PATH_TWO=PATH; unset PATH_TWO); check_hash_table $LINENO	# err_exit (count me)
 
 # Adding a utility to a subshell's hash table should not affect the parent shell
 (hash cat)
