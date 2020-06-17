@@ -33,7 +33,7 @@ tmp=$(
 	d=${TMPDIR:-/tmp}/ksh93.sigchld.$$.${RANDOM:-0}
 	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
 ) || {
-	err_exit 'mkdir failed'
+	err\_exit $LINENO 'mkdir failed'
 	exit 1
 }
 trap 'cd / && rm -rf "$tmp"' EXIT
