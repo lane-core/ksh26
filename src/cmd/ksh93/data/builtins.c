@@ -819,7 +819,7 @@ USAGE_LICENSE
   "for backwards compatibility.]"
 "a:[name?Use \aname\a instead of the command name in usage messages.]"
 "\n"
-"\nopstring name [args...]\n"
+"\noptstring name [args...]\n"
 "\n"
 "[+EXIT STATUS]{"
 	"[+0?An option specified was found.]"
