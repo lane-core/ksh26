@@ -52,9 +52,9 @@
 #undef	dirname
 
 /*
-+  * IMPORTANT: The order of these struct members must be synchronous
-+  * with the offsets on the macros defined in include/builtins.h!
-+  * The order up through "local" is significant.
+ * IMPORTANT: The order of these struct members must be synchronous
+ * with the offsets on the macros defined in include/builtins.h!
+ * The order up through "local" is significant.
  */
 const struct shtable3 shtab_builtins[] =
 {
