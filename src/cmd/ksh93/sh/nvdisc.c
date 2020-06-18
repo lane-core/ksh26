@@ -417,7 +417,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	}
 	if(bp== &block)
 		block_done(bp);
-	if(nq && nq->nvalue.rp->running==1)
+	if(nq && nq->nvalue.rp && nq->nvalue.rp->running==1)
 	{
 		nq->nvalue.rp->running=0;
 		_nv_unset(nq,0);

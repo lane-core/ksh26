@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-06-17:
+
+- A bug in 'unset -f' was fixed that prevented shell functions from
+  unsetting themselves while they were running. A POSIX function no longer
+  crashes when doing so, and a KornShell-style function no longer silently
+  ignores an 'unset -f' on itself. A function of either form now continues
+  running after unsetting itself, and is removed at the end of the run.
+
 2020-06-16:
 
 - Passing the '-d' flag to the read builtin will no longer cause the '-r'
