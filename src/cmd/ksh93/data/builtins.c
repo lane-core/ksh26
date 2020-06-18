@@ -583,7 +583,7 @@ USAGE_LICENSE
 ;
 
 const char sh_optexec[] =
-"[-1c?\n@(#)$Id: exec (AT&T Research) 2020-06-11 $\n]"
+"[-1c?\n@(#)$Id: exec (AT&T Research/ksh93) 2020-06-11 $\n]"
 USAGE_LICENSE
 "[+NAME?exec - execute command, open/close and duplicate file descriptors]"
 "[+DESCRIPTION?\bexec\b is a special built-in command that can be used to "
@@ -596,9 +596,6 @@ USAGE_LICENSE
 	"uses the exec mechanism internally whenever possible.]"
 "[+?If no operands are specified, \bexec\b can be used to persistently open "
 	"or close files or manipulate file descriptors as in \bredirect\b(1).]"
-"[+?Because \bexec\b is a special command, any failure will cause the "
-	"script that invokes it to exit.  This can be prevented by "
-	"invoking \bexec\b from the \bcommand\b utility.]"
 "[c?Clear all environment variables before executions except variable "
 	"assignments that are part of the current \bexec\b command.]"
 "[a]:[name?\bargv[0]]\b will be set to \aname\a for \acommand\a]"
@@ -610,6 +607,9 @@ USAGE_LICENSE
 	"[+0?All I/O redirections were successful.]"
 	"[+>0?An error occurred.]"
 "}"
+"[+?Because \bexec\b is a special built-in command, any failure will cause the "
+	"script or command line that invokes it to be aborted. This can be "
+	"prevented by invoking \bexec\b from the \bcommand\b utility.]"
 "[+SEE ALSO?\bcommand\b(1), \beval\b(1), \bredirect(1)\b]"
 ;
 
@@ -1358,8 +1358,6 @@ const char sh_optredirect[] =
 	"to \b9\b using the standard redirection mechanism available to all "
 	"commands, with the difference that the effect persists past the "
 	"execution of the \bredirect\b command.]"
-"[+?Unlike \bexec\b(1), \bredirect\b does not abort the script or command "
-	"line if an error occurs.]"
 "[+?Any file descriptor numbers greater than \b2\b that are opened with this "
 	"mechanism are closed when invoking another program, unless "
 	"explicitly redirected to themselves as part of that invocation.]"
@@ -1372,6 +1370,8 @@ const char sh_optredirect[] =
 	"[+0?All I/O redirections were successful.]"
 	"[+>0?An error occurred.]"
 "}"
+"[+?Unlike \bexec\b(1), \bredirect\b does not abort the script or command "
+	"line if an error occurs.]"
 "[+SEE ALSO?\bexec\b(1)]"
 ;
 
