@@ -1609,8 +1609,11 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	/*
 	 * Resetting the PATH in a non-forking subshell will reset the parent shell's
 	 * hash table, so work around the problem by forking before sh_assignok
+	 * -- however, don't do this if we were told to ignore the variable's readonly state (i.e.
+	 * if the NV_RDONLY flag is set), because that means we're restoring the parent shell state
+	 * after exiting a virtual subshell, and we would end up forking the parent shell instead.
 	 */
-	if(shp->subshell && !shp->subshare && np == PATHNOD)
+	if(np == PATHNOD && !(flags & NV_RDONLY) && shp->subshell && !shp->subshare)
 		sh_subfork();
 
 	/*
