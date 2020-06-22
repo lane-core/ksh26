@@ -29,13 +29,11 @@ Fix or remove broken or misguided default aliases:
 	- functions='typeset -f'
 	- integer='typeset -li'
 	- nameref='typeset -n'
-	- stop='kill -s STOP'
-	- suspend='kill -s STOP $$'
   Keep these default aliases for the benefit of interactive shells:
 	+ history='hist -l'
 	+ r='hist -s'
   To avoid interfering with shell functions by those names that POSIX
-  scripts may set, those should only intialise on interactive shells.
+  scripts may set, those should only initialise on interactive shells.
 
 ______
 Fix currently known bugs affecting shell scripting. These are identified by

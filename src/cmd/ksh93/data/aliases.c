@@ -37,10 +37,6 @@ const struct shtable2 shtab_aliases[] =
 	"integer",	NV_NOFREE|BLT_DCL,	"typeset -li",
 	"nameref",	NV_NOFREE|BLT_DCL,	"typeset -n",
 	"r",		NV_NOFREE,		"hist -s",
-#ifdef SIGTSTP
-	"stop",		NV_NOFREE,		"kill -s STOP",
-	"suspend", 	NV_NOFREE,		"kill -s STOP $$",
-#endif /*SIGTSTP */
 	"",		0,			(char*)0
 };
 

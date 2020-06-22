@@ -109,6 +109,10 @@ const struct shtable3 shtab_builtins[] =
 	"/bin/kill",	NV_BLTIN|BLT_ENV,		bltin(kill),
 #   endif	/* SIGTSTP */
 	"jobs",		NV_BLTIN|BLT_ENV,		bltin(jobs),
+#   ifdef SIGSTOP
+	"stop",		NV_BLTIN|BLT_ENV,		bltin(kill),
+	"suspend", 	NV_BLTIN|BLT_ENV,		bltin(suspend),
+#   endif	/* SIGSTOP */
 #endif	/* JOBS */
 	"false",	NV_BLTIN|BLT_ENV,		bltin(false),
 	"getopts",	NV_BLTIN|BLT_ENV,		bltin(getopts),
@@ -1059,6 +1063,42 @@ _JOB_
 "}"
 "[+SEE ALSO?\bps\b(1), \bjobs\b(1), \bkill\b(2), \bsignal\b(2)]"
 ;
+
+#if defined(JOBS) && defined(SIGSTOP)
+const char sh_optstop[] =
+"[-1c?\n@(#)$Id: stop (ksh93) 2020-06-22 $\n]"
+"[+NAME?stop - suspend a process]"
+"[+DESCRIPTION?\bstop\b sends a \bSIGSTOP\b signal to one or more processes "
+	"specified by \ajob\a, suspending them until they receive \bSIGCONT\b.]"
+_JOB_
+"\n"
+"\njob ...\n"
+"\n"
+"[+EXIT STATUS?]{"
+	"[+0?At least one matching process was found for each \ajob\a "
+	"operand, and \bSIGSTOP\b was successfully sent to at least one "
+	"matching process.]"
+	"[+>0?An error occurred.]"
+"}"
+"[+SEE ALSO?\bkill\b(1)]"
+;
+
+const char sh_optsuspend[] =
+"[-1c?\n@(#)$Id: suspend (ksh93) 2020-06-22 $\n]"
+"[+NAME?suspend - stop the shell]"
+"[+DESCRIPTION?\bsuspend\b sends a \bSIGSTOP\b signal to the main shell "
+	"process, suspending the script or child shell session until it "
+	"receives \bSIGCONT\b (for instance, when typing \bfg\b in the "
+	"parent shell).]"
+"[+?\bsuspend\b is equivalent to \bkill -s STOP \"$$\"\b, except that "
+	"it accepts no operands and refuses to suspend a login shell.]"
+"[+EXIT STATUS?]{"
+	"[+0?The shell was successfully suspended and continued.]"
+	"[+>0?An error occurred.]"
+"}"
+"[+SEE ALSO?\bkill\b(1)]"
+;
+#endif /* defined(JOBS) && defined(SIGSTOP) */
 
 const char sh_optlet[]	=
 "[-1c?@(#)$Id: let (AT&T Research) 2000-04-02 $\n]"

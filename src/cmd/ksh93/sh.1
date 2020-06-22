@@ -803,10 +803,6 @@ but can be unset or redefined:
 .B "nameref=\(fmtypeset \-n\(fm"
 .TP
 .B "r=\(fmhist \-s\(fm"
-.TP
-.B "stop=\(fmkill \-s \s-1STOP\s+1\(fm"
-.TP
-.B "suspend=\(fmkill \-s \s-1STOP\s+1 $$\(fm"
 .PD
 .RE
 .SS Tilde Substitution.
@@ -7132,6 +7128,28 @@ second given by
 Same as
 .BR \|.\^ ,
 except it is not treated as a special built-in command.
+.TP
+\f3stop\fP \f2job\^\fP .\|.\|.
+Sends a
+.B SIGSTOP
+signal to one or more processes specified by
+.IR job ,
+suspending them until they receive
+.BR SIGCONT .
+The same as
+.BR kill\ -s\ STOP .
+.TP
+\f3suspend\fP
+Sends a
+.B SIGSTOP
+signal to the main shell process, suspending the script
+or child shell session until it receives
+.B SIGCONT
+(for instance, when typing
+.B fg
+in the parent shell). Equivalent to
+.BR kill\ -s\ STOP\ "$$" ,
+except that it accepts no operands and refuses to suspend a login shell.
 .TP
 \f3times\fP
 Displays the accumulated user and system CPU times, one line with the times

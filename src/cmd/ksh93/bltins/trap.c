@@ -171,7 +171,16 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 	register Shell_t *shp = context->shp;
 	int usemenu = 0;
 	NOT_USED(argc);
+#if defined(JOBS) && defined(SIGSTOP)
+	if(**argv == 's')	/* <s>top == kill -s STOP */
+	{
+		flag |= S_FLAG;
+		signame = "STOP";
+	}
+	while((n = optget(argv, **argv == 's' ? sh_optstop : sh_optkill))) switch(n)
+#else
 	while((n = optget(argv,sh_optkill))) switch(n)
+#endif /* defined(JOBS) && defined(SIGSTOP) */
 	{
 		case ':':
 			if((signame=argv[opt_info.index++]) && (sig=sig_number(shp,signame+1))>=0)
@@ -232,6 +241,25 @@ endopts:
 		shp->exitval = 1;
 	return(shp->exitval);
 }
+
+#if defined(JOBS) && defined(SIGSTOP)
+/*
+ * former default alias suspend='kill -s STOP $$'
+ */
+int	b_suspend(int argc,char *argv[],Shbltin_t *context)
+{
+	NOT_USED(argc);
+	if(optget(argv, sh_optsuspend))	/* no options supported (except AST --man, etc.) */
+		errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
+	if(argv[opt_info.index])	/* no operands supported */
+		errormsg(SH_DICT, ERROR_exit(2), e_toomanyops);
+	if(sh_isoption(SH_LOGIN_SHELL))
+		errormsg(SH_DICT, ERROR_exit(1), "cannot suspend a login shell");
+	if(kill(context->shp->gd->pid, SIGSTOP) != 0)
+		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %d", context->shp->gd->pid);
+	return(0);
+}
+#endif /* defined(JOBS) && defined(SIGSTOP) */
 
 /*
  * Given the name or number of a signal return the signal number
