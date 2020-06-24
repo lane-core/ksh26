@@ -71,12 +71,6 @@ https://github.com/modernish/modernish/tree/0.16/lib/modernish/cap/
   are erroneously interpreted as wildcards when quoted "$*" is used as the
   glob pattern.
 
-- BUG_KUNSETIFS: ksh93: Can't unset IFS under very specific circumstances.
-  unset -v IFS is a known POSIX shell idiom to activate default field
-  splitting. With this bug, the unset builtin silently fails to unset IFS
-  (i.e. fails to activate field splitting) if we're executing an eval or a
-  trap and a number of specific conditions are met.
-
 - BUG_LOOPRET2: If a 'return' command is given without a status argument
   within the set of conditional commands in a 'while' or 'until' loop (i.e.,
   between 'while'/'until' and 'do'), the exit status passed down from the

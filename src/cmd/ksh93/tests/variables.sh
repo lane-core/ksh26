@@ -268,6 +268,9 @@ fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
 do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not an syntax error"
 done
+
+# ___ begin: IFS tests ___
+
 unset IFS
 ( IFS='  ' ; read -r a b c <<-!
 	x  y z
@@ -418,6 +421,29 @@ do
 		;;
 	esac
 done
+
+# BUG_KUNSETIFS: Unsetting IFS fails to activate default default field splitting if two conditions are met:
+IFS=''		# condition 1: no split in main shell
+: ${foo-}	# at least one expansion is also needed to trigger this
+(		# condition 2: subshell (non-forked)
+	unset IFS
+	v="one two three"
+	set -- $v
+	let "$# == 3"	# without bug, should be 3
+) || err_exit 'IFS fails to be unset in subshell (BUG_KUNSETIFS)'
+
+# Test known BUG_KUNSETIFS workaround (assign to IFS before unset)
+IFS= v=
+: ${v:=a$'\n'bc$'\t'def\ gh}
+case $(unset IFS; set -- $v; print $#) in
+4 | 1)	# test if the workaround works whether we've got the bug or not
+	v=$(IFS=foobar; unset IFS; set -- $v; print $#)
+	[[ $v == 4 ]] || err_exit "BUG_KUNSETIFS workaround fails (expected 4, got $v)" ;;
+*)	err_exit 'BUG_KUNSETIFS detection failed'
+esac
+
+# ^^^ end: IFS tests ^^^
+# restore default split:
 unset IFS
 
 if	[[ $( (print ${12345:?}) 2>&1) != *12345* ]]

@@ -180,6 +180,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   etc. to lose their effect after being unset in a subshell. For example:
     (unset PATH; PATH=/dev/null; ls); : wrongly ran 'ls'
     (unset LC_ALL; LC_ALL=badlocale); : failed to print a diagnostic
+  This also fixes BUG_KUNSETIFS: unsetting IFS in a subshell failed if IFS
+  was set to the empty value in the parent shell.
 
 - Fix crashes on some systems, including at least a crash in 'print -v' on
   macOS, by eliminating an invalid/undefined use of memccpy() on overlapping
