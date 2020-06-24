@@ -369,7 +369,13 @@ u #echo save
 r history
 !
 
-# err_exit #
+# Following test is disabled because it fails on too many systems, either intermittently
+# or consistently, through no fault of ksh, because vi(1) somehow fails to write "/tmp/"
+# as expected. Testing the POSIX compliance of whatever vi(1) the local system happens
+# to have is outside the scope of these tests, which are supposed to be testing ksh.
+# It is left here for re-enabling temporarily if related changes in ksh need testing.
+: <<\end_disabled
+# err_(don't count me)_exit #
 TMPDIR=/tmp tst $LINENO <<"!"
 L POSIX sh 137(C)
 
@@ -389,6 +395,7 @@ s 400
 w :wq
 u ^hello world\r?\n$
 !
+end_disabled
 
 # err_exit #
 tst $LINENO <<"!"
