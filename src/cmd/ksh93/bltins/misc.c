@@ -498,19 +498,19 @@ int	b_times(int argc, char *argv[], Shbltin_t *context)
 	/* First line: user and system times used by the shell */
 	utime = (double)cpu_times.tms_utime / shp->gd->lim.clk_tck;
 	utime_min = floor(utime / 60);
-	utime_sec = utime - utime_min;
+	utime_sec = fmod(utime, 60);
 	stime = (double)cpu_times.tms_stime / shp->gd->lim.clk_tck;
 	stime_min = floor(stime / 60);
-	stime_sec = stime - stime_min;
+	stime_sec = fmod(stime, 60);
 	sfprintf(sfstdout, "%dm%.2fs %dm%.2fs\n", (int)utime_min, utime_sec, (int)stime_min, stime_sec);
 
 	/* Second line: same for the shell's child processes */
 	utime = (double)cpu_times.tms_cutime / shp->gd->lim.clk_tck;
 	utime_min = floor(utime / 60);
-	utime_sec = utime - utime_min;
+	utime_sec = fmod(utime, 60);
 	stime = (double)cpu_times.tms_cstime / shp->gd->lim.clk_tck;
 	stime_min = floor(stime / 60);
-	stime_sec = stime - stime_min;
+	stime_sec = fmod(stime, 60);
 	sfprintf(sfstdout, "%dm%.2fs %dm%.2fs\n", (int)utime_min, utime_sec, (int)stime_min, stime_sec);
 
 	return(0);
