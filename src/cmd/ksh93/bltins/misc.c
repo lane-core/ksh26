@@ -464,55 +464,34 @@ int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 /*
  * times command
  */
+static void print_times(clock_t uticks, clock_t sticks, Shbltin_t *context)
+{
+	int clk_tck = context->shp->gd->lim.clk_tck;
+	double utime = (double)uticks / clk_tck, stime = (double)sticks / clk_tck;
+	sfprintf(sfstdout, "%dm%05.2fs %dm%05.2fs\n",
+		(int)floor(utime / 60), fmod(utime, 60),
+		(int)floor(stime / 60), fmod(stime, 60));
+}
 int	b_times(int argc, char *argv[], Shbltin_t *context)
 {
-	Shell_t *shp = context->shp;
-	const char *cmd = argv[0];
 	struct tms cpu_times;
-	clock_t rv;
-	double utime, stime, utime_min, utime_sec, stime_min, stime_sec;
-
-	while (argc = optget(argv, sh_opttimes)) switch (argc)
+	/* No options or operands are supported, except --man, etc. */
+	if (argc = optget(argv, sh_opttimes)) switch (argc)
 	{
 	    case ':':
 		errormsg(SH_DICT, 2, "%s", opt_info.arg);
-		break;
-	    case '?':
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage((char*)0));
+	    default:
 		errormsg(SH_DICT, ERROR_usage(0), "%s", opt_info.arg);
 		return(2);
-	    default:
-		break;
 	}
-	if (error_info.errors)
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage((char*)0));
-
-	argv += opt_info.index;
-	if (*argv)
-		errormsg(SH_DICT, ERROR_exit(3), e_badsyntax);
-
-	rv = times(&cpu_times);
-	if (rv == (clock_t)-1)
-		errormsg(SH_DICT, ERROR_exit(2), "times(3) failed: errno %d: %s",
-			 errno, strerror(errno));
-
-	/* First line: user and system times used by the shell */
-	utime = (double)cpu_times.tms_utime / shp->gd->lim.clk_tck;
-	utime_min = floor(utime / 60);
-	utime_sec = fmod(utime, 60);
-	stime = (double)cpu_times.tms_stime / shp->gd->lim.clk_tck;
-	stime_min = floor(stime / 60);
-	stime_sec = fmod(stime, 60);
-	sfprintf(sfstdout, "%dm%.2fs %dm%.2fs\n", (int)utime_min, utime_sec, (int)stime_min, stime_sec);
-
-	/* Second line: same for the shell's child processes */
-	utime = (double)cpu_times.tms_cutime / shp->gd->lim.clk_tck;
-	utime_min = floor(utime / 60);
-	utime_sec = fmod(utime, 60);
-	stime = (double)cpu_times.tms_cstime / shp->gd->lim.clk_tck;
-	stime_min = floor(stime / 60);
-	stime_sec = fmod(stime, 60);
-	sfprintf(sfstdout, "%dm%.2fs %dm%.2fs\n", (int)utime_min, utime_sec, (int)stime_min, stime_sec);
-
+	if (argv[opt_info.index])
+		errormsg(SH_DICT, ERROR_exit(2), e_toomanyops);
+	/* Get & print the times */
+	if (times(&cpu_times) == (clock_t)-1)
+		errormsg(SH_DICT, ERROR_exit(1), "times(3) failed: %s", strerror(errno));
+	print_times(cpu_times.tms_utime, cpu_times.tms_stime, context);
+	print_times(cpu_times.tms_cutime, cpu_times.tms_cstime, context);
 	return(0);
 }
 

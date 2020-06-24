@@ -671,11 +671,11 @@ fi
 # ======
 # 'times' builtin
 
-expect=$'0m0.0[0-9]s 0m0.0[0-9]s\n0m0.00s 0m0.00s'
+expect=$'0m00.0[0-9]s 0m00.0[0-9]s\n0m00.00s 0m00.00s'
 actual=$("$SHELL" -c times)
 [[ $actual == $expect ]] || err_exit "times output: expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
-expect=$'*: times: incorrect syntax'
+expect=$'*: times: too many operands'
 actual=$(set +x; eval 'times Extra Args' 2>&1)
 [[ $actual == $expect ]] || err_exit "times with args: expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
