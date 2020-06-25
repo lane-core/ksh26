@@ -232,6 +232,12 @@ done
 	[[ abcdcdabcde == {5}(ab|cd)e ]] || err_exit 'abcdcdabcd == {5}(ab|cd)e'
 ) || err_exit 'errors with {..}(...) patterns'
 [[ D290.2003.02.16.temp == D290.+(2003.02.16).temp* ]] || err_exit 'pattern match bug with +(...)'
+
+# Tests for [[ -N ... ]] (test -N ...) are disabled because it is expected to break on systems where
+# $TMPDIR (or even the entire root file system) is mounted with noatime for better performance.
+# Ref.: https://opensource.com/article/20/6/linux-noatime
+# (It also needs annoyingly long sleep times on older systems with a 1-second timestamp granularity.)
+: <<\end_disabled
 rm -rf $file
 {
 [[ -N $file ]] && err_exit 'test -N $tmp/*: st_mtime>st_atime after creat'
@@ -242,6 +248,8 @@ sleep .02
 read
 [[ -N $file ]] && err_exit 'test -N $tmp/*: st_mtime>st_atime after read'
 } > $file < $file
+end_disabled
+
 if	rm -rf "$file" && ln -s / "$file"
 then	[[ -L "$file" ]] || err_exit '-L not working'
 	[[ -L "$file"/ ]] && err_exit '-L with file/ not working'
