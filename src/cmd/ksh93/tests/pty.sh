@@ -470,5 +470,40 @@ u ^/tmp/fakehome/testfile\r?\n$
 !
 rm -r /tmp/fakehome
 
+# err_exit #
+LC_ALL=C tst $LINENO <<"!"
+L raw Bourne mode literal tab characters with wide characters disabled
+
+# This gets handled by ed_read() in edit.c; it does not expand tab
+# characters on the command line.
+
+w set +o vi +o emacs
+p :test-2:
+w true /de\tv/nu\tl\tl
+r ^:test-2: true /de\tv/nu\tl\tl\r\n$
+p :test-3:
+!
+
+# err_exit #
+LC_ALL=C.UTF-8 tst $LINENO <<"!"
+L raw Bourne mode literal tab characters with wide characters enabled
+
+# This gets handled by ed_viread() in vi.c (even though vi mode is off);
+# it expands tab characters to spaces on the command line.
+
+w set +o vi +o emacs
+p :test-2:
+w true /de\tv/nu\tl\tl
+
+# TODO: there is some race condition in either pty or in ksh's default edit
+# mode, which causes it to expect/generate either tabs ('\t') or expanded
+# spaces, randomly, intermittently. This is functionally equivalent as it
+# only affects either pty or (invisibly) the editing command line, so not a
+# high priority. Until this is tracked down and fixed, accept both.
+
+r ^:test-2: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
+p :test-3:
+!
+
 # ======
 exit $((Errors<125?Errors:125))

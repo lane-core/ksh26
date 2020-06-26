@@ -8,6 +8,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed buggy tab completion of tilde-expanded paths such as
   ~/some in 'vi' mode.
 
+- In the raw/default Bourne Shell-like editing mode that occurs when neither
+  the 'emacs' nor the 'vi' shell option is active:
+  * tab completion is now correctly disabled, instead of enabled and broken;
+  * entering tab characters now moves the cursor the correct amount.
+
 2020-06-23:
 
 - Fixed a bug that caused combining process substitution with redirection

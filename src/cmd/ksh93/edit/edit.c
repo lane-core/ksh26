@@ -1342,8 +1342,7 @@ int ed_virt_to_phys(Edit_t *ep,genchar *virt,genchar *phys,int cur,int voff,int 
 			if(c=='\t')
 			{
 				c = dp-phys;
-				if(sh_isoption(SH_VI))
-					c += ep->e_plen;
+				c += ep->e_plen;
 				c = TABSIZE - c%TABSIZE;
 				while(--c>0)
 					*dp++ = ' ';
@@ -1354,8 +1353,7 @@ int ed_virt_to_phys(Edit_t *ep,genchar *virt,genchar *phys,int cur,int voff,int 
 				*dp++ = '^';
 				c = printchar(c);
 			}
-			/* in vi mode the cursor is at the last character */
-			if(curp == sp && sh_isoption(SH_VI))
+			if(curp == sp)
 				r = dp - phys;
 		}
 		*dp++ = c;
