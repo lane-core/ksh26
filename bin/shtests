@@ -27,11 +27,11 @@ mydir=$(dirname "$0") \
 && mydir=$(CDPATH='' cd -P -- "$mydir/.." && printf '%sX' "$PWD") \
 && mydir=${mydir%X} \
 || exit
+myarch=$("$mydir/bin/package" host type) || exit
 
 # Check if there is a ksh to test.
 case ${KSH+set} in
-( '' )	myarch=$("$mydir/bin/package" host) || exit
-	KSH=$mydir/arch/$myarch/bin/ksh ;;
+( '' )	KSH=$mydir/arch/$myarch/bin/ksh ;;
 esac
 if ! test -x "$KSH" || ! test -f "$KSH"; then
 	printf '%s: shell not found: %s\n' "${0##*/}" "$KSH" >&2
@@ -47,7 +47,8 @@ KSH=$(CDPATH='' cd -P -- "$(dirname "$KSH")" \
 # Run the test suite
 CDPATH='' cd -P -- "$mydir/src/cmd/ksh93/tests" || exit
 SHELL=$KSH
-export SHELL
+INSTALLROOT=${INSTALLROOT:-$mydir/arch/$myarch}
+export SHELL INSTALLROOT
 unset -v KSH
 printf '#### Regression-testing %s ####\n' "$SHELL"
 exec "$SHELL" shtests "$@"
