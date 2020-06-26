@@ -311,8 +311,8 @@ fi
 [[ $(printf '%q\n') == '' ]] || err_exit 'printf "%q" with missing arguments'
 # we won't get hit by the one second boundary twice, right?
 expect= actual=
-{ expect=$(LC_ALL=C date) && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||
-{ expect=$(LC_ALL=C date) && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||
+{ expect=$(LC_ALL=C date | sed 's/ GMT / UTC /') && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||
+{ expect=$(LC_ALL=C date | sed 's/ GMT / UTC /') && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||
 err_exit 'printf "%T" now' "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 behead()
 {
