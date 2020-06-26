@@ -165,7 +165,8 @@ function valxml
 	return $errors
 }
 
-unset DISPLAY ENV FIGNORE HISTFILE
+unset DISPLAY FIGNORE HISTFILE
+export ENV=/./dev/null
 trap + PIPE # unadvertized -- set SIGPIPE to SIG_DFL #
 
 integer compile=-1 posix=-1 utf8=-1

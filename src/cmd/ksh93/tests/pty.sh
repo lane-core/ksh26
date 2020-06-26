@@ -79,7 +79,7 @@ function tst
 	done
 }
 
-export PS1=':test-!: ' PS2='> ' PS4=': ' ENV= EXINIT= HISTFILE= TERM=dumb VISUAL=vi LC_ALL=C
+export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb VISUAL=vi LC_ALL=C
 
 if	! pty $bintrue < /dev/null
 then	err_exit pty command hangs on $bintrue -- tests skipped

@@ -638,7 +638,7 @@ then	[[ $(kill -l HUP) == "$(kill -L HUP)" ]] || err_exit 'kill -l and kill -L a
 	[[ $(kill -L) == *'9) KILL'* ]] || err_exit 'kill -L output does not contain 9) KILL'
 fi
 
-unset ENV
+export ENV=/./dev/null
 v=$($SHELL 2> /dev/null +o rc -ic $'getopts a:bc: opt --man\nprint $?')
 [[ $v == 2* ]] || err_exit 'getopts --man does not exit 2 for interactive shells'
 

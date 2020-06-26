@@ -29,7 +29,7 @@ Command=${0##*/}
 integer Errors=0
 
 unset HISTFILE
-export LC_ALL=C ENV=
+export LC_ALL=C ENV=/./dev/null
 
 ulimit -c 0
 
@@ -109,7 +109,7 @@ else
 		err_exit '-i ignores $ENV file'
 fi
 
-export ENV=
+export ENV=/./dev/null
 if	[[ -o privileged ]]
 then
 	[[ $(print env_hit | HOME=$tmp $SHELL 2>&1) == "OK" ]] &&
@@ -424,7 +424,7 @@ got=$(
 $SHELL -c '[[ $- == *c* ]]' || err_exit 'option c not in $-'
 > $tmp/.profile
 for i in i l r s D E a b e f h k n t u v x B C G H
-do	HOME=$tmp ENV= $SHELL -$i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not in \$-"
+do	HOME=$tmp ENV=/./dev/null $SHELL -$i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not in \$-"
 	[[ \$- == *$i* ]] || exit 1
 	++EOF++
 done
@@ -433,13 +433,13 @@ integer j=0
 for i in interactive login restricted allexport notify errexit \
 	noglob trackall keyword noexec nounset verbose xtrace braceexpand \
 	noclobber globstar rc
-do	HOME=$tmp ENV= $SHELL -o $i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not equivalent to ${letters:j:1}"
+do	HOME=$tmp ENV=/./dev/null $SHELL -o $i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not equivalent to ${letters:j:1}"
 	[[ \$- == *${letters:j:1}* ]] || exit 1
 	++EOF++
 	((j++))
 done
 
-export ENV= PS1="(:$$:)"
+export ENV=/./dev/null PS1="(:$$:)"
 histfile=$tmp/history
 exp=$(HISTFILE=$histfile $SHELL -c $'function foo\n{\ncat\n}\ntype foo')
 for var in HISTSIZE HISTFILE
@@ -559,6 +559,6 @@ done
 # process source files from profiles as profile files
 print '. ./dotfile' > envfile
 print $'alias print=:\nprint foobar' > dotfile
-[[ $(ENV=$PWD/envfile $SHELL -i -c : 2>/dev/null) == foobar ]] && err_exit 'files source from profile does not process aliases correctly'
+[[ $(ENV=/.$PWD/envfile $SHELL -i -c : 2>/dev/null) == foobar ]] && err_exit 'files source from profile does not process aliases correctly'
 
 exit $((Errors<125?Errors:125))
