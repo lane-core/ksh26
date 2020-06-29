@@ -11,6 +11,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Unsetting an array that was turned into a compound variable will no
   longer cause silent memory corruption.
 
+- Variables created with 'readonly' in functions are now set to the
+  specified value instead of nothing. Note that 'readonly' does not
+  create a function-local scope, unlike 'typeset -r' which does.
+
 2020-06-26:
 
 - Changing to a directory that has a name starting with a '.' will no
