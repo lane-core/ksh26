@@ -713,9 +713,10 @@ run_whence()
 }
 actual="$(run_whence)"
 expected="chmod is a shell builtin
-chmod is $(whence -p chmod)
+$(whence -a -p chmod | sed 's/^/chmod is /')
 chmod is a tracked alias for $(whence -p chmod)"
-[[ $actual == $expected ]] || err_exit '`whence -a` does not work correctly with tracked aliases'
+[[ $actual == $expected ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
+	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
 
 # ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'
