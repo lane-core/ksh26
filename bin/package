@@ -3973,6 +3973,11 @@ capture() # file command ...
 			# the main shell environment and its exit status can be used for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
+			(
+				sleep 1
+				# unlink early
+				exec rm $o.fifo
+			) &
 			$TEE -a $o < $o.fifo &
 			{
 				case $s in
