@@ -17,7 +17,6 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                                                                      #
 ########################################################################
-builtin vmstate 2>/dev/null || exit 0
 
 function err_exit
 {
@@ -30,32 +29,40 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
+# Get the current amount of memory usage
+function getmem
+{
+	UNIX95=1 ps -p "$$" -o vsz=
+}
+n=$(getmem)
+if	! let "$n == $n" 2>/dev/null	# not a number?
+then	err\_exit "$LINENO" "'ps' not POSIX-compliant; skipping tests"
+	exit 0
+fi
+
 # test for variable reset leak #
 
 function test_reset
 {
-	integer i n=$1
+	integer i N=$1
 
-	for ((i = 0; i < n; i++))
+	for ((i = 0; i < N; i++))
 	do	u=$i
 	done
 }
 
-n=1000
+N=1000
 
 # one round to get to steady state -- sensitive to -x
 
-test_reset $n
-a=0$(vmstate --format='+%(size)u')
-b=0$(vmstate --format='+%(size)u')
+test_reset $N
+test_reset $N
+before=$(getmem)
+test_reset $N
+after=$(getmem)
 
-test_reset $n
-a=0$(vmstate --format='+%(size)u')
-test_reset $n
-b=0$(vmstate --format='+%(size)u')
-
-if	(( b > a ))
-then	err_exit "variable value reset memory leak -- $((b-a)) bytes after $n iterations"
+if	(( after > before ))
+then	err_exit "variable value reset memory leak -- $((after - before)) KiB after $N iterations"
 fi
 
 # buffer boundary tests
@@ -67,21 +74,21 @@ done
 
 data="(v=;sid=;di=;hi=;ti='1328244300';lv='o';id='172.3.161.178';var=(k='conn_num._total';u=;fr=;l='Number of Connections';n='22';t='number';))"
 read -C stat <<< "$data"
-a=0$(vmstate --format='+%(size)u')
+before=$(getmem)
 for ((i=0; i < 500; i++))
 do	print -r -- "$data"
 done |	while read -u$n -C stat
 	do	:
 	done	{n}<&0-
-b=0$(vmstate --format='+%(size)u')
-(( b > a )) && err_exit 'memory leak with read -C when deleting compound variable'
+after=$(getmem)
+(( after > before )) && err_exit "memory leak with read -C when deleting compound variable (leaked $((after - before)) KiB)"
 
 read -C stat <<< "$data"
-a=0$(vmstate --format='+%(size)u')
+before=$(getmem)
 for ((i=0; i < 500; i++))
 do      read -C stat <<< "$data"
 done
-b=0$(vmstate --format='+%(size)u')
-(( b > a )) && err_exit 'memory leak with read -C when using <<<'
+after=$(getmem)
+(( after > before )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) KiB)"
 
 exit $((Errors<125?Errors:125))
