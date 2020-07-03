@@ -29,14 +29,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.coprocess.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 if	[[ -d /cygdrive ]]
 then	err_exit cygwin detected - coprocess tests disabled - enable at the risk of wedging your system

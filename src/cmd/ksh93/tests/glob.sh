@@ -27,14 +27,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer aware=0 contrary=0 Errors=0 ignorant=0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.glob.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 function test_glob
 {

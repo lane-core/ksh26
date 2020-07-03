@@ -41,7 +41,8 @@ alias err_exit='err_exit $lineno'
 Command=${0##*/}
 integer Errors=0 lineno=1
 
-whence -q pty || { lineno=$LINENO; err_exit "pty command not found -- tests skipped"; exit 0; }
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+whence -q pty || { lineno=$LINENO; err\_exit "$LINENO" "pty command not found -- tests skipped"; exit 0; }
 
 bintrue=$(whence -p true)
 

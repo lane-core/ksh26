@@ -25,14 +25,10 @@ function err_exit
 }
 alias err_exit='err_exit $LINENO'
 
-tmp=$(
-    d=${TMPDIR:-/tmp}/ksh93.comvar.$$.${RANDOM:-0}
-    mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-    err\_exit $LINENO 'mkdir failed'
-    exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+Command=${0##*/}
+integer Errors=0
+
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 #test for compound variables
 Command=${0##*/}

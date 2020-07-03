@@ -29,14 +29,7 @@ Command=${0##*/}
 integer Errors=0
 typeset -F SECONDS  # for fractional seconds in PS4
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.subshell.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 builtin getconf
 bincat=$(PATH=$(getconf PATH) whence -p cat)

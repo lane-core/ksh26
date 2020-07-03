@@ -29,6 +29,8 @@ Command=${0##*/}
 integer Errors=0
 integer n=2
 
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 typeset -T Box_t=(
 	float -h 'height in inches' x=2
 	float -h 'width in inches' y=4

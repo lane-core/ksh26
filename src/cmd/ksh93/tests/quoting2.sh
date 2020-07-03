@@ -27,6 +27,9 @@ alias err_exit='err_exit $LINENO'
 
 Command=${0##*/}
 integer Errors=0
+
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 set -o noglob
 if	[[ 'hi there' != "hi there" ]]
 then	err_exit "single quotes not the same as double quotes"

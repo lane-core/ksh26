@@ -28,14 +28,8 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.builtins.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 bincat=$(whence -p cat)
 
 # test shell builtin commands
@@ -194,7 +188,7 @@ mkdir -p $tmp/a/b/c 2>/dev/null || err_exit  "mkdir -p failed"
 $SHELL -c "cd $tmp/a/b; cd c" 2>/dev/null || err_exit "initial script relative cd fails"
 
 trap 'print TERM' TERM
-exp=$'trap -- \'print TERM\' TERM\ntrap -- \'cd / && rm -rf "$tmp"\' EXIT'
+exp="trap -- 'print TERM' TERM"
 got=$(trap)
 [[ $got == $exp ]] || err_exit "\$(trap) failed -- expected \"$exp\", got \"$got\""
 exp='print TERM'

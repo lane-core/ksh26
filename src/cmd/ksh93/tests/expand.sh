@@ -27,6 +27,8 @@ function err_exit
 integer Errors=0
 Command=${0##*/}
 
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 # {...} expansion tests -- ignore if not supported
 
 [[ $(print a{0,1}z) == "a0z a1z" ]] || exit 0

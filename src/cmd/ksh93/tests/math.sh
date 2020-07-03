@@ -25,24 +25,13 @@ function err_exit
 }
 alias err_exit='err_exit $LINENO'
 
-set -o nounset
 Command=${0##*/}
 integer Errors=0
 
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+CDPATH= cd -P -- "$tmp" || exit
+
 set -o nounset
-
-typeset tmp
-
-# create temporary test directory
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.math.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
-cd $tmp || exit
 
 function test_arithmetric_expression_accesss_array_element_through_nameref
 {

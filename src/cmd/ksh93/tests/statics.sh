@@ -27,14 +27,14 @@ function err_exit
 	print -u2 -r ${Command}[$1]: "${@:2}"
 	(( Errors < 127 && Errors++ ))
 }
-
 alias err_exit='err_exit $LINENO'
 
-set -o nounset
 Command=${0##*/}
 integer Errors=0
 
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
+set -o nounset
 
 typeset -T test_t=(
 	typeset name

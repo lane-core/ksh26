@@ -28,19 +28,13 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 unset HISTFILE
 export LC_ALL=C ENV=/./dev/null
 
 ulimit -c 0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.options.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
 bincat=$(whence -p cat)
 
 if	[[ $( ${SHELL-ksh} -s hello<<-\!

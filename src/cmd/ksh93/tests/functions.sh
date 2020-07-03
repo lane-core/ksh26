@@ -27,20 +27,15 @@ alias err_exit='err_exit $LINENO'
 
 integer Errors=0
 Command=${0##*/}
+
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
 compiled=''
 read -n4 c < $0 2> /dev/null
 [[ $c == *$'\ck'* ]] && compiled=1
 
 ulimit -c 0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.functions.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
 binecho=$(whence -p echo)
 
 integer foo=33

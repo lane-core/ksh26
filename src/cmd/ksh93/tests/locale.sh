@@ -28,17 +28,10 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-unset LANG ${!LC_*}
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+CDPATH= cd -P -- "$tmp" || exit
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.locale.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
-cd $tmp || exit
+unset LANG ${!LC_*}
 
 a=$($SHELL -c '/' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
 b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")

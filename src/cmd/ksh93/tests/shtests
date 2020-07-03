@@ -10,7 +10,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (AT&T Research/ksh93) 2020-06-23 $
+@(#)$Id: shtests (AT&T Research/ksh93) 2020-07-04 $
 ]
 '$USAGE_LICENSE$'
 [+NAME?shtests - ksh regression test harness]
@@ -31,6 +31,7 @@ USAGE=$'
     }
 [c:compile?Run test scripts using \bshcomp\b(1).]
 [d:debug?Enable \bshtests\b execution trace.]
+[k:keep?Keep temporary files after test run; shtests will report the location.]
 [l:locale?Disable \b--utf8\b and run the \b--posix\b and \b--compile\b
     tests, if enabled, in the locale of the caller. This may cause invalid
     regressions, especially for locales where \b.\b is not the radix
@@ -170,7 +171,7 @@ export ENV=/./dev/null
 trap + PIPE # unadvertized -- set SIGPIPE to SIG_DFL #
 
 integer compile=-1 posix=-1 utf8=-1
-integer debug=0 locale=0 time=1
+integer debug=0 keep=0 locale=0 time=1
 typeset vmalloc_options=abort trace= valgrind=
 vmalloc_options= #XXX# until multi-region vmalloc trace fixed #XXX#
 
@@ -182,6 +183,9 @@ do	case $OPT in
 		fi
 		;;
 	d)	debug=$OPTARG
+		;;
+	k)	keep=$OPTARG
+		echo "[DEBUG] keep == [$keep]" >&2
 		;;
 	l)	locale=$OPTARG
 		;;
@@ -282,7 +286,10 @@ tmp=$(
 	echo 'mkdir failed' >&2
 	exit 1
 }
-trap 'cd / && rm -rf "$tmp"' EXIT
+if	(( keep ))
+then	trap 'printf "\nTemporary files left in: %s\n" "$tmp"' EXIT
+else	trap 'cd / && rm -rf "$tmp"' EXIT
+fi
 
 if	(( compile ))
 then	if	whence $SHCOMP > /dev/null
@@ -329,14 +336,22 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		[[ $utf8 == 0 || $i == $setslocale ]] || locales+=" C.UTF-8"
 		for lang in $locales
 		do	o=$u
+			tmp_s=$tmp/$u.$lang
+			mkdir -m700 "$tmp_s" || exit
 			if	[[ $lang == C ]]
 			then	lang=
 			else	o="$o($lang)"
 				lang=LANG=$lang
 			fi
 			echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
-			eval $lang \$valgrind \$SHELL \$trace \$i
+			(
+				export ${lang:+"$lang"} "tmp=$tmp_s"
+				$valgrind $SHELL $trace $i
+			)
 			e=$?
+			if	(( !keep ))
+			then	rm -rf "$tmp_s"
+			fi
 			if	[[ $valgrind ]]
 			then	valxml $valxml
 				(( e += $? ))
@@ -361,8 +376,10 @@ do	[[ $i == *.sh ]] || i+='.sh'
 	then	c=$tmp/shcomp-$u.ksh
 		o="$u(shcomp)"
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
+		tmp_s=$tmp/$u.shcomp
+		mkdir -m700 "$tmp_s" || exit
 		if	$SHCOMP $i > $c
-		then	if	$valgrind $SHELL $trace $c
+		then	if	tmp=$tmp_s $valgrind $SHELL $trace $c
 			then	echo test $o passed ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} "[ $t $T 0 errors ]"
 			else	e=$?
 				if	(( e > 128 && ++total_e ))
@@ -380,6 +397,9 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		else	e=$?
 			(( ++total_e ))
 			echo test $o failed to compile ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} with exit code $e "[ 1 test 1 error ]"
+		fi
+		if	(( !keep ))
+		then	rm -rf "$tmp_s" "$c"
 		fi
 		if	[[ $i == $timesensitive ]]
 		then	VMALLOC_OPTIONS=$vmalloc_options

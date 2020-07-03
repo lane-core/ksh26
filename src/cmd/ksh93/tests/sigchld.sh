@@ -23,20 +23,15 @@ function err_exit
 	print -u2 -r ${Command}[$1]: "${@:2}"
 	(( Errors+=1 ))
 }
-
 alias err_exit='err_exit $LINENO'
 
-float DELAY=${1:-0.02}
-integer FOREGROUND=10 BACKGROUND=2 Errors=0
+Command=${0##*/}
+integer Errors=0
 
-tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.sigchld.$$.${RANDOM:-0}
-	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
-) || {
-	err\_exit $LINENO 'mkdir failed'
-	exit 1
-}
-trap 'cd / && rm -rf "$tmp"' EXIT
+[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
+float DELAY=${1:-0.02}
+integer FOREGROUND=10 BACKGROUND=2
 
 s=$($SHELL -c '
 integer i foreground=0 background=0
