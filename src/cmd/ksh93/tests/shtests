@@ -185,7 +185,6 @@ do	case $OPT in
 	d)	debug=$OPTARG
 		;;
 	k)	keep=$OPTARG
-		echo "[DEBUG] keep == [$keep]" >&2
 		;;
 	l)	locale=$OPTARG
 		;;
