@@ -441,7 +441,12 @@ c n
 r echo repeat-3
 !
 
-# err_exit #
+# Following test is disabled because a bug in pty causes it to fail on too
+# many operating systems. Apparently pty doesn't handle SIGSTP correctly:
+# https://github.com/att/ast/issues/375
+# TODO: fix pty and re-enable this test.
+: <<\end_disabled
+# err_(don't count me)_exit #
 whence -q less &&
 TERM=vt100 tst $LINENO <<"!"
 L process/terminal group exercise
@@ -453,6 +458,7 @@ r Stopped
 w fg
 u yes-yes
 !
+end_disabled
 
 # err_exit #
 # Test file name completion in vi mode
