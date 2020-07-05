@@ -600,6 +600,8 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 	register int		c;
 	register wchar_t	w = 0;
 
+	if (!wp && !sp)
+		ast.mb_sync = 0;  /* assume call from mbinit() macro: reset global multibyte sync state */
 	if (!sp || !n)
 		return 0;
 	if ((m = utf8tab[*sp]) > 0)

@@ -336,6 +336,9 @@ char	*sh_fmtq(const char *string)
 	int offset;
 	if(!cp)
 		return((char*)0);
+#if SHOPT_MULTIBYTE
+	mbinit();
+#endif /* SHOPT_MULTIBYTE */
 	offset = staktell();
 	state = ((c= mbchar(cp))==0);
 	if(isaletter(c))

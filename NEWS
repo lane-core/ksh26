@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-07-05:
+
+- In UTF-8 locales, fix corruption of the shell's internal string quoting
+  algorithm (as used by xtrace, 'printf %q', and more) that occurred when
+  the processing of a multibyte character was interrupted.
+
 2020-07-03:
 
 - Backslashes are no longer escaped in the raw Bourne Shell-like editing

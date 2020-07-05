@@ -302,7 +302,23 @@ fi
 if	[[ $(printf '%..*s\n' : abc def) != abc:def ]]
 then	err_exit "printf '%..*s' not working"
 fi
+
+# ======
+# shell-quoting using printf %q (same algorithm used for xtrace and output of 'set', 'trap', ...)
+
 [[ $(printf '%q\n') == '' ]] || err_exit 'printf "%q" with missing arguments'
+
+# the following fails on 2012-08-01 in UTF-8 locales
+expect="'shell-quoted string'"
+actual=$(
+	print -nr $'\303\274' | read -n1 foo  # interrupt processing of 2-byte UTF-8 char after reading 1 byte
+	printf '%q\n' "shell-quoted string"
+)
+LC_CTYPE=POSIX true	    # on buggy ksh, a locale re-init via temp assignment restores correct shellquoting
+[[ $actual == "$expect" ]] || err_exit 'shell-quoting corrupted after interrupted processing of UTF-8 char' \
+				"(expected $expect; got $actual)"
+
+# ======
 # we won't get hit by the one second boundary twice, right?
 expect= actual=
 { expect=$(LC_ALL=C date | sed 's/ GMT / UTC /') && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||
