@@ -66,7 +66,7 @@ struct slnod 	/* struct for link list of stacks */
 };
 
 /*
- * This struct is use to hold $* lists and arrays
+ * This struct is used to hold $* lists and arrays
  */
 
 struct dolnod

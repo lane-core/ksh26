@@ -1734,7 +1734,7 @@ USAGE_LICENSE
 	"moved to \aname\a.  The original variable will be unset.  Cannot be "
 	"used with any other options.]"
 "[n?Name reference.  The value is the name of a variable that \aname\a "
-	"references.  \aname\a cannot contain a \b.\b.  Cannot be use with "
+	"references.  \aname\a cannot contain a \b.\b.  Cannot be used with "
 	"any other options.]"
 "[p?Causes the output to be in a format that can be used as input to the "
 	"shell to recreate the attributes for variables.]"
