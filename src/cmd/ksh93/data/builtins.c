@@ -148,6 +148,7 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(uname)
 	CMDLIST(wc)
 	CMDLIST(sync)
+	CMDLIST(vmstate)
 #endif
 #if SHOPT_REGRESS
 	"__regress__",		NV_BLTIN|BLT_ENV,	bltin(__regress__),

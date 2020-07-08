@@ -30,16 +30,18 @@ Command=${0##*/}
 integer Errors=0
 
 [[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+builtin vmstate 2>/dev/null || { err\_exit "$LINENO" 'vmstate built-in command not compiled in; skipping tests'; exit 0; }
 
 # Get the current amount of memory usage
 function getmem
 {
-	UNIX95=1 ps -p "$$" -o vsz=
+	vmstate --format='%(busy_size)u'
 }
+unit=bytes
 n=$(getmem)
 if	! let "$n == $n" 2>/dev/null	# not a number?
-then	err\_exit "$LINENO" "'ps' not POSIX-compliant; skipping tests"
-	exit 0
+then	err\_exit "$LINENO" "'vmstate' output unexpected; tests cannot be run. (expected a number; got $(printf %q "$n"))"
+	exit 1
 fi
 
 # test for variable reset leak #
@@ -53,6 +55,9 @@ function test_reset
 	done
 }
 
+# Initialise variables used below to avoid false leaks
+before=0 after=0 i=0 u=0
+
 N=1000
 
 # one round to get to steady state -- sensitive to -x
@@ -64,7 +69,7 @@ test_reset $N
 after=$(getmem)
 
 if	(( after > before ))
-then	err_exit "variable value reset memory leak -- $((after - before)) KiB after $N iterations"
+then	err_exit "variable value reset memory leak -- $((after - before)) $unit after $N iterations"
 fi
 
 # buffer boundary tests
@@ -83,14 +88,17 @@ done |	while read -u$n -C stat
 	do	:
 	done	{n}<&0-
 after=$(getmem)
-(( after > before )) && err_exit "memory leak with read -C when deleting compound variable (leaked $((after - before)) KiB)"
+(( after > before )) && err_exit "memory leak with read -C when deleting compound variable (leaked $((after - before)) $unit)"
 
-read -C stat <<< "$data"
+# extra 'read's to get to steady state
+for ((i=0; i < 10; i++))
+do	read -C stat <<< "$data"
+done
 before=$(getmem)
 for ((i=0; i < 500; i++))
 do      read -C stat <<< "$data"
 done
 after=$(getmem)
-(( after > before )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) KiB)"
+(( after > before )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) $unit)"
 
 exit $((Errors<125?Errors:125))
