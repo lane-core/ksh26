@@ -15,6 +15,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Combining ((...)) with redirections no longer causes a syntax error
   due to the parser handling '>' incorrectly.
 
+- Fixed a bug that corrupted KIA/CQL cross-reference databases created using
+  ksh's -R option; shell warnings were wrongly included in the database file.
+
 2020-07-07:
 
 - Four of the date formats accepted by 'printf %()T' have had their
