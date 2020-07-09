@@ -761,4 +761,9 @@ x=0x1.0000000000000000000000000000p+6
 v=$(printf $'%.28a\n' 64)
 [[ $v == "$x" ]] || err_exit "'printf %.28a 64' failed -- expected '$x', got '$v'"
 
+# ======
+# Redirections with ((...)) should not cause a syntax error
+(eval '((1)) >/dev/null') 2>/dev/null || err_exit 'redirections with ((...)) yield a syntax error'
+
+# ======
 exit $((Errors<125?Errors:125))
