@@ -624,7 +624,11 @@ int sh_eval(register Sfio_t *iop, int mode)
 	if(lineno)
 		shp->inlineno = lineno;
 	if(io_save)
+	{
 		sfclose(io_save);
+		io_save = 0;
+	}
+
 	sh_freeup(shp);
 	shp->st.staklist = saveslp;
 	shp->fn_reset = 0;

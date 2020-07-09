@@ -524,4 +524,33 @@ $SHELL -xc '$(LD_LIBRARY_PATH=$LD_LIBRARY_PATH exec $SHELL -c :)' > /dev/null 2>
 
 $SHELL 2> /dev/null -c $'for i;\ndo :;done' || err_exit 'for i ; <newline> not vaid'
 
+# ======
+# Crash on syntax error when dotting/sourcing multiple files
+# Ref.: https://www.mail-archive.com/ast-developers@lists.research.att.com/msg01943.html
+(
+	mkdir "$tmp/dotcrash" || exit
+	cd "$tmp/dotcrash" || exit
+	cat >functions.ksh <<-EOF
+		function f1
+		{
+			echo "f1"
+		}
+		function f2
+		{
+			if	[[ $1 -eq 1 ]]:  # deliberate syntax error
+			then	echo "f2"
+			fi
+		}
+	EOF
+	cat >sub1.ksh <<-EOF
+		. ./functions.ksh
+		echo "sub1" >tmp.out
+	EOF
+	cat >main.ksh <<-EOF
+		. ./sub1.ksh
+	EOF
+	"$SHELL" main.ksh 2>/dev/null
+) || err_exit "crash when sourcing multiple files (exit status $?)"
+
+# ======
 exit $((Errors<125?Errors:125))
