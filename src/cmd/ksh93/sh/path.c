@@ -1800,7 +1800,9 @@ void path_alias(register Namval_t *np,register Pathcomp_t *pp)
 		Pathcomp_t *old;
 		nv_offattr(np,NV_NOPRINT);
 		nv_stack(np,&talias_init);
-		old = np->nvalue.pathcomp;
+		old = (Pathcomp_t*)np->nvalue.cp;
+		if (old && (--old->refcount <= 0))
+			free((void*)old);
 		np->nvalue.cp = (char*)pp;
 		pp->refcount++;
 		nv_setattr(np,NV_TAGGED|NV_NOFREE);

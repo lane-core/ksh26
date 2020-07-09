@@ -122,4 +122,19 @@ after=$(getmem)
 	"(leaked $((after - before)) $unit)"
 
 # ======
+# Memory leak when resetting PATH and clearing hash table
+# ...steady memory state:
+command -v ls >/dev/null	# add something to hash table
+PATH=/dev/null true		# set/restore PATH & clear hash table
+# ...test for leak:
+before=$(getmem)
+for	((i=0; i<16; i++))
+do	PATH=/dev/null true	# set/restore PATH & clear hash table
+	command -v ls		# do PATH search, add to hash table
+done >/dev/null
+after=$(getmem)
+(( after > before )) && err_exit 'memory leak on PATH reset before subshell PATH search' \
+	"(leaked $((after - before)) $unit)"
+
+# ======
 exit $((Errors<125?Errors:125))
