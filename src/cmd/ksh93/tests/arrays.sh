@@ -666,4 +666,13 @@ typeset -A Foo
 Foo=( [a]=AA;[b]=BB)
 [[ ${Foo[a]} == AA ]] || err_exit 'Fooa[a] is {Foo[a]} not AA' 
 
+# ======
+# Crash when listing an indexed array
+expect=$'A=($\'\\\'\')\nB=(aa)\nC=(aa)'
+actual=$("$SHELL" -c 'A[0]="'\''" B[0]=aa C[0]=aa; typeset -a') \
+	|| err_exit "Crash when listing indexed array (exit status $?)"
+[[ $actual == "$expect" ]] || err_exit 'Incorrect output when listing indexed array' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
 exit $((Errors<125?Errors:125))

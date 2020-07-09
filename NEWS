@@ -7,6 +7,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a crash on syntax error when sourcing/dotting multiple files.
 
+- Fixed a crash when listing indexed arrays.
+
 2020-07-07:
 
 - Four of the date formats accepted by 'printf %()T' have had their
