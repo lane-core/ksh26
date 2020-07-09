@@ -1627,7 +1627,7 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 	else
 	{
 		sep = ' ';
-		o = T(NiL, ID, "options | --help | --man");
+		o = T(NiL, ID, "options");
 		b = style == STYLE_nroff ? "\\ " : " ";
 		for (;;)
 		{
@@ -1636,7 +1636,11 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 			{
 				if (!(a = id))
 					a = "...";
-				sfprintf(sp, "\t%s%s%s%s[%s%s%s%s%s]", font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0), b, b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b);
+				sfprintf(sp, "\t%s%s%s%s[%s%s%s%s%s|%s%s--help%s%s|%s%s--man%s%s]",
+					font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0), b,
+					b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b,
+					b, font(FONT_ITALIC, style, 1), font(FONT_ITALIC, style, 0), b,
+					b, font(FONT_ITALIC, style, 1), font(FONT_ITALIC, style, 0), b);
 			}
 			else if (a)
 				sfprintf(sp, "%*.*s%s%s%s[%s%s%s]", OPT_USAGE - 1, OPT_USAGE - 1, T(NiL, ID, "Or:"), b, a, b, b, o, b);
@@ -1645,7 +1649,7 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 				if (!(a = error_info.id) && !(a = id))
 					a = "...";
 				if (!sfstrtell(sp))
-					sfprintf(sp, "[%s%s%s]", b, o, b);
+					sfprintf(sp, "[%s%s%s|%s--help%s|%s--man%s]", b, o, b, b, b, b, b);
 			}
 			if (!t)
 				break;
