@@ -121,7 +121,7 @@ void	sh_subtmpfile(Shell_t *shp)
 		register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 		register struct subshell *sp = subshell_data->pipe;
 		/* save file descriptor 1 if open */
-		if((sp->tmpfd = fd = fcntl(1,F_DUPFD,10)) >= 0)
+		if((sp->tmpfd = fd = sh_fcntl(1,F_DUPFD,10)) >= 0)
 		{
 			fcntl(fd,F_SETFD,FD_CLOEXEC);
 			shp->fdstatus[fd] = shp->fdstatus[1]|IOCLEX;
@@ -541,7 +541,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				sp->pwdfd = n;
 				if(n<10)
 				{
-					sp->pwdfd =  fcntl(n,F_DUPFD,10);
+					sp->pwdfd = sh_fcntl(n,F_DUPFD,10);
 					close(n);
 				}
 				if(sp->pwdfd>0)

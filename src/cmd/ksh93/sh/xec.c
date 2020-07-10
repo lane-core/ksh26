@@ -115,7 +115,7 @@ static int iousepipe(Shell_t *shp)
 		return(0);
 	usepipe++;
 	fcntl(subpipe[0],F_SETFD,FD_CLOEXEC);
-	subpipe[2] = fcntl(1,F_DUPFD,10);
+	subpipe[2] = sh_fcntl(1,F_DUPFD,10);
 	fcntl(subpipe[2],F_SETFD,FD_CLOEXEC);
 	shp->fdstatus[subpipe[2]] = shp->fdstatus[1];
 	close(1);
@@ -3613,7 +3613,7 @@ static void coproc_init(Shell_t *shp, int pipes[])
 		sh_pipe(shp->cpipe);
 		if((outfd=shp->cpipe[1]) < 10) 
 		{
-		        int fd=fcntl(shp->cpipe[1],F_DUPFD,10);
+		        int fd=sh_fcntl(shp->cpipe[1],F_DUPFD,10);
 			if(fd>=10)
 			{
 			        shp->fdstatus[fd] = (shp->fdstatus[outfd]&~IOCLEX);

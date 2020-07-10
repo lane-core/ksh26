@@ -1503,7 +1503,7 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 					fn = fd;
 					if(fd<10)
 					{
-						if((fn=fcntl(fd,F_DUPFD,10)) < 0)
+						if((fn=sh_fcntl(fd,F_DUPFD,10)) < 0)
 							goto fail;
 						if(fn>=shp->gd->lim.open_max && !sh_iovalidfd(shp,fn))
 							goto fail;

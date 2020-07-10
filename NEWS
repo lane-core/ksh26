@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug that caused types created with 'typeset -T' to throw an error
   when used if the type name started with a lowercase 'a'.
 
+- A potential crash due to memory corruption when using many file
+  descriptors has been fixed.
+
 2020-07-09:
 
 - Fixed a crash on syntax error when sourcing/dotting multiple files.
