@@ -99,7 +99,8 @@ for ((i=0; i < 500; i++))
 do      read -C stat <<< "$data"
 done
 after=$(getmem)
-(( after > before )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) $unit)"
+# this test can show minor variations in memory usage when run with shcomp: https://github.com/ksh93/ksh/issues/70
+(( after > before+128 )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) $unit)"
 
 # ======
 # Unsetting an associative array shouldn't cause a memory leak
