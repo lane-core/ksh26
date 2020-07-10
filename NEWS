@@ -18,6 +18,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug that corrupted KIA/CQL cross-reference databases created using
   ksh's -R option; shell warnings were wrongly included in the database file.
 
+- The shell's quoting algorithm (used in xtrace, printf %q, and more) has been
+  fixed for UTF-8 (Unicode) locales; it no longer needlessly and inconsistently
+  encodes normal printable UTF-8 characters into hexadecimal \u[xxxx] codes.
+
 2020-07-07:
 
 - Four of the date formats accepted by 'printf %()T' have had their

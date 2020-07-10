@@ -325,6 +325,34 @@ static char	*sh_fmtcsv(const char *string)
 	return(stakptr(offset));
 }
 
+#if SHOPT_MULTIBYTE
+/*
+ * Returns true if c is an invisible Unicode character, excluding ASCII space.
+ * Use iswgraph(3) if possible. In the ksh-specific C.UTF-8 locale, this is
+ * generally not possible as the OS-provided iswgraph(3) doesn't support that
+ * locale. So do a quick test and do our best with a fallback if necessary.
+ */
+static int	is_invisible(int c)
+{
+	if(!mbwide())					/* not in multibyte locale? */
+		return(c != ' ' && !isgraph(c));	/* use plain isgraph(3) */
+	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
+		return(c != ' ' && !iswgraph(c));	/* use iswgraph(3) */
+	else						/* fallback: */
+		return(	c <= 0x001F ||			/* control characters */
+			c >= 0x007F && c <= 0x009F ||	/* control characters */
+			c == 0x00A0 ||			/* non-breaking space */
+			c == 0x061C ||			/* arabic letter mark */
+			c == 0x1680 ||			/* ogham space mark */
+			c == 0x180E ||			/* mongolian vowel separator */
+			c >= 0x2000 && c <= 0x200F ||	/* spaces and format characters */
+			c >= 0x2028 && c <= 0x202F ||	/* separators and format characters */
+			c >= 0x205F && c <= 0x206F ||	/* various format characters */
+			c == 0x3000 ||			/* ideographic space */
+			c == 0xFEFF );			/* zero-width non-breaking space */
+}
+#endif /* SHOPT_MULTIBYTE */
+
 /*
  * print <str> quoting chars so that it can be read by the shell
  * puts null terminated result on stack, but doesn't freeze it
@@ -363,7 +391,7 @@ char	*sh_fmtq(const char *string)
 	for(;c;c= mbchar(cp))
 	{
 #if SHOPT_MULTIBYTE
-		if(c=='\'' || c>=128 || c<0 || !iswprint(c)) 
+		if(c=='\'' || is_invisible(c))
 #else
 		if(c=='\'' || !isprint(c))
 #endif /* SHOPT_MULTIBYTE */
@@ -426,7 +454,7 @@ char	*sh_fmtq(const char *string)
 					cp = op+1;
 					isbyte = 1;
 				}
-				if(mbwide() && ((cp-op)>1))
+				if(mbwide() && is_invisible(c))
 				{
 					sfprintf(staksp,"\\u[%x]",c);
 					continue;
