@@ -44,6 +44,12 @@ integer Errors=0 lineno=1
 [[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 whence -q pty || { lineno=$LINENO; err\_exit "$LINENO" "pty command not found -- tests skipped"; exit 0; }
 
+# On FreeBSD, the stty command does not appear to work correctly on a pty pseudoterminal.
+# To avoid a couple of false regressions, we have to set 'erase' and 'kill' on the real terminal.
+stty_restore=$(stty -g) || { lineno=$LINENO; err\_exit "$LINENO" "could not save terminal state -- tests skipped"; exit 0; }
+trap 'stty "$stty_restore"' EXIT  # note: on ksh, the EXIT trap is also triggered for termination due to a signal
+stty erase ^H kill ^X
+
 bintrue=$(whence -p true)
 
 x=$( $SHELL <<- \EOF
