@@ -553,4 +553,40 @@ $SHELL 2> /dev/null -c $'for i;\ndo :;done' || err_exit 'for i ; <newline> not v
 ) || err_exit "crash when sourcing multiple files (exit status $?)"
 
 # ======
+# The time keyword should correctly handle millisecond precision.
+# This can be checked by verifying the last digit is not a zero
+# when 'time sleep .002' is run.
+result=$(
+	TIMEFORMAT=$'\%3R'
+	redirect 2>&1
+	time sleep .002
+)
+[[ ${result: -1} == 0 ]] && err_exit "the 'time' keyword doesn't properly support millisecond precision"
+
+# A single '%' after a format specifier should not be a syntax
+# error (it should be treated as a literal '%').
+IFS=' '
+result=( $(
+	TIMEFORMAT=$'%0S%'
+	redirect 2>&1
+	time :
+) )
+[[ ${result[4]} == bad ]] && err_exit "'%' is not treated literally when placed after a format specifier"
+
+# The locale's radix point shouldn't be ignored
+us=$(
+	LC_ALL='C.UTF-8' # radix point '.'
+	TIMEFORMAT='%1U' # catch -1.99 bug as well by getting user time
+	redirect 2>&1
+	time sleep 0
+)
+eu=$(
+	LC_ALL='C_EU.UTF-8' # radix point ','
+	TIMEFORMAT='%1U'
+	redirect 2>&1
+	time sleep 0
+)
+[[ ${us:1:1} == ${eu:1:1} ]] && err_exit "The time keyword ignores the locale's radix point (both are ${eu:1:1})"
+
+# ======
 exit $((Errors<125?Errors:125))
