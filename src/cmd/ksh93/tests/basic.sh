@@ -553,25 +553,31 @@ $SHELL 2> /dev/null -c $'for i;\ndo :;done' || err_exit 'for i ; <newline> not v
 ) || err_exit "crash when sourcing multiple files (exit status $?)"
 
 # ======
-# The time keyword should correctly handle millisecond precision.
-# This can be checked by verifying the last digit is not a zero
-# when 'time sleep .002' is run.
+# The time keyword should correctly handle millisecond precision, except
+# on older systems that do not support getrusage(2) or gettimeofday(2).
 result=$(
 	TIMEFORMAT=$'\%3R'
 	redirect 2>&1
 	time sleep .002
 )
-[[ ${result: -1} == 0 ]] && err_exit "the 'time' keyword doesn't properly support millisecond precision"
+case $result in
+0.000 | 0.010)
+	err_exit "warning: 'time' keyword doesn't support millisecond precision"
+	let "Errors--" ;;
+0.002)	;;
+*)	err_exit "'time' keyword, millisecond precision: expected 0.002, got $result" ;;
+esac
 
 # A single '%' after a format specifier should not be a syntax
 # error (it should be treated as a literal '%').
-IFS=' '
-result=( $(
+expect='0%'
+actual=$(
 	TIMEFORMAT=$'%0S%'
 	redirect 2>&1
 	time :
-) )
-[[ ${result[4]} == bad ]] && err_exit "'%' is not treated literally when placed after a format specifier"
+)
+[[ $actual == "$expect" ]] || err_exit "'%' is not treated literally when placed after a format specifier" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # The locale's radix point shouldn't be ignored
 us=$(
