@@ -1906,7 +1906,7 @@ USAGE_LICENSE
 ;
 
 const char sh_opttimes[] =
-"[-1c?@(#)$Id: times (ksh93) 2020-06-24 $\n]"
+"[-1c?@(#)$Id: times (ksh93) 2020-07-14 $\n]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
 "one line with the times used by the shell and another with those used by "

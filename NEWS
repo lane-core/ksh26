@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a bug that caused 'set -b' to have no effect.
 
+- Following the 'time' keyword, the 'times' builtin command now also
+  supports millisecond precision.
+
 2020-07-13:
 
 - Fixed a fork bomb that could occur when the vi editor was sent SIGTSTP

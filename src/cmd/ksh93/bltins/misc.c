@@ -47,7 +47,13 @@
 #include	"jobs.h"
 
 #include	<math.h>
+#include	"FEATURE/locale"
+#include	"FEATURE/time"
+#if _lib_getrusage
+#include	<sys/resource.h>
+#else
 #include	<times.h>
+#endif
 
 #define DOTMAX	MAXDEPTH	/* maximum level of . nesting */
 
@@ -464,17 +470,57 @@ int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 /*
  * times command
  */
-static void print_times(clock_t uticks, clock_t sticks, Shbltin_t *context)
+static void	print_times(struct timeval utime, struct timeval stime)
 {
-	int clk_tck = context->shp->gd->lim.clk_tck;
-	double utime = (double)uticks / clk_tck, stime = (double)sticks / clk_tck;
-	sfprintf(sfstdout, "%dm%05.2fs %dm%05.2fs\n",
-		(int)floor(utime / 60), fmod(utime, 60),
-		(int)floor(stime / 60), fmod(stime, 60));
+	int ut_min = utime.tv_sec / 60;
+	int ut_sec = utime.tv_sec % 60;
+	int ut_ms = utime.tv_usec / 1000;
+	int st_min = stime.tv_sec / 60;
+	int st_sec = stime.tv_sec % 60;
+	int st_ms = stime.tv_usec / 1000;
+	char radix = GETDECIMAL(0);
+	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n", ut_min, ut_sec, radix, ut_ms, st_min, st_sec, radix, st_ms);
 }
+#if _lib_getrusage
+static void	print_cpu_times()
+{
+	struct rusage usage;
+	/* Print the time (user & system) consumed by the shell. */
+	getrusage(RUSAGE_SELF, &usage);
+	print_times(usage.ru_utime, usage.ru_stime);
+	/* Print the time (user & system) consumed by the child processes of the shell. */
+	getrusage(RUSAGE_CHILDREN, &usage);
+	print_times(usage.ru_utime, usage.ru_stime);
+}
+#else  /* _lib_getrusage */
+static void	print_cpu_times()
+{
+	struct timeval utime, stime;
+	double dtime;
+	int clk_tck = shgd->lim.clk_tck;
+	struct tms cpu_times;
+	times(&cpu_times);
+	/* Print the time (user & system) consumed by the shell. */
+	dtime = (double)cpu_times.tms_utime / clk_tck;
+	utime.tv_sec = dtime / 60;
+	utime.tv_usec = 1000000 * (dtime - utime.tv_sec);
+	dtime = (double)cpu_times.tms_stime / clk_tck;
+	stime.tv_sec = dtime / 60;
+	stime.tv_usec = 1000000 * (dtime - utime.tv_sec);
+	print_times(utime, stime);
+	/* Print the time (user & system) consumed by the child processes of the shell. */
+	dtime = (double)cpu_times.tms_cutime / clk_tck;
+	utime.tv_sec = dtime / 60;
+	utime.tv_usec = 1000000 * (dtime - utime.tv_sec);
+	dtime = (double)cpu_times.tms_cstime / clk_tck;
+	stime.tv_sec = dtime / 60;
+	stime.tv_usec = 1000000 * (dtime - utime.tv_sec);
+	print_times(utime, stime);
+}
+#endif  /* _lib_getrusage */
 int	b_times(int argc, char *argv[], Shbltin_t *context)
 {
-	struct tms cpu_times;
+	NOT_USED(context);
 	/* No options or operands are supported, except --man, etc. */
 	if (argc = optget(argv, sh_opttimes)) switch (argc)
 	{
@@ -488,10 +534,7 @@ int	b_times(int argc, char *argv[], Shbltin_t *context)
 	if (argv[opt_info.index])
 		errormsg(SH_DICT, ERROR_exit(2), e_toomanyops);
 	/* Get & print the times */
-	if (times(&cpu_times) == (clock_t)-1)
-		errormsg(SH_DICT, ERROR_exit(1), "times(3) failed: %s", strerror(errno));
-	print_times(cpu_times.tms_utime, cpu_times.tms_stime, context);
-	print_times(cpu_times.tms_cutime, cpu_times.tms_cstime, context);
+	print_cpu_times();
 	return(0);
 }
 

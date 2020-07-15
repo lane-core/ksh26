@@ -700,7 +700,7 @@ fi
 # ======
 # 'times' builtin
 
-expect=$'0m00.0[0-9]s 0m00.0[0-9]s\n0m00.00s 0m00.00s'
+expect=$'0m00.0[0-9][0-9]s 0m00.0[0-9][0-9]s\n0m00.000s 0m00.000s'
 actual=$("$SHELL" -c times)
 [[ $actual == $expect ]] || err_exit "times output: expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
