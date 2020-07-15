@@ -459,7 +459,7 @@ char	*sh_fmtq(const char *string)
 					sfprintf(staksp,"\\u[%x]",c);
 					continue;
 				}
-				else if(!iswprint(c) || isbyte)
+				else if(isbyte)
 #else
 				if(!isprint(c))
 #endif
