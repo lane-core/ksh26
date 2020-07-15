@@ -558,6 +558,7 @@ $SHELL 2> /dev/null -c $'for i;\ndo :;done' || err_exit 'for i ; <newline> not v
 result=$(
 	TIMEFORMAT=$'\%3R'
 	redirect 2>&1
+	set +x
 	time sleep .002
 )
 case $result in
@@ -574,6 +575,7 @@ expect='0%'
 actual=$(
 	TIMEFORMAT=$'%0S%'
 	redirect 2>&1
+	set +x
 	time :
 )
 [[ $actual == "$expect" ]] || err_exit "'%' is not treated literally when placed after a format specifier" \
@@ -584,12 +586,14 @@ us=$(
 	LC_ALL='C.UTF-8' # radix point '.'
 	TIMEFORMAT='%1U' # catch -1.99 bug as well by getting user time
 	redirect 2>&1
+	set +x
 	time sleep 0
 )
 eu=$(
 	LC_ALL='C_EU.UTF-8' # radix point ','
 	TIMEFORMAT='%1U'
 	redirect 2>&1
+	set +x
 	time sleep 0
 )
 [[ ${us:1:1} == ${eu:1:1} ]] && err_exit "The time keyword ignores the locale's radix point (both are ${eu:1:1})"
