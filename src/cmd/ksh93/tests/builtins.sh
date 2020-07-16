@@ -775,4 +775,76 @@ unset foo
 [[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
 
 # ======
+# Test various AST getopts usage/manual outputs
+
+OPTIND=1
+USAGE=$'
+[-s8?
+@(#)$Id: foo (ksh93) 2020-07-16 $
+]
+[+NAME?foo - bar]
+[+DESC?Baz.]
+[x:xylophone?Lorem.]
+[y:ypsilon?Ipsum.]
+[z:zeta?Sit.]
+
+[ name=value ... ]
+-y [ name ... ]
+
+[+SEE ALSO?\bgetopts\b(1)]
+'
+
+function testusage {
+	getopts "$USAGE" dummy 2>&1
+}
+
+actual=$(testusage -\?)
+expect='Usage: testusage [-xyz] [ name=value ... ]
+   Or: testusage [ options ] -y [ name ... ]'
+[[ $actual == "$expect" ]] || err_exit "getopts: '-?' output" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+actual=$(testusage --\?x)
+expect='Usage: testusage [ options | --help | --man ] [ name=value ... ]
+   Or: testusage [ options ] -y [ name ... ]
+OPTIONS
+  -x, --xylophone Lorem.'
+[[ $actual == "$expect" ]] || err_exit "getopts: '--?x' output" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+actual=$(testusage --help)
+expect='Usage: testusage [ options | --help | --man ] [ name=value ... ]
+   Or: testusage [ options ] -y [ name ... ]
+OPTIONS
+  -x, --xylophone Lorem.
+  -y, --ypsilon   Ipsum.
+  -z, --zeta      Sit.'
+[[ $actual == "$expect" ]] || err_exit "getopts: '--help' output" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+actual=$(testusage --man)
+expect='NAME
+  foo - bar
+
+SYNOPSIS
+  foo [ options | --help | --man ] [ name=value ... ]
+  foo [ options | --help | --man ] -y [ name ... ]
+
+DESC
+  Baz.
+
+OPTIONS
+  -x, --xylophone Lorem.
+  -y, --ypsilon   Ipsum.
+  -z, --zeta      Sit.
+
+SEE ALSO
+  getopts(1)
+
+IMPLEMENTATION
+  version         foo (ksh93) 2020-07-16'
+[[ $actual == "$expect" ]] || err_exit "getopts: '--man' output" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
 exit $((Errors<125?Errors:125))

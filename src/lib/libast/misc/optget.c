@@ -176,7 +176,7 @@ static unsigned char	map[UCHAR_MAX];
 
 static Optstate_t	state;
 
-#if !_PACKAGE_astsa
+#if 0 /* #if !_PACKAGE_astsa  // this somehow corrupts "Or:" usage mesages, e.g. in 'typeset -\?' */
 
 #define ID		ast.id
 
