@@ -24,13 +24,22 @@
 #include	"FEATURE/dynamic"
 
 /*
- * This is the table of built-in aliases.  These should be exported.
+ * Table of built-in aliases for interactive shells.
  */
 
 const struct shtable2 shtab_aliases[] =
 {
 	"history",	NV_NOFREE,		"hist -l",
 	"r",		NV_NOFREE,		"hist -s",
+	"",		0,			(char*)0
+};
+
+/*
+ * Empty table of built-in aliases for non-interactive shells.
+ */
+
+const struct shtable2 shtab_noaliases[] =
+{
 	"",		0,			(char*)0
 };
 

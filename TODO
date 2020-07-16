@@ -15,27 +15,6 @@ Fix build system:
   but they are not meant to be edited by hand.
 
 ______
-Fix or remove broken or misguided default aliases:
-
-- Make proper builtins out of the following scripting-related aliases, so
-  that 'unalias -a' does not eliminate them. If done correctly, this causes
-  no other change in behaviour. It would be good practice to 'unalias -a' in
-  a script to start with a clean slate, except ksh has always made that
-  impossible without losing these. Default aliases should be to facilitate
-  interactive use.
-	- autoload='typeset -fu'
-	- compound='typeset -C'
-	- float='typeset -lE'
-	- functions='typeset -f'
-	- integer='typeset -li'
-	- nameref='typeset -n'
-  Keep these default aliases for the benefit of interactive shells:
-	+ history='hist -l'
-	+ r='hist -s'
-  To avoid interfering with shell functions by those names that POSIX
-  scripts may set, those should only initialise on interactive shells.
-
-______
 Fix currently known bugs affecting shell scripting. These are identified by
 their modernish IDs. For exact details, see code/comments in:
 https://github.com/modernish/modernish/tree/0.16/lib/modernish/cap/
