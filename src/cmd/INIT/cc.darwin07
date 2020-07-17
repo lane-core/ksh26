@@ -1,4 +1,4 @@
-: unix wrapper for Mac OS X 10.3-10.6 (Darwin 7-10) cc : 2012-01-20 :
+: unix wrapper for Mac OS X 10.3-10.6 (Darwin 7-10) cc : 2020-07-17 :
 
 HOSTTYPE=darwin07.generic
 
@@ -26,8 +26,6 @@ do	case $op in
 	-lc)	continue
 		;;
 	-lm)	continue
-		;;
-	-O)	continue
 		;;
 	esac
 	set "$@" "$arg"

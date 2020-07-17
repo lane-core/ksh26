@@ -1,4 +1,4 @@
-: unix wrapper for macOS cc : 2020-05-13 :
+: unix wrapper for macOS cc : 2020-07-17 :
 
 HOSTTYPE=darwin.generic
 
@@ -26,8 +26,6 @@ do	case $op in
 	-lc)	continue
 		;;
 	-lm)	continue
-		;;
-	-O)	arg='-Os'  # default to small code: Apple compiles its /bin/ksh with -Os
 		;;
 	esac
 	set "$@" "$arg"
