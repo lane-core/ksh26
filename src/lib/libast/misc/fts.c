@@ -31,7 +31,6 @@
 #include <ast.h>
 #include <ast_dir.h>
 #include <error.h>
-#include <fs3d.h>
 #include <ls.h>
 
 struct Ftsent;
@@ -65,7 +64,6 @@ typedef int (*Stat_f)(const char*, struct stat*);
 	int		flags;			/* fts_open() flags	*/ \
 	int		nd;						   \
 	unsigned char	children;					   \
-	unsigned char	fs3d;						   \
 	unsigned char	nostat;					   	   \
 	unsigned char	state;			/* fts_read() state	*/ \
 	char*		base;			/* basename in path	*/ \
@@ -521,7 +519,7 @@ info(FTS* fts, register FTSENT* f, const char* path, struct stat* sp, int flags)
 #endif
 	if (S_ISDIR(sp->st_mode))
 	{
-		if ((flags & FTS_NOSTAT) && !fts->fs3d)
+		if ((flags & FTS_NOSTAT))
 		{
 			f->fts_parent->nlink--;
 #ifdef D_TYPE
@@ -752,7 +750,6 @@ fts_open(char* const* pathnames, int flags, int (*comparf)(FTSENT* const*, FTSEN
 	fts->flags = flags;
 	fts->cd = (flags & FTS_NOCHDIR) ? 1 : -1;
 	fts->comparf = comparf;
-	fts->fs3d = fs3d(FS3D_TEST);
 
 	/*
 	 * set up the path work buffer

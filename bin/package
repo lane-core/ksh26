@@ -1448,10 +1448,6 @@ use)	case $1 in
 			32)	case $HOSTTYPE in
 				*-64)	HOSTTYPE=${HOSTTYPE%-64} ;;
 				esac
-				case $wow in
-				*/32)	;;
-				*)	vpath / /$bit ;;
-				esac
 				;;
 			64)	case $HOSTTYPE in
 				*-64)	;;
@@ -1459,7 +1455,6 @@ use)	case $1 in
 				esac
 				case $wow in
 				*/32)	echo $command: cannot build $bit-bit on $wow $sys >&2; exit 2 ;;
-				*)	vpath / /$bit ;;
 				esac
 				;;
 			esac
@@ -3242,32 +3237,28 @@ esac
 # set up the view state
 
 VIEW_bin=$INSTALLROOT VIEW_src=$PACKAGEROOT VIEW_all="$INSTALLROOT $PACKAGEROOT"
-if	(vpath $INSTALLROOT $PACKAGEROOT $USER_VPATH_CHAIN) >/dev/null 2>&1 &&
-	 vpath $INSTALLROOT $PACKAGEROOT $USER_VPATH_CHAIN
-then	$show vpath $INSTALLROOT $PACKAGEROOT $USER_VPATH_CHAIN
-else	VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
-	$show VPATH=$VPATH
-	$show export VPATH
-	export VPATH
-	IFS=':'
-	set '' $VPATH
-	shift
-	IFS=$ifs
-	for i
-	do	case $i in
-		*/arch/*/*)
-			VIEW_src="$VIEW_src $i"
-			;;
-		*/arch/*)
-			VIEW_bin="$VIEW_bin $i"
-			;;
-		*)
-			VIEW_src="$VIEW_src $i"
-			;;
-		esac
-		VIEW_all="$VIEW_all $i"
-	done
-fi
+VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
+$show VPATH=$VPATH
+$show export VPATH
+export VPATH
+IFS=':'
+set '' $VPATH
+shift
+IFS=$ifs
+for i
+do	case $i in
+	*/arch/*/*)
+		VIEW_src="$VIEW_src $i"
+		;;
+	*/arch/*)
+		VIEW_bin="$VIEW_bin $i"
+		;;
+	*)
+		VIEW_src="$VIEW_src $i"
+		;;
+	esac
+	VIEW_all="$VIEW_all $i"
+done
 
 # return 0 if arg in src|bin|all view
 
@@ -3523,13 +3514,9 @@ int main(int argc, char** argv) { return argc || argv; }
 						esac
 						$exec touch $PROTOROOT/UPDATE
 					)
-					if	(vpath $INSTALLROOT - $INSTALLROOT $PROTOROOT $PROTOROOT $PACKAGEROOT) >/dev/null 2>&1 &&
-						 vpath $INSTALLROOT - $INSTALLROOT $PROTOROOT $PROTOROOT $PACKAGEROOT
-					then	$show vpath $INSTALLROOT $PROTOROOT $PROTOROOT $PACKAGEROOT $USER_VPATH_CHAIN
-					else	VPATH=$INSTALLROOT:$PROTOROOT:$PACKAGEROOT$USER_VPATH
-						$show VPATH=$VPATH
-						export VPATH
-					fi
+					VPATH=$INSTALLROOT:$PROTOROOT:$PACKAGEROOT$USER_VPATH
+					$show VPATH=$VPATH
+					export VPATH
 				}
 			}
 			for i in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
@@ -5857,13 +5844,9 @@ cat $j $k
 				;;
 			esac
 			if	test '' != "$PROTOROOT"
-			then	if	(vpath $INSTALLROOT - $PROTOROOT - $INSTALLROOT $PACKAGEROOT) >/dev/null 2>&1 &&
-					 vpath $INSTALLROOT - $PROTOROOT - $INSTALLROOT $PACKAGEROOT
-				then	$show vpath $INSTALLROOT $PACKAGEROOT $USER_VPATH_CHAIN
-				else	VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
-					$show VPATH=$VPATH
-					export VPATH
-				fi
+			then	VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
+				$show VPATH=$VPATH
+				export VPATH
 			fi
 			note believe generated files for $accept
 			eval capture \$NMAKE \$makeflags \$nmakeflags \$noexec recurse believe \$nmakesep $accept $assign

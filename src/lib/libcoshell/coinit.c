@@ -33,7 +33,6 @@
 #include "colib.h"
 
 #include <ctype.h>
-#include <fs3d.h>
 #include <ls.h>
 
 static void
@@ -346,40 +345,6 @@ coinitialize(Coshell_t* co, int flags)
 		if (old)
 			sfprintf(sp, "\nexport PATH");
 		sfputc(sp, '\n');
-		if (sync)
-		{
-			/*
-			 * VPATH
-			 */
-
-			p = (int)sfstrtell(sp);
-			sfprintf(sp, "vpath ");
-			n = PATH_MAX;
-			if (fs3d(FS3D_TEST))
-				for (;;)
-				{
-					if (!(t = sfstrrsrv(sp, n)))
-						goto bad;
-					if ((m = mount(NiL, t, FS3D_GET|FS3D_ALL|FS3D_SIZE(n), NiL)) > 0)
-						m = n;
-					else
-					{
-						if (!m)
-							sfstrseek(sp, strlen(t), SEEK_CUR);
-						break;
-					}
-				}
-			else
-			{
-				m = 0;
-				sfprintf(sp, "- /#option/2d");
-			}
-			if (m)
-				sfstrseek(sp, p, SEEK_SET);
-			else
-				sfprintf(sp, " 2>/dev/null || :\n");
-			sfprintf(sp, "umask 0%o\ncd '%s'\n", co->init.mask, state.pwd);
-		}
 	done:
 		if (!(flags & CO_SERVER))
 		{

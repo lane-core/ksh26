@@ -2030,11 +2030,6 @@ _JOB_
 "[+SEE ALSO?\bjobs\b(1), \bps\b(1)]"
 ;
 
-#if SHOPT_FS_3D
-    const char sh_optvpath[]	= " [top] [base]";
-    const char sh_optvmap[]	= " [dir] [list]";
-#endif /* SHOPT_FS_3D */
-
 const char sh_optwhence[] =
 "[-1c?\n@(#)$Id: whence (AT&T Research) 2007-04-24 $\n]"
 USAGE_LICENSE

@@ -30,13 +30,8 @@
  *	remove redundant .'s and /'s
  *	move ..'s to the front
  *	/.. preserved (for pdu and newcastle hacks)
- *	FS_3D handles ...
- *	if (flags&PATH_PHYSICAL) then symlinks resolved at each component
- *	if (flags&PATH_DOTDOT) then each .. checked for access
- *	if (flags&PATH_EXISTS) then path must exist at each component
- *	if (flags&PATH_VERIFIED(n)) then first n chars of path exist
  * 
- * longer pathname possible if (flags&PATH_PHYSICAL) or FS_3D ... involved
+ * longer pathname possible if (flags&PATH_PHYSICAL) involved
  * 0 returned on error and if (flags&(PATH_DOTDOT|PATH_EXISTS)) then path
  * will contain the components following the failure point
  */
@@ -45,7 +40,6 @@
 
 #include <ast.h>
 #include <ls.h>
-#include <fs3d.h>
 #include <error.h>
 
 char*
@@ -70,9 +64,6 @@ pathcanon_20100601(char* path, size_t size, int flags)
 	char*		v;
 	int		loop;
 	int		oerrno;
-#if defined(FS_3D)
-	long		visits = 0;
-#endif
 
 	oerrno = errno;
 	dots = loop = 0;
@@ -129,31 +120,7 @@ pathcanon_20100601(char* path, size_t size, int flags)
 				else for (t -= 5; t > r && *(t - 1) != '/'; t--);
 				break;
 			case 3:
-#if defined(FS_3D)
-				{
-					char*		x;
-					char*		o;
-					int		c;
-
-					o = t;
-					if ((t -= 5) <= path) t = path + 1;
-					c = *t;
-					*t = 0;
-					if (x = pathnext(phys, s - (*s != 0), &visits))
-					{
-						r = path;
-						if (t == r + 1) x = r;
-						v = s = t = x;
-					}
-					else
-					{
-						*t = c;
-						t = o;
-					}
-				}
-#else
 				r = t;
-#endif
 				break;
 			default:
 				if ((flags & PATH_PHYSICAL) && loop < 32 && (t - 1) > path)

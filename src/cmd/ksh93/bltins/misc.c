@@ -26,8 +26,6 @@
  * let expr...
  * . file [arg...]
  * :, true, false
- * vpath [top] [base]
- * vmap [top] [base]
  * wait [job...]
  * shift [n]
  *

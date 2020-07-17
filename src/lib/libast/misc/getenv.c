@@ -39,11 +39,7 @@ __STDPP__directive pragma pp:nohide getenv
  */
 
 Intercepts_t	intercepts
-#if _BLD_3d
-		;
-#else
 		= { 0 };
-#endif
 
 #if _UWIN && !defined(getenv)
 

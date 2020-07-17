@@ -134,7 +134,6 @@ static const char usage_tail[] =
 #include <ls.h>
 #include <times.h>
 #include <fts_fix.h>
-#include <fs3d.h>
 #include <hashkey.h>
 #include <stk.h>
 #include <tmx.h>
@@ -161,11 +160,9 @@ typedef struct State_s			/* program state		*/
 	int		directory;	/* destination is directory	*/
 	int		flags;		/* FTS_* flags			*/
 	int		force;		/* force approval		*/
-	int		fs3d;		/* 3d fs enabled		*/
 	int		hierarchy;	/* preserve hierarchy		*/
 	int		interactive;	/* prompt for approval		*/
 	int		missmode;	/* default missing dir mode	*/
-	int		official;	/* move to next view		*/
 	int		op;		/* {CP,LN,MV}			*/
 	int		perm;		/* permissions to preserve	*/
 	int		postsiz;	/* state.path post index	*/
@@ -418,12 +415,8 @@ visit(State_t* state, register FTSENT* ent)
 		fts_set(NiL, ent, FTS_SKIP);
 		return 0;
 	}
-	else if (!state->fs3d || !iview(&st))
+	else
 	{
-		/*
-		 * target is in top 3d view
-		 */
-
 		if (state->op != LN && st.st_dev == ent->fts_statp->st_dev && st.st_ino == ent->fts_statp->st_ino)
 		{
 			if (state->op == MV)
@@ -436,8 +429,7 @@ visit(State_t* state, register FTSENT* ent)
 					sfputr(sfstdout, state->path, '\n');
 				goto operate;
 			}
-			if (!state->official)
-				error(2, "%s: identical to %s", state->path, ent->fts_path);
+			error(2, "%s: identical to %s", state->path, ent->fts_path);
 			return 0;
 		}
 		if (S_ISDIR(st.st_mode))
@@ -966,8 +958,6 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 		error(ERROR_USAGE|4, "%s", optusage(NiL));
 	if (s && !state->directory)
 		error(3, "%s: not a directory", file);
-	if ((state->fs3d = fs3d(FS3D_TEST)) && strmatch(file, "...|*/...|.../*"))
-		state->official = 1;
 	state->postsiz = strlen(file);
 	if (state->pathsiz < roundof(state->postsiz + 2, PATH_CHUNK) && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + 2, PATH_CHUNK), 0)))
 		error(ERROR_SYSTEM|3, "out of space");

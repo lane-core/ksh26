@@ -262,10 +262,6 @@ done ${PACKAGE_ast_INCLUDE}/stk.h
 make ${PACKAGE_ast_INCLUDE}/hashkey.h implicit
 prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 done ${PACKAGE_ast_INCLUDE}/hashkey.h
-make ${PACKAGE_ast_INCLUDE}/fs3d.h implicit
-prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-done ${PACKAGE_ast_INCLUDE}/fs3d.h
 prev fts_fix.h implicit
 prev ${PACKAGE_ast_INCLUDE}/times.h implicit
 prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
@@ -381,7 +377,6 @@ done rev.h
 prev cmd.h implicit
 done rev.c
 make rm.c
-prev ${PACKAGE_ast_INCLUDE}/fs3d.h implicit
 prev fts_fix.h implicit
 prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 prev cmd.h implicit

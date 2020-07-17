@@ -32,7 +32,6 @@ static const char id[] = "\n@(#)$Id: getconf (AT&T Research) 2012-05-01 $\0\n";
 
 #include <ast.h>
 #include <error.h>
-#include <fs3d.h>
 #include <ctype.h>
 #include <regex.h>
 #include <proc.h>
@@ -142,19 +141,7 @@ static Feature_t	dynamic[] =
 		0,
 		OP_conformance
 	},
-#define OP_fs_3d	2
-	{
-		&dynamic[OP_fs_3d+1],
-		"FS_3D",
-		&null[0],
-		"0",
-		0,
-		5,
-		CONF_AST,
-		0,
-		OP_fs_3d
-	},
-#define OP_getconf	3
+#define OP_getconf	2
 	{
 		&dynamic[OP_getconf+1],
 		"GETCONF",
@@ -170,7 +157,7 @@ static Feature_t	dynamic[] =
 		CONF_READONLY,
 		OP_getconf
 	},
-#define OP_hosttype	4
+#define OP_hosttype	3
 	{
 		&dynamic[OP_hosttype+1],
 		"HOSTTYPE",
@@ -182,7 +169,7 @@ static Feature_t	dynamic[] =
 		CONF_READONLY,
 		OP_hosttype
 	},
-#define OP_libpath	5
+#define OP_libpath	4
 	{
 		&dynamic[OP_libpath+1],
 		"LIBPATH",
@@ -198,7 +185,7 @@ static Feature_t	dynamic[] =
 		0,
 		OP_libpath
 	},
-#define OP_libprefix	6
+#define OP_libprefix	5
 	{
 		&dynamic[OP_libprefix+1],
 		"LIBPREFIX",
@@ -214,7 +201,7 @@ static Feature_t	dynamic[] =
 		0,
 		OP_libprefix
 	},
-#define OP_libsuffix	7
+#define OP_libsuffix	6
 	{
 		&dynamic[OP_libsuffix+1],
 		"LIBSUFFIX",
@@ -230,7 +217,7 @@ static Feature_t	dynamic[] =
 		0,
 		OP_libsuffix
 	},
-#define OP_path_attributes	8
+#define OP_path_attributes	7
 	{
 		&dynamic[OP_path_attributes+1],
 		"PATH_ATTRIBUTES",
@@ -246,7 +233,7 @@ static Feature_t	dynamic[] =
 		CONF_READONLY,
 		OP_path_attributes
 	},
-#define OP_path_resolve	9
+#define OP_path_resolve	8
 	{
 		&dynamic[OP_path_resolve+1],
 		"PATH_RESOLVE",
@@ -258,7 +245,7 @@ static Feature_t	dynamic[] =
 		0,
 		OP_path_resolve
 	},
-#define OP_universe	10
+#define OP_universe	9
 	{
 		0,
 		"UNIVERSE",
@@ -522,7 +509,7 @@ initialize(register Feature_t* fp, const char* path, const char* command, const 
 		ok = 1;
 		break;
 	case OP_path_resolve:
-		ok = fs3d(FS3D_TEST);
+		ok = 0;
 		break;
 	case OP_universe:
 		ok = streq(_UNIV_DEFAULT, DEFAULT(OP_universe));
@@ -690,10 +677,6 @@ format(register Feature_t* fp, const char* path, const char* value, unsigned int
 #if DEBUG_astconf
 		error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s", state.std, fp->name, value, fp->std, fp->ast, fp->value);
 #endif
-		break;
-
-	case OP_fs_3d:
-		fp->value = fs3d(value ? value[0] ? FS3D_ON : FS3D_OFF : FS3D_TEST) ? "1" : null;
 		break;
 
 	case OP_hosttype:

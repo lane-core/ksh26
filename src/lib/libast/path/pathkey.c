@@ -36,7 +36,6 @@
 
 #include <ast.h>
 #include <ctype.h>
-#include <fs3d.h>
 #include <preroot.h>
 #include <ls.h>
 
@@ -104,13 +103,6 @@ pathkey_20100601(const char* lang, const char* tool, const char* apath, char* ke
 				path = tmp;
 			}
 		}
-
-		/*
-		 * 3D
-		 */
-
-		if (!flags && fs3d(FS3D_TEST) && (c = mount(path, tmp, FS3D_GET|FS3D_ALL|FS3D_SIZE(PATH_MAX), NiL)) > 1 && c < PATH_MAX)
-			path = tmp;
 
 		/*
 		 * preroot

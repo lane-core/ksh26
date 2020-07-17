@@ -30,7 +30,7 @@ __OBSOLETE__ == $("6 months ago":@F=%(%Y0101)T)
 HEADERSRC = ast.h ast_dir.h ast_getopt.h ast_std.h \
 	ast_namval.h ast_windows.h \
 	ccode.h cdt.h cdtlib.h cmdarg.h debug.h dt.h error.h find.h ftw.h \
-	ftwalk.h fts.h fs3d.h getopt.h glob.h hash.h hashkey.h hashpart.h \
+	ftwalk.h fts.h getopt.h glob.h hash.h hashkey.h hashpart.h \
 	ip6.h lc.h ls.h magic.h mc.h mime.h mnt.h modecanon.h modex.h \
 	namval.h option.h proc.h re_comp.h recfmt.h regex.h regexp.h \
 	sfio.h sfio_s.h sfio_t.h sfdisc.h shcmd.h \
@@ -54,7 +54,7 @@ HEADERSTD = dirent.h iconv.h nl_types.h stdio.h wchar.h wctype.h
 
 $(ID) 5.4 :LIBRARY: README RELEASE \
 	LIBAST.3 aso.3 ast.3 astsa.3 cdt.3 chr.3 compat.3 error.3 \
-	find.3 fmt.3 fmtls.3 fs3d.3 ftwalk.3 getcwd.3 hash.3 iblocks.3 \
+	find.3 fmt.3 fmtls.3 ftwalk.3 getcwd.3 hash.3 iblocks.3 \
 	int.3 ip6.3 magic.3 mem.3 mime.3 modecanon.3 optget.3 path.3 \
 	preroot.3 proc.3 re.3 regex.3 setenviron.3 sfdisc.3 sfio.3 \
 	sig.3 spawnveg.3 stak.3 stk.3 strcopy.3 strdup.3 strelapsed.3 \
@@ -80,7 +80,7 @@ $(ID) 5.4 :LIBRARY: README RELEASE \
 	pathnative.c pathposix.c pathtemp.c pathtmp.c pathstat.c \
 	pathgetlink.c pathsetlink.c pathbin.c pathshell.c pathcd.c \
 	pathprog.c \
-	fs3d.c ftwalk.c ftwflags.c fts.c \
+	ftwalk.c ftwflags.c fts.c \
 	astintercept.c conformance.c getenv.c setenviron.c \
 	optget.c optjoin.c optesc.c optctx.c strsort.c struniq.c \
 	magic.c mime.c mimetype.c signal.c sigflag.c systrace.c \

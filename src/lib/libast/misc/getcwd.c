@@ -79,7 +79,6 @@ getcwd(char* buf, size_t len)
 
 #include <ast_dir.h>
 #include <error.h>
-#include <fs3d.h>
 
 #ifndef ERANGE
 #define ERANGE		E2BIG
@@ -184,18 +183,6 @@ getcwd(char* buf, size_t len)
 	};
 
 	if (buf && !len) ERROR(EINVAL);
-	if (fs3d(FS3D_TEST) && (namlen = mount(".", dots, FS3D_GET|FS3D_VIEW|FS3D_SIZE(sizeof(dots)), NiL)) > 1 && namlen < sizeof(dots))
-	{
-		p = dots;
-	easy:
-		namlen++;
-		if (buf)
-		{
-			if (len < namlen) ERROR(ERANGE);
-		}
-		else if (!(buf = newof(0, char, namlen, len))) ERROR(ENOMEM);
-		return (char*)memcpy(buf, p, namlen);
-	}
 	cur = &curst;
 	par = &parst;
 	if (stat(".", par)) ERROR(errno);
@@ -209,7 +196,13 @@ getcwd(char* buf, size_t len)
 			if (cur->st_ino == par->st_ino && cur->st_dev == par->st_dev)
 			{
 				namlen = strlen(p);
-				goto easy;
+				namlen++;
+				if (buf)
+				{
+					if (len < namlen) ERROR(ERANGE);
+				}
+				else if (!(buf = newof(0, char, namlen, len))) ERROR(ENOMEM);
+				return (char*)memcpy(buf, p, namlen);
 			}
 		}
 	}
