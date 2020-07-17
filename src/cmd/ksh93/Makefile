@@ -25,7 +25,6 @@ SHOPT_BGX == 1			/* one SIGCHLD trap per completed job */
 SHOPT_BRACEPAT == 1		/* C-shell {...,...} expansions (, required) */
 SHOPT_CMDLIB_HDR ==		/* -lcmd builtin list (<cmdlist.h>) */
 SHOPT_CMDLIB_DIR ==		/* SHOPT_CMDLIB_HDR directory prefix (default "/opt/ast/bin") */
-SHOPT_COSHELL == 1		/* build with connection to coshell */
 SHOPT_CRNL ==			/* accept <cr><nl> for <nl> */
 SHOPT_DYNAMIC == 1		/* dynamic loading for builtins */
 SHOPT_ECHOPRINT ==		/* make echo equivalent to print */
@@ -80,7 +79,7 @@ else
 	LIBS_req = +lshell$(RELEASE)
 end
 
-:PACKAGE: ast$(libtype):20100309 coshell:order --clobber=!($(SH))
+:PACKAGE: ast$(libtype):20100309 --clobber=!($(SH))
 
 .SOURCE : edit sh bltins data tests fun
 .SOURCE.h : include 
@@ -165,7 +164,7 @@ shell$(RELEASE) $(VERSION) id=shell :LIBRARY: shell.3 nval.3 alarm.c cd_pwd.c cf
 	fault.c fcin.c history.c init.c io.c jobs.c lex.c macro.c name.c \
 	nvtree.c parse.c path.c string.c streval.c subshell.c tdump.c timers.c \
 	trestore.c waitevent.c xec.c env.c $(DATAFILES) $(FILES_opt) \
-	$(SHOPT_COSHELL:+-lcoshell) -lcmd -last -lm
+	-lcmd -last -lm
 
 "sol*.i386*"	:NOOPTIMIZE: main.c
 "win32*"	:NOOPTIMIZE: strdata.c trestore.c
@@ -235,7 +234,7 @@ test.ksh : $(BINDIR)/$(SH) $(SH) shtests
 	cd $(*:O=3:P=L!:D)
 	SHELL=$(*:O=1:P=A) $(*:O=1:P=A) $(*:O=3:B) $(SHTESTSFLAGS)
 
-test.% : %.sh COSHELL_OPTIONS=separate $(BINDIR)/$(SH) $(SH) shtests
+test.% : %.sh $(BINDIR)/$(SH) $(SH) shtests
 	$(SILENT) $(CMP) $(CMPFLAGS) $(*:O=2) $(*:O=3) 2>/dev/null ||
 	echo "make install to run the tests on the latest $(SH)" >&2
 	cd $(*:O=4:P=L!:D)

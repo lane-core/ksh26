@@ -1060,10 +1060,6 @@ Namval_t *nv_search(const char *name, Dt_t *root, int mode)
 			root = sh.var_base;
 		np = dtmatch(root,(void*)name);
 	}
-#if SHOPT_COSHELL
-	if(sh.inpool)
-		mode |= HASH_NOSCOPE;
-#endif /* SHOPT_COSHELL */
 	if(!np && (mode&NV_ADD))
 	{
 		if(sh.namespace && !(mode&HASH_NOSCOPE) && root==sh.var_tree)

@@ -3115,10 +3115,6 @@ cat $INITROOT/$i.sh
 	export SHELL
 	$show SHELL=$SHELL
 	$show export SHELL
-	COSHELL=$SHELL
-	export COSHELL
-	$show COSHELL=$COSHELL
-	$show export COSHELL
 
 	# tame the environment
 
@@ -3496,7 +3492,7 @@ int main(int argc, char** argv) { return argc || argv; }
 					INITPROTO=$PROTOROOT/src/cmd/INIT
 					note proto convert $PACKAGEROOT/src into $PROTOROOT/src
 					if	test -d $PACKAGEROOT/src/cmd/nmake
-					then	dirs="src/cmd/INIT src/lib/libast src/lib/libardir src/lib/libcoshell src/lib/libpp src/cmd/probe src/cmd/cpp src/cmd/nmake"
+					then	dirs="src/cmd/INIT src/lib/libast src/lib/libardir  src/lib/libpp src/cmd/probe src/cmd/cpp src/cmd/nmake"
 					else	dirs="src"
 					fi
 					(
@@ -6007,8 +6003,6 @@ cat $j $k
 		if	test "$KEEP_SHELL" != 1 && executable $OK/ksh
 		then	SHELL=$INSTALLROOT/bin/$OK/ksh
 			export SHELL
-			COSHELL=$SHELL
-			export COSHELL
 		fi
 		case :$PATH: in
 		*:$INSTALLROOT/bin/$OK:*)

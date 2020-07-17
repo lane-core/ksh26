@@ -34,22 +34,6 @@
 #endif /* !SIGINT */
 #include	"FEATURE/options"
 
-#if SHOPT_COSHELL
-#   include	<coshell.h>
-#   define	COPID_BIT	(1L<<30)
-    struct cosh
-    {
-	struct cosh	*next;
-	Coshell_t	*coshell;
-	Cojob_t		*cojob;
-	char		*name;
-	short		id;
-    };
-
-    extern pid_t	sh_copid(struct cosh*);
-    extern char  	*sh_pid2str(Shell_t*,pid_t);
-#endif /* SHOPT_COSHELL */
-
 #undef JOBS
 #if defined(SIGCLD) && !defined(SIGCHLD)
 #   define SIGCHLD	SIGCLD
@@ -76,9 +60,6 @@ struct process
 	struct process *p_nxtjob;	/* next job structure */
 	struct process *p_nxtproc;	/* next process in current job */
 	Shell_t		*p_shp;		/* shell that posted the job */
-#if SHOPT_COSHELL
-	Cojob_t		*p_cojob;	/* coshell job */
-#endif /* SHOPT_COSHELL */
 	int		*p_exitval;	/* place to store the exitval */
 	pid_t		p_pid;		/* process id */
 	pid_t		p_pgrp;		/* process group */
@@ -120,9 +101,6 @@ struct jobs
 	char		waitall;	/* wait for all jobs in pipe */
 	char		toclear;	/* job table needs clearing */
 	unsigned char	*freejobs;	/* free jobs numbers */
-#if SHOPT_COSHELL
-	struct cosh	*colist;	/* coshell job list */
-#endif /* SHOPT_COSHELL */
 };
 
 /* flags for joblist */

@@ -263,7 +263,6 @@ struct shared
 	Namval_t	*typeinit; \
 	Namfun_t	nvfun; \
 	char		*mathnodes; \
-	void		*coshell; \
 	char		*bltin_dir; \
 	struct Regress_s*regress;
 
@@ -437,11 +436,6 @@ extern int		sh_type(const char*);
 extern void             sh_unscope(Shell_t*);
 extern void		sh_utol(const char*, char*);
 extern int 		sh_whence(char**,int);
-#if SHOPT_COSHELL
-   extern int		sh_coaddfile(Shell_t*,char*);
-   extern int		sh_copipe(Shell_t*, int[], int);
-   extern int		sh_coaccept(Shell_t*,int[],int);
-#endif /* SHOPT_COSHELL */
 #if SHOPT_NAMESPACE
     extern Namval_t	*sh_fsearch(Shell_t*,const char *,int);
 #endif /* SHOPT_NAMESPACE */

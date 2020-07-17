@@ -317,7 +317,6 @@ inetopen(const char* path, int flags, Inetintr_f onintr, void* handle)
 #else
 
 #undef	O_SERVICE
-#undef	SHOPT_COSHELL
 
 #endif
 
@@ -924,57 +923,6 @@ int	sh_pipe(register int pv[])
    }
 #endif
 
-#if SHOPT_COSHELL
-    int sh_coaccept(Shell_t *shp,int *pv,int out)
-    {
-	int fd = accept(pv[0],(struct sockaddr*)0,(socklen_t*)0);
-	sh_close(pv[0]);
-	pv[0] = -1;
-	if(fd<0)
-		errormsg(SH_DICT,ERROR_system(1),e_pipe);
-	if((pv[out]=sh_fcntl(fd,F_DUPFD,10)) >=10)
-		sh_close(fd);
-	else
-		pv[out] = sh_iomovefd(fd);
-	if(fcntl(pv[out],F_SETFD,FD_CLOEXEC) >=0)
-		shp->fdstatus[pv[out]] |= IOCLEX;
-	shp->fdstatus[pv[out]] = (out?IOWRITE:IOREAD);
-	shp->fdstatus[pv[out]] |= IONOSEEK;
-	sh_subsavefd(pv[out]);
-#if defined(SHUT_RD) && defined(SHUT_WR)
-	shutdown(pv[out],out?SHUT_RD:SHUT_WR);
-#endif
-	return(0);
-    }
-
-    int sh_copipe(Shell_t *shp, int *pv, int out)
-    {
-	int			r,port=20000;
-	struct sockaddr_in	sin;
-	socklen_t		slen;
-	if ((pv[out] = socket (AF_INET, SOCK_STREAM, 0)) < 0)
-		errormsg(SH_DICT,ERROR_system(1),e_pipe);
-	do
-	{
-		sin.sin_family = AF_INET;
-		sin.sin_port = htons(++port);
-		sin.sin_addr.s_addr = INADDR_ANY;
-		slen = sizeof (sin);
-	}
-	while ((r=bind (pv[out], (struct sockaddr *) &sin, slen)) == -1 && errno==EADDRINUSE);
-	if(r<0 ||  listen(pv[out],5) <0)
-	{
-		close(pv[out]);
-		errormsg(SH_DICT,ERROR_system(1),e_pipe);
-	}
-	fcntl(pv[out],F_SETFD,FD_CLOEXEC);
-	shp->fdstatus[pv[out]] |= IOCLEX;
-	pv[1-out] = -1;
-	pv[2] = port;
-	return(0);
-    }
-#endif /* SHOPT_COSHELL */
-
 static int pat_seek(void *handle, const char *str, size_t sz)
 {
 	char **bp = (char**)handle;
@@ -1199,14 +1147,6 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 		}
 		errno=0;
 		np = 0;
-#if SHOPT_COSHELL
-		if(shp->inpool)
-		{
-			if(!(iof&(IODOC|IOLSEEK|IOMOV)))
-				sh_coaddfile(shp,fname);
-			continue;
-		}
-#endif /* SHOPT_COSHELL */
 		if(iop->iovname)
 		{
 			np = nv_open(iop->iovname,shp->var_tree,NV_NOASSIGN|NV_VARNAME);

@@ -164,20 +164,7 @@ const struct shtable3 shtab_builtins[] =
 	"",		0, 0 
 };
 
-#if SHOPT_COSHELL
-#  define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \
-        "[+\anumber\a?\anumber\a refers to a process id.]" \
-        "[+-\anumber\a?\anumber\a refers to a process group id.]" \
-        "[+\apool\a.\anum\a?refers to job \anum\a in background pool named \apool\a.]" \
-        "[+\apool\a?refers to all jobs in background pool named \apool\a.]" \
-        "[+%\anumber\a?\anumber\a refer to a job number.]" \
-        "[+%\astring\a?Refers to a job whose name begins with \astring\a.]" \
-        "[+%??\astring\a?Refers to a job whose name contains \astring\a.]" \
-        "[+%+ \bor\b %%?Refers to the current job.]" \
-        "[+%-?Refers to the previous job.]" \
-	"}"
-#else
-#  define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \
+#define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \
         "[+\anumber\a?\anumber\a refers to a process id.]" \
         "[+-\anumber\a?\anumber\a refers to a process group id.]" \
         "[+%\anumber\a?\anumber\a refer to a job number.]" \
@@ -186,7 +173,6 @@ const struct shtable3 shtab_builtins[] =
         "[+%+ \bor\b %%?Refers to the current job.]" \
         "[+%-?Refers to the previous job.]" \
 	"}"
-#endif
 
 
 const char sh_set[] =

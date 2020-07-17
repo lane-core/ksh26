@@ -1258,7 +1258,6 @@ static void exscript(Shell_t *shp,register char *path,register char *argv[],char
 	path = path_relative(shp,path);
 	shp->comdiv=0;
 	shp->bckpid = 0;
-	shp->coshell = 0;
 	shp->st.ioset=0;
 	/* clean up any cooperating processes */
 	if(shp->cpipe[0]>0)

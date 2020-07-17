@@ -253,82 +253,6 @@ static struct jobsave *jobsave_create(pid_t pid)
 	return(jp);
 }
 
-#if SHOPT_COSHELL
-    pid_t sh_copid(struct cosh *csp)
-    {
-	return(COPID_BIT|(csp->id<<16)|csp->cojob->id);
-    }
-
-
-    char  *sh_pid2str(Shell_t *shp,pid_t pid)
-    {
-	struct cosh  *csp=0;
-	if(pid&COPID_BIT)
-	{
-		int id = (pid>>16) &0x3f;
-		for(csp=job.colist; csp; csp = csp->next)
-		{
-			if(csp->id == id)
-				break;
-		}
-	}
-	if(csp)
-		sfprintf(shp->strbuf,"%s.%d%c",csp->name,pid&0xff,0);
-	else
-		sfprintf(shp->strbuf,"%d%c",pid,0);
-	return(sfstruse(shp->strbuf));
-    }
-
-    int job_cowalk(int (*fun)(struct process*,int),int arg,char *name)
-    {
-	Shell_t		*shp = sh_getinterp();
-	struct cosh	*csp;
-	struct process	*pw,*pwnext;
-	pid_t		val;
-	int		n,r=0;
-	char		*cp = strchr(name,'.');
-	if(!cp)
-		n = strlen(name);
-	else
-		n = cp-name;
-	for(csp=(struct cosh*)job.colist;csp;csp=csp->next)
-	{
-		if(memcmp(name,csp->name,n)==0 && csp->name[n]==0)
-			break;
-	}
-	if(!csp)
-		errormsg(SH_DICT,ERROR_exit(1),e_jobusage,name);
-	if(cp)
-	{
-		n = pid_fromstring(cp+1);
-		val = (csp->id<<16)|n|COPID_BIT;
-	}
-	job_reap(SIGCHLD);
-	for(n=0,pw=job.pwlist; pw; pw=pwnext)
-	{
-		pwnext = pw->p_nxtjob;
-		if((cp && val==pw->p_pid) || (pw->p_cojob && pw->p_cojob->local==(void*)csp))
-		{
-			if(fun)
-			{
-				if(pw->p_flag&P_DONE)
-					continue;
-				r |= (*fun)(pw,arg);
-			}
-			else
-				job_wait(-pw->p_pid);
-			n++;
-		}
-	}
-	if(!n)
-		shp->exitval = fun?1:ERROR_NOENT;
-	else if(fun)
-		shp->exitval = r;
-	return(r);
-    }
-
-#endif /* SHOPT_COSHELL */
-
 /*
  * Reap one job
  * When called with sig==0, it does a blocking wait
@@ -345,18 +269,6 @@ int job_reap(register int sig)
 	Waitevent_f waitevent = shp->gd->waitevent;
 	static int wcontinued = WCONTINUED;
 	int was_ttywait_on;
-#if SHOPT_COSHELL
-	Cojob_t		*cjp;
-	int		cojobs;
-	long		cotimeout = sig?0:-1;
-	for(pw=job.pwlist;pw;pw=pw->p_nxtjob)
-	{
-		if(pw->p_cojob && !(pw->p_flag&P_DONE))
-			break;
-	}
-	cojobs = (pw!=0);
-	pid = 0;
-#endif /* SHOPT_COSHELL */
 	if (vmbusy())
 	{
 		errormsg(SH_DICT,ERROR_warn(0),"vmbusy() inside job_reap() -- should not happen");
@@ -385,33 +297,9 @@ int job_reap(register int sig)
 			if(waitevent && (*waitevent)(-1,-1L,0))
 				flags |= WNOHANG;
 		}
-#if SHOPT_COSHELL
-		if(cojobs)
-		{
-			if(cjp = cowait(0,0,cotimeout))
-			{
-				struct cosh *csp;
-				csp = (struct cosh*)(cjp->coshell->data);
-				csp->cojob = cjp;
-				pid = sh_copid(csp);
-				if(cjp->status < 256)
-					wstat = cjp->status <<8;
-				else
-					wstat = cjp->status-256;
-				cotimeout = 0;
-				goto cojob;
-			}
-			else if(copending(0)==0)
-				cojobs = 0;
-			cotimeout = 0;
-		}
-#endif /* SHOPT_COSHELL */
 		pid = waitpid((pid_t)-1,&wstat,flags);
 		if(!was_ttywait_on)
 			sh_offstate(SH_TTYWAIT);
-#if SHOPT_COSHELL
-	cojob:
-#endif /* SHOPT_COSHELL */
 
 		/*
 		 * some systems (linux 2.6) may return EINVAL
@@ -563,10 +451,6 @@ int job_reap(register int sig)
 		}
 #endif
 	}
-#if SHOPT_COSHELL
-	if(!was_ttywait_on)
-		sh_offstate(SH_TTYWAIT); /* only required after 'goto cojob' in the while loop */
-#endif
 	if(errno==ECHILD)
 	{
 		errno = oerrno;
@@ -894,13 +778,6 @@ void job_bwait(char **jobs)
 			else
 				return;
 		}
-#   if SHOPT_COSHELL
-		else if(isalpha(*jp))
-		{
-			job_cowalk(NULL,0,jp);
-			return;
-		}
-#   endif /* SHOPT_COSHELL */
 		else
 #endif /* JOBS */
 			pid = pid_fromstring(jp);
@@ -924,9 +801,7 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 	by_number = 0;
 	job_lock();
 	pw = job.pwlist;
-#if SHOPT_COSHELL
 	job_waitsafe(SIGCHLD);
-#endif /* SHOPT_COSHELL */
 	if(jobs==0)
 	{
 		/* do all jobs */
@@ -952,15 +827,6 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 		job_string = jobid;
 		if(*jobid==0)
 			errormsg(SH_DICT,ERROR_exit(1),e_jobusage,job_string);
-#if SHOPT_COSHELL
-		if(isalpha(*jobid))
-		{
-			r = job_cowalk(fun,arg,jobid);
-			by_number = 0;
-			job_unlock();
-			return(r);
-		}
-#endif /* SHOPT_COSHELL */
 		if(*jobid == '%')
 			pw = job_bystring(jobid);
 		else
@@ -1015,11 +881,7 @@ int job_list(struct process *pw,register int flag)
 		return(0);
 	if((flag&JOB_PFLAG))
 	{
-#if SHOPT_COSHELL
-		sfprintf(outfile,"%s\n",sh_pid2str(shp,px->p_pgrp?px->p_pgrp:px->p_pid));
-#else
 		sfprintf(outfile,"%d\n",px->p_pgrp?px->p_pgrp:px->p_pid);
-#endif /* SHOPT_COSHELL */
 		return(0);
 	}
 	if((px->p_flag&P_DONE) && job.waitall && !(flag&JOB_LFLAG))
@@ -1039,11 +901,7 @@ int job_list(struct process *pw,register int flag)
 	{
 		n = 0;
 		if(flag&JOB_LFLAG)
-#if SHOPT_COSHELL
-			sfprintf(outfile,"%s\t",sh_pid2str(shp,px->p_pid));
-#else
 			sfprintf(outfile,"%d\t",px->p_pid);
-#endif /* SHOPT_COSHELL */
 		if(px->p_flag&P_SIGNALLED)
 			msg = job_sigmsg((int)(px->p_exit));
 		else if(px->p_flag&P_NOTIFY)
@@ -1133,11 +991,6 @@ int job_kill(register struct process *pw,register int sig)
 	job_lock();
 	errno = ECHILD;
 	pid = pw->p_pid;
-#if SHOPT_COSHELL
-	if(pw->p_cojob)
-		r = cokill(pw->p_cojob->coshell,pw->p_cojob,sig);
-	else
-#endif /* SHOPT_COSHELL */
 	if(by_number)
 	{
 		if(pid==0 && job.jobcontrol)
@@ -1364,14 +1217,6 @@ int job_post(Shell_t *shp,pid_t pid, pid_t join)
 		pw->p_nxtproc = 0;
 	}
 	pw->p_exitval = job.exitval; 
-#if SHOPT_COSHELL
-	pw->p_cojob = 0;
-	if(shp->coshell && (pid&COPID_BIT))
-	{
-		pw->p_cojob = ((struct cosh*)shp->coshell)->cojob;
-		job.curpgid = sh_isstate(SH_MONITOR)?pid:0;
-	}
-#endif /* SHOPT_COSHELL */
 	job.pwlist = pw;
 	pw->p_shp = shp;
 	pw->p_env = shp->curenv;

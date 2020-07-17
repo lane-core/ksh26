@@ -101,9 +101,6 @@ static struct subshell
 	char		subshare;
 	char		comsub;
 	char		pwdclose;
-#if SHOPT_COSHELL
-	void		*coshell;
-#endif /* SHOPT_COSHELL */
 } *subshell_data;
 
 static int subenv;
@@ -493,10 +490,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->options = shp->options;
 	sp->jobs = job_subsave();
 	sp->subdup = shp->subdup;
-#if SHOPT_COSHELL
-	sp->coshell = shp->coshell;
-	shp->coshell = 0;
-#endif /* SHOPT_COSHELL */
 	/* make sure initialization has occurred */ 
 	if(!shp->pathlist)
 	{
@@ -759,9 +752,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	shp->subshare = sp->subshare;
 	shp->comsub = sp->comsub;
 	shp->subdup = sp->subdup;
-#if SHOPT_COSHELL
-	shp->coshell = sp->coshell;
-#endif /* SHOPT_COSHELL */
 	if(shp->subshell)
 	{
 		shp->subshell--;		/* decrease level of virtual subshells */
