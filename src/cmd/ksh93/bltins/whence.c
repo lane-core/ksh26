@@ -190,10 +190,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			if(flags&V_FLAG)
 			{
 				if(nv_isnull(np))
-{
-errormsg(SH_DICT,ERROR_warn(0),"[DEBUG] is_ufunction ONE: %s", name);
 					cp = sh_translate(is_ufunction);
-}
 				else if(is_abuiltin(np))
 				{
 					if(nv_isattr(np,BLT_SPC))
@@ -253,11 +250,8 @@ errormsg(SH_DICT,ERROR_warn(0),"[DEBUG] is_ufunction ONE: %s", name);
 							const char *command_path = np->nvalue.pathcomp->name;
 							sfprintf(sfstdout,"%s %s %s/%s\n",name,sh_translate(is_talias),command_path,cp);
 						}
-						else if(np && nv_isnull(np))
-{
-errormsg(SH_DICT,ERROR_warn(0),"[DEBUG] is_ufunction TWO: %s", name);
+						else if(!np || nv_isnull(np))
 							sfprintf(sfstdout,"%s%s\n",name,sh_translate(is_ufunction));
-}
 						continue;
 					}
 					sfputr(sfstdout,sh_fmtq(name),' ');
