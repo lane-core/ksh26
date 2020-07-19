@@ -170,10 +170,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		{
 			if(flags&V_FLAG)
 			{
-				if(nv_isattr(np,NV_EXPORT))
-					msg = sh_translate(is_xalias);
-				else
-					msg = sh_translate(is_alias);
+				msg = sh_translate(is_alias);
 				sfprintf(sfstdout,msg,name);
 			}
 			sfputr(sfstdout,sh_fmtq(cp),'\n');

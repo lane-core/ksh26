@@ -138,7 +138,6 @@ const char is_builtin[]		= " is a shell builtin";
 const char is_spcbuiltin[]	= " is a special shell builtin";
 const char is_builtver[]	= "is a shell builtin version of";
 const char is_alias[]		= "%s is an alias for ";
-const char is_xalias[]		= "%s is an exported alias for ";
 const char is_talias[]		= "is a tracked alias for";
 const char is_function[]	= " is a function";
 const char is_ufunction[]	= " is an undefined function";
