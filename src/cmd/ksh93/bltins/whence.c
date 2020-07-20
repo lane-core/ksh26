@@ -250,8 +250,6 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 							const char *command_path = np->nvalue.pathcomp->name;
 							sfprintf(sfstdout,"%s %s %s/%s\n",name,sh_translate(is_talias),command_path,cp);
 						}
-						else if(!np || nv_isnull(np))
-							sfprintf(sfstdout,"%s%s\n",name,sh_translate(is_ufunction));
 						continue;
 					}
 					sfputr(sfstdout,sh_fmtq(name),' ');

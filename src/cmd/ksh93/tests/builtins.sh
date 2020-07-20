@@ -732,18 +732,25 @@ foo=BUG command eval ':'
 [[ $foo == BUG ]] && err_exit '`command` fails to disable the special properties of special builtins'
 
 # ======
-# `whence -a` should not base the path of tracked aliases on the current directory
-run_whence()
-{
-	whence -a chmod >> /dev/null
+# 'whence -a' tests
+
+# wrong path to tracked aliases after loading builtin: https://github.com/ksh93/ksh/pull/25
+actual=$("$SHELL" -c '
+	whence chmod >/dev/null  # add to hash table (create tracked alias)
 	builtin chmod
 	whence -a chmod
-}
-actual="$(run_whence)"
+')
 expected="chmod is a shell builtin
 $(whence -a -p chmod | sed 's/^/chmod is /')
 chmod is a tracked alias for $(whence -p chmod)"
 [[ $actual == $expected ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
+	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+
+# spurious 'undefined function' message: https://github.com/ksh93/ksh/issues/26
+actual=$("$SHELL" -c 'whence -a printf')
+expected="printf is a shell builtin
+$(whence -a -p printf | sed 's/^/printf is /')"
+[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output" \
 	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
 
 # ======
