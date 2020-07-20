@@ -2017,9 +2017,9 @@ _JOB_
 ;
 
 const char sh_optwhence[] =
-"[-1c?\n@(#)$Id: whence (AT&T Research) 2007-04-24 $\n]"
+"[-1c?\n@(#)$Id: whence (AT&T Research/ksh93) 2020-07-20 $\n]"
 USAGE_LICENSE
-"[+NAME?whence - locate a command and describe its type]"
+"[+NAME?whence, type - locate a command and describe its type]"
 "[+DESCRIPTION?Without \b-v\b, \bwhence\b writes on standard output an "
 	"absolute pathname, if any, corresponding to \aname\a based "
 	"on the complete search order that the shell uses.  If \aname\a "  
@@ -2027,7 +2027,8 @@ USAGE_LICENSE
 "[+?If \b-v\b is specified, the output will also contain information "
 	"that indicates how the given \aname\a would be interpreted by "
 	"the shell in the current execution environment.]" 
-"[a?Displays all uses for each \aname\a rather than the first.]"
+"[+?The \btype\b command is equivalent to \bwhence -v\b.]"
+"[a?Like \b-v\b but displays all uses for each \aname\a rather than the first.]"
 "[f?Do not check for functions.]"
 "[p?Do not check to see if \aname\a is a reserved word, a built-in, "
 	"an alias, or a function.  This turns off the \b-v\b option.]"

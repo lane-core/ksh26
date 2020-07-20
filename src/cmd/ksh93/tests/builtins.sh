@@ -753,6 +753,22 @@ $(whence -a -p printf | sed 's/^/printf is /')"
 [[ $actual == $expected ]] || err_exit "'whence -a': incorrect output" \
 	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
 
+# 'whence -a'/'type -a' failed to list builtin if function exists: https://github.com/ksh93/ksh/issues/83
+actual=$(printf() { :; }; whence -a printf)
+expected="printf is a function
+printf is a shell builtin
+$(whence -a -p printf | sed 's/^/printf is /')"
+[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output for function+builtin" \
+        "(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+
+# 'whence -a'/'type -a' failed to list builtin if autoload function exists: https://github.com/ksh93/ksh/issues/83
+actual=$(autoload printf; whence -a printf)
+expected="printf is an undefined function
+printf is a shell builtin
+$(whence -a -p printf | sed 's/^/printf is /')"
+[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output for autoload+builtin" \
+        "(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+
 # ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'
 (

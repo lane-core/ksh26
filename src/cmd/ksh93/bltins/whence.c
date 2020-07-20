@@ -138,7 +138,6 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 	register int aflag,r=0;
 	register const char *msg;
 	int	tofree;
-	Dt_t *root;
 	Namval_t *nq;
 	char *notused;
 	Pathcomp_t *pp=0;
@@ -181,32 +180,36 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		}
 		/* built-ins and functions next */
 	bltins:
-		root = (flags&F_FLAG)?shp->bltin_tree:shp->fun_tree;
-		if(np= nv_bfsearch(name, root, &nq, &notused))
+		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && !is_abuiltin(np))
 		{
-			if(is_abuiltin(np) && nv_isnull(np))
-				goto search;
-			cp = "";
 			if(flags&V_FLAG)
-			{
 				if(nv_isnull(np))
 					cp = sh_translate(is_ufunction);
-				else if(is_abuiltin(np))
-				{
-					if(nv_isattr(np,BLT_SPC))
-						cp = sh_translate(is_spcbuiltin);
-					else
-						cp = sh_translate(is_builtin);
-				}
 				else
 					cp = sh_translate(is_function);
-			}
+			else
+				cp = "";
 			if(flags&Q_FLAG)
 				continue;
 			sfprintf(sfstdout,"%s%s\n",name,cp);
 			if(!aflag)
 				continue;
-			cp = 0;
+			aflag++;
+		}
+		if((np = nv_bfsearch(name, shp->bltin_tree, &nq, &notused)) && !nv_isnull(np))
+		{
+			if(flags&V_FLAG)
+				if(nv_isattr(np,BLT_SPC))
+					cp = sh_translate(is_spcbuiltin);
+				else
+					cp = sh_translate(is_builtin);
+			else
+				cp = "";
+			if(flags&Q_FLAG)
+				continue;
+			sfprintf(sfstdout,"%s%s\n",name,cp);
+			if(!aflag)
+				continue;
 			aflag++;
 		}
 	search:
