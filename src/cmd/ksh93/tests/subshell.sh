@@ -625,7 +625,7 @@ $SHELL <<- \EOF
 EOF
 
 for f in /dev/stdout /dev/fd/1
-do	if	[[ -e $f ]]
+do	if	"${ whence -p test; }" -e "$f"
 	then	$SHELL -c "x=\$(command -p tee $f </dev/null 2>/dev/null)" || err_exit "$f in command substitution fails"
 	fi
 done
