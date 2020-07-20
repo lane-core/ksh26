@@ -593,7 +593,8 @@ done:
 	sh_popcontext(shp,&buff);
 	if(sh_isstate(SH_INTERACTIVE))
 	{
-		sfputc(sfstderr,'\n');
+		if(isatty(0) && !sh_isoption(SH_CFLAG))
+			sfputc(sfstderr,'\n');
 		job_close(shp);
 	}
 	if(jmpval == SH_JMPSCRIPT)
