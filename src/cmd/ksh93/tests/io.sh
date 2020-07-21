@@ -568,4 +568,14 @@ result=$("$SHELL" -ic 'echo >(true) >/dev/null' 2>&1)
 [[ $? == 1 ]] || err_exit "Out of range file descriptors cause redirections to segfault"
 
 # ======
+# A file descriptor opened with 'exec' or 'redirect' leaked out of a subshell.
+exec 3>&-  # close FD 3 just in case
+(exec 3>"$tmp/fdleak.txt")
+{ echo bug >&3; } 2>/dev/null
+if	[[ -s "$tmp/fdleak.txt" ]]
+then	exec 3>&-
+	err_exit "Open file descriptor leaks out of subshell"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

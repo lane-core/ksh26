@@ -1422,7 +1422,17 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 					sh_iosave(shp,fn,indx,tname?fname:(trunc?Empty:0));
 				}
 				else if(sh_subsavefd(fn))
+				{
+					if(fd==fn)
+					{
+						if((r=sh_fcntl(fd,F_DUPFD,10)) > 0)
+						{
+							fd = r;
+							sh_close(fn);
+						}
+					}
 					sh_iosave(shp,fn,indx|IOSUBSHELL,tname?fname:0);
+				}
 			}
 			if(fd<0)
 			{

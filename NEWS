@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - If a shell function and a built-in command by the same name exist,
   'whence -a' and 'type -a' now report both.
 
+- Fixed a bug that caused file descriptors opened with 'redirect' or 'exec'
+  to survive a subshell environment after exiting it.
+
 2020-07-19:
 
 - Fixed a crash that occured in the '.' command when using kshdb.
