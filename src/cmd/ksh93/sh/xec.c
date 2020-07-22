@@ -1575,7 +1575,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 #if SHOPT_SPAWN
 #   ifdef _lib_fork
-				if(com)
+				if(com && !job.jobcontrol)
 					parent = sh_ntfork(shp,t,com,&jobid,ntflag);
 				else
 					parent = sh_fork(shp,type,&jobid);
@@ -3460,6 +3460,7 @@ static void sigreset(Shell_t *shp,int mode)
 
 /*
  * A combined fork/exec for systems with slow or non-existent fork()
+ * Note: Incompatible with job control.
  */
 static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,int flag)
 {
