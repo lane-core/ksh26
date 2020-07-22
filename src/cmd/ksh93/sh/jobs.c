@@ -530,12 +530,14 @@ void job_init(Shell_t *shp, int lflag)
 		/* This should have already been done by rlogin */
                 register int fd;
                 register char *ttynam;
+		int err = errno;
 #ifndef SIGTSTP
                 setpgid(0,shp->gd->pid);
 #endif /*SIGTSTP */
                 if(job.mypgid<0 || !(ttynam=ttyname(JOBTTY)))
                         return;
-                close(JOBTTY);
+		while(close(JOBTTY)<0 && errno==EINTR)
+			errno = err;
                 if((fd = open(ttynam,O_RDWR)) <0)
                         return;
                 if(fd!=JOBTTY)
@@ -977,9 +979,7 @@ static struct process *job_bystring(register char *ajob)
 
 int job_kill(register struct process *pw,register int sig)
 {
-	if(!pw)
-		goto error;
-	Shell_t	*shp = pw->p_shp;
+	Shell_t	*shp;
 	register pid_t pid;
 	register int r;
 	const char *msg;
@@ -990,6 +990,9 @@ int job_kill(register struct process *pw,register int sig)
 #endif	/* SIGTSTP */
 	job_lock();
 	errno = ECHILD;
+	if(pw==0)
+		goto error;
+	shp = pw->p_shp;
 	pid = pw->p_pid;
 	if(by_number)
 	{
