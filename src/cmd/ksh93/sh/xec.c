@@ -941,7 +941,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 		int 		execflg = (type&sh_state(SH_NOFORK));
 		int 		execflg2 = (type&sh_state(SH_FORKED));
 		int 		mainloop = (type&sh_state(SH_INTERACTIVE));
-#if SHOPT_AMP || SHOPT_SPAWN
+#if SHOPT_SPAWN
 		int		ntflag = (type&sh_state(SH_NTFORK));
 #else
 		int		ntflag = 0;
@@ -1573,18 +1573,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					pipes[2] = 0;
 					coproc_init(shp,pipes);
 				}
-#if SHOPT_AMP
-				if((type&(FAMP|FINT)) == (FAMP|FINT))
-					parent = sh_ntfork(shp,t,com,&jobid,ntflag);
-				else
-					parent = sh_fork(shp,type,&jobid);
-				if(parent<0)
-				{
-					if(shp->comsub==1 && usepipe && unpipe)
-						iounpipe(shp);
-					break;
-				}
-#else
 #if SHOPT_SPAWN
 #   ifdef _lib_fork
 				if(com)
@@ -1604,7 +1592,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 #else
 				parent = sh_fork(shp,type,&jobid);
 #endif /* SHOPT_SPAWN */
-#endif
 			}
 			if(job.parent=parent)
 			/* This is the parent branch of fork
@@ -3380,7 +3367,7 @@ static void coproc_init(Shell_t *shp, int pipes[])
 #if SHOPT_SPAWN
 
 
-#if SHOPT_AMP || !defined(_lib_fork)
+#if !defined(_lib_fork)
 
 /*
  * create a shell script consisting of t->fork.forktre and execute it
@@ -3490,7 +3477,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		otype = savetype;
 		savetype=0;
 	}
-#   if SHOPT_AMP || !defined(_lib_fork)
+#   if !defined(_lib_fork)
 	if(!argv)
 	{
 		register Shnode_t *tchild = t->fork.forktre;
