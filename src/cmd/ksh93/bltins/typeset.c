@@ -691,13 +691,22 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				if(!comvar && !iarray)
 					continue;
 			}
-			if(!nv_isarray(np) && !strchr(name,'=') && !(shp->envlist  && nv_onlist(shp->envlist,name)))
+
+			/* Create local scope for virtual subshell */
+			if(shp->subshell)
 			{
-				if(comvar || (shp->last_root==shp->var_tree && (tp->tp || (!shp->st.real_fun && (nvflags&NV_STATIC)) || (!(flag&(NV_EXPORT|NV_RDONLY)) && nv_isattr(np,(NV_EXPORT|NV_IMPORT))==(NV_EXPORT|NV_IMPORT)))))
-{
-					_nv_unset(np,0);
-}
+				if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
+				{
+					/*
+					 * Variables with internal trap/discipline functions (LC_*, LINENO, etc.) need to be
+					 * cloned, as moving them will remove the discipline function.
+					 */
+					np=sh_assignok(np,2);
+				}
+				else
+					np=sh_assignok(np,0);
 			}
+
 			if(troot==shp->var_tree)
 			{
 				if(iarray)

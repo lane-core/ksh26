@@ -180,6 +180,12 @@ then    err_exit 'arithmetic expressions in typeset not working'
 fi
 unset foo
 typeset foo=bar
+typeset -a foo
+if	[[ ${foo[0]} != bar ]]
+then	err_exit 'initial value not preserved when typecast to indexed array'
+fi
+unset foo
+typeset foo=bar
 typeset -A foo
 if	[[ ${foo[0]} != bar ]]
 then	err_exit 'initial value not preserved when typecast to associative'
@@ -673,6 +679,33 @@ actual=$("$SHELL" -c 'A[0]="'\''" B[0]=aa C[0]=aa; typeset -a') \
 	|| err_exit "Crash when listing indexed array (exit status $?)"
 [[ $actual == "$expect" ]] || err_exit 'Incorrect output when listing indexed array' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
+# Arrays in virtual/non-forked subshells
+
+unset foo
+(typeset -a foo)
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Null indexed array leaks out of subshell'
+
+unset foo
+(typeset -a foo=(1 2 3))
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Indexed array with init value leaks out of subshell'
+
+unset foo
+(typeset -a foo; foo=(1 2 3))
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Indexed array leaks out of subshell'
+
+unset foo
+(typeset -A foo)
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Null associative array leaks out of subshell'
+
+unset foo
+(typeset -A foo=([bar]=baz [lorem]=ipsum))
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Associative array with init value leaks out of subshell'
+
+unset foo
+(typeset -A foo; foo=([bar]=baz [lorem]=ipsum))
+[[ -n ${ typeset -p foo; } ]] && err_exit 'Associative array leaks out of subshell'
 
 # ======
 exit $((Errors<125?Errors:125))

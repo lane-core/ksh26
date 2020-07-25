@@ -468,4 +468,53 @@ typeset -Z2 foo=3
 export foo
 [[ $(typeset -p foo) == 'typeset -x -Z 2 -R 2 foo=03' ]] || err_exit '-Z2  not working after export'
 
+# ======
+# unset exported readonly variables, combined with all other possible attributes
+typeset -A expect=(
+	[a]='typeset -x -r -a foo'
+	[b]='typeset -x -r -b foo'
+	[i]='typeset -x -r -i foo'
+	[i37]='typeset -x -r -i 37 foo'
+	[l]='typeset -x -r -l foo'
+	[n]='typeset -n -r foo'
+	[s]='typeset -x -r -s -i 0 foo=0'
+	[u]='typeset -x -r -u foo'
+	[A]='typeset -x -r -A foo=()'
+	[C]='typeset -x -r foo=()'
+	[E]='typeset -x -r -E foo'
+	[E12]='typeset -x -r -E 12 foo'
+	[F]='typeset -x -r -F foo'
+	[F12]='typeset -x -r -F 12 foo'
+	[H]='typeset -x -r -H foo'
+	[L]='typeset -x -r -L 0 foo'
+#	[L17]='typeset -x -r -L 17 foo'		# TODO: outputs '-L 0'
+	[Mtolower]='typeset -x -r -l foo'
+	[Mtoupper]='typeset -x -r -u foo'
+	[R]='typeset -x -r -R 0 foo'
+#	[R17]='typeset -x -r -R 17 foo'		# TODO: outputs '-L 0'
+	[X]='typeset -x -r -X 32 foo'
+	[X17]='typeset -x -r -X 17 foo'
+	[S]='typeset -x -r foo'
+	[T]='typeset -x -r foo'
+	[Z]='typeset -x -r -Z 0 -R 0 foo'
+#	[Z13]='typeset -x -r -Z 13 -R 13 foo'	# TODO: outputs 'typeset -x -r -Z 0 -R 0 foo'
+)
+for flag in a b i i37 l n s u A C E E12 F F12 H L Mtolower Mtoupper R X X17 S T Z
+do	unset foo
+	actual=$(
+		redirect 2>&1
+		export foo
+		(typeset "-$flag" foo; readonly foo; typeset -p foo)
+		typeset +x foo  # unexport
+		leak=${ typeset -p foo; }
+		[[ -n $leak ]] && print "SUBSHELL LEAK: $leak"
+	)
+	if	[[ $actual != "${expect[$flag]}" ]]
+	then	err_exit "unset exported readonly with -$flag:" \
+			"expected $(printf %q "${expect[$flag]}"), got $(printf %q "$actual")"
+	fi
+done
+unset expect
+
+# ======
 exit $((Errors<125?Errors:125))

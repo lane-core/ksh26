@@ -15,6 +15,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   an unrecognized option. 'sleep -: 1' will now show a usage message and
   exit instead of sleep for one second.
 
+- Fixed a bug that caused the 'typeset' variable attributes -a, -A, -l, and
+  -u to leak out of a subshell if they were set without assigning a value.
+
 2020-07-23:
 
 - Fixed an infinite loop that could occur when ksh is the system's /bin/sh.
