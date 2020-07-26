@@ -39,8 +39,8 @@ function getmem
 }
 unit=bytes
 n=$(getmem)
-if	! let "$n == $n" 2>/dev/null	# not a number?
-then	err\_exit "$LINENO" "'vmstate' output unexpected; tests cannot be run. (expected a number; got $(printf %q "$n"))"
+if	! let "($n) == ($n) && n > 0"	# not a non-zero number?
+then	err\_exit "$LINENO" "vmstate built-in command not functioning; tests cannot be run"
 	exit 1
 fi
 
@@ -82,7 +82,7 @@ done
 data="(v=;sid=;di=;hi=;ti='1328244300';lv='o';id='172.3.161.178';var=(k='conn_num._total';u=;fr=;l='Number of Connections';n='22';t='number';))"
 read -C stat <<< "$data"
 before=$(getmem)
-for ((i=0; i < 500; i++))
+for ((i=0; i < 100; i++))
 do	print -r -- "$data"
 done |	while read -u$n -C stat
 	do	:
@@ -95,7 +95,7 @@ for ((i=0; i < 10; i++))
 do	read -C stat <<< "$data"
 done
 before=$(getmem)
-for ((i=0; i < 500; i++))
+for ((i=0; i < 100; i++))
 do      read -C stat <<< "$data"
 done
 after=$(getmem)
@@ -107,7 +107,7 @@ after=$(getmem)
 # See https://www.mail-archive.com/ast-users@lists.research.att.com/msg01016.html
 typeset -A stuff
 before=$(getmem)
-for (( i=0; i<1000; i++ ))
+for (( i=0; i<100; i++ ))
 do
 	unset stuff[xyz]
 	typeset -A stuff[xyz]
@@ -129,12 +129,12 @@ command -v ls >/dev/null	# add something to hash table
 PATH=/dev/null true		# set/restore PATH & clear hash table
 # ...test for leak:
 before=$(getmem)
-for	((i=0; i<16; i++))
+for	((i=0; i<100; i++))
 do	PATH=/dev/null true	# set/restore PATH & clear hash table
 	command -v ls		# do PATH search, add to hash table
 done >/dev/null
 after=$(getmem)
-(( after > before )) && err_exit 'memory leak on PATH reset before subshell PATH search' \
+(( after > before+32 )) && err_exit 'memory leak on PATH reset before subshell PATH search' \
 	"(leaked $((after - before)) $unit)"
 
 # ======

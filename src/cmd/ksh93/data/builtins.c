@@ -156,7 +156,9 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(uname)
 	CMDLIST(wc)
 	CMDLIST(sync)
+#if !_std_malloc && !_AST_std_malloc
 	CMDLIST(vmstate)
+#endif
 #endif
 #if SHOPT_REGRESS
 	"__regress__",		NV_BLTIN|BLT_ENV,	bltin(__regress__),
