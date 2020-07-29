@@ -37,7 +37,6 @@ function getmem
 {
 	vmstate --format='%(busy_size)u'
 }
-unit=bytes
 n=$(getmem)
 if	! let "($n) == ($n) && n > 0"	# not a non-zero number?
 then	err\_exit "$LINENO" "vmstate built-in command not functioning; tests cannot be run"
@@ -58,7 +57,18 @@ function test_reset
 # Initialise variables used below to avoid false leaks
 before=0 after=0 i=0 u=0
 
-N=1000
+# Number of iterations for each test
+N=512
+
+# Check results. Add a tolerance of N/4 bytes to avoid false leaks.
+# The function has 'err_exit' in the name so that shtests counts each call as at test.
+function err_exit_if_leak
+{
+	if	((after > before + N / 4))
+	then	err\_exit "$1" "$2 (leaked $((after - before)) bytes after $N iterations)"
+	fi
+}
+alias err_exit_if_leak='err_exit_if_leak "$LINENO"'
 
 # one round to get to steady state -- sensitive to -x
 
@@ -67,10 +77,7 @@ test_reset $N
 before=$(getmem)
 test_reset $N
 after=$(getmem)
-
-if	(( after > before ))
-then	err_exit "variable value reset memory leak -- $((after - before)) $unit after $N iterations"
-fi
+err_exit_if_leak "variable value reset memory leak"
 
 # buffer boundary tests
 
@@ -82,32 +89,32 @@ done
 data="(v=;sid=;di=;hi=;ti='1328244300';lv='o';id='172.3.161.178';var=(k='conn_num._total';u=;fr=;l='Number of Connections';n='22';t='number';))"
 read -C stat <<< "$data"
 before=$(getmem)
-for ((i=0; i < 100; i++))
+for ((i=0; i < N; i++))
 do	print -r -- "$data"
 done |	while read -u$n -C stat
 	do	:
 	done	{n}<&0-
 after=$(getmem)
-(( after > before )) && err_exit "memory leak with read -C when deleting compound variable (leaked $((after - before)) $unit)"
+err_exit_if_leak "memory leak with read -C when deleting compound variable"
 
 # extra 'read's to get to steady state
 for ((i=0; i < 10; i++))
 do	read -C stat <<< "$data"
 done
 before=$(getmem)
-for ((i=0; i < 100; i++))
+for ((i=0; i < N; i++))
 do      read -C stat <<< "$data"
 done
 after=$(getmem)
 # this test can show minor variations in memory usage when run with shcomp: https://github.com/ksh93/ksh/issues/70
-(( after > before+128 )) && err_exit "memory leak with read -C when using <<< (leaked $((after - before)) $unit)"
+err_exit_if_leak "memory leak with read -C when using <<<"
 
 # ======
 # Unsetting an associative array shouldn't cause a memory leak
 # See https://www.mail-archive.com/ast-users@lists.research.att.com/msg01016.html
 typeset -A stuff
 before=$(getmem)
-for (( i=0; i<100; i++ ))
+for (( i=0; i < N; i++ ))
 do
 	unset stuff[xyz]
 	typeset -A stuff[xyz]
@@ -119,8 +126,7 @@ do
 done
 unset stuff
 after=$(getmem)
-(( after > before )) && err_exit 'unset of associative array causes memory leak' \
-	"(leaked $((after - before)) $unit)"
+err_exit_if_leak 'unset of associative array causes memory leak'
 
 # ======
 # Memory leak when resetting PATH and clearing hash table
@@ -129,13 +135,12 @@ command -v ls >/dev/null	# add something to hash table
 PATH=/dev/null true		# set/restore PATH & clear hash table
 # ...test for leak:
 before=$(getmem)
-for	((i=0; i<100; i++))
+for	((i=0; i < N; i++))
 do	PATH=/dev/null true	# set/restore PATH & clear hash table
 	command -v ls		# do PATH search, add to hash table
 done >/dev/null
 after=$(getmem)
-(( after > before+32 )) && err_exit 'memory leak on PATH reset before subshell PATH search' \
-	"(leaked $((after - before)) $unit)"
+err_exit_if_leak 'memory leak on PATH reset before subshell PATH search'
 
 # ======
 exit $((Errors<125?Errors:125))
