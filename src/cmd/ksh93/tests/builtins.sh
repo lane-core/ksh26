@@ -874,7 +874,7 @@ IMPLEMENTATION
 sleepsig="$tmp/sleepsig.sh"
 cat >| "$sleepsig" << 'EOF'
 sleep -s 31 &
-sleep .001
+sleep .1
 kill -CONT $!
 if kill -0 $!; then
 	kill -TERM $! # Don't leave a lingering background process
