@@ -2951,13 +2951,10 @@ pid_t sh_fork(Shell_t *shp,int flags, int *jobid)
 	shp->savesig = -1;
 	while(_sh_fork(shp,parent=fork(),flags,jobid) < 0);
 	sh_stats(STAT_FORKS);
-	if(!shp->subshell)
-	{
-		sig = shp->savesig;
-		shp->savesig = 0;
-		if(sig>0)
-			kill(getpid(),sig);
-	}
+	sig = shp->savesig;
+	shp->savesig = 0;
+	if(sig>0)
+		kill(getpid(),sig);
 	job_fork(parent);
 	return(parent);
 }
