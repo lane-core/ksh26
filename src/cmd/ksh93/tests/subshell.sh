@@ -331,14 +331,14 @@ done
 
 # Regression introduced in 93v- beta; let's make sure not to backport it to 93u+m
 # Ref.: https://github.com/att/ast/issues/478
-expected='foo=bar'
+expect='foo=bar'
 actual=$(
 	foo=$(print `/bin/echo bar`)   # should print nothing
 	print foo=$foo                 # should print "foo=bar"
 )
-[[ $actual == "$expected" ]] \
+[[ $actual == "$expect" ]] \
 || err_exit 'Backticks nested in $( ) result in misdirected output' \
-	"(expected $(printf %q "$expect"), got $(printf $q "$actual"))"
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # the next tests loop on all combinations of
 #	{ SUB CAT INS TST APP } X { file-sizes }
