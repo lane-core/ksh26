@@ -5406,6 +5406,17 @@ make|view)
 		esac
 		;;
 	esac
+	# Hack for Solaris 11.4, which needs -D_XPG6 in C flags to not segfault
+	case `uname` in
+	SunOS)	case " $CCFLAGS " in
+		*" -D_XPG6 "*)
+			;;
+		*)	CCFLAGS="-D_XPG6${CCFLAGS:+ $CCFLAGS}"
+			export CCFLAGS
+			;;
+		esac
+		;;
+	esac
 
 	cd $PACKAGEROOT
 	case $package in

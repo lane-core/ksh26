@@ -344,17 +344,21 @@ for d in \
 	/usr/sbin \
 	/sbin \
 	$PATH
-do	if	test -x $d/getconf
-	then	case `$d/getconf --?-version 2>&1` in
+do	case $d in
+	/*)	;;
+	*)	continue ;;
+	esac
+	if	test -x "$d/getconf"
+	then	case `"$d/getconf" --?-version 2>&1` in
 		*"AT&T"*"Research"*)
 			: presumably an implementation also configured from conf.tab
-			;;
-		*)	CONF_getconf=$d/getconf
-			if	$CONF_getconf -a >/dev/null 2>&1
-			then	CONF_getconf_a=-a
-			fi
+			continue
 			;;
 		esac
+		CONF_getconf=$d/getconf
+		if	"$CONF_getconf" -a >/dev/null 2>&1
+		then	CONF_getconf_a=-a
+		fi
 		break
 	fi
 done

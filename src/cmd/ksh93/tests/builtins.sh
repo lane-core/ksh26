@@ -876,6 +876,7 @@ cat >| "$sleepsig" << 'EOF'
 sleep -s 31 &
 sleep .1
 kill -CONT $!
+sleep .1
 if kill -0 $!; then
 	kill -TERM $! # Don't leave a lingering background process
 	exit 1
