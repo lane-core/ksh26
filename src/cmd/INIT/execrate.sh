@@ -21,7 +21,13 @@
 
 command=execrate
 
-bins='/bin /usr/bin /usr/sbin'
+bins=`
+	(
+		userPATH=$PATH
+		PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+		getconf PATH 2>/dev/null && echo "$userPATH" || echo /bin:/usr/bin:/sbin:/usr/sbin:"$userPATH"
+	) | sed 's/:/ /g'
+` || exit
 
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 0123)	ARGV0="-a $command"

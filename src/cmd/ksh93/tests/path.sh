@@ -72,7 +72,7 @@ PATH=$p
 [[ $($SHELL -c 'print -r -- "$PATH"') == "$PATH" ]] || err_exit 'export PATH lost in subshell'
 cat > bug1 <<- EOF
 	print print ok > $tmp/ok
-	/bin/chmod 755 $tmp/ok
+	command -p chmod 755 $tmp/ok
 	function a
 	{
 	        typeset -x PATH=$tmp
@@ -207,11 +207,11 @@ got=$(whence $PWD/notfound)
 [[ $got == $exp ]] || err_exit "whence \$PWD/$cmd failed -- expected '$exp', got '$got'"
 
 PATH=$d:
-cp "$rm" kshrm
+command -p cp "$rm" kshrm
 if	[[ $(whence kshrm) != $PWD/kshrm  ]]
 then	err_exit 'trailing : in pathname not working'
 fi
-cp "$rm" rm
+command -p cp "$rm" rm
 PATH=:$d
 if	[[ $(whence rm) != $PWD/rm ]]
 then	err_exit 'leading : in pathname not working'
@@ -220,9 +220,9 @@ PATH=$d: whence rm > /dev/null
 if	[[ $(whence rm) != $PWD/rm ]]
 then	err_exit 'pathname not restored after scoping'
 fi
-mkdir bin
+command -p mkdir bin
 print 'print ok' > bin/tst
-chmod +x bin/tst
+command -p chmod +x bin/tst
 if	[[ $(PATH=$PWD/bin tst 2>/dev/null) != ok ]]
 then	err_exit '(PATH=$PWD/bin foo) does not find $PWD/bin/foo'
 fi
@@ -371,10 +371,14 @@ EOF
 x=$(FPATH= PATH=$PWD/bin $SHELL -c  ': $(whence less);myfun') 2> /dev/null
 [[ $x == myfun ]] || err_exit 'function myfun not found'
 
-cp $(whence -p echo) user_to_group_relationship.hdr.query
+command -p cat >user_to_group_relationship.hdr.query <<EOF
+#!$SHELL
+print -r -- "\$@"
+EOF
+command -p chmod 755 user_to_group_relationship.hdr.query
 FPATH=/foobar:
 PATH=$FPATH:$PATH:.
-[[ $(user_to_group_relationship.hdr.query foobar) == foobar ]] 2> /dev/null || err_exit 'Cannot execute command with . in name when PATH and FPATH end in :.'
+[[ $(user_to_group_relationship.hdr.query foobar) == foobar ]] || err_exit 'Cannot execute command with . in name when PATH and FPATH end in :.'
 
 mkdir -p $tmp/new/bin
 mkdir $tmp/new/fun
@@ -386,12 +390,14 @@ x=$(whence -p echo 2> /dev/null)
 [[ $x == "$tmp/new/bin/echo" ]] ||  err_exit 'nonexistant FPATH directory in .paths file causes path search to fail'
 
 $SHELL 2> /dev/null <<- \EOF || err_exit 'path search problem with non-existent directories in PATH'
-	PATH=/usr/nogood1/bin:/usr/nogood2/bin:/bin:/usr/bin
+	builtin getconf
+	PATH=$(getconf PATH)
+	PATH=/dev/null/nogood1/bin:/dev/null/nogood2/bin:$PATH
 	tail /dev/null && tail /dev/null
 EOF
 
-( PATH=/bin:usr/bin
-cat << END >/dev/null 2>&1
+( PATH=/dev/null
+command -p cat << END >/dev/null 2>&1
 ${.sh.version}
 END
 ) || err_exit '${.sh.xxx} variables causes cat not be found'

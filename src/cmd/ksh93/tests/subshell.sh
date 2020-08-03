@@ -238,6 +238,7 @@ foo=$($SHELL  <<- ++EOF++
 [[ $foo == foobar ]] || err_exit 'trap on exit when last commands is subshell is not triggered'
 
 err=$(
+	ulimit -n 1024
 	$SHELL  2>&1  <<- \EOF
 	        date=$(whence -p date)
 	        function foo
@@ -333,7 +334,8 @@ done
 # Ref.: https://github.com/att/ast/issues/478
 expect='foo=bar'
 actual=$(
-	foo=$(print `/bin/echo bar`)   # should print nothing
+	bin_echo=${ whence -p echo; } || bin_echo=echo
+	foo=$(print `"$bin_echo" bar`) # should print nothing
 	print foo=$foo                 # should print "foo=bar"
 )
 [[ $actual == "$expect" ]] \
@@ -602,7 +604,7 @@ trap ERR ERR
 [[ $(trap -p) == *ERR* ]] || err_exit 'trap -p in subshell does not contain ERR'
 trap - USR1 ERR
 
-( PATH=/bin:/usr/bin
+( builtin getconf && PATH=$(getconf PATH)
 dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF

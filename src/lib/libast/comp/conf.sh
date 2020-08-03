@@ -333,7 +333,17 @@ $cc -E $tmp.c >/dev/null 2>&1 || systeminfo=
 
 CONF_getconf=
 CONF_getconf_a=
-for d in /usr/bin /bin /usr/sbin /sbin
+IFS=':'; set -f
+for d in \
+	/run/current-system/sw/bin \
+	/usr/xpg7/bin \
+	/usr/xpg6/bin \
+	/usr/xpg4/bin \
+	/usr/bin \
+	/bin \
+	/usr/sbin \
+	/sbin \
+	$PATH
 do	if	test -x $d/getconf
 	then	case `$d/getconf --?-version 2>&1` in
 		*"AT&T"*"Research"*)
@@ -348,6 +358,7 @@ do	if	test -x $d/getconf
 		break
 	fi
 done
+IFS=$ifs; set +f
 export CONF_getconf CONF_getconf_a
 
 case $verbose in

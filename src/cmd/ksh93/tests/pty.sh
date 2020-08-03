@@ -493,7 +493,7 @@ p :test-1:
 w set +o vi +o emacs
 p :test-2:
 w true /de\tv/nu\tl\tl
-r ^:test-2: true /de\tv/nu\tl\tl\r\n$
+r ^:test-2: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
 p :test-3:
 !
 

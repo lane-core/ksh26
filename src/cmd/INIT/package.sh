@@ -5394,6 +5394,19 @@ license)# all work in $PACKAGESRC/LICENSES
 	;;
 
 make|view)
+	# Hack to build on some systems that need an explicit link with libm due to a bug in the build system
+	case `uname` in
+	NetBSD | SunOS)
+		case " $LDFLAGS " in
+		*" -m "*)
+			;;
+		*)	LDFLAGS="-lm${LDFLAGS:+ $LDFLAGS}"
+			export LDFLAGS
+			;;
+		esac
+		;;
+	esac
+
 	cd $PACKAGEROOT
 	case $package in
 	'')	lic="lib/package/*.lic"

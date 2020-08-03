@@ -256,7 +256,10 @@ case $SHELL in
 */*)	SHELL=$d/$SHELL;;
 *)	SHELL=$(whence $SHELL);;
 esac
-PATH=/bin:/usr/bin
+PATH=$(
+	PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+	getconf PATH 2>/dev/null || { builtin getconf 2>/dev/null && getconf PATH; }
+) || PATH=/bin:/usr/bin
 if	[[ -d /usr/ucb ]]
 then	PATH=$PATH:/usr/ucb
 fi

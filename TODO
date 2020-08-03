@@ -4,11 +4,16 @@ ______
 Fix regression test failures:
 
 - On OpenBSD, there are 15 locale-related test failures in variables.sh.
+- There are many regression test failures on NetBSD.
 
 ______
 Fix build system:
 
-- ksh does not currently build on NetBSD, AIX, Solaris, or QNX.
+- ksh does not currently build on AIX or QNX.
+- On NetBSD 9.0, the build fails if /bin/sh is used as $SHELL (the default)
+  as iffe writes line numbers directly into generated header files. The cause
+  needs to be investigated. It could be a regression in NetBSD 9.0 sh.
+  Workaround: bin/package make SHELL=/some/other/shell
 - Reimport the removed nmake. It is necessary for changes in Makefiles
   to take effect. The machine-generated Mamfiles are now used as a fallback,
   but they are not meant to be edited by hand.

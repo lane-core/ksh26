@@ -27,6 +27,14 @@ esac
 
 command=mamprobe
 
+bins=`
+	(
+		userPATH=$PATH
+		PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+		getconf PATH 2>/dev/null && echo "$userPATH" || echo /bin:/usr/bin:/sbin:/usr/sbin:"$userPATH"
+	) | sed 's/:/ /g'
+` || exit
+
 # check the options
 
 opt=
@@ -236,7 +244,7 @@ do	case $# in
 	0|1)	break ;;
 	esac
 	p=$2
-	for d in /bin /usr/bin /usr/sbin
+	for d in $bins
 	do	if	test -x $d/$p
 		then	p=$d/$p
 			break

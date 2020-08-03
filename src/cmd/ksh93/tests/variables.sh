@@ -745,7 +745,7 @@ do	exp="$cmd ok"
 	rm -f $cmd
 	print print $exp > glean/$cmd
 	chmod +x glean/$cmd
-	got=$(set +x; CDPATH=:.. $SHELL -c "PATH=:/bin:/usr/bin; date > /dev/null; cd glean && ./$cmd" 2>&1)
+	got=$(set +x; CDPATH=:.. $SHELL -c "command -p date > /dev/null; cd glean && ./$cmd" 2>&1)
 	[[ $got == "$exp" ]] || err_exit "cd with CDPATH after PATH change failed -- expected '$exp', got '$got'"
 done
 

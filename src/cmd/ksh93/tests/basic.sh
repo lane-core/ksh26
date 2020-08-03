@@ -553,21 +553,7 @@ $SHELL 2> /dev/null -c $'for i;\ndo :;done' || err_exit 'for i ; <newline> not v
 ) || err_exit "crash when sourcing multiple files (exit status $?)"
 
 # ======
-# The time keyword should correctly handle millisecond precision, except
-# on older systems that do not support getrusage(2) or gettimeofday(2).
-result=$(
-	TIMEFORMAT=$'\%3R'
-	redirect 2>&1
-	set +x
-	time sleep .002
-)
-case $result in
-0.000 | 0.010)
-	err_exit "warning: 'time' keyword doesn't support millisecond precision"
-	let "Errors--" ;;
-0.002)	;;
-*)	err_exit "'time' keyword, millisecond precision: expected 0.002, got $result" ;;
-esac
+# The time keyword
 
 # A single '%' after a format specifier should not be a syntax
 # error (it should be treated as a literal '%').

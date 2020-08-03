@@ -307,7 +307,7 @@ x=$(LC_ALL=debug $SHELL -c 'typeset -L10 x="a<2b|>c";print -r -- "${x}"')
 if      $SHELL -c "export LC_ALL=en_US.UTF-8; c=$'\342\202\254'; [[ \${#c} == 1 ]]" 2>/dev/null
 then	LC_ALL=en_US.UTF-8
 	unset i p1 p2 x
-	for i in 9 b c d 20 1680 2000 2001 2002 2003 2004 2005 2006 2008 2009 200a 2028 2029 3000 # 1803 2007 202f  205f
+	for i in 9 b c d 20 2000 2001 2002 2003 2004 2005 2006 2008 2009 200a 2028 2029 3000 # 1680 1803 2007 202f 205f
 	do	if	! eval "[[ \$'\\u[$i]' == [[:space:]] ]]"
 		then	x+=,$i
 		fi

@@ -84,7 +84,7 @@ then	[[ ! $(alias -t | grep rm= ) ]] && err_exit 'tracked alias not set'
 	[[ $(alias -t | grep rm= ) ]] && err_exit 'tracked alias not cleared'
 fi
 if	hash -r 2>/dev/null && [[ ! $(hash) ]]
-then	PATH=$tmp:/bin:/usr/bin
+then	PATH=$tmp:$PATH
 	for i in foo -foo --
 	do	print ':' > $tmp/$i
 		chmod +x $tmp/$i

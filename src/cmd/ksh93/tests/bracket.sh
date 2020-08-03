@@ -123,7 +123,7 @@ fi
 if	[[ ! -w /dev/fd/2 ]]
 then	err_exit "/dev/fd/2 not open for writing"
 fi
-sleep .01
+sleep 1  # there are still file systems with 1-second timestamp granularity...
 > $newer_file
 if	[[ ! $file -ot $newer_file ]]
 then	err_exit "$file should be older than $newer_file"
