@@ -368,7 +368,23 @@ PAGESIZE			POSIX	SC 1 MU		PAGESIZE PAGE_SIZE 4096	cc{
 }
 PAGE_SIZE			POSIX	SC 1 MU		_AST_PAGESIZE
 PASS_MAX			SVID	SC 1 CDLMU	8
-PATH				POSIX	CS 1 CMU	"/bin:/usr/bin"
+PATH				POSIX	CS 1 MU		cc{
+	#include <stdio.h>
+	#include <unistd.h>
+	int main()
+	{
+		size_t length = confstr(_CS_PATH, 0, 0);
+		if(!length)
+			printf("\\"/bin:/usr/bin\\"");
+		else
+		{
+			char path[length];
+			confstr(_CS_PATH, path, length);
+			printf("\\"%s\\"", path);
+		}
+		return 0;
+	}
+}
 PATH_MAX			POSIX	PC 1 CDLMUX	MAXPATHLEN 1024
 PBS				POSIX	SC 2 FUW
 PBS_ACCOUNTING			POSIX	SC 2 FUW
