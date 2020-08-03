@@ -197,7 +197,7 @@ esac
 
 case $info in
 -)	;;
-*)	tmp=/tmp/mam$$
+*)	tmp=${TMPDIR:-/tmp}/mam$$
 	trap "exec >/dev/null; rm -f $tmp" 0 1 2 3 15
 	exec > $tmp
 	echo "probing C language processor $cc for mam information" >&2
@@ -268,8 +268,8 @@ done
 case $info in
 -)	;;
 *)	exec >/dev/null
-	test -f $info && rm -f $info
-	cp $tmp $info
-	chmod -w $info
+	test -f "$info" && rm -f "$info"
+	cp "$tmp" "$info"
+	chmod -w "$info"
 	;;
 esac

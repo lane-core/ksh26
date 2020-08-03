@@ -1518,7 +1518,7 @@ require(char* lib, int dontcare)
 		else if (dontcare)
 		{
 			append(tmp, "set -\n");
-			append(tmp, "cd /tmp\n");
+			append(tmp, "cd \"${TMPDIR:-/tmp}\"\n");
 			append(tmp, "echo 'int main(){return 0;}' > x.${!-$$}.c\n");
 			append(tmp, "${CC} ${CCFLAGS} -o x.${!-$$}.x x.${!-$$}.c ");
 			append(tmp, r);

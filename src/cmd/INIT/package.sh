@@ -58,6 +58,9 @@ esac
 LC_ALL=C
 export LC_ALL
 
+TMPDIR=${TMPDIR:-/tmp}
+export TMPDIR
+
 src="cmd contrib etc lib"
 use="/usr/common /exp /usr/local /usr/add-on /usr/addon /usr/tools /usr /opt"
 usr="/home"
@@ -1782,7 +1785,7 @@ hostinfo() # attribute ...
 		esac
 		case $cpu in
 		0|1)	cpu=`(
-			cd ${TMPDIR:-/tmp}
+			cd "$TMPDIR"
 			tmp=hi$$
 			trap 'rm -f $tmp.*' 0 1 2
 			cat > $tmp.c <<!
@@ -1820,7 +1823,7 @@ int main()
 		done
 		case $rating in
 		[0123456789]*)	;;
-		*)	cd ${TMPDIR:-/tmp}
+		*)	cd "$TMPDIR"
 			tmp=hi$$
 			trap 'rm -f $tmp.*' 0 1 2
 			cat > $tmp.c <<!
@@ -2436,7 +2439,7 @@ int main()
 				esac
 				;;
 			*)	pwd=`pwd`
-				cd ${TMPDIR:-/tmp}
+				cd "$TMPDIR"
 				tmp=hi$$
 				trap 'rm -f $tmp.*' 0 1 2
 				cat > $tmp.a.c <<!
@@ -2494,7 +2497,7 @@ int b() { return 0; }
 			'')	case `file /bin/sh 2>/dev/null` in
 				*universal*64* | *64-bit* | *x86[_-]64*)
 					pwd=`pwd`
-					cd ${TMPDIR:-/tmp}
+					cd "$TMPDIR"
 					tmp=hi$$
 					trap 'rm -f $tmp.*' 0 1 2
 					cat > $tmp.a.c <<!
@@ -2847,7 +2850,7 @@ cat $INITROOT/$i.sh
 			# check if $CC (full path $cc) is a cross compiler
 
 			(
-				cd /tmp || exit 3
+				cd "$TMPDIR" || exit 3
 				cp $INITROOT/hello.c pkg$$.c || exit 3
 				$cc -o pkg$$.exe pkg$$.c > pkg$$.e 2>&1 || {
 					if $cc -Dnew=old -o pkg$$.exe pkg$$.c > /dev/null 2>&1
@@ -3049,6 +3052,8 @@ cat $INITROOT/$i.sh
 			$EXECTYPE)
 				echo "$command: $CC: seems to be a cross-compiler" >&2
 				echo "$command: set HOSTTYPE to something other than the native $EXECTYPE" >&2
+				echo "$command: If not, your $TMPDIR directory may be mounted without execute permission." >&2
+				echo "$command: Try exporting TMPDIR as a directory where you can execute binary files." >&2
 				exit 1
 				;;
 			esac
@@ -3213,10 +3218,10 @@ cygwin.*)
 		lose=ntsec
 		;;
 	*ntsec*);;
-	*)	exe=/tmp/pkg$$.exe
-		rm -f $exe
-		: > $exe
-		if	test -x $exe
+	*)	exe=$TMPDIR/pkg$$.exe
+		rm -f "$exe"
+		: > "$exe"
+		if	test -x "$exe"
 		then	lose=ntsec
 		fi
 		;;

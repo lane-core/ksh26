@@ -21,7 +21,9 @@
 
 command=filter
 
-tmp=/tmp/$command$$
+TMPDIR=${TMPDIR:-/tmp}
+export TMPDIR
+tmp=$TMPDIR/$command$$
 suf=
 
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
