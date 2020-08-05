@@ -11,6 +11,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug that caused scripts to continue running after over-shifting
   in a function when the function call had a redirection.
 
+- When generating shellquoted strings (such as with 'printf %q'), the
+  hexadecimal value of a quoted unprintable character was not protected with
+  square braces, e.g. 0x12 followed by '3' would be quoted as '\x123', which
+  is a different value. Such strings are now quoted like '\x[12]3' if the
+  next character is a hexadecimal digit.
+
 2020-07-31:
 
 - Fixed a bug that caused multidimensional associative arrays to be created

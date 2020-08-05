@@ -215,4 +215,48 @@ exp='ac'
 got=$'a\0b'c
 [[ $got == "$exp" ]] || err_exit "\$'a\\0b'c expansion failed -- expected '$exp', got '$got'"
 
+# ======
+# generating shell-quoted strings using printf %q (same algorithm used for xtrace and output of 'set', 'trap', ...)
+
+[[ $(printf '%q\n') == '' ]] || err_exit 'printf "%q" with missing arguments yields non-empty result'
+
+# the following fails on 2012-08-01 in UTF-8 locales
+expect="'shell-quoted string'"
+actual=$(
+	print -nr $'\303\274' | read -n1 foo  # interrupt processing of 2-byte UTF-8 char after reading 1 byte
+	printf '%q\n' "shell-quoted string"
+)
+LC_CTYPE=POSIX true	    # on buggy ksh, a locale re-init via temp assignment restores correct shellquoting
+[[ $actual == "$expect" ]] || err_exit 'shell-quoting corrupted after interrupted processing of UTF-8 char' \
+				"(expected $expect; got $actual)"
+
+# shell-quoting UTF-8 characters: check for unnecessary encoding
+case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
+	expect=$'$\'عندما يريد العالم أن \\u[202a]يتكلّم \\u[202c] ، فهو يتحدّث بلغة يونيكود.\''
+	actual=$(printf %q 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
+	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Arabic UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect="'正常終了 正常終了'"
+	actual=$(printf %q '正常終了 正常終了')
+	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Japanese UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect="'aeu aéu'"
+	actual=$(printf %q 'aeu aéu')
+	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Latin UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect=$'$\'\\x86\\u[86]\\xf0\\x96v\\xa7\\xb5\''
+	actual=$(printf %q $'\x86\u86\xF0\x96\x76\xA7\xB5')
+	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: invalid UTF-8 characters not encoded with \xNN' \
+				"(expected $expect; got $actual)"
+	;;
+esac
+
+# check that hex bytes are protected with square braces if needed
+expect=$'$\'1\\x[11]1\''
+actual=$(printf %q $'1\x[11]1')
+[[ $actual == "$expect" ]] || err_exit 'shell-quoting: hex bytes not protected from subsequent hex-like chars' \
+				"(expected $expect; got $actual)"
+
+# ======
 exit $((Errors<125?Errors:125))

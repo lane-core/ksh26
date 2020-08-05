@@ -304,39 +304,6 @@ then	err_exit "printf '%..*s' not working"
 fi
 
 # ======
-# shell-quoting using printf %q (same algorithm used for xtrace and output of 'set', 'trap', ...)
-
-[[ $(printf '%q\n') == '' ]] || err_exit 'printf "%q" with missing arguments'
-
-# the following fails on 2012-08-01 in UTF-8 locales
-expect="'shell-quoted string'"
-actual=$(
-	print -nr $'\303\274' | read -n1 foo  # interrupt processing of 2-byte UTF-8 char after reading 1 byte
-	printf '%q\n' "shell-quoted string"
-)
-LC_CTYPE=POSIX true	    # on buggy ksh, a locale re-init via temp assignment restores correct shellquoting
-[[ $actual == "$expect" ]] || err_exit 'shell-quoting corrupted after interrupted processing of UTF-8 char' \
-				"(expected $expect; got $actual)"
-
-# shell-quoting UTF-8 characters: check for unnecessary encoding
-case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
-( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
-	expect=$'$\'عندما يريد العالم أن \\u[202a]يتكلّم \\u[202c] ، فهو يتحدّث بلغة يونيكود.\''
-	actual=$(printf %q 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
-	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Arabic UTF-8 characters' \
-				"(expected $expect; got $actual)"
-	expect="'正常終了 正常終了'"
-	actual=$(printf %q '正常終了 正常終了')
-	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Japanese UTF-8 characters' \
-				"(expected $expect; got $actual)"
-	expect="'aeu aéu'"
-	actual=$(printf %q 'aeu aéu')
-	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Latin UTF-8 characters' \
-				"(expected $expect; got $actual)"
-	;;
-esac
-
-# ======
 # we won't get hit by the one second boundary twice, right?
 expect= actual=
 { expect=$(LC_ALL=C date | sed 's/ GMT / UTC /') && actual=$(LC_ALL=C printf '%T\n' now) && [[ $actual == "$expect" ]]; } ||

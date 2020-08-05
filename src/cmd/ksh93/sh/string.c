@@ -40,6 +40,10 @@
 #   define iswprint(c)		(((c)&~0377) || isprint(c))
 #endif
 
+#ifndef isxdigit
+#   define isxdigit(c)		((c)>='0'&&(c)<='9'||(c)>='a'&&(c)<='f'||(c)>='A'&&(c)<='F')
+#endif
+
 
 /*
  *  Table lookup routine
@@ -410,7 +414,6 @@ char	*sh_fmtq(const char *string)
 	}
 	else
 	{
-		int isbyte=0;
 		stakwrite("$'",2);
 		cp = string;
 #if SHOPT_MULTIBYTE
@@ -447,24 +450,29 @@ char	*sh_fmtq(const char *string)
 				break;
 			    default:
 #if SHOPT_MULTIBYTE
-				isbyte = 0;
-				if(c<0)
+				if(mbwide())
 				{
-					c = *((unsigned char *)op);
-					cp = op+1;
-					isbyte = 1;
+					/* We're in a multibyte locale */
+					if(c<0 || c<128 && !isprint(c))
+					{
+						/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
+						c = *((unsigned char *)op);
+						cp = op+1;
+						goto quote_one_byte;
+					}
+					if(is_invisible(c))
+					{
+						/* Unicode hex code */
+						sfprintf(staksp,"\\u[%x]",c);
+						continue;
+					}
 				}
-				if(mbwide() && is_invisible(c))
-				{
-					sfprintf(staksp,"\\u[%x]",c);
-					continue;
-				}
-				else if(isbyte)
-#else
+				else
+#endif /* SHOPT_MULTIBYTE */
 				if(!isprint(c))
-#endif
 				{
-					sfprintf(staksp,"\\x%.2x",c);
+				quote_one_byte:
+					sfprintf(staksp, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
 					continue;
 				}
 				state=0;
