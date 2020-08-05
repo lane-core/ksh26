@@ -5,6 +5,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2020-08-05:
 
+- Fixed a bug in functions that caused ksh to crash when an array with an
+  unset method was turned into a multidimensional array.
+
 - Fixed a bug that caused scripts to continue running after over-shifting
   in a function when the function call had a redirection.
 
