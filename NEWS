@@ -8,6 +8,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a crash that occurred intermittently if 'set -b'/'set -o notify' is
   active and $PS1 contains a command substitution running an external command.
 
+- Added the '${.sh.pid}' variable as an alternative to Bash's '$BASHPID'.
+  This variable is set to the current shell's PID, unlike '$$' (which is
+  set to the parent shell's PID). In virtual subshells '${.sh.pid}' is not
+  changed from its previous value, while in forked subshells '${.sh.pid}'
+  is set to the subshell's process ID.
+
 2020-08-05:
 
 - Fixed a bug in functions that caused ksh to crash when an array with an
