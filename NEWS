@@ -3,10 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2020-08-06:
+2020-08-07:
 
-- Fixed a crash that occurred intermittently if 'set -b'/'set -o notify' is
+- Fixed a crash that occurred intermittently when entering the 60 second
+  timeout grace period after exceeding $TMOUT, if 'set -b'/'set -o notify' is
   active and $PS1 contains a command substitution running an external command.
+
+2020-08-06:
 
 - Added the '${.sh.pid}' variable as an alternative to Bash's '$BASHPID'.
   This variable is set to the current shell's PID, unlike '$$' (which is
