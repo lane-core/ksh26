@@ -1074,9 +1074,10 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 
 /*
  * I/O redirection
- * flag = 0 if files are to be restored
- * flag = 2 if files are to be closed on exec
- * flag = 3 when called from $( < ...), just open file and return
+ * flag = 0: normal redirection; file descriptors are restored when command terminates
+ * flag = 1: redirections persist
+ * flag = 2: redirections persist, but file descriptors > 2 are closed when executing an external command
+ * flag = 3: just open file and return; for use when called from $( < ...)
  * flag = SH_SHOWME for trace only
  */
 int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)

@@ -877,7 +877,7 @@ EOF
 (
 	builtin $(builtin -l | awk -F "/" '/\/opt/ {print $5}') # Load all /opt/ast/bin builtins
 	for name in $(builtin -l | grep -Ev '(echo|/opt|test|true|false|getconf|uname|\[|:)'); do
-	    actual="$($name --this-option-does-not-exist 2>&1)"
+	    actual=$({ "$name" --this-option-does-not-exist; } 2>&1)
 	    expect="Usage: $name"
 	    [[ $actual =~ $expect ]] || err_exit "$name should show usage info on unrecognized options (expected $(printf '%q' "$expect"), got $(printf '%q' "$actual"))"
 	done

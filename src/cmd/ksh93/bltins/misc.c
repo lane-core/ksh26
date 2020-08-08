@@ -76,6 +76,10 @@ static void     noexport(register Namval_t* np, void *data)
 /*
  * 'exec' special builtin and 'redirect' builtin
  */
+#if 0
+/* for the dictionary generator */
+int    b_redirect(int argc,char *argv[],Shbltin_t *context){}
+#endif
 int    b_exec(int argc,char *argv[], Shbltin_t *context)
 {
 	struct login logdata;

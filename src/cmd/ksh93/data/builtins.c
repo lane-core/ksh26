@@ -1461,9 +1461,9 @@ USAGE_LICENSE
 ;
 
 const char sh_optredirect[] =
-"[-1c?\n@(#)$Id: redirect (ksh93) 2020-06-11 $\n]"
+"[-1c?\n@(#)$Id: redirect (ksh93) 2020-08-08 $\n]"
 "[+NAME?redirect - open/close and duplicate file descriptors]"
-"[+DESCRIPTION?This command only accepts input/output redirection arguments. "
+"[+DESCRIPTION?This command only accepts input/output redirections. "
 	"It can open and close files and modify file descriptors from \b0\b "
 	"to \b9\b using the standard redirection mechanism available to all "
 	"commands, with the difference that the effect persists past the "

@@ -430,6 +430,7 @@ then	export LC_ALL=$lc_utf8
 		done
 	fi
 fi
+LC_ALL=C command true  # restore correct shellquoting on old ksh: https://github.com/ksh93/ksh/issues/5
 
 file=$tmp/file
 (
@@ -528,9 +529,14 @@ actual=$(redirect 2>&- 3>&2; echo ok)
 [[ $actual == ok ]] || err_exit "redirection error in 'redirect' causes exit"
 
 # Test that 'redirect' does not accept non-redir args
-actual=$(redirect ls 2>&1)
-expect="*: redirect: incorrect syntax"
-[[ $actual == $expect ]] || err_exit "redirect command wrongly accepting non-redir args"
+expect=$'*: redirect: incorrect syntax\n status = 2'
+actual=$( (redirect /dev/null/foo) 2>&1; echo " status = $?" );
+[[ $actual == $expect ]] || err_exit 'redirect command accepts non-redirection argument' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$( (redirect /dev/null/foo >$tmp/wrong_redirect) 2>&1; echo " status = $?" )
+[[ $actual == $expect ]] || err_exit 'redirect command accepts non-redirection argument along with redirection' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+[[ -e $tmp/wrong_redirect ]] && err_exit "redirect command executes redirections before checking arguments"
 
 # ======
 # Process substitution

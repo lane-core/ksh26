@@ -1273,8 +1273,13 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(io)
 						{
 							struct openlist *item;
-							if(np==SYSEXEC || np==SYSREDIR)	/* 'exec' or 'redirect' */
-								type=1+!com[1];		/* redirections persist if no args */
+							if(np == SYSEXEC)		/* 'exec' */
+								type = 1 + !com[1];
+							else if(np == SYSREDIR)		/* 'redirect' */
+								if(!com[1])
+									type = 2;
+								else
+									errormsg(SH_DICT,ERROR_exit(2),"redirect: %s",e_badsyntax);
 							else
 								type = (execflg && !shp->subshell && !shp->st.trapcom[0]);
 							shp->redir0 = 1;
