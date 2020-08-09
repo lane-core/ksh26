@@ -276,10 +276,18 @@ test_glob '<Beware> <abc> <abe> <bdir> <ca> <de> <man>' *
 
 FIGNORE=
 test_glob '<man/man1/sh.1>' */man*/sh.*
+test_glob '<.x> <.y> <Beware> <a> <a-b> <aXb> <abc> <abd> <abe> <b> <bb> <bcd> <bdir> <c> <ca> <cb> <d> <dd> <de> <man>' *
+test_glob '<.x> <.y>' .*
+
+FIGNORE='@(*[abcd]*)'
+test_glob '<.x> <.y>' *
+test_glob '<.x> <.y>' .*
 
 unset FIGNORE
 test_glob '<bb> <ca> <cb> <dd> <de>' ??
 test_glob '<man/man1/sh.1>' */man*/sh.*
+test_glob '<Beware> <a> <a-b> <aXb> <abc> <abd> <abe> <b> <bb> <bcd> <bdir> <c> <ca> <cb> <d> <dd> <de> <man>' *
+test_glob '<.x> <.y>' .*
 
 GLOBIGNORE='.*:*'
 set -- *

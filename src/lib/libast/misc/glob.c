@@ -528,11 +528,13 @@ skip:
 				*restore2 = gp->gl_delim;
 			while ((name = (*gp->gl_dirnext)(gp, dirf)) && !*gp->gl_intr)
 			{
+				if (name[0] == '.' && (!name[1] || name[1] == '.' && !name[2]))
+					continue;  /* do not ever match '.' or '..' */
 				if (notdir = (gp->gl_status & GLOB_NOTDIR))
 					gp->gl_status &= ~GLOB_NOTDIR;
 				if (ire && !regexec(ire, name, 0, NiL, 0))
 					continue;
-				if (matchdir && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
+				if (matchdir && !notdir)
 					addmatch(gp, prefix, name, matchdir, NiL, anymeta);
 				if (!regexec(pre, name, 0, NiL, 0))
 				{

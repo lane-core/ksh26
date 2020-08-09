@@ -2426,6 +2426,11 @@ that component of the filename is left unchanged unless
 the pattern is prefixed with
 .B \(ap(N)\fP
 in which case it is removed as described below.
+The special traversal names
+.B .
+and
+.B ..
+are never matched.
 If
 .SM
 .B FIGNORE
@@ -2435,11 +2440,6 @@ that matches the pattern defined by the value of
 .SM
 .B FIGNORE
 is ignored when generating the matching filenames.
-The names
-.B .
-and
-.B ..
-are also ignored.
 If
 .SM
 .B FIGNORE
