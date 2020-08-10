@@ -191,9 +191,7 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 		return((char*)0);
 	if(*(cp=oldsp) == 0)
 		goto found;
-#if SHOPT_MULTIBYTE
 	mbinit();
-#endif /* SHOPT_MULTIBYTE */
 	do
 	{
 	/* skip to first character which matches start of oldsp */
@@ -331,19 +329,21 @@ static char	*sh_fmtcsv(const char *string)
 
 #if SHOPT_MULTIBYTE
 /*
- * Returns true if c is an invisible Unicode character, excluding ASCII space.
+ * Note: without SHOPT_MULTIBYTE, defs.h makes this an alias of isprint(3).
+ *
+ * Returns false if c is an invisible Unicode character, excluding ASCII space.
  * Use iswgraph(3) if possible. In the ksh-specific C.UTF-8 locale, this is
  * generally not possible as the OS-provided iswgraph(3) doesn't support that
  * locale. So do a quick test and do our best with a fallback if necessary.
  */
-static int	is_invisible(int c)
+int	sh_isprint(int c)
 {
 	if(!mbwide())					/* not in multibyte locale? */
-		return(c != ' ' && !isgraph(c));	/* use plain isgraph(3) */
+		return(isprint(c));			/* use plain isprint(3) */
 	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
-		return(c != ' ' && !iswgraph(c));	/* use iswgraph(3) */
+		return(c == ' ' || iswgraph(c));	/* use iswgraph(3) */
 	else						/* fallback: */
-		return(	c <= 0x001F ||			/* control characters */
+		return(!(c <= 0x001F ||			/* control characters */
 			c >= 0x007F && c <= 0x009F ||	/* control characters */
 			c == 0x00A0 ||			/* non-breaking space */
 			c == 0x061C ||			/* arabic letter mark */
@@ -353,7 +353,7 @@ static int	is_invisible(int c)
 			c >= 0x2028 && c <= 0x202F ||	/* separators and format characters */
 			c >= 0x205F && c <= 0x206F ||	/* various format characters */
 			c == 0x3000 ||			/* ideographic space */
-			c == 0xFEFF );			/* zero-width non-breaking space */
+			c == 0xFEFF));			/* zero-width non-breaking space */
 }
 #endif /* SHOPT_MULTIBYTE */
 
@@ -368,9 +368,7 @@ char	*sh_fmtq(const char *string)
 	int offset;
 	if(!cp)
 		return((char*)0);
-#if SHOPT_MULTIBYTE
 	mbinit();
-#endif /* SHOPT_MULTIBYTE */
 	offset = staktell();
 	state = ((c= mbchar(cp))==0);
 	if(isaletter(c))
@@ -394,11 +392,7 @@ char	*sh_fmtq(const char *string)
 		state = 1;
 	for(;c;c= mbchar(cp))
 	{
-#if SHOPT_MULTIBYTE
-		if(c=='\'' || is_invisible(c))
-#else
-		if(c=='\'' || !isprint(c))
-#endif /* SHOPT_MULTIBYTE */
+		if(c=='\'' || !sh_isprint(c))
 			state = 2;
 		else if(c==']' || c=='=' || (c!=':' && c<=0x7f && (c=sh_lexstates[ST_NORM][c]) && c!=S_EPAT))
 			state |=1;
@@ -416,11 +410,7 @@ char	*sh_fmtq(const char *string)
 	{
 		stakwrite("$'",2);
 		cp = string;
-#if SHOPT_MULTIBYTE
 		while(op = cp, c= mbchar(cp))
-#else
-		while(op = cp, c= *(unsigned char*)cp++)
-#endif
 		{
 			state=1;
 			switch(c)
@@ -449,7 +439,6 @@ char	*sh_fmtq(const char *string)
 			    case '\\':	case '\'':
 				break;
 			    default:
-#if SHOPT_MULTIBYTE
 				if(mbwide())
 				{
 					/* We're in a multibyte locale */
@@ -460,16 +449,14 @@ char	*sh_fmtq(const char *string)
 						cp = op+1;
 						goto quote_one_byte;
 					}
-					if(is_invisible(c))
+					if(!sh_isprint(c))
 					{
 						/* Unicode hex code */
 						sfprintf(staksp,"\\u[%x]",c);
 						continue;
 					}
 				}
-				else
-#endif /* SHOPT_MULTIBYTE */
-				if(!isprint(c))
+				else if(!isprint(c))
 				{
 				quote_one_byte:
 					sfprintf(staksp, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);

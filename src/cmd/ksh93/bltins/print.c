@@ -477,46 +477,65 @@ static char *genformat(char *format)
 
 static char *fmthtml(const char *string, int flags)
 {
-	register const char *cp = string;
+	register const char *cp = string, *op;
 	register int c, offset = staktell();
+	/*
+	 * The only multibyte locale ksh currently supports is UTF-8, which is a superset of ASCII. So, if we're on an
+	 * EBCDIC system, below we attempt to convert EBCDIC to ASCII only if we're not in a multibyte locale (mbwide()).
+	 */
+	mbinit();
 	if(!(flags&SFFMT_ALTER))
 	{
-		while(c= *(unsigned char*)cp++)
+		/* Encode for HTML, for inside and outside single- and double-quoted strings. */
+		while(op = cp, c = mbchar(cp))
 		{
-#if SHOPT_MULTIBYTE
-			register int s;
-			if((s=mbsize(cp-1)) > 1)
-			{
-				cp += (s-1);
-				continue;
-			}
-#endif /* SHOPT_MULTIBYTE */
-			if(c=='<')
+			if(!mbwide())
+				c = CCMAPC(c,CC_NATIVE,CC_ASCII);
+			if(mbwide() && c < 0)		/* invalid multibyte char */
+				stakputc('?');
+			else if(c == 60)		/* < */
 				stakputs("&lt;");
-			else if(c=='>')
+			else if(c == 62)		/* > */
 				stakputs("&gt;");
-			else if(c=='&')
+			else if(c == 38)		/* & */
 				stakputs("&amp;");
-			else if(c=='"')
+			else if(c == 34)		/* " */
 				stakputs("&quot;");
-			else if(c=='\'')
-				stakputs("&apos;");
-			else if(c==' ')
+			else if(c == 39)		/* ' (&apos; is nonstandard) */
+				stakputs("&#39;");
+			else if(c == 160 && mbwide())	/* non-breaking space */
 				stakputs("&nbsp;");
-			else if(!isprint(c) && c!='\n' && c!='\r')
-				sfprintf(stkstd,"&#%X;",CCMAPC(c,CC_NATIVE,CC_ASCII));
+			else if(!sh_isprint(c) && c!='\n' && c!='\r')
+				sfprintf(stkstd, "&#%d;", c);
 			else
-				stakputc(c);
+				stakwrite(op, cp-op);
 		}
 	}
 	else
 	{
-		while(c= *(unsigned char*)cp++)
+		/* Percent-encode for URI. Ref.: RFC 3986, section 2.3 */
+		if(mbwide())
 		{
-			if(strchr("!*'();@&+$,#[]<>~.\"{}|\\-`^% ",c) || (!isprint(c) && c!='\n' && c!='\r'))
-				sfprintf(stkstd,"%%%02X",CCMAPC(c,CC_NATIVE,CC_ASCII));
-			else
-				stakputc(c);
+			while(op = cp, c = mbchar(cp))
+			{
+				if(c < 0)
+					stakputs("%3F");
+				else if(c <= 255 && strchr(URI_RFC3986_UNRESERVED, c))
+					stakwrite(op, cp-op);
+				else
+					while(c = *(unsigned char*)op++, op <= cp)
+						sfprintf(stkstd, "%%%02X", c);
+			}
+		}
+		else
+		{
+			while(c = *(unsigned char*)cp++)
+			{
+				if(strchr(URI_RFC3986_UNRESERVED, c))
+					stakputc(c);
+				else
+					sfprintf(stkstd, "%%%02X", CCMAPC(c, CC_NATIVE, CC_ASCII));
+			}
 		}
 	}
 	stakputc(0);

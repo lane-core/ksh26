@@ -1180,7 +1180,7 @@ USAGE_LICENSE
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (AT&T Research) 2009-02-02 $\n]"
+"[-1c?\n@(#)$Id: printf (AT&T Research/ksh93) 2020-08-10 $\n]"
 USAGE_LICENSE
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1211,7 +1211,7 @@ USAGE_LICENSE
 	"[+%B?Treat the argument as a variable name and output the value "
 		"without converting it to a string.  This is most useful for "
 		"variables of type \b-b\b.]"
-	"[+%H?Output \astring\a with characters \b<\b, \b&\b, \b>\b, "
+	"[+%H?Output \astring\a with characters \b<\b, \b&\b, \b>\b, \b'\b, "
 		"\b\"\b, and non-printable characters properly escaped for "
 		"use in HTML and XML documents.  The alternate flag \b#\b "
 		"formats the output for use as a URI.]"

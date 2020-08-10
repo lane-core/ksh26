@@ -29,6 +29,11 @@
 #define defs_h_defined
 
 #include	<ast.h>
+#if !SHOPT_MULTIBYTE
+#   undef mbwide
+#   define mbwide() (0)	/* disable multibyte without need for further '#if SHOPT_MULTIBTYE' */
+#endif
+
 #include	<sfio.h>
 #include	<error.h>
 #include	"FEATURE/externs"
@@ -440,6 +445,14 @@ extern int 		sh_whence(char**,int);
 #if SHOPT_NAMESPACE
     extern Namval_t	*sh_fsearch(Shell_t*,const char *,int);
 #endif /* SHOPT_NAMESPACE */
+
+#if SHOPT_MULTIBYTE
+    extern int		sh_isprint(int);
+#else
+#   define sh_isprint(c) isprint(c)
+#endif /* SHOPT_MULTIBYTE */
+
+#define URI_RFC3986_UNRESERVED "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 
 #ifndef ERROR_dictionary
 #   define ERROR_dictionary(s)	(s)

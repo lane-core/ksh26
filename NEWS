@@ -3,6 +3,20 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-08-10:
+
+- A number of fixes have been applied to the printf formatting directives
+  %H and %#H (as well as the undocumented equivalents %(html)q and %(url)q):
+  1. Both formatters have been made multibyte/UTF-8 aware, and no longer
+     delete multibyte characters. Invalid UTF-8 byte sequences are rendered
+     as ASCII question marks.
+  2. %H no longer wrongly changes spaces to non-breaking spaces (&nbsp;).
+  3. %H now converts the single quote (') to '%#39;' instead of '&apos;'
+     which is not a valid entity in all HTML versions.
+  4. %#H failed to encode some reserved characters (e.g. '?') while encoding
+     some unreserved ones (e.g. '~'). It now percent-encodes all characters
+     except those 'unreserved' as per RFC3986 (ASCII alphanumeric plus -._~).
+
 2020-08-09:
 
 - File name generation (a.k.a. pathname expansion, a.k.a. globbing) now

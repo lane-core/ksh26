@@ -275,15 +275,70 @@ OPTIND=1
 if	[[ $(getopts  $'[+?X\ffoobar\fX]' v --man 2>&1) != *'Xhello world'X* ]]
 then	err_exit '\f...\f not working in getopts usage strings'
 fi
-if	[[ $(printf '%H\n' $'<>"& \'\tabc') != '&lt;&gt;&quot;&amp;&nbsp;&apos;&#9;abc' ]]
-then	err_exit 'printf %H not working'
-fi
-if	[[ $(printf '%(html)q\n' $'<>"& \'\tabc') != '&lt;&gt;&quot;&amp;&nbsp;&apos;&#9;abc' ]]
-then	err_exit 'printf %(html)q not working'
-fi
-if	[[ $( printf 'foo://ab_c%(url)q\n' $'<>"& \'\tabc') != 'foo://ab_c%3C%3E%22%26%20%27%09abc' ]]
-then	err_exit 'printf %(url)q not working'
-fi
+
+expect='&lt;&gt;&quot;&amp; &#39;&#9;abc'
+actual=$(printf '%H\n' $'<>"& \'\tabc')
+[[ $expect == "$actual" ]] || err_exit 'printf %H not working' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(printf '%(html)q\n' $'<>"& \'\tabc')
+[[ $expect == "$actual" ]] || err_exit 'printf %(html)q not working' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+expect='foo://ab_c%3C%3E%22%26%20%27%09abc'
+actual=$(printf 'foo://ab_c%#H\n' $'<>"& \'\tabc')
+[[ $expect == "$actual" ]] || err_exit 'printf %#H not working' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(printf 'foo://ab_c%(url)q\n' $'<>"& \'\tabc')
+[[ $expect == "$actual" ]] || err_exit 'printf %(url)q not working' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
+	# HTML encoding UTF-8 characters
+	expect='what?'
+	actual=$(printf %H 'what?')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: ASCII characters' \
+				"(expected $expect; got $actual)"
+	expect='عندما يريد العالم أن &#8234;يتكلّم &#8236; ، فهو يتحدّث بلغة يونيكود.'
+	actual=$(printf %H 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Arabic UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='正常終了 正常終了'
+	actual=$(printf %H '正常終了 正常終了')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='« l’abîme de mon&nbsp;métier… »'
+	actual=$(printf %H '« l’abîme de mon métier… »')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Latin UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='?&#134;???'
+	actual=$(printf %H $'\x86\u86\xF0\x96\x76\xA7\xB5')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: invalid UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	# URL/URI encoding of UTF-8 characters
+	expect='wh.at%3F'
+	actual=$(printf %#H 'wh.at?')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: ASCII characters' \
+				"(expected $expect; got $actual)"
+	expect='%D8%B9%D9%86%D8%AF%D9%85%D8%A7%20%D9%8A%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%B9%D8%A7%D9%84%D9%85%20%D8%A3%D9%86%20%E2%80%AA%D9%8A%D8%AA%D9%83%D9%84%D9%91%D9%85%20%E2%80%AC%20%D8%8C%20%D9%81%D9%87%D9%88%20%D9%8A%D8%AA%D8%AD%D8%AF%D9%91%D8%AB%20%D8%A8%D9%84%D8%BA%D8%A9%20%D9%8A%D9%88%D9%86%D9%8A%D9%83%D9%88%D8%AF.'
+	actual=$(printf %#H 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Arabic UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86%20%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86'
+	actual=$(printf %#H '正常終了 正常終了')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='%C2%AB%20l%E2%80%99ab%C3%AEme%20de%20mon%C2%A0m%C3%A9tier%E2%80%A6%20%C2%BB'
+	actual=$(printf %#H '« l’abîme de mon métier… »')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: Latin UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	expect='%3F%C2%86%3F%3F%3F'
+	actual=$(printf %#H $'\x86\u86\xF0\x96\x76\xA7\xB5')
+	[[ $actual == "$expect" ]] || err_exit 'printf %H: invalid UTF-8 characters' \
+				"(expected $expect; got $actual)"
+	;;
+esac
+
 if	[[ $(printf '%R %R %R %R\n' 'a.b' '*.c' '^'  '!(*.*)') != '^a\.b$ \.c$ ^\^$ ^(.*\..*)!$' ]]
 then	err_exit 'printf %T not working'
 fi
