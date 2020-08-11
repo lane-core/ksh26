@@ -454,7 +454,7 @@ Pathcomp_t *path_nextcomp(Shell_t *shp,register Pathcomp_t *pp, const char *name
 static Pathcomp_t* defpath_init(Shell_t *shp)
 {
 	if(!std_path && !(std_path=astconf("PATH",NIL(char*),NIL(char*))))
-		std_path = e_defpath;
+		abort();
 	Pathcomp_t *pp = (void*)path_addpath(shp,(Pathcomp_t*)0,(std_path),PATH_PATH);
 	return(pp);
 }

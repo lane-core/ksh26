@@ -375,7 +375,7 @@ PATH				AST	CS 1 MU		sh{
 	*)	CONF_path=`"$CONF_getconf" PATH` ;;
 	esac
 	case $CONF_path in
-	'')	echo '"/bin:/usr/bin"' ;;
+	'')	echo '"/bin:/usr/bin:/sbin:/usr/sbin"' ;;
 	*)	echo "\\"$CONF_path\\"" ;;
 	esac
 }

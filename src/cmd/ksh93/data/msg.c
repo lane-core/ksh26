@@ -170,7 +170,6 @@ const char e_heading[]		= "Current option settings";
 const char e_sptbnl[]		= " \t\n";
 const char e_tolower[]		= "tolower";
 const char e_toupper[]		= "toupper";
-const char e_defpath[]		= "/bin:/usr/bin:";
 const char e_defedit[]		= _pth_ed;
 const char e_unknown []		= "<command unknown>";
 const char e_devnull[]		= "/dev/null";

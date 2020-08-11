@@ -4189,15 +4189,9 @@ search for the command name.
 Alternative directory names are separated by
 a colon
 .RB ( : ).
-The default path is equal to the output of
-.BI builtin\ getconf;\ getconf\ PATH
-or, if the OS doesn't provide that value,
-.B /bin:/usr/bin:
-(specifying
-.BR /bin ,
-.BR /usr/bin ,
-and the current directory
-in that order).
+The default path is the value that was output by
+.BI getconf\ PATH
+at the time ksh was compiled.
 The current directory can be specified by
 two or more adjacent colons, or by a colon
 at the beginning or end of the path list.

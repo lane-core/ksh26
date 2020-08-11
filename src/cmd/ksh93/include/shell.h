@@ -106,7 +106,6 @@ typedef union Shnode_u Shnode_t;
 /* The following type is used for error messages */
 
 /* error messages */
-extern const char	e_defpath[];
 extern const char	e_found[];
 extern const char	e_nospace[];
 extern const char	e_format[];
