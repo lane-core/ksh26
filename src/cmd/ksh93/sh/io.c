@@ -2067,12 +2067,15 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 	char *endprompt;
 	static short cmdno;
 	int sfflags;
+	int was_ttywait_on;
 	if(flag<3 && !sh_isstate(SH_INTERACTIVE))
 		flag = 0;
 	if(flag==2 && sfpkrd(sffileno(iop),buff,1,'\n',0,1) >= 0)
 		flag = 0;
 	if(flag==0)
 		return(sfsync(sfstderr));
+	was_ttywait_on = sh_isstate(SH_TTYWAIT);
+	sh_offstate(SH_TTYWAIT);
 	sfflags = sfset(sfstderr,SF_SHARE|SF_PUBLIC|SF_READ,0);
 	if(!(shp->prompt=(char*)sfreserve(sfstderr,0,0)))
 		shp->prompt = "";
@@ -2125,6 +2128,8 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 done:
 	if(*shp->prompt && (endprompt=(char*)sfreserve(sfstderr,0,0)))
 		*endprompt = 0;
+	if(was_ttywait_on)
+		sh_onstate(SH_TTYWAIT);
 	sfset(sfstderr,sfflags&SF_READ|SF_SHARE|SF_PUBLIC,1);
 	return(sfsync(sfstderr));
 }

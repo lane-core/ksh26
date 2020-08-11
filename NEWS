@@ -17,6 +17,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
      some unreserved ones (e.g. '~'). It now percent-encodes all characters
      except those 'unreserved' as per RFC3986 (ASCII alphanumeric plus -._~).
 
+- Fixed a crash that occurred intermittently after running an external
+  command from a command substitution expanded from the $PS1 shell prompt.
+
 2020-08-09:
 
 - File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
@@ -31,12 +34,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   been improved to error out before executing redirections. For example, an
   error like 'redirect ls >foo.txt' now will not create 'foo.txt' and will
   not leave your standard output permanently redirected to it.
-
-2020-08-07:
-
-- Fixed a crash that occurred intermittently when entering the 60 second
-  timeout grace period after exceeding $TMOUT, if 'set -b'/'set -o notify' is
-  active and $PS1 contains a command substitution running an external command.
 
 2020-08-06:
 
