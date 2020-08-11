@@ -486,7 +486,7 @@ static char *fmthtml(const char *string, int flags)
 	mbinit();
 	if(!(flags&SFFMT_ALTER))
 	{
-		/* Encode for HTML, for inside and outside single- and double-quoted strings. */
+		/* Encode for HTML and XML, for main text and single- and double-quoted attributes. */
 		while(op = cp, c = mbchar(cp))
 		{
 			if(!mbwide())
@@ -501,12 +501,8 @@ static char *fmthtml(const char *string, int flags)
 				stakputs("&amp;");
 			else if(c == 34)		/* " */
 				stakputs("&quot;");
-			else if(c == 39)		/* ' (&apos; is nonstandard) */
+			else if(c == 39)		/* ' (&apos; is not HTML) */
 				stakputs("&#39;");
-			else if(c == 160 && mbwide())	/* non-breaking space */
-				stakputs("&nbsp;");
-			else if(!sh_isprint(c) && c!='\n' && c!='\r')
-				sfprintf(stkstd, "&#%d;", c);
 			else
 				stakwrite(op, cp-op);
 		}

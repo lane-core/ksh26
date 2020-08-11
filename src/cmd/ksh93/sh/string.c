@@ -327,16 +327,13 @@ static char	*sh_fmtcsv(const char *string)
 	return(stakptr(offset));
 }
 
-#if SHOPT_MULTIBYTE
 /*
- * Note: without SHOPT_MULTIBYTE, defs.h makes this an alias of isprint(3).
- *
  * Returns false if c is an invisible Unicode character, excluding ASCII space.
  * Use iswgraph(3) if possible. In the ksh-specific C.UTF-8 locale, this is
  * generally not possible as the OS-provided iswgraph(3) doesn't support that
  * locale. So do a quick test and do our best with a fallback if necessary.
  */
-int	sh_isprint(int c)
+static int	sh_isprint(int c)
 {
 	if(!mbwide())					/* not in multibyte locale? */
 		return(isprint(c));			/* use plain isprint(3) */
@@ -355,7 +352,6 @@ int	sh_isprint(int c)
 			c == 0x3000 ||			/* ideographic space */
 			c == 0xFEFF));			/* zero-width non-breaking space */
 }
-#endif /* SHOPT_MULTIBYTE */
 
 /*
  * print <str> quoting chars so that it can be read by the shell

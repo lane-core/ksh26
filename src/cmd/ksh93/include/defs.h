@@ -446,12 +446,6 @@ extern int 		sh_whence(char**,int);
     extern Namval_t	*sh_fsearch(Shell_t*,const char *,int);
 #endif /* SHOPT_NAMESPACE */
 
-#if SHOPT_MULTIBYTE
-    extern int		sh_isprint(int);
-#else
-#   define sh_isprint(c) isprint(c)
-#endif /* SHOPT_MULTIBYTE */
-
 #define URI_RFC3986_UNRESERVED "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 
 #ifndef ERROR_dictionary

@@ -276,7 +276,7 @@ if	[[ $(getopts  $'[+?X\ffoobar\fX]' v --man 2>&1) != *'Xhello world'X* ]]
 then	err_exit '\f...\f not working in getopts usage strings'
 fi
 
-expect='&lt;&gt;&quot;&amp; &#39;&#9;abc'
+expect=$'&lt;&gt;&quot;&amp; &#39;\tabc'
 actual=$(printf '%H\n' $'<>"& \'\tabc')
 [[ $expect == "$actual" ]] || err_exit 'printf %H not working' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
@@ -295,24 +295,12 @@ actual=$(printf 'foo://ab_c%(url)q\n' $'<>"& \'\tabc')
 case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 ( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
 	# HTML encoding UTF-8 characters
-	expect='what?'
-	actual=$(printf %H 'what?')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: ASCII characters' \
-				"(expected $expect; got $actual)"
-	expect='عندما يريد العالم أن &#8234;يتكلّم &#8236; ، فهو يتحدّث بلغة يونيكود.'
-	actual=$(printf %H 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: Arabic UTF-8 characters' \
-				"(expected $expect; got $actual)"
 	expect='正常終了 正常終了'
 	actual=$(printf %H '正常終了 正常終了')
 	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
 				"(expected $expect; got $actual)"
-	expect='« l’abîme de mon&nbsp;métier… »'
-	actual=$(printf %H '« l’abîme de mon métier… »')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: Latin UTF-8 characters' \
-				"(expected $expect; got $actual)"
-	expect='?&#134;???'
-	actual=$(printf %H $'\x86\u86\xF0\x96\x76\xA7\xB5')
+	expect='w?h?á?t??'
+	actual=$(printf %H $'w\x80h\x81\uE1\x82t\x83?')
 	[[ $actual == "$expect" ]] || err_exit 'printf %H: invalid UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	# URL/URI encoding of UTF-8 characters
