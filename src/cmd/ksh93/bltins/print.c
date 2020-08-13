@@ -516,8 +516,8 @@ static char *fmthtml(const char *string, int flags)
 			{
 				if(c < 0)
 					stakputs("%3F");
-				else if(c <= 255 && strchr(URI_RFC3986_UNRESERVED, c))
-					stakwrite(op, cp-op);
+				else if(c < 128 && strchr(URI_RFC3986_UNRESERVED, c))
+					stakputc(c);
 				else
 					while(c = *(unsigned char*)op++, op <= cp)
 						sfprintf(stkstd, "%%%02X", c);
