@@ -211,7 +211,7 @@ do
 	done
 	
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 1 hung"' TERM
-	{ sleep .5; kill $$; } &
+	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
 	pid=$!
@@ -225,7 +225,7 @@ do
 	[[ $sleep_pid ]] && kill $sleep_pid
 	
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 2 hung"' TERM
-	{ sleep .5; kill $$; } &
+	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
 	pid=$!
@@ -237,7 +237,7 @@ do
 	[[ $sleep_pid ]] && kill $sleep_pid
 	
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 3 hung"' TERM
-	{ sleep .5; kill $$; } &
+	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
 	pid=$!
