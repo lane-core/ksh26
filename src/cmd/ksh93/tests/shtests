@@ -298,7 +298,8 @@ else	trap 'cd / && rm -rf "$tmp"' EXIT
 fi
 
 # for interactive shell ('ksh -i') tests: avoid affecting ~/.sh_history
-export HISTFILE=$tmp/sh_history
+# (some tests must unset or modify $HISTFILE, so set $HOME instead)
+export HOME=$tmp
 
 if	(( compile ))
 then	if	whence $SHCOMP > /dev/null

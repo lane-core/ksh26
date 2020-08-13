@@ -408,10 +408,12 @@ typeset groupDB="" userDB=""
 typeset -l -L1 DBPick=""
 [[ -n "$groupDB" ]]  && err_exit 'typeset -l -L1 causes unwanted side effect'
 
+[[ -v HISTFILE ]] && saveHISTFILE=$HISTFILE || unset saveHISTFILE
 HISTFILE=foo
 typeset -u PS1='hello --- '
 HISTFILE=foo
 [[ $HISTFILE == foo ]] || err_exit  'typeset -u PS1 affects HISTFILE'
+[[ -v saveHISTFILE ]] && HISTFILE=$saveHISTFILE || unset HISTFILE
 
 typeset -a a=( aA= ZQ= bA= bA= bw= Cg= )
 typeset -b x
