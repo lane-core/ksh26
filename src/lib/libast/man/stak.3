@@ -12,7 +12,7 @@
 Stak_t *stakcreate(int \fIflags\fP);
 Stak_t *stakinstall(Stak_t *\fIstack\fP, char *(\fIoverflow\fP)(int));
 int stakdelete(Stak_t *\fIstack\fP);
-void staklink(Stak_t *\fIstack\fP)
+unsigned int staklink(Stak_t *\fIstack\fP)
 
 char *stakalloc(unsigned \fIsize\fP);
 char *stakcopy(const char *\fIstring\fP);
@@ -62,7 +62,7 @@ If successful,
 count is 1.
 Otherwise, \f5stakcreate\fP() returns a null pointer.
 The \f5staklink\fP() function increases the reference count for the
-given \fIstack\fP.
+given \fIstack\fP and returns the increased count.
 The \f5stakinstall\fP() function
 makes the specified \fIstack\fP the active stack and returns a pointer
 to the previous active stack.

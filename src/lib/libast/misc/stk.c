@@ -76,7 +76,7 @@ struct frame
 struct stk
 {
 	_stk_overflow_	stkoverflow;	/* called when malloc fails */
-	short		stkref;	/* reference count; */
+	unsigned int	stkref;		/* reference count */
 	short		stkflags;	/* stack attributes */
 	char		*stkbase;	/* beginning of current stack frame */
 	char		*stkend;	/* end of current stack frame */
@@ -152,7 +152,7 @@ static int stkexcept(register Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 			register struct stk *sp = stream2stk(stream); 
 			register char *cp = sp->stkbase;
 			register struct frame *fp;
-			if(--sp->stkref<=0)
+			if(--sp->stkref == 0)
 			{
 				increment(delete);
 				if(stream==stkstd)
@@ -294,7 +294,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _stk_overflow_ oflow)
 /*
  * increase the reference count on the given <stack>
  */
-int stklink(register Sfio_t* stream)
+unsigned int stklink(register Sfio_t* stream)
 {
 	register struct stk *sp = stream2stk(stream);
 	return(sp->stkref++);

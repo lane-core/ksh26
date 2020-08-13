@@ -219,7 +219,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	register int jmpval;
 	register Shell_t *shp = context->shp;
 	struct sh_scoped savst, *prevscope = shp->st.self;
-	char *filename=0, *buffer=0;
+	char *filename=0, *buffer=0, *tofree;
 	int	fd;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
@@ -282,8 +282,9 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	shp->st.self = &savst;
 	shp->topscope = (Shscope_t*)shp->st.self;
 	prevscope->save_tree = shp->var_tree;
+	tofree = shp->st.filename;
 	if(np)
-		shp->st.filename = np->nvalue.rp->fname ? strdup(np->nvalue.rp->fname) : 0;
+		shp->st.filename = np->nvalue.rp->fname;
 	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
 	shp->posix_fun = 0;
 	if(np || argv[1])
@@ -307,7 +308,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	if(buffer)
 		free(buffer);
 	if(!np)
-		free((void*)shp->st.filename);
+		free(tofree);
 	shp->dot_depth--;
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
 		sh_argreset(shp,(struct dolnod*)argsave,saveargfor);

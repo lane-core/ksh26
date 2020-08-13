@@ -36,7 +36,7 @@ type /xxxxxx > out1 2> out2
 [[ -s out2 ]] || err_exit 'type should write on stderr for not found case'
 mkdir dir1 dir2
 cat  > dir1/foobar << '+++'
-foobar() { print foobar1;}
+foobar() { print foobar1 >foobar1.txt; cat <foobar1.txt;}
 function dir1 { print dir1;}
 +++
 cat  > dir2/foobar << '+++'

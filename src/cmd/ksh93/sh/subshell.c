@@ -397,7 +397,11 @@ Dt_t *sh_subfuntree(int create)
 	return(sp->shp->fun_tree);
 }
 
-static void table_unset(register Dt_t *root,int fun)
+/*
+ * Remove and free a subshell table at *root after leaving a virtual subshell.
+ * Pass 'fun' as nonzero when removing a subshell's shell functions.
+ */
+static void table_unset(Shell_t *shp,register Dt_t *root,int fun)
 {
 	register Namval_t *np,*nq;
 	int flag;
@@ -405,7 +409,9 @@ static void table_unset(register Dt_t *root,int fun)
 	{
 		nq = (Namval_t*)dtnext(root,np);
 		flag=0;
-		if(fun && np->nvalue.rp && np->nvalue.rp->fname && *np->nvalue.rp->fname=='/')
+		/* Check for autoloaded function; it must not be freed. */
+		if(fun && np->nvalue.rp && np->nvalue.rp->fname && shp->fpathdict
+		&& nv_search(np->nvalue.rp->fname,shp->fpathdict,0))
 		{
 			np->nvalue.rp->fdict = 0;
 			flag = NV_NOFREE;
@@ -693,7 +699,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(sp->sfun)
 		{
 			shp->fun_tree = dtview(sp->sfun,0);
-			table_unset(sp->sfun,1);
+			table_unset(shp,sp->sfun,1);
 			dtclose(sp->sfun);
 		}
 		n = shp->st.trapmax-savst.trapmax;

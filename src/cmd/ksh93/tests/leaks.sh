@@ -60,11 +60,14 @@ before=0 after=0 i=0 u=0
 # Number of iterations for each test
 N=512
 
-# Check results. Add a tolerance of N/4 bytes to avoid false leaks.
+# Check results. Add a tolerance of 2 bytes per iteration. Some tests appear to have tiny leaks, but they
+# must be vmalloc artefacts; they may increase with the number of iterations, then suddenly go away when the
+# number of iterations is large enough (e.g. 10000) and don't return when increasing iterations further.
+#
 # The function has 'err_exit' in the name so that shtests counts each call as at test.
 function err_exit_if_leak
 {
-	if	((after > before + N / 4))
+	if	((after > before + 2 * N))
 	then	err\_exit "$1" "$2 (leaked $((after - before)) bytes after $N iterations)"
 	fi
 }
@@ -143,4 +146,46 @@ after=$(getmem)
 err_exit_if_leak 'memory leak on PATH reset before subshell PATH search'
 
 # ======
+# Defining a function in a virtual subshell
+# https://github.com/ksh93/ksh/issues/114
+
+unset -f foo
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(function foo { :; }; foo)
+done
+after=$(getmem)
+err_exit_if_leak 'ksh function defined in virtual subshell'
+typeset -f foo >/dev/null && err_exit 'ksh function leaks out of subshell'
+
+unset -f foo
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(foo() { :; }; foo)
+done
+after=$(getmem)
+err_exit_if_leak 'POSIX function defined in virtual subshell'
+typeset -f foo >/dev/null && err_exit 'POSIX function leaks out of subshell'
+
+# ======
+# Sourcing a dot script in a virtual subshell
+
+echo 'echo "$@"' > $tmp/dot.sh
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(. "$tmp/dot.sh" dot one two three >/dev/null)
+done
+after=$(getmem)
+err_exit_if_leak 'script dotted in virtual subshell'
+
+echo 'echo "$@"' > $tmp/dot.sh
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(source "$tmp/dot.sh" source four five six >/dev/null)
+done
+after=$(getmem)
+err_exit_if_leak 'script sourced in virtual subshell'
+
+# ======
 exit $((Errors<125?Errors:125))
+[A

@@ -12,7 +12,7 @@
 Stk_t *stkopen(int \fIflags\fP);
 Stk_t *stkinstall(Stk_t *\fIstack\fP, char *(\fIoverflow\fP)(int));
 int stkclose(Stk_t *\fIstack\fP);
-void stklink(Stk_t *\fIstack\fP)
+unsigned int stklink(Stk_t *\fIstack\fP)
 
 char *stkalloc(Stk_t *\fIstack\fP, unsigned \fIsize\fP);
 char *stkcopy(Stk_t *\fIstack\fP, const char *\fIstring\fP);
@@ -63,7 +63,7 @@ If successful,
 count is 1.
 Otherwise, \f5stkopen\fP() returns a null pointer.
 The \f5stklink\fP() function increases the reference count for the
-given \fIstack\fP.
+given \fIstack\fP and returns the increased count.
 The \f5stkinstall\fP() function
 makes the specified \fIstack\fP the active stack and returns a pointer
 to the previous active stack.
