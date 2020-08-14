@@ -188,4 +188,3 @@ err_exit_if_leak 'script sourced in virtual subshell'
 
 # ======
 exit $((Errors<125?Errors:125))
-[A
