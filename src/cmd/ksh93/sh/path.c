@@ -175,8 +175,12 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 	shp->exitval = 0;
 	while(av<avlast)
 	{
+		/* for each argument, account for terminating zero and 16-byte alignment */
 		for(xv=av,left=size; left>0 && av<avlast;)
-			left -= strlen(*av++)+1;
+		{
+			n = strlen(*av++) + 1 + 16;
+			left -= n + n % 16;
+		}
 		/* leave at least two for last */
 		if(left<0 && (avlast-av)<2)
 			av--;
@@ -1178,7 +1182,6 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 #endif /* SHELLMAGIC */
 	if(pid>0)
 		return(pid);
-retry:
 	switch(shp->path_err = errno)
 	{
 	    case ENOEXEC:
@@ -1238,7 +1241,7 @@ retry:
 		{
 			pid = path_xargs(shp,opath, &argv[0] ,envp,spawn);
 			if(pid<0)
-				goto retry;
+				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),"%s: 'command -x' failed",path);
 			return(pid);
 		}
 	    default:

@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-08-16:
+
+- Fixed 'command -x' on macOS, Linux and Solaris by accounting for a 16-byte
+  argument alignment. If execution does fail, it now aborts with an internal
+  error message instead of entering an infinite retry loop.
+
 2020-08-13:
 
 - Fixed memory leaks and a crashing bug that occurred when defining and
