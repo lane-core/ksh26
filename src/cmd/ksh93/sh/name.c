@@ -3619,47 +3619,6 @@ void nv_unref(register Namval_t *np)
 #endif
 }
 
-/*
- * These following are for binary compatibility with the old hash library
- * They will be removed someday
- */
-
-#if defined(__IMPORT__) && defined(__EXPORT__)
-#   define extern __EXPORT__
-#endif
-
-#undef	hashscope
-
-extern Dt_t *hashscope(Dt_t *root)
-{
-	return(dtvnext(root));
-}
-
-#undef	hashfree
-
-extern Dt_t	*hashfree(Dt_t *root)
-{
-	Dt_t *dp = dtvnext(root);
-	dtclose(root);
-	return(dp);
-}
-
-#undef	hashname
-
-extern char	*hashname(void *obj)
-{
-	Namval_t *np = (Namval_t*)obj;
-	return(np->nvname);
-}
-
-#undef	hashlook
-
-extern void *hashlook(Dt_t *root, const char *name, int mode,int size)
-{
-	NOT_USED(size);
-	return((void*)nv_search(name,root,mode));
-}
-
 char *nv_name(register Namval_t *np)
 {
 	Shell_t	 *shp = sh_getinterp();
