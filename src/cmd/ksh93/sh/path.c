@@ -696,7 +696,12 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 		path_init(shp);
 	if(flag)
 	{
-		if(!(flag&1) && (np=nv_search(name,shp->track_tree,0)) && !nv_isattr(np,NV_NOALIAS) && (pp=(Pathcomp_t*)np->nvalue.cp))
+		/* if a tracked alias exists and we're not searching the default path, use it */
+		if(!sh_isstate(SH_DEFPATH)
+		&& !(flag&1)
+		&& (np=nv_search(name,shp->track_tree,0))
+		&& !nv_isattr(np,NV_NOALIAS)
+		&& (pp=(Pathcomp_t*)np->nvalue.cp))
 		{
 			stakseek(PATH_OFFSET);
 			path_nextcomp(shp,pp,name,pp);
@@ -1070,7 +1075,8 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 	pidsize = sfprintf(stkstd,"*%d*",spawn?getpid():getppid());
 	stakputs(opath);
 	opath = stakfreeze(1)+PATH_OFFSET+pidsize;
-	np=nv_search(argv[0],shp->track_tree,0);
+	/* only use tracked alias if we're not searching default path */
+	np = sh_isstate(SH_DEFPATH) ? NIL(Namval_t*) : nv_search(argv[0],shp->track_tree,0);
 	while(libpath && !libpath->lib)
 		libpath=libpath->next;
 	if(libpath && (!np || nv_size(np)>0))

@@ -404,8 +404,10 @@ END
 
 # ======
 # Check that 'command -p' searches the default OS utility PATH.
-v=$(PATH=/dev/null "$SHELL" -c 'command -p ls /dev/null')
-[[ $v == /dev/null ]] || err_exit 'command -p fails to find standard utility'
+expect=/dev/null
+actual=$(PATH=/dev/null "$SHELL" -c 'command -p ls /dev/null' 2>&1)
+[[ $actual == "$expect" ]] || err_exit 'command -p fails to find standard utility' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ksh segfaults if $PATH contains a .paths directory
 mkdir -p $tmp/paths-dir-crash/
@@ -415,6 +417,21 @@ export PATH=$tmp/paths-dir-crash:$PATH
 print ok
 EOF
 [[ $($SHELL $tmp/paths-dir-crash/run.sh 2>/dev/null) == ok ]] || err_exit "ksh crashes if PATH contains a .paths directory"
+
+# Check that 'command -p' and 'command -p -v' do not use the hash table (a.k.a. tracked aliases).
+print 'echo "wrong path used"' > $tmp/ls
+chmod +x $tmp/ls
+expect=/dev/null
+actual=$(PATH=$tmp; redirect 2>&1; hash ls; command -p ls /dev/null)
+[[ $actual == "$expect" ]] || err_exit "'command -p' fails to search default path if tracked alias exists" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(PATH=$tmp; redirect 2>&1; hash ls; command -p ls /dev/null; exit)  # the 'exit' disables subshell optimization
+[[ $actual == "$expect" ]] || err_exit "'command -p' fails to search default path if tracked alias exists" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+expect=$(builtin getconf; PATH=$(getconf PATH); whence -p ls)
+actual=$(PATH=$tmp; redirect 2>&1; hash ls; command -p -v ls)
+[[ $actual == "$expect" ]] || err_exit "'command -p -v' fails to search default path if tracked alias exists" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
 exit $((Errors<125?Errors:125))
