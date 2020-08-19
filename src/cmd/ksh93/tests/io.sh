@@ -584,18 +584,4 @@ then	exec 3>&-
 fi
 
 # ======
-# On unpatched ksh on macOS, 'read' used to block when reading from a FIFO and there was no final newline.
-if	mkfifo "$tmp/fifo_no_lf"
-then	trap 'sleep_pid=0; kill "$ksh_pid"; err_exit "'\''read'\'' hangs on EOF without final linefeed when reading from FIFO"' TERM
-	(sleep 1; kill "$$") &
-	sleep_pid=$!
-	"$SHELL" -c 'print -n foo >$0 & while read f; do :; done <$0' "$tmp/fifo_no_lf" &
-	ksh_pid=$!
-	wait "$ksh_pid"
-	trap - TERM
-	((sleep_pid)) && kill "$sleep_pid"
-else	err_exit "mkfifo failed; cannot test reading from FIFO"
-fi
-
-# ======
 exit $((Errors<125?Errors:125))
