@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-08-19:
+
+- Sped up the 'read' command on most systems by 15-25%. Fixed a hanging bug
+  on reading from a FIFO that could occur on macOS.
+
 2020-08-17:
 
 - 'command -p' incorrectly used the hash table entry (a.k.a. tracked alias)
