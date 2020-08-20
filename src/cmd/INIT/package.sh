@@ -2400,7 +2400,7 @@ int main()
 			esac
 			case $lhs in
 			bsdi)			lhs=bsd ;;
-			darwin)			case $(/usr/bin/cc --version) in
+			darwin)			case `/usr/bin/cc --version` in
 						*'(GCC)'*)	case $rel in
 								[0-9].*|10.*)	lhs=darwin07 ;;
 								*)		lhs=darwin11 ;;
