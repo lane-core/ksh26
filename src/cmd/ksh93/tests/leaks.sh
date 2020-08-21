@@ -143,7 +143,14 @@ do	PATH=/dev/null true	# set/restore PATH & clear hash table
 	command -v ls		# do PATH search, add to hash table
 done >/dev/null
 after=$(getmem)
-err_exit_if_leak 'memory leak on PATH reset before subshell PATH search'
+err_exit_if_leak 'memory leak on PATH reset before PATH search'
+# ...test for another leak that only shows up when building with nmake:
+before=$(getmem)
+for	((i=0; i < N; i++))
+do	PATH=/dev/null true	# set/restore PATH & clear hash table
+done >/dev/null
+after=$(getmem)
+err_exit_if_leak 'memory leak on PATH reset'
 
 # ======
 # Defining a function in a virtual subshell
