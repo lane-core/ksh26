@@ -1220,6 +1220,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	{
 		beenhere = 1;
 		shp = &sh;
+#if SHOPT_REGRESS
+		sh_regress_init(shp);
+#endif
 		shgd = newof(0,struct shared,1,0);
 		shgd->current_pid = shgd->pid = getpid();
 		shgd->ppid = getppid();
@@ -1265,7 +1268,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		char**	av = argv;
 		char*	regress[3];
 
-		sh_regress_init(shp);
 		regress[0] = "__regress__";
 		regress[2] = 0;
 		/* NOTE: only shp is used by __regress__ at this point */
@@ -1287,7 +1289,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 				break;
 			nopt = optctx(0, 0);
 			oopt = optctx(nopt, 0);
+			error_info.exit = exit;  /* avoid crash on b___regress__ error as shell is not fully initialized */
 			b___regress__(2, regress, &shp->bltindata);
+			error_info.exit = sh_exit;
 			optctx(oopt, nopt);
 		}
 	}
