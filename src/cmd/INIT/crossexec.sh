@@ -19,6 +19,8 @@
 ########################################################################
 : cross compiler a.out execution
 
+(set -o posix) 2>/dev/null && set -o posix
+
 command=crossexec
 
 tmp=/tmp/cross$$

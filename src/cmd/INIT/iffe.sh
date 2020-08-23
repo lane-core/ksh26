@@ -25,9 +25,7 @@
 #
 # NOTE: .exe a.out suffix and [\\/] in path patterns for dos/nt
 
-case $-:$BASH_VERSION in
-*x*:[0123456789]*)	: bash set -x is broken :; set +ex ;;
-esac
+(set -o posix) 2>/dev/null && set -o posix
 
 command=iffe
 version=2012-07-17 # update in USAGE too #

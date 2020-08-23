@@ -21,9 +21,7 @@
 # mamprobe - generate MAM cc probe info
 # Glenn Fowler <gsf@research.att.com>
 
-case $-:$BASH_VERSION in
-*x*:[0123456789]*)	: bash set -x is broken :; set +ex ;;
-esac
+(set -o posix) 2>/dev/null && set -o posix
 
 command=mamprobe
 

@@ -20,6 +20,12 @@
 #                                                                      #
 ########################################################################
 : generate sig features
+
+case $ZSH_VERSION in
+?*)	emulate ksh ;;
+*)	(set -o posix) 2>/dev/null && set -o posix ;;
+esac
+
 case $# in
 0)	;;
 *)	eval $1

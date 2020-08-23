@@ -23,37 +23,33 @@
 
 command=package
 
-case $-:$BASH_VERSION in
-*x*:[0123456789]*)	: bash set -x is broken :; set +ex ;;
+(set -o posix) 2>/dev/null && set -o posix
+path=Bad
+case $PATH in
+Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2
+	exit 1 ;;
 esac
 
-# ksh checks -- ksh between 2007-11-05 and 2011-11-11 conflict with new -lcmd -- wea culpa
+# shell checks
 checksh()
 {
-	egrep 'Version.*(88|1993)' $1 >/dev/null 2>&1 ||
-	PATH=/dev/null $1 -c '(( 2 + 2 ))' >/dev/null 2>&1 &&
-	$1 -c '(( .sh.version >= 20111111 ))' >/dev/null 2>&1
-}
-
-case $_AST_BIN_PACKAGE_:$SHELL:$0 in
-1:*:*|*:/bin/sh:*)
-	;;
-*:*/*:*/*)
-	_AST_BIN_PACKAGE_=1 # prevent non-interactive sh .rc referencing bin/package recursion #
-	export _AST_BIN_PACKAGE_
-	if	checksh $SHELL
-	then	: no -lcmd conflict :
-	else	case " $* " in
-		*" debug "*|*" DEBUG "*|*" show "*)
-			echo $command: $SHELL: warning: possible -lcmd conflict -- falling back to /bin/sh >&2
-			;;
+	"$1" -ec '
+		# reject csh
+		case 1 in
+		1)	;;
 		esac
-		SHELL=/bin/sh
-		export SHELL
-		exec $SHELL "$0" "$@"
-	fi
-	;;
-esac
+		# reject special use of $path (to use zsh, use a "sh -> zsh" symlink, which disables this)
+		path=Bad
+		case $PATH in
+		Bad*)	exit 1 ;;
+		esac
+		# catch (our own) pipe/socket configuration mismatches
+		date | "$1" -c "read x" || exit 1
+		# check Bourne/POSIX compatible trap exit status (should exit with status 0)
+		trap "exit 0" 0
+		exit 1
+	' x "$1" 2>/dev/null || return 1
+}
 
 LC_ALL=C
 export LC_ALL
@@ -3102,26 +3098,7 @@ cat $INITROOT/$i.sh
 			;;
 		esac
 		;;
-	esac
-
-	# $SHELL must be /bin/sh compatible
-
-	case $SHELL in
-	/bin/sh);;
-	'')	SHELL=/bin/sh
-		;;
-	*)	$SHELL -c 'trap "exit 0" 0; exit 1' 2>/dev/null
-		case $? in
-		1)	SHELL=/bin/sh
-			;;
-		*)	# catch (our own) pipe/socket configuration mismatches
-			$SHELL -c "date | $SHELL -c 'read x'"
-			case $? in
-			0)	;;
-			*)	SHELL=/bin/sh ;;
-			esac
-			;;
-		esac
+	*)	checksh $SHELL || SHELL=/bin/sh
 		;;
 	esac
 	export SHELL

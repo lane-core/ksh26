@@ -19,6 +19,12 @@
 #                   Phong Vo <kpv@research.att.com>                    #
 #                                                                      #
 ########################################################################
+
+case $ZSH_VERSION in
+?*)	emulate ksh ;;
+*)	(set -o posix) 2>/dev/null && set -o posix ;;
+esac
+
 ok=0
 for i in \
 	-x /lib/ld.so /lib/ld-*.so /usr/lib/ld.so /lib/rld \

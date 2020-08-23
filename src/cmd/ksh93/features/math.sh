@@ -22,6 +22,11 @@
 
 # @(#)math.sh (AT&T Research) 2012-06-13
 
+case $ZSH_VERSION in
+?*)	emulate ksh ;;
+*)	(set -o posix) 2>/dev/null && set -o posix ;;
+esac
+
 command=$0
 iffeflags="-n -v"
 iffehdrs="math.h"

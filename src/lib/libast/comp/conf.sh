@@ -34,8 +34,9 @@
 # but you shall be confused anyway
 #
 
-case $-:$BASH_VERSION in
-*x*:[0123456789]*)	: bash set -x is broken :; set +ex ;;
+case $ZSH_VERSION in
+?*)	emulate ksh ;;
+*)	(set -o posix) 2>/dev/null && set -o posix ;;
 esac
 
 LC_ALL=C

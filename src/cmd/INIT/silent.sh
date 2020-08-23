@@ -20,18 +20,17 @@
 # non-ksh stub for the nmake silent prefix
 # @(#)silent (AT&T Research) 1992-08-11
 
-case $-:$BASH_VERSION in
-*x*:[01234567899]*)	: bash set -x is broken :; set +ex ;;
-esac
+(set -o posix) 2>/dev/null && set -o posix
+modern_export=`v=; export v=ok 2>/dev/null; echo "$v"`
 
 while	:
 do	case $# in
 	0)	exit 0 ;;
 	esac
 	case $1 in
-	*=*)	case $RANDOM in
-		$RANDOM)`echo $1 | sed "s/\\([^=]*\\)=\\(.*\\)/eval \\1='\\2'; export \\1/"` ;;
-		*)	export "$1" ;;
+	*=*)	case $modern_export in
+		ok)	export "$1" ;;
+		*)	`echo $1 | sed "s/\\([^=]*\\)=\\(.*\\)/eval \\1='\\2'; export \\1/"` ;;
 		esac
 		shift
 		;;
