@@ -649,15 +649,18 @@ protoflags=
 puthdr=
 putlib=
 pragma=
-case $RANDOM in
-$RANDOM)shell=bsh
+case `eval 'v=NOposixNO; w=$(export "w=$v"; echo "${w%%NO}"); echo "${w##NO}"' 2>/dev/null` in
+posix)	shell=posix		# or at least POSIX-ish
+	case $BASH_VERSION in
+	[1-9]*)	shell=bash ;;
+	esac
+	case `eval 'PATH=/dev/null && let i=93-5 && typeset -u v=ksh$i && print -r - "$v"' 2>/dev/null` in
+	KSH88)	shell=ksh ;;	# also pdksh, mksh, zsh
+	esac
+	;;
+*)	shell=bsh		# ancient pre-POSIX Bourne shell
 	($executable .) 2>/dev/null || executable='test -r'
 	($exists .) 2>/dev/null || exists='test -r'
-	;;
-*)	case $BASH_VERSION in
-	?*)	shell=bash ;;
-	*)	shell=ksh ;;
-	esac
 	;;
 esac
 reallystatic=
