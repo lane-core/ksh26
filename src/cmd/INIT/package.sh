@@ -3075,30 +3075,26 @@ cat $INITROOT/$i.sh
 
 	# grab a decent default shell
 
+	checksh "$SHELL" || KEEP_SHELL=0
 	case $KEEP_SHELL in
-	0)	executable "$SHELL" || SHELL=
-		case $SHELL in
-		?*)	checksh $SHELL || SHELL= ;;
-		esac
-		case $SHELL in
-		''|/bin/*|/usr/bin/*)
-			case $SHELL in
-			'')	SHELL=/bin/sh ;;
-			esac
-			for i in ksh sh bash
-			do	if	onpath $i && checksh $_onpath_
-				then	SHELL=$_onpath_
-					break
-				fi
-			done
-			;;
-		*/*ksh)	if	executable $KSH
-			then	SHELL=$KSH
+	0)	save_PATH=$PATH
+		if	PATH=`getconf PATH 2>/dev/null`
+		then	PATH=$PATH:$path
+		else	PATH=/bin:/usr/bin:/sbin:/usr/sbin:$path
+		fi
+		for i in ksh ksh93 mksh yash bash sh
+		do	if onpath "$i" && checksh "$_onpath_"
+			then	SHELL=$_onpath_
+				KEEP_SHELL=1
+				break
 			fi
-			;;
+		done
+		PATH=$save_PATH
+		unset save_PATH
+		case $KEEP_SHELL in
+		0)	echo "Cannot find good default shell, please supply SHELL=/path/to/shell" >&2
+			exit 1 ;;
 		esac
-		;;
-	*)	checksh $SHELL || SHELL=/bin/sh
 		;;
 	esac
 	export SHELL
