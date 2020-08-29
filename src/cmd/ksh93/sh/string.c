@@ -249,7 +249,6 @@ void	sh_trim(register char *sp)
 		dp = sp;
 		while(c= *sp)
 		{
-#if SHOPT_MULTIBYTE
 			int len;
 			if(mbwide() && (len=mbsize(sp))>1)
 			{
@@ -258,7 +257,6 @@ void	sh_trim(register char *sp)
 				sp += len;
 				continue;
 			}
-#endif /* SHOPT_MULTIBYTE */
 			sp++;
 			if(c == '\\')
 				c = *sp++;

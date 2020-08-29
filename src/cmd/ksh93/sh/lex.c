@@ -1521,7 +1521,7 @@ breakloop:
 				lp->lex.reservok = 0;
 			else if(c==TIMESYM)
 			{
-				/* yech - POSIX requires time -p */
+				/* POSIX requires time -p */
 				while(fcgetc(n)==' ' || n=='\t');
 				if(n>0)
 					fcseek(-LEN);
@@ -2187,7 +2187,6 @@ struct argnod *sh_endword(Shell_t *shp,int mode)
 	Stk_t		*stkp=shp->stk;
 	sfputc(stkp,0);
 	sp =  stkptr(stkp,ARGVAL);
-#if SHOPT_MULTIBYTE
 	if(mbwide())
 	{
 		do
@@ -2216,8 +2215,8 @@ struct argnod *sh_endword(Shell_t *shp,int mode)
 		while(n == 0);
 	}
 	else
-#endif /* SHOPT_MULTIBYTE */
-	while((n=state[*sp++])==0);
+		while((n = state[*sp++]) == 0)
+			;
 	dp = sp;
 	if(mode<0)
 		inquote = 1;
@@ -2396,7 +2395,6 @@ struct argnod *sh_endword(Shell_t *shp,int mode)
 			}
 			break;
 		}
-#if SHOPT_MULTIBYTE
 		if(mbwide())
 		{
 			do
@@ -2426,8 +2424,8 @@ struct argnod *sh_endword(Shell_t *shp,int mode)
 			while(n == 0);
 		}
 		else
-#endif /* SHOPT_MULTIBYTE */
-		while((n=state[*dp++ = *sp++])==0);
+			while((n=state[*dp++ = *sp++])==0)
+				;
 	}
 }
 

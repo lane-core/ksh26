@@ -30,8 +30,9 @@
 
 #include	<ast.h>
 #if !SHOPT_MULTIBYTE
+    /* disable multibyte without need for further '#if SHOPT_MULTIBYTE' */
 #   undef mbwide
-#   define mbwide() (0)	/* disable multibyte without need for further '#if SHOPT_MULTIBTYE' */
+#   define mbwide()	0
 #endif
 
 #include	<sfio.h>

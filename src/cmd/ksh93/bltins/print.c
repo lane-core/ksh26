@@ -1056,7 +1056,6 @@ static int fmtvecho(const char *string, struct printf *pp)
 	register const char *cp = string, *cpmax;
 	register int c;
 	register int offset = staktell();
-#if SHOPT_MULTIBYTE
 	int chlen;
 	if(mbwide())
 	{
@@ -1070,8 +1069,8 @@ static int fmtvecho(const char *string, struct printf *pp)
 		}
 	}
 	else
-#endif /* SHOPT_MULTIBYTE */
-	while((c= *cp++) && (c!='\\'));
+		while((c= *cp++) && (c!='\\'))
+			;
 	if(c==0)
 		return(-1);
 	c = --cp - string;
@@ -1079,14 +1078,12 @@ static int fmtvecho(const char *string, struct printf *pp)
 		stakwrite((void*)string,c);
 	for(; c= *cp; cp++)
 	{
-#if SHOPT_MULTIBYTE
 		if (mbwide() && ((chlen = mbsize(cp)) > 1))
 		{
 			stakwrite(cp,chlen);
 			cp +=  (chlen-1);
 			continue;
 		}
-#endif /* SHOPT_MULTIBYTE */
 		if( c=='\\') switch(*++cp)
 		{
 			case 'E':

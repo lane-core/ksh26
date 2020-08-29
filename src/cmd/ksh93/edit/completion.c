@@ -31,10 +31,6 @@
 #include	"edit.h"
 #include	"history.h"
 
-#if !SHOPT_MULTIBYTE
-#define mbchar(p)       (*(unsigned char*)p++)
-#endif
-
 static char *fmtx(const char *string)
 {
 	register const char	*cp = string;

@@ -425,8 +425,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 					if(f)
 						sfread(iop,cp,c);
 					cur += c;
-#if SHOPT_MULTIBYTE
-					if(!binary && mbwide())
+					if(mbwide() && !binary)
 					{
 						int	x;
 						int	z;
@@ -442,12 +441,9 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 						if((size -= x) > 0 && (up >= cur || z < 0) && ((flags & NN_FLAG) || z < 0 || m > c))
 							continue;
 					}
-#endif
 				}
-#if SHOPT_MULTIBYTE
-				if(!binary && mbwide() && (up == var || (flags & NN_FLAG) && size))
+				if(mbwide() && !binary && (up == var || (flags & NN_FLAG) && size))
 					cur = var;
-#endif
 				*cur = 0;
 				if(c>=size || (flags&N_FLAG) || m==0)
 				{

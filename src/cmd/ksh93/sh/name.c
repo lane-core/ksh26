@@ -117,10 +117,6 @@ static void(*nullscan)(Namval_t*,void*);
 #   define _data        data
 #endif
 
-#if !SHOPT_MULTIBYTE
-#   define mbchar(p)       (*(unsigned char*)p++)
-#endif /* SHOPT_MULTIBYTE */
-
 /* ========	name value pair routines	======== */
 
 #include	"shnodes.h"
@@ -1881,9 +1877,11 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 		}
 		else if((nv_isattr(np, NV_RJUST|NV_ZFILL|NV_LJUST)) && sp)
 		{
-			for(;*sp == ' '|| *sp=='\t';sp++);
+			for( ; *sp == ' ' || *sp == '\t'; sp++)
+				;
 	        	if((nv_isattr(np,NV_ZFILL)) && (nv_isattr(np,NV_LJUST)))
-				for(;*sp=='0';sp++);
+				for( ; *sp == '0'; sp++)
+					;
 			size = nv_size(np);
 #if SHOPT_MULTIBYTE
 			if(size)
