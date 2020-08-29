@@ -71,7 +71,7 @@ typedef struct  _mac_
 	char		*ifsp;		/* pointer to IFS value */
 	int		fields;		/* number of fields */
 	short		quoted;		/* set when word has quotes */
-	unsigned char	ifs;		/* first char of IFS */
+	unsigned char	ifs;		/* first byte of IFS */
 	char		atmode;		/* when processing $@ */
 	char		quote;		/* set within double quoted contexts */
 	char		lit;		/* set within single quotes */
@@ -1818,7 +1818,7 @@ retry1:
 retry2:
 	if(v && (!nulflg || *v ) && c!='+')
 	{
-		register int d = (mode=='@'?' ':mp->ifs);
+		int ofs_size = 0;
 		regoff_t match[2*(MATCH_MAX+1)];
 		int nmatch, nmatch_prev, vsize_last;
 		char *vlast;
@@ -1955,36 +1955,30 @@ retry2:
 				mp->atmode = mode=='@';
 				mp->pattern = oldpat;
 			}
-			else if(d)
+			else
 			{
-#if SHOPT_MULTIBYTE
 				Sfio_t *sfio_ptr = (mp->sp) ? mp->sp : stkp;
-
 				/*
-				 * We know from above that if we are not performing @-expansion
-				 * then we assigned `d` the value of `mp->ifs`, here we check
-				 * whether or not we have a valid string of IFS characters to
-				 * write as it is possible for `d` to be set to `mp->ifs` and
-				 * yet `mp->ifsp` to be NULL.
+				 * We're joining fields into one; write the output field separator, which may be multi-byte.
+				 * For "$@" it's a space, for "$*" it's the 1st char of IFS (space if unset, none if empty).
 				 */
-				if(mode != '@' && mp->ifsp)
+				if(mode == '@' || !mp->ifsp)		/* if expanding $@ or if IFS is unset... */
+					sfputc(sfio_ptr, ' ');
+				else if(mp->ifs)			/* else if IFS is non-empty... */
 				{
-					/*
-					 * Handle multi-byte characters being used for the internal
-					 * field separator (IFS).
-					 */
-					int i;
-					for(i = 0; i < mbsize(mp->ifsp); i++)
-						sfputc(sfio_ptr,mp->ifsp[i]);
+					if(!mbwide() || mp->ifs < 128)	/* if single-byte char... */
+						sfputc(sfio_ptr, mp->ifs);
+					else
+					{
+						if(!ofs_size)		/* only calculate this once per expansion */
+						{
+							ofs_size = mbsize(mp->ifsp);
+							if(ofs_size<0)	/* invalid mb char: fall back to using first byte */
+								ofs_size = 1;
+						}
+						sfwrite(sfio_ptr, mp->ifsp, ofs_size);
+					}
 				}
-				else
-					sfputc(sfio_ptr,d);
-#else
-				if(mp->sp)
-					sfputc(mp->sp,d);
-				else
-					sfputc(stkp,d);
-#endif
 			}
 		}
 		if(arrmax)

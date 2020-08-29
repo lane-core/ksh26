@@ -20,7 +20,7 @@
 function err_exit
 {
 	print -u2 -n "\t"
-	print -u2 -r ${Command}[$1]: "${@:2}"
+	print -u2 -r "${Command}[$1]: ${@:2}"
 	let Errors+=1
 }
 alias err_exit='err_exit $LINENO'
@@ -167,10 +167,17 @@ COUNT=0
 if	(( COUNT != 1 || ACCESS!=2 ))
 then	err_exit " set discipline failure COUNT=$COUNT ACCESS=$ACCESS"
 fi
+
+save_LANG=$LANG
 LANG=C > /dev/null 2>&1
 if	[[ $LANG != C ]]
 then	err_exit "C locale not working"
 fi
+LANG=$save_LANG
+if	[[ $LANG != "$save_LANG" ]]
+then	err_exit "$save_LANG locale not working"
+fi
+
 unset RANDOM
 unset -n foo
 foo=junk
@@ -205,8 +212,7 @@ do	false
 	if	[[ $i != [@*] && ${foo#?} != "$bar"  ]]
 	then	err_exit "\${$i#?} not correct"
 	fi
-	command eval foo='$'{$i} bar='$'{#$i} || err_exit "\${#$i} gives synta
-x error"
+	command eval foo='$'{$i} bar='$'{#$i} || err_exit "\${#$i} gives syntax error"
 	if	[[ $i != @([@*]) && ${#foo} != "$bar" ]]
 	then	err_exit "\${#$i} not correct"
 	fi
@@ -436,16 +442,18 @@ case $(unset IFS; set -- $v; print $#) in
 esac
 
 # Multi-byte characters should work with $IFS
-(
-	LC_ALL=C.UTF-8  # The multi-byte tests are pointless without UTF-8
-
+if [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]]	# The multi-byte tests are pointless without UTF-8
+then
 	# Test the following characters:
 	# Lowercase accented e  (two bytes)
 	# Roman sestertius sign (four bytes)
 	for delim in é 𐆘; do
-		IFS="$delim"
+		IFS=$delim
 		set : :
-		[ "$*" == ":$delim:" ] || err_exit "IFS failed with multi-byte character $delim (expected :$delim:, got $*)"
+		expect=:$delim:
+		actual=$*
+		[[ $actual == "$expect" ]] || err_exit "IFS failed with multi-byte character $delim" \
+			"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 		read -r first second third <<< "one${delim}two${delim}three"
 		[[ $first == one ]] || err_exit "IFS failed with multi-byte character $delim (expected one, got $first)"
@@ -453,9 +461,11 @@ esac
 		[[ $third == three ]] || err_exit "IFS failed with multi-byte character $delim (expected three, got $three)"
 
 		# Ensure subshells don't get corrupted when IFS becomes a multi-byte character
-		expected_output="$(printf ":$delim:\\ntrap -- 'echo end' EXIT\\nend")"
-		output="$(LANG=C.UTF-8; IFS=$delim; set : :; echo "$*"; trap "echo end" EXIT; trap)"
-		[[ $output == $expected_output ]] || err_exit "IFS in subshell failed with multi-byte character $delim (expected $expected_output, got $output)"
+		IFS=$' \t\n'
+		expect=$(printf ":$delim:\\ntrap -- 'echo end' EXIT\\nend")
+		actual=$(set : :; IFS=$delim; echo "$*"; trap "echo end" EXIT; trap)
+		[[ $actual == "$expect" ]] || err_exit "IFS in subshell failed with multi-byte character $delim" \
+			"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 	done
 
 	# Multibyte characters with the same initial byte shouldn't be parsed as the same
@@ -466,7 +476,16 @@ esac
 	set -- $v
 	v="${#},${1-},${2-},${3-}"
 	[[ $v == '1,abc§def ghi§jkl,,' ]] || err_exit "IFS treats £ (C2 A3) and § (C2 A7) as the same character"
-)
+fi
+
+# Ensure fallback to first byte if IFS doesn't start with a valid multibyte character
+# (however, this test should pass regardless of the locale)
+IFS=$'\x[A0]a'
+set : :
+expect=$':\x[A0]:'
+actual=$*
+[[ $actual == "$expect" ]] || err_exit "IFS failed with invalid multi-byte character" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ^^^ end: IFS tests ^^^
 # restore default split:
