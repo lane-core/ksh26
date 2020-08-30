@@ -309,6 +309,7 @@ struct shared
 #define	SH_FCOMPLETE	17	/* set for filename completion */
 #define	SH_PREINIT	18	/* set with SH_INIT before parsing options */
 #define SH_COMPLETE	19	/* set for command completion */
+#define SH_INTESTCMD	20	/* set while test/[ command is being run */
 
 #define SH_BASH			41
 #define SH_BRACEEXPAND		42
@@ -507,7 +508,6 @@ extern const char	e_dict[];
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */
 
-extern int		sh_in_test_builtin;
 extern int		_ERROR_exit_b_test(int);
 
 #endif

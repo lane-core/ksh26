@@ -89,9 +89,9 @@ static int e3(struct test*);
  */
 int _ERROR_exit_b_test(int exitval)
 {
-	if(sh_in_test_builtin)
+	if(sh_isstate(SH_INTESTCMD))
 	{
-		sh_in_test_builtin = 0;
+		sh_offstate(SH_INTESTCMD);
 		if(exitval < 2)
 			exitval = 2;
 	}
@@ -133,7 +133,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	register int not;
 	int exitval;
 
-	sh_in_test_builtin = 1;
+	sh_onstate(SH_INTESTCMD);
 	tdata.sh = context->shp;
 	tdata.av = argv;
 	tdata.ap = 1;
@@ -226,7 +226,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	tdata.ac = argc;
 	exitval = (!expr(&tdata,0));
 done:
-	sh_in_test_builtin = 0;
+	sh_offstate(SH_INTESTCMD);
 	return(exitval);
 }
 

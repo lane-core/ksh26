@@ -46,4 +46,3 @@ char *sh_lexstates[ST_NONE] = {0};
 struct jobs	job = {0};
 int32_t		sh_mailchk = 600;
 
-int		sh_in_test_builtin = 0;
