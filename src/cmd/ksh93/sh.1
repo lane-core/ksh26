@@ -5494,7 +5494,7 @@ The command only expands parameters.
 .br
 .ne 2
 .TP
-\(dg \f3\|. \f2name\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
+\(dg \f3\|.\fP \f2name\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 If
 .I name\^
 is a function defined with the
@@ -5524,6 +5524,10 @@ the
 command and the original positional parameters are restored upon completion.
 Otherwise the positional parameters are unchanged.
 The exit status is the exit status of the last command executed.
+.TP
+\f3[\fP \f2expression\fP \f3]\fP
+The \f3[\fP command is the same as \f3test\fP, with the exception that an
+additional closing \f3]\fP argument is required. See \f3test\fP below.
 .TP
 \f3alias\fP \*(OK \f3\-ptx\fP \*(CK  \*(OK \f2name\fP\*(OK \f3=\fP\f2value\^\fP  \*(CK \*(CK .\|.\|.
 .B alias\^
@@ -7197,6 +7201,24 @@ or child shell session until it receives
 in the parent shell). Equivalent to
 .BR kill\ -s\ STOP\ "$$" ,
 except that it accepts no operands and refuses to suspend a login shell.
+.TP
+\f3test\fP \f2expression\fP
+The \f3test\fP and \f3[\fP commands execute conditional expressions similar
+to those specified for the \f3[[\fP compound command under
+.I Conditional Expressions
+above, but with several important differences. The \f3=\fP, \f3==\fP and
+\f3!=\fP operators test for string (in)equality without pattern matching;
+the \f3==\fP variant is nonstandard and should not be used. The \f3=\(ap\fP,
+\f3<\fP, \f3>\fP, \f3&&\fP and \f3||\fP operators are not available. Most
+importantly, as \f3test\fP and \f3[\fP are simple regular commands, field
+splitting and file name generation \f2are\fP performed on all their
+arguments and all aspects of regular shell grammar (such as redirection)
+remain active. This is usually harmful, so care must be taken to quote
+arguments and expansions to avoid this. There are also certain inherent
+grammatical ambiguities in the expressions. To avoid the many pitfalls
+arising from these issues, the \f3[[\fP compound command should be used
+instead. The primary purpose of the \f3test\fP and \f3[\fP commands is
+compatibility with other shells that lack \f3[[\fP.
 .TP
 \f3times\fP
 Displays the accumulated user and system CPU times, one line with the times
