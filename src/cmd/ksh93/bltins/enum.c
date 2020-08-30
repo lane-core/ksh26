@@ -70,11 +70,6 @@ USAGE_LICENSE
         "with the \bfunction\b reserved word, the specified variables "
         "will have function static scope.  Otherwise, the variable is "
         "unset prior to processing the assignment list.]"
-#if 0
-"[p?Causes the output to be in a form of \b\f?\f\b commands that can be "
-        "used as input to the shell to recreate the current type of "
-        "these variables.]"
-#endif
 "\n"
 "\n[name[=value]...]\n"
 "\n"
@@ -103,11 +98,7 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	np = *(Namval_t**)(fp+1);
 	ep = (struct Enum*)np->nvfun;
 	if(strcmp(str,"default")==0)
-#if 0
-		sfprintf(out,"\b%s\b%c",ep->values[0],0);
-#else
 		sfprintf(out,"\b%s\b",ep->values[0]);
-#endif
 	else if(strcmp(str,"case")==0)
 	{
 		if(ep->iflag)

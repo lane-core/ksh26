@@ -1052,9 +1052,6 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 #if SHOPT_FIXEDARRAY
 						Namarr_t *ap = nv_arrayptr(np);
 #endif /* SHOPT_FIXEDARRAY */
-#if 0
-						int scan = ap?(ap->nelem&ARRAY_SCAN):0;
-#endif
 						n = mode|nv_isarray(np);
 						if(!mode && (flags&NV_ARRAY) && ((c=sp[1])=='*' || c=='@') && sp[2]==']')
 						{
@@ -1078,10 +1075,6 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 							flags &= ~NV_ARRAY;
 							
 #endif /* SHOPT_FIXEDARRAY */
-#if 0
-						if(scan)
-							nv_putsub(np,NIL(char*),ARRAY_SCAN);
-#endif
 					}
 					else
 						cp = sp;
@@ -1307,13 +1300,6 @@ void nv_delete(Namval_t* np, Dt_t *root, int flags)
 				free((void*)np);
 			}
 		}
-#if 0
-		else
-		{
-			sfprintf(sfstderr,"%s not deleted\n",nv_name(np));
-			sfsync(sfstderr);
-		}
-#endif
 	}
 }
 
@@ -2644,7 +2630,6 @@ Namval_t *sh_scoped(Shell_t *shp, register Namval_t *np)
 	return(dtsearch(shp->var_tree,np));
 }
 
-#if 1
 /*
  * return space separated list of names of variables in given tree
  */
@@ -2674,7 +2659,6 @@ static char *tableval(Dt_t *root)
 		dtview(root,base);
 	return((char*)out->_data);
 }
-#endif
 
 #if SHOPT_OPTIMIZE
 struct optimize
@@ -3164,12 +3148,7 @@ char *sh_getenv(const char *name)
 	Shell_t *shp = sh_getinterp();
 	register Namval_t *np;
 	if(!shp->var_tree)
-	{
-#if 0
-		if(name[0] == 'P' && name[1] == 'A' && name[2] == 'T' && name[3] == 'H' && name[4] == 0 || name[0] == 'L' && ((name[1] == 'C' || name[1] == 'D') && name[2] == '_' || name[1] == 'A' && name[1] == 'N') || name[0] == 'V' && name[1] == 'P' && name[2] == 'A' && name[3] == 'T' && name[4] == 'H' && name[5] == 0 || name[0] == '_' && name[1] == 'R' && name[2] == 'L' && name[3] == 'D' || name[0] == '_' && name[1] == 'A' && name[2] == 'S' && name[3] == 'T' && name[4] == '_')
-#endif
-			return(oldgetenv(name));
-	}
+		return(oldgetenv(name));
 	else if((np = nv_search(name,shp->var_tree,0)) && nv_isattr(np,NV_EXPORT))
 		return(nv_getval(np));
 	return(0);
@@ -3655,11 +3634,7 @@ char *nv_name(register Namval_t *np)
 		return(sfstruse(shp->strbuf));
 	}
 	if(nv_istable(np))
-#if 1
 		shp->last_table = nv_parent(np);
-#else
-		shp->last_table = nv_create(np,0, NV_LAST,(Namfun_t*)0);
-#endif
 	else if(!nv_isref(np))
 	{
 		for(fp= np->nvfun ; fp; fp=fp->next)

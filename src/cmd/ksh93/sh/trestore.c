@@ -194,24 +194,7 @@ static struct argnod *r_arg(Shell_t *shp)
 		ap->argval[l] = 0;
 		ap->argchn.cp = 0;
 		ap->argflag = sfgetc(infile);
-#if 0
-		if((ap->argflag&ARG_MESSAGE) && *ap->argval)
-		{
-			/* replace international messages */
-			sh_endword(shp,1);
-			ap->argflag &= ~ARG_MESSAGE;
-			if(!(ap->argflag&(ARG_MAC|ARG_EXP)))
-				ap = sh_endword(shp,0);
-			else
-			{
-				ap = (struct argnod*)stkfreeze(stkp,0);
-				if(ap->argflag==0)
-					ap->argflag = ARG_RAW;
-			}
-		}
-		else
-#endif
-			ap = (struct argnod*)stkfreeze(stkp,0);
+		ap = (struct argnod*)stkfreeze(stkp,0);
 		if(*ap->argval==0 && (ap->argflag&ARG_EXP))
 			ap->argchn.ap = (struct argnod*)r_tree(shp);
 		else if(*ap->argval==0 && (ap->argflag&~(ARG_APPEND|ARG_MESSAGE|ARG_QUOTED))==0)

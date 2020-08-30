@@ -159,7 +159,6 @@ void *nv_diropen(Namval_t *np,const char *name)
 	dp->data[len] = 0;
 	dp->len = len;
 	dp->root = sh.last_root?sh.last_root:sh.var_tree;
-#if 1
 	while(1)
 	{
 		dp->table = sh.last_table;
@@ -176,11 +175,6 @@ void *nv_diropen(Namval_t *np,const char *name)
 		dp->root = nv_dict(np);
 		name = next+1;
 	}
-#else
-	dp->table = sh.last_table;
-	sh.last_table = 0;
-	last = dp->data;
-#endif
 	if(*name)
 	{
 		fake.nvname = (char*)name;
@@ -282,28 +276,14 @@ char *nv_dirnext(void *dir)
 	{
 		while(np=dp->hp)
 		{
-#if 0
-			char *sptr;
-#endif
 			if(nv_isarray(np))
 				nv_putsub(np,(char*)0, ARRAY_UNDEF);
 			dp->hp = nextnode(dp);
 			if(nv_isnull(np) && !nv_isarray(np) && !nv_isattr(np,NV_INTEGER))
 				continue;
 			last_table = sh.last_table;
-#if 0
-			if(dp->table && dp->otable && !nv_isattr(dp->table,NV_MINIMAL))
-			{
-				sptr = dp->table->nvenv;
-				dp->table->nvenv = (char*)dp->otable;
-			}
-#endif
 			sh.last_table = dp->table;
 			cp = nv_name(np);
-#if 0
-			if(dp->table && dp->otable && !nv_isattr(dp->table,NV_MINIMAL))
-				dp->table->nvenv = sptr;
-#endif
 			if(dp->nextnode && !dp->hp && (nq = (Namval_t*)dp->table))
 			{
 				Namarr_t  *ap = nv_arrayptr(nq);
@@ -342,11 +322,6 @@ char *nv_dirnext(void *dir)
 					memcpy(dp->data,cp,len+1);
 					if(nfp && np->nvfun)
 					{
-#if 0
-				                Namarr_t *ap = nv_arrayptr(np);
-				                if(ap && (ap->nelem&ARRAY_UNDEF))
-				                        nv_putsub(np,(char*)0,ARRAY_SCAN);
-#endif
 						dp->nextnode = nfp->disc->nextf;
 						dp->otable = dp->table;
 						dp->table = np;

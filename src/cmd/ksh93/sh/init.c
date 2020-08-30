@@ -348,10 +348,6 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 			if(mp && (val=nv_getval(mp)))
 				nv_putval(mp,val,NV_RDONLY);
 		}
-#if 0
-sfprintf(sfstderr,"%d: name=%s val=%s\n",getpid(),name,val);
-path_dump((Pathcomp_t*)shp->pathlist);
-#endif
 	}
 }
 

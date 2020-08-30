@@ -538,11 +538,7 @@ static char *fmthtml(const char *string, int flags)
 	return(stakptr(offset));
 }
 
-#if 1
 static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
-#else
-static void *fmtbase64(char *string, ssize_t *sz, int alt)
-#endif
 {
 	char			*cp;
 	Sfdouble_t		d;
@@ -595,16 +591,9 @@ static void *fmtbase64(char *string, ssize_t *sz, int alt)
 				number.i = (int)d; 
 			}
 		}
-#if 1
 		return(sfwrite(iop, (void*)&number, size));
-#else
-		if(sz)
-			*sz = size;
-		return((void*)&number);
-#endif
 	}
 	if(nv_isattr(np,NV_BINARY))
-#if 1
 	{
 		Namfun_t *fp;
 		for(fp=np->nvfun; fp;fp=fp->next)
@@ -651,17 +640,6 @@ static void *fmtbase64(char *string, ssize_t *sz, int alt)
 		size = strlen(cp);
 		return(sfwrite(iop,cp,size));
 	}
-#else
-		nv_onattr(np,NV_RAW);
-	cp = nv_getval(np);
-	if(nv_isattr(np,NV_BINARY))
-		nv_offattr(np,NV_RAW);
-	if((size = nv_size(np))==0)
-		size = strlen(cp);
-	if(sz)
-		*sz = size;
-	return((void*)cp);
-#endif
 }
 
 static int varname(const char *str, int n)

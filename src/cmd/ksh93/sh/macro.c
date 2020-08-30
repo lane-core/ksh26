@@ -812,9 +812,6 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 			if(n==S_COLON && mp->assign==2 && *cp=='~' && endch==0 && !mp->quote &&!mp->lit)
 				tilde = stktell(stkp)+(c+1);
 			else if(n==S_SLASH && mp->pattern==2)
-#if 0
-				goto pattern;
-#else
 			{
 				if(mp->quote || mp->lit)
 					goto pattern;
@@ -827,7 +824,6 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				sfwrite(stkp,first,cp-first);
 				first=cp;
 			}
-#endif
 			break;
 		    case S_DOT:
 			if(*cp=='.' && mp->subcopy==1)

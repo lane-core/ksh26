@@ -227,10 +227,8 @@ static int waitnotify(int fd, long timeout, int rw)
 			if(service_list[file_list[i]])
 				*pstream++ = sh_fd2sfio(file_list[i]);
 		}
-#if 1
 		for(i=0; i < pstream-poll_list; i++)
 			sfset(poll_list[i],SF_WRITE,0);
-#endif
 		nready = ready = 0;
 		errno = 0;
 #ifdef DEBUG
@@ -246,10 +244,8 @@ static int waitnotify(int fd, long timeout, int rw)
 			sfprintf(sfstderr," %d",sffileno(poll_list[i]));
 		sfputc(sfstderr,'\n');
 #endif
-#if 1
 		for(i=0; i < pstream-poll_list; i++)
 			sfset(poll_list[i],SF_WRITE,1);
-#endif
 		if(nready<=0)
 			return(errno? -1: 0);
 		if(special && poll_list[0]==special)

@@ -1143,10 +1143,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						flgs |= NV_IDENT;
 					else
 						flgs |= NV_VARNAME;
-#if 0
-					if(OPTIMIZE)
-						flgs |= NV_TAGGED;
-#endif
 					nv_setlist(argp,flgs,tp);
 					if(np==shp->typeinit)
 						shp->typeinit = 0;
@@ -1414,10 +1410,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					shp->redir0 = 0;
 					if(jmpval)
 						siglongjmp(*shp->jmplist,jmpval);
-#if 0
-					if(flgs&NV_STATIC)
-						((Shnode_t*)t)->com.comset = 0;
-#endif
 					if(shp->exitval >=0)
 						goto setexit;
 					np = 0;
@@ -3060,9 +3052,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		shp->glob_options =  shp->options;
 	else
 		shp->options = shp->glob_options;
-#if 0
-	shp->st.lineno = error_info.line;
-#endif
 	*prevscope = shp->st;
 	sh_offoption(SH_ERREXIT);
 	shp->st.prevst = prevscope;
@@ -3240,11 +3229,7 @@ static void sh_funct(Shell_t *shp,Namval_t *np,int argn, char *argv[],struct arg
 	SH_LEVELNOD->nvalue.s = lp->maxlevel;
 	shp->last_root = nv_dict(DOTSHNOD);
 	shp->comsub = comsub;
-#if 0
-	nv_putval(SH_FUNNAMENOD,shp->st.funname,NV_NOFREE);
-#else
 	nv_putval(SH_FUNNAMENOD,fname,NV_NOFREE);
-#endif
 	nv_putval(SH_PATHNAMENOD,shp->st.filename,NV_NOFREE);
 	shp->pipepid = pipepid;
 	np->nvalue.rp->running  -= 2;

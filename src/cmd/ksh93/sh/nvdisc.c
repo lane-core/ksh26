@@ -1415,16 +1415,8 @@ Dt_t *nv_dict(Namval_t* np)
 	if(tp)
 		return(tp->dict);
 	np = shp->last_table;
-	while(np)
-	{
-		if(tp = (struct table*)nv_hasdisc(np,&table_disc))
-			return(tp->dict);
-#if 0
-		np = nv_create(np,(const char*)0, NV_FIRST, (Namfun_t*)0);
-#else
-		break;
-#endif
-	}
+	if(np && (tp = (struct table*)nv_hasdisc(np,&table_disc)))
+		return(tp->dict);
 	return(shp->var_tree);
 }
 

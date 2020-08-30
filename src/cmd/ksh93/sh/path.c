@@ -355,19 +355,6 @@ static char *path_lib(Shell_t *shp,Pathcomp_t *pp, char *path)
 	return(0);
 }
 
-#if 0
-void path_dump(register Pathcomp_t *pp)
-{
-	sfprintf(sfstderr,"dump\n");
-	while(pp)
-	{
-		sfprintf(sfstderr,"pp=%x dev=%d ino=%d len=%d flags=%o name=%.*s\n",
-			pp,pp->dev,pp->ino,pp->len,pp->flags,pp->len,pp->name);
-		pp = pp->next;
-	}
-}
-#endif
-
 /*
  * check for duplicate directories on PATH
  */
@@ -1705,9 +1692,6 @@ void path_newdir(Shell_t *shp,Pathcomp_t *first)
 			pp->next = next;
 		}
 	}
-#if 0
-	path_dump(first);
-#endif
 }
 
 Pathcomp_t *path_unsetfpath(Shell_t *shp)

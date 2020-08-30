@@ -1784,12 +1784,8 @@ USAGE_LICENSE
 "[+?\btypeset\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.]"
-#if 1
 "[a]:?[type?Indexed array.  This is the default. If \b[\b\atype\a\b]]\b is "
     "specified, each subscript is interpreted as a value of type \atype\a.]"
-#else
-"[a?Indexed array. this is the default.]"
-#endif
 "[b?Each \aname\a may contain binary data.  Its value is the mime "
 	"base64 encoding of the data. It can be used with \b-Z\b, "
 	"to specify fixed sized fields.]"

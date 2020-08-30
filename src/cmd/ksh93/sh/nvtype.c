@@ -99,16 +99,6 @@ struct Namtype
 	unsigned short	nref;
 };
 
-#if 0
-struct type
-{
-	Namtype_t	hdr;
-	unsigned short	ndisc;
-	unsigned short	current;
-	unsigned short	nref;
-};
-#endif
-
 typedef struct
 {
 	char		_cSfdouble_t;
@@ -148,9 +138,6 @@ static const Namdisc_t type_disc =
 	0,
 	next_type,
 	0,
-#if 0
-	read_type
-#endif
 };
 
 size_t nv_datasize(Namval_t *np, size_t *offset)
@@ -329,13 +316,8 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 			if(fp)
 				nv_disc(np, fp, NV_LAST);
 		}
-#if 0
-		if(nq->nvalue.cp >=  pp->data && nq->nvalue.cp < (char*)pp +pp->fun.dsize)
-			nq->nvalue.cp = dp->data + (nq->nvalue.cp-pp->data);
-#else
 		if(data >=  pp->data && data < (char*)pp +pp->fun.dsize)
 			nq->nvalue.cp = dp->data + (data-pp->data);
-#endif
 		else if(!nq->nvfun && pp->childfun.ttype!=pp->childfun.ptype)
 		{
 			Namval_t *nr = nv_namptr( pp->childfun.ttype->nodes,i);
@@ -390,17 +372,10 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 		memset((void*)nrp,0,pp->nref*sizeof(struct Namref));
 	}
 	memcpy((void*)dp,(void*)pp,size);
-#if 0
-	dp->parent = nv_lastdict();
-#else
 	dp->parent = mp;
-#endif
 	dp->fun.nofree = (flags&NV_RDONLY?1:0);
 	dp->np = mp;
 	dp->childfun.ptype = dp;
-#if 0
-	dp->childfun.ttype = (Namtype_t*)nv_hasdisc(dp->fun.type,&type_disc);
-#endif
 	dp->nodes = (char*)(dp+1);
 	dp->data = (char*)dp + (pp->data - (char*)pp);
 	for(i=dp->numnodes; --i >= 0; )
@@ -1097,7 +1072,6 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				nv_disc(nq, &pp->childfun.fun, NV_LAST);
 			if(tp = (Namtype_t*)nv_hasdisc(nq, &type_disc))
 				tp->strsize = -tp->strsize;
-else sfprintf(sfstderr,"tp==NULL\n");
 			for(r=0; r < dp->numnodes; r++)
 			{
 				Namval_t *nr = nv_namptr(dp->nodes,r);
@@ -1182,11 +1156,7 @@ else sfprintf(sfstderr,"tp==NULL\n");
 			if(!nq->nvalue.cp && nq->nvfun== &pp->childfun.fun)
 				nq->nvalue.cp = Empty;
 			np->nvalue.cp = 0;
-#if 0
-			offset += dsize;
-#else
 			offset += (dsize?dsize:4);
-#endif
 		}
 		k++;
 	skip:
@@ -1426,10 +1396,6 @@ Fields_t foo[]=
 	FIELD(time,a),
 	FIELD(time,m),
 	FIELD(time,c),
-#if 0
-	FIELD(blksize,),
-	FIELD(blocks,),
-#endif
 	0
 }; 
 

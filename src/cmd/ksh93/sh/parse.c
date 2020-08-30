@@ -1572,10 +1572,6 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			writedefs(lexp,argp,line,0,NIL(struct argnod*));
 		else if(argp && strcmp(argp->argval,"read")==0)
 			writedefs(lexp,argp,line,0,NIL(struct argnod*));
-#if 0
-		else if(argp && strcmp(argp->argval,"unset")==0)
-			writedefs(lexp,argp,line,'u',NIL(struct argnod*));
-#endif
 		else if(argp && *argp->argval=='.' && argp->argval[1]==0 && (argp=argp->argnxt.ap))
 		{
 			r = kiaentity(lexp,sh_argstr(argp),-1,'p',0,0,lexp->script,'d',0,"");

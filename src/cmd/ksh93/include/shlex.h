@@ -133,17 +133,6 @@ typedef struct  _shlex_
 
 #define SH_COMPASSIGN	010	/* allow compound assignments only */
 
-#if 0
-typedef struct  _shlex_
-{
-	struct shlex_t		_shlex;
-#ifdef  _SHLEX_PRIVATE
-	_SHLEX_PRIVATE
-#endif
-} Lex_t;
-
-#define	shlex			(((Lex_t*)(sh.lex_context))->_shlex)
-#endif
 extern const char		e_unexpected[];
 extern const char		e_unmatched[];
 extern const char		e_endoffile[];

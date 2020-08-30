@@ -1207,22 +1207,6 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 		}
 		ap->header.nelem &= ~ARRAY_UNDEF;
 		ap->header.nelem |= (mode&(ARRAY_SCAN|ARRAY_NOCHILD|ARRAY_UNDEF|ARRAY_NOSCOPE));
-#if 0
-		if(array_isbit(ap->bits,oldsize,ARRAY_CHILD))
-			mp = ap->val[oldsize].np;
-		if(size != oldsize && mp->nvalue.cp)
-		{
-			Namfun_t *nfp;
-			for(nfp=np->nvfun; nfp; nfp=nfp->next)
-			{
-				if(nfp->disc && nfp->disc->readf)
-				{
-					(*nfp->disc->readf)(mp,(Sfio_t*)0,0,nfp);
-					break;
-				}
-			}
-		}
-#endif
 		ap->cur = size;
 		if((mode&ARRAY_SCAN) && (ap->cur--,!nv_nextsub(np)))
 			np = 0;
