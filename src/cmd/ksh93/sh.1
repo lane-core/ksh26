@@ -7219,6 +7219,15 @@ grammatical ambiguities in the expressions. To avoid the many pitfalls
 arising from these issues, the \f3[[\fP compound command should be used
 instead. The primary purpose of the \f3test\fP and \f3[\fP commands is
 compatibility with other shells that lack \f3[[\fP.
+.RS
+.PP
+The \f3test\fP/\f3[\fP command does not parse options except if there are
+two arguments and the second is \f3--\fP. To access the inline documentation
+with an option such as \f3--man\fP, you need one of the forms
+.B test\ --man\ --
+or
+.BR [\ --man\ --\ ] .
+.RE
 .TP
 \f3times\fP
 Displays the accumulated user and system CPU times, one line with the times
