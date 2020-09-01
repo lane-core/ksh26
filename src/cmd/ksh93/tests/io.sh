@@ -616,5 +616,13 @@ then	set -o posix
 	[[ $(< aha2.txt) == ok2 ]] || err_exit '&> does not redirect stderr'
 fi
 
+# In POSIX mode, file descriptors > 2 should remain open when invoking another proram
+if	[[ -o ?posix ]]
+then	(set -o posix; exec 7>ok.txt; "$SHELL" -c 'print ok >&7' 2>/dev/null)
+	[[ $(<ok.txt) == ok ]] || err_exit 'File descriptors > 2 not inherited in POSIX mode'
+fi
+(exec 7>bad.txt; "$SHELL" -c 'print bad >&7' 2>/dev/null)
+[[ $(<bad.txt) == '' ]] || err_exit 'File descriptors > 2 inherited without POSIX mode' "(got $actual)"
+
 # ======
 exit $((Errors<125?Errors:125))

@@ -1094,7 +1094,7 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 	Namval_t *np=0;
 	int isstring = shp->subshell?(sfset(sfstdout,0,0)&SF_STRING):0;
 
-	if(flag==2)
+	if(flag==2 && !sh_isoption(SH_POSIX))
 		clexec = 1;
 	if(iop)
 		traceon = sh_trace(shp,NIL(char**),0);

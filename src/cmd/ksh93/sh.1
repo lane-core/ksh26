@@ -6817,7 +6817,8 @@ command.
 Any file descriptor numbers greater than
 .B 2
 that are opened with this mechanism are closed when invoking another program,
-unless explicitly redirected to themselves as part of that invocation.
+unless they are explicitly redirected to themselves as part of that invocation
+(e.g. \fb4>&4\fR) or the \fBposix\fR shell option is active.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
 Causes a shell
@@ -7038,6 +7039,7 @@ to fail or zero if no command has failed.
 .B posix
 Enable POSIX standard compatibility mode. This option
 is on by default if ksh is invoked as \fBsh\fR. It
+causes file descriptors > 2 to be left open when invoking another program,
 enables octal numbers in \fBlet\fR shell arithmetic (see \fBletoctal\fR), and
 disables the \fB&>\fR redirection shorthand.
 .TP 8

@@ -16,6 +16,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   * disables the &> redirection shorthand
   * causes the 'let' arithmetic command to recognise octal numbers by
     leading zeros regardless of the setting of the 'letoctal' option
+  * causes file descriptors > 2 to be left open when invoking another program
 
 2020-08-19:
 
