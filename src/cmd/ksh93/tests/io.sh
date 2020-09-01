@@ -598,4 +598,23 @@ else	err_exit "mkfifo failed; cannot test reading from FIFO"
 fi
 
 # ======
+# "&>file" redirection operator, shorthand for ">file 2>&1" (new as of 93u+m; inherited from old SHOPT_BASH)
+if	[[ -o ?posix ]]
+then	set -o posix
+	# This should print in a background job, then create an empty file, as '>aha1.txt' is a separate command.
+	eval '	print -u1 bad1 &>aha1.txt
+		print -u2 bad2 &>aha2.txt
+	' >/dev/null 2>&1
+	[[ -s aha1.txt ]] && err_exit "&> not deactivated in POSIX mode (stdout; got '$(cat aha1.txt)')"
+	[[ -s aha2.txt ]] && err_exit "&> not deactivated in POSIX mode (stderr; got '$(cat aha2.txt)')"
+	set +o posix
+	# This should write the text to the file.
+	eval '	print -u1 ok1 &>aha1.txt
+		print -u2 ok2 &>aha2.txt
+	' >/dev/null 2>&1
+	[[ $(< aha1.txt) == ok1 ]] || err_exit '&> does not redirect stdout'
+	[[ $(< aha2.txt) == ok2 ]] || err_exit '&> does not redirect stderr'
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

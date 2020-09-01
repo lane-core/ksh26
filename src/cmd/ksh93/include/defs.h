@@ -311,7 +311,6 @@ struct shared
 #define SH_COMPLETE	19	/* set for command completion */
 #define SH_INTESTCMD	20	/* set while test/[ command is being run */
 
-#define SH_BASH			41
 #define SH_BRACEEXPAND		42
 #define SH_POSIX		46
 #define SH_MULTILINE    	47
@@ -319,9 +318,7 @@ struct shared
 #define SH_NOPROFILE		78
 #define SH_NOUSRPROFILE		79
 #define SH_LOGIN_SHELL		67
-#define SH_COMMANDLINE		0x100
-#define SH_BASHEXTRA		0x200
-#define SH_BASHOPT		0x400
+#define SH_COMMANDLINE		0x100	/* flag for invocation-only options ('set -o' cannot change them) */
 
 #define SH_ID			"ksh"	/* ksh id */
 #define SH_STD			"sh"	/* standard sh id */
@@ -330,43 +327,10 @@ struct shared
 
 #define SH_TYPE_SH		001
 #define SH_TYPE_KSH		002
-#define SH_TYPE_BASH		004
+#define SH_TYPE_POSIX		004
 #define SH_TYPE_LOGIN		010
 #define SH_TYPE_PROFILE		020
 #define SH_TYPE_RESTRICTED	040
-
-#if SHOPT_BASH
-#   ifndef SHOPT_HISTEXPAND
-#	define SHOPT_HISTEXPAND	1
-#   endif
-/*
- *  define for all the bash options
- */
-#   define SH_CDABLE_VARS	51
-#   define SH_CDSPELL		52
-#   define SH_CHECKHASH		53
-#   define SH_CHECKWINSIZE	54
-#   define SH_CMDHIST		55
-#   define SH_DOTGLOB		56
-#   define SH_EXECFAIL		57
-#   define SH_EXPAND_ALIASES	58
-#   define SH_EXTGLOB		59
-#   define SH_HOSTCOMPLETE	63
-#   define SH_HUPONEXIT		64
-#   define SH_INTERACTIVE_COMM	65
-#   define SH_LITHIST		66
-#   define SH_MAILWARN		68
-#   define SH_NOEMPTYCMDCOMPL	69
-#   define SH_NOCASEGLOB	70
-#   define SH_NULLGLOB		71
-#   define SH_PHYSICAL		45
-#   define SH_PROGCOMP		72
-#   define SH_PROMPTVARS	73
-#   define SH_RESTRICTED2	74
-#   define SH_SHIFT_VERBOSE	75
-#   define SH_SOURCEPATH	76
-#   define SH_XPG_ECHO		77
-#endif
 
 #if SHOPT_HISTEXPAND
 #   define SH_HISTAPPEND	60
@@ -483,7 +447,6 @@ extern const char	e_dict[];
 #define PRINT_VERBOSE	0x01	/* option on|off list		*/
 #define PRINT_ALL	0x02	/* list unset options too	*/
 #define PRINT_NO_HEADER	0x04	/* omit listing header		*/
-#define PRINT_SHOPT	0x08	/* shopt -s|-u			*/
 #define PRINT_TABLE	0x10	/* table of all options		*/
 
 #ifdef SHOPT_STATS

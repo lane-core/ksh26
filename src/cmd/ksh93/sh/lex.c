@@ -576,13 +576,9 @@ int sh_lex(Lex_t* lp)
 						return(lp->token=c);
 					else if(c=='&')
 					{
-						if(!sh_isoption(SH_POSIX) && n=='>' && (sh_isoption(SH_BASH) || sh_isstate(SH_PROFILE)))
+						if(n=='>' && !sh_isoption(SH_POSIX))
 						{
-							if(!sh_isoption(SH_BASH) && !lp->nonstandard)
-							{
-								lp->nonstandard = 1;
-								errormsg(SH_DICT,ERROR_warn(0),e_lexnonstandard,shp->inlineno);
-							}
+							/* bash-style "&>file" shorthand for ">file 2>&1" */
 							lp->digits = -1;
 							c = '>';
 						}

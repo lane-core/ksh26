@@ -58,11 +58,6 @@
 #define SYSDOT		(shgd->bltin_cmds+20)	/* . */
 #define SYSSOURCE	(shgd->bltin_cmds+21)	/* source */
 #define SYSRETURN	(shgd->bltin_cmds+22)	/* return */
-#if SHOPT_BASH
-#   define SYSLOCAL	(shgd->bltin_cmds+23)	/* local */
-#else
-#   define SYSLOCAL	0
-#endif
 
 /* entry point for shell special builtins */
 

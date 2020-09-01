@@ -549,7 +549,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 				{
 					if(!(arg->argflag&ARG_APPEND))
 						_nv_unset(np,NV_EXPORT);
-					if(!sh_isoption(SH_BASH) && !(array&NV_IARRAY) && !nv_isarray(np))
+					if(!(array&NV_IARRAY) && !nv_isarray(np))
 						nv_setarray(np,nv_associative);
 				}
 			skip:

@@ -20,7 +20,6 @@ SHOPT_ACCT ==  			/* accounting */
 SHOPT_ACCTFILE ==  		/* per user accounting info */
 SHOPT_AUDIT == 1		/* enable auditing per SHOPT_AUDITFILE */
 SHOPT_AUDITFILE == "/etc/ksh_audit"  		/* auditing file */
-SHOPT_BASH ==			/* bash compatibility code */
 SHOPT_BGX == 1			/* one SIGCHLD trap per completed job */
 SHOPT_BRACEPAT == 1		/* C-shell {...,...} expansions (, required) */
 SHOPT_CMDLIB_HDR ==		/* -lcmd builtin list (<cmdlist.h>) */
@@ -98,11 +97,6 @@ if  CC.HOSTTYPE == "win32*"
 	SHOPT_CRNL == 1		/* <cr><nl> is equivalent to <nl> */
 end
 
-if SHOPT_BASH
-	BASH_HOSTTYPE == "$(CC.HOSTTYPE:S:/\.//)"
-	BASH_MACHTYPE == "$(BASH_HOSTTYPE)-unknown-$(CC.HOSTTYPE:B)"
-end
-
 /* use the following libraries only if they exist */
 LIBS_opt := +ljobs +li
 
@@ -136,10 +130,6 @@ end
 if SHOPT_VSH
 	FILES_opt += vi.c
 end
-if SHOPT_BASH
-	FILES_opt += bash.c bash_pre_rc.c
-	SHOPT_HISTEXPAND == 1
-end
 if SHOPT_HISTEXPAND
 	FILES_opt += hexpand.c
 end
@@ -150,7 +140,7 @@ if SHOPT_X
 	LDFLAGS += -u _XtAppInitialize -L/usr/add-on/X11/lib
 end
 
-:ALL: $(SH) $(SHCOMP) $(SHOPT_SUID_EXEC:+suid_exec) $(SHOPT_BASH:+bash$(RELEASE))
+:ALL: $(SH) $(SHCOMP) $(SHOPT_SUID_EXEC:+suid_exec)
 
 $(SH) :: sh.1 pmain.c $(LIBS_req)
 
@@ -191,19 +181,8 @@ $(FUNDIR) :INSTALLDIR: mode=+x dirs popd pushd
 
 shcomp.o : _BLD_DLL= $(CC.HOSTTYPE:N=cygwin.*:??_BLD_shell=?)
 
-if SHOPT_BASH
-
-bash$(RELEASE) :LINK: $(SH)
-
-bash_pre_rc.c : bash_pre_rc.sh
-	echo "const char bash_pre_rc[] = " > $(<)
-	sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/'"'"'/\\'"'"'/g' -e 's/^[[:space:]]*\(.*\)$/\"\1\\n\"/' $(*) >> $(<)
-	echo ";" >> $(<)
-
-end
-
 :: math.tab syscall.s mamexec mamstate.c $(DOCFILES) \
-	bash.c bash_pre_rc.sh hexpand.c mkservice.c \
+	hexpand.c mkservice.c \
 	shopen.mk shopen.c
 
 :: shtests \

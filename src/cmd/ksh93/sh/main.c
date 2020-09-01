@@ -163,7 +163,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	if((beenhere++)==0)
 	{
 		sh_onstate(SH_PROFILE);
-		((Lex_t*)shp->lex_context)->nonstandard = 0;
 		if(shp->gd->ppid==1)
 			shp->login_sh++;
 		if(shp->login_sh >= 2)
@@ -177,12 +176,14 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 			sh_onoption(SH_BGNICE);
 			sh_onoption(SH_RC);
 		}
-		if(!sh_isoption(SH_RC) && (sh_isoption(SH_BASH) && !sh_isoption(SH_POSIX)
 #if SHOPT_REMOTE
-		   || !fstat(0, &statb) && REMOTE(statb.st_mode)
-#endif
-		  ))
+		/*
+		 * Building ksh with SHOPT_REMOTE=1 causes ksh to set --rc if stdin is
+		 * a socket (presumably part of a remote shell invocation.)
+		 */
+		if(!sh_isoption(SH_RC) && !fstat(0, &statb) && REMOTE(statb.st_mode))
 			sh_onoption(SH_RC);
+#endif
 		for(i=0; i<elementsof(shp->offoptions.v); i++)
 			shp->options.v[i] &= ~shp->offoptions.v[i];
 		if(sh_isoption(SH_INTERACTIVE))
@@ -212,28 +213,16 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		{
 			if(!sh_isoption(SH_NOUSRPROFILE) && !sh_isoption(SH_PRIVILEGED) && sh_isoption(SH_RC))
 			{
-#if SHOPT_BASH
-				if(sh_isoption(SH_BASH) && !sh_isoption(SH_POSIX))
-				{
+				if(name = sh_mactry(shp,nv_getval(ENVNOD)))
+					name = *name ? strdup(name) : (char*)0;
 #if SHOPT_SYSRC
-					sh_source(shp, iop, e_bash_sysrc);
+				if(!strmatch(name, "?(.)/./*"))
+					sh_source(shp, iop, e_sysrc);
 #endif
-					sh_source(shp, iop, shp->gd->rcfile ? shp->gd->rcfile : sh_mactry(shp,(char*)e_bash_rc));
-				}
-				else
-#endif
+				if(name)
 				{
-					if(name = sh_mactry(shp,nv_getval(ENVNOD)))
-						name = *name ? strdup(name) : (char*)0;
-#if SHOPT_SYSRC
-					if(!strmatch(name, "?(.)/./*"))
-						sh_source(shp, iop, e_sysrc);
-#endif
-					if(name)
-					{
-						sh_source(shp, iop, name);
-						free(name);
-					}
+					sh_source(shp, iop, name);
+					free(name);
 				}
 			}
 			else if(sh_isoption(SH_INTERACTIVE) && sh_isoption(SH_PRIVILEGED))

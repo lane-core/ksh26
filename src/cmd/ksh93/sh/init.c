@@ -87,10 +87,6 @@ char e_version[]	= "\n@(#)$Id: Version "
 #define ATTRS		1
 			"A"
 #endif
-#if SHOPT_BASH
-#define ATTRS		1
-			"B"
-#endif
 #if SHOPT_BGX
 #define ATTRS		1
 			"J"
@@ -115,10 +111,6 @@ char e_version[]	= "\n@(#)$Id: Version "
 			" "
 #endif
 			SH_RELEASE " $\0\n";
-
-#if SHOPT_BASH
-    extern void bash_init(Shell_t*,int);
-#endif
 
 #define RANDMASK	0x7fff
 
@@ -1103,7 +1095,7 @@ int sh_type(register const char *path)
 	}
 	for (;;)
 	{
-		if (!(t & (SH_TYPE_KSH|SH_TYPE_BASH)))
+		if (!(t & SH_TYPE_KSH))
 		{
 			if (*s == 'k')
 			{
@@ -1111,14 +1103,6 @@ int sh_type(register const char *path)
 				t |= SH_TYPE_KSH;
 				continue;
 			}
-#if SHOPT_BASH
-			if (*s == 'b' && *(s+1) == 'a')
-			{
-				s += 2;
-				t |= SH_TYPE_BASH;
-				continue;
-			}
-#endif
 		}
 		if (!(t & (SH_TYPE_PROFILE|SH_TYPE_RESTRICTED)))
 		{
@@ -1143,6 +1127,8 @@ int sh_type(register const char *path)
 	{
 		s++;
 		t |= SH_TYPE_SH;
+		if (!(t & SH_TYPE_KSH))
+			t |= SH_TYPE_POSIX;
 		if ((t & SH_TYPE_KSH) && *s == '9' && *(s+1) == '3')
 			s += 2;
 #if _WINIX
@@ -1152,7 +1138,7 @@ int sh_type(register const char *path)
 		if (!isalnum(*s))
 			return t;
 	}
-	return t & ~(SH_TYPE_BASH|SH_TYPE_KSH|SH_TYPE_PROFILE|SH_TYPE_RESTRICTED);
+	return t & ~(SH_TYPE_KSH|SH_TYPE_PROFILE|SH_TYPE_RESTRICTED);
 }
 
 
@@ -1315,6 +1301,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		type = sh_type(*argv);
 		if(type&SH_TYPE_LOGIN)
 			shp->login_sh = 2;
+		if(type&SH_TYPE_POSIX || strcmp(astconf("CONFORMANCE",0,0),"standard")==0)
+			sh_onoption(SH_POSIX);
 	}
 	env_init(shp);
 	if(!ENVNOD->nvalue.cp)
@@ -1378,17 +1366,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		/* check for profile shell */
 		else if(type&SH_TYPE_PROFILE)
 			sh_onoption(SH_PFSH);
-#endif
-#if SHOPT_BASH
-		/* check for invocation as bash */
-		if(type&SH_TYPE_BASH)
-		{
-		        shp>userinit = userinit = bash_init;
-			sh_onoption(SH_BASH);
-			sh_onstate(SH_PREINIT);
-			(*userinit)(shp, 0);
-			sh_offstate(SH_PREINIT);
-		}
 #endif
 		/* look for options */
 		/* shp->st.dolc is $#	*/

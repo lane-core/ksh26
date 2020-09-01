@@ -42,11 +42,6 @@
 #else
 #   define PFSHOPT
 #endif
-#if SHOPT_BASH
-#   define BASHOPT	"\374"
-#else
-#   define BASHOPT
-#endif
 #if SHOPT_HISTEXPAND
 #   define HFLAG        "H"
 #else
@@ -59,15 +54,13 @@
 static	char		*null;
 
 /* The following order is determined by sh_optset */
-static  const char optksh[] =  PFSHOPT BASHOPT "DircabefhkmnpstuvxBCGEl" HFLAG;
+static  const char optksh[] =  PFSHOPT "\374" "DircabefhkmnpstuvxBCGEl" HFLAG;
 static const int flagval[]  =
 {
 #if SHOPT_PFSH
 	SH_PFSH,
 #endif
-#if SHOPT_BASH
 	SH_POSIX,
-#endif
 	SH_DICTIONARY, SH_INTERACTIVE, SH_RESTRICTED, SH_CFLAG,
 	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB, SH_TRACKALL,
 	SH_KEYWORD, SH_MONITOR, SH_NOEXEC, SH_PRIVILEGED, SH_SFLAG, SH_TFLAG,
@@ -108,22 +101,6 @@ void *sh_argopen(Shell_t *shp)
 
 static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 {
-#if SHOPT_BASH
-	extern const char sh_bash1[], sh_bash2[];
-	if(strcmp(s,"bash1")==0) 
-	{
-		if(sh_isoption(SH_BASH))
-			sfputr(sp,sh_bash1,-1);
-	}
-	else if(strcmp(s,"bash2")==0)
-	{
-		if(sh_isoption(SH_BASH))
-			sfputr(sp,sh_bash2,-1);
-	}
-	else if(*s==':' && sh_isoption(SH_BASH))
-		sfputr(sp,s,-1);
-	else
-#endif
 	if(*s!=':')
 		sfputr(sp,sh_set,-1);
 	return(1);
@@ -168,31 +145,17 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			if(f)
 				nv_unset(np);
 			continue;
-#if SHOPT_BASH
-		    case 'O':	/* shopt options, only in bash mode */
-			if(!sh_isoption(SH_BASH))
-				errormsg(SH_DICT,ERROR_exit(1), e_option, opt_info.name);
-#endif
 		    case 'o':	/* set options */
 		    byname:
 			if(!opt_info.arg||!*opt_info.arg||*opt_info.arg=='-')
 			{
 				action = PRINT;
-				/* print style: -O => shopt options
-				 * bash => print unset options also, no heading
-				 */
 				verbose = (f?PRINT_VERBOSE:PRINT_NO_HEADER)|
-					  (n=='O'?PRINT_SHOPT:0)|
-					  (sh_isoption(SH_BASH)?PRINT_ALL|PRINT_NO_HEADER:0)|
 					  ((opt_info.arg&&(!*opt_info.arg||*opt_info.arg=='-'))?(PRINT_TABLE|PRINT_NO_HEADER):0);
 				continue;
 			}
 			o = sh_lookopt(opt_info.arg,&f);
-			if(o<=0
-				|| (!sh_isoption(SH_BASH) && (o&SH_BASHEXTRA))
-				|| ((!sh_isoption(SH_BASH) || n=='o') && (o&SH_BASHOPT))
-
-				|| (setflag && (o&SH_COMMANDLINE)))
+			if(o<=0 || (setflag && (o&SH_COMMANDLINE)))
 			{
 				errormsg(SH_DICT,2, e_option, opt_info.arg);
 				error_info.errors++;
@@ -201,33 +164,6 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			if(sh_isoption(SH_RESTRICTED) && !f && o==SH_RESTRICTED)
 				errormsg(SH_DICT,ERROR_exit(1), e_restricted, opt_info.arg);
 			break;
-#if SHOPT_BASH
-		    case -1:	/* --rcfile */
-			ap->sh->gd->rcfile = opt_info.arg;
-			continue;
-		    case -2:	/* --noediting */
-			if (!f)
-			{
-				off_option(&newflags,SH_VI);
-				off_option(&newflags,SH_EMACS);
-				off_option(&newflags,SH_GMACS);
-			}
-			continue;
-		    case -3:	/* --profile */
-			n = 'l';
-			goto skip;
-		    case -4:	/* --posix */
-			/* mask lower 8 bits to find char in optksh string */
-			n&=0xff;
-			goto skip;
-		    case -5:	/* --version */
-			sfputr(sfstdout, "ksh bash emulation, version ",-1);
-			np = nv_open("BASH_VERSION",ap->sh->var_tree,0);
-			sfputr(sfstdout, nv_getval(np),-1);
-			np = nv_open("MACHTYPE",ap->sh->var_tree,0);
-			sfprintf(sfstdout, " (%s)\n", nv_getval(np));
-			sh_exit(0);
-#endif
 		    case -6:	/* --default */
 			{
 				register const Shtable_t *tp;
@@ -408,35 +344,6 @@ void sh_applyopts(Shell_t* shp,Shopt_t newflags)
 			(shp->gd->userid==shp->gd->euserid && shp->gd->groupid==shp->gd->egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
 	}
-#if SHOPT_BASH
-	on_option(&newflags,SH_CMDHIST);
-	on_option(&newflags,SH_CHECKHASH);
-	on_option(&newflags,SH_EXECFAIL);
-	on_option(&newflags,SH_EXPAND_ALIASES);
-	on_option(&newflags,SH_HISTAPPEND);
-	on_option(&newflags,SH_INTERACTIVE_COMM);
-	on_option(&newflags,SH_LITHIST);
-	on_option(&newflags,SH_NOEMPTYCMDCOMPL);
-
-	if(!is_option(&newflags,SH_XPG_ECHO) && sh_isoption(SH_XPG_ECHO))
-		astconf("UNIVERSE", 0, "ucb");
-	if(is_option(&newflags,SH_XPG_ECHO) && !sh_isoption(SH_XPG_ECHO))
-		astconf("UNIVERSE", 0, "att");
-	if(!is_option(&newflags,SH_PHYSICAL) && sh_isoption(SH_PHYSICAL))
-		astconf("PATH_RESOLVE", 0, "metaphysical");
-	if(is_option(&newflags,SH_PHYSICAL) && !sh_isoption(SH_PHYSICAL))
-		astconf("PATH_RESOLVE", 0, "physical");
-	if(is_option(&newflags,SH_HISTORY2) && !sh_isoption(SH_HISTORY2))
-	{
-		sh_onstate(SH_HISTORY);
-                sh_onoption(SH_HISTORY);
-	}
-	if(!is_option(&newflags,SH_HISTORY2) && sh_isoption(SH_HISTORY2))
-	{
-		sh_offstate(SH_HISTORY);
-		sh_offoption(SH_HISTORY);
-	}
-#endif
 	shp->options = newflags;
 }
 
@@ -647,22 +554,10 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 	on_option(&oflags,SH_VIRAW);
 #endif
 	if(!(mode&(PRINT_ALL|PRINT_VERBOSE))) /* only print set options */
-	{
-		if(mode&PRINT_SHOPT)
-			sfwrite(sfstdout,"shopt -s",3);
-		else
-			sfwrite(sfstdout,"set --default",13);
-	}
+		sfwrite(sfstdout,"set --default",13);
 	for(tp=shtab_options; value=tp->sh_number; tp++)
 	{
 		if(mask && !is_option(mask,value&0xff))
-			continue;
-		if(sh_isoption(SH_BASH))
-		{
-			if (!(mode&PRINT_SHOPT) != !(value&SH_BASHOPT))
-				continue;
-		}
-		else if (value&(SH_BASHEXTRA|SH_BASHOPT))
 			continue;
 		on = !!is_option(&oflags,value);
 		name = tp->sh_name;
@@ -678,18 +573,9 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 			sfputr(sfstdout,on ? sh_translate(e_on) : sh_translate(e_off),'\n');
 		}
 		else if(mode&PRINT_ALL) /* print unset options also */
-		{
-			if(mode&PRINT_SHOPT)
-				sfprintf(sfstdout, "shopt -%c %s\n",
-					on?'s':'u',
-					name);
-			else
-				sfprintf(sfstdout, "set %co %s\n",
-					on?'-':'+',
-					name);
-		}
+			sfprintf(sfstdout, "set %co %s\n", on?'-':'+', name);
 		else if(!(value&SH_COMMANDLINE) && is_option(&oflags,value&0xff))
-			sfprintf(sfstdout," %s%s%s",(mode&PRINT_SHOPT)?"":"--",on?"":"no",name);
+			sfprintf(sfstdout, " %s%s%s","--", on?"":"no", name);
 	}
 	if(!(mode&(PRINT_VERBOSE|PRINT_ALL)))
 		sfputc(sfstdout,'\n');

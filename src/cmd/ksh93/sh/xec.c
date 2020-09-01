@@ -1086,19 +1086,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(np)
 						flgs |= NV_UNJUST;
-#if SHOPT_BASH
-					if(np==SYSLOCAL)
-					{
-						if(!nv_getval(SH_FUNNAMENOD))
-							errormsg(SH_DICT,ERROR_exit(1),"%s: can only be used in a function",com0);
-						if(!shp->st.var_local)
-						{
-							sh_scope(shp,(struct argnod*)0,0);
-							shp->st.var_local = shp->var_tree;
-						}
-			
-					}
-#endif /* SHOPT_BASH */
 					if(np && np->nvalue.bfp==SYSTYPESET->nvalue.bfp)
 					{
 						/* command calls b_typeset(); treat as a typeset variant */
@@ -1134,7 +1121,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			
 						}
 #endif /* SHOPT_TYPEDEF */
-						if((shp->fn_depth && !shp->prefix) || np==SYSLOCAL)
+						if((shp->fn_depth && !shp->prefix))
 							flgs |= NV_NOSCOPE;
 					}
 					else if(np==SYSEXPORT)

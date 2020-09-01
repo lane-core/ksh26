@@ -3409,7 +3409,7 @@ successfully rename it to
 otherwise, delete the temporary file.
 .BI >; word
 cannot be used with the
-.IR exec (2).
+.IR exec
 built-in.
 .TP
 .BI >> word
@@ -3433,7 +3433,7 @@ except that if the command completes successfully,
 is truncated to the offset at command completion.
 .BI <>; word
 cannot be used with the
-.IR exec (2).
+.IR exec
 built-in.
 .TP
 \f3<<\fP\*(OK\f3\-\fP\*(CK\f2word\fP
@@ -3492,20 +3492,26 @@ The standard input is duplicated from file descriptor
 .I digit
 (see
 .IR dup (2)).
-Similarly for the standard output using
-\f3>&\^\f2digit\fR.
+.TP
+.BI >& digit
+The standard output is duplicated from file descriptor
+.IR digit .
 .TP
 .BI <& digit \-
 The file descriptor given by
 .I digit
 is moved to standard input.
-Similarly for the standard output using
-\f3>&\^\f2digit\f3\-\fR.
+.TP
+.BI >& digit \-
+The file descriptor given by
+.I digit
+is moved to standard output.
 .TP
 .B <&\-
 The standard input is closed.
-Similarly for the standard output using
-.BR >&\- .
+.TP
+.B >&\-
+The standard output is closed.
 .TP
 .B <&p
 The input from the co-process is moved to standard input.
@@ -3592,6 +3598,11 @@ means open file named
 for reading and store
 the file descriptor number in variable
 .BR n .
+.PP
+A special shorthand redirection operator \fB&>\fR\fIword\fR is available; it
+is equivalent to \fB>\fR\fIword\fR\fB 2>&1\fR. It cannot be preceded by any
+digit or variable name. This shorthand is disabled if the \fIposix\fR shell
+option is active.
 .PP
 The order in which redirections are specified is significant.
 The shell evaluates each redirection in terms of the
@@ -7019,6 +7030,11 @@ A pipeline will not complete until all components
 of the pipeline have completed, and the return value
 will be the value of the last non-zero command
 to fail or zero if no command has failed.
+.TP 8
+.B posix
+Enable POSIX standard compatibility mode. This option
+is on by default if ksh is invoked as \fBsh\fR. It
+disables the \fB&>\fR redirection shorthand.
 .TP 8
 .B privileged
 Same as
