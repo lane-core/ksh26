@@ -14,6 +14,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   turned on if ksh is invoked under the name 'sh'.
   For now, it:
   * disables the &> redirection shorthand
+  * causes the 'let' arithmetic command to recognise octal numbers by
+    leading zeros regardless of the setting of the 'letoctal' option
 
 2020-08-19:
 

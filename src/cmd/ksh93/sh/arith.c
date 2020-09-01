@@ -390,8 +390,11 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			char	lastbase=0, *val = xp, oerrno = errno;
 			lvalue->eflag = 0;
 			errno = 0;
-			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL))
-			{
+			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL) && !sh_isoption(SH_POSIX))
+			{	/*
+				 * Since we're running the "let" builtin, disable octal number processing by
+				 * skipping all initial zeros, unless the 'letoctal' or 'posix' option is on.
+				 */
 				while(*val=='0' && isdigit(val[1]))
 					val++;
 			}
@@ -415,8 +418,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				c='e';
 			else
 				c = *str;
-			if(c==GETDECIMAL(0) || c=='e' || c == 'E' || lastbase ==
- 16 && (c == 'p' || c == 'P'))
+			if(c==GETDECIMAL(0) || c=='e' || c == 'E' || lastbase == 16 && (c == 'p' || c == 'P'))
 			{
 				lvalue->isfloat=1;
 				r = strtold(val,&str);

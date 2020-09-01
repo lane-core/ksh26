@@ -6321,10 +6321,12 @@ to be evaluated.
 .B let
 only recognizes octal constants starting with
 .B 0
-when the
+if one of the
 .B set
-option
+options
 .B letoctal
+or
+.B posix
 is on.
 See
 .I "Arithmetic Evaluation"
@@ -6987,6 +6989,8 @@ The
 .B let
 command allows octal constants starting with
 .BR 0 .
+If the \fBposix\fR shell option is active,
+octals are recognized regardless of this option.
 .TP 8
 .B markdirs
 All directory names resulting from file name generation have a trailing
@@ -7034,6 +7038,7 @@ to fail or zero if no command has failed.
 .B posix
 Enable POSIX standard compatibility mode. This option
 is on by default if ksh is invoked as \fBsh\fR. It
+enables octal numbers in \fBlet\fR shell arithmetic (see \fBletoctal\fR), and
 disables the \fB&>\fR redirection shorthand.
 .TP 8
 .B privileged

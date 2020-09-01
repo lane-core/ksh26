@@ -680,9 +680,8 @@ exp='typeset -C -a x=((typeset -C -a y=( [0]=(typeset -a -l -i z=([2]=3);));))'
 unset x
 let x=010
 [[ $x == 10 ]] || err_exit 'let treating 010 as octal'
-set -o letoctal
-let x=010
-[[ $x == 8 ]] || err_exit 'let not treating 010 as octal with letoctal on'
+(set -o letoctal; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with letoctal on'
+(set -o posix 2>/dev/null; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with posix on'
 
 float z=0
 integer aa=2 a=1
