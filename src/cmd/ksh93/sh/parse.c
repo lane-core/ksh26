@@ -1800,11 +1800,18 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 	register struct argnod *ap;
 	register struct dolnod* dp;
 	register int special=0;
-	/* special hack for test -t compatibility */
-	if((Namval_t*)ac->comnamp==SYSTEST)
-		special = 2;
-	else if(*(ac->comarg->argval)=='[' && ac->comarg->argval[1]==0)
-		special = 3;
+	/*
+	 * The 'special' variable flags a parser hack for ancient 'test -t' compatibility.
+	 * As this is done at parse time, it only affects literal '-t', not 'foo=-t; test "$foo"'.
+	 * It only works for a simple '-t'; a compound expression ending in '-t' is hacked in bltins/test.c.
+	 */
+	if(!sh_isoption(SH_POSIX))
+	{
+		if((Namval_t*)ac->comnamp==SYSTEST)
+			special = 2;	/* convert "test -t" to "test -t 1" */
+		else if(*(ac->comarg->argval)=='[' && ac->comarg->argval[1]==0)
+			special = 3;	/* convert "[ -t ]" to "[ -t 1 ]" */
+	}
 	if(special)
 	{
 		ap = ac->comarg->argnxt.ap;

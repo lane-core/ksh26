@@ -20,6 +20,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   * makes the <> redirection operator default to stdin instead of stdout
     (this keeps the 2020-05-13 BUG_REDIRIO fix for the POSIX mode while
     restoring traditional ksh93 behaviour for backwards compatibility)
+  * disables a noncompliant 'test -t' == 'test -t 1' compatibility hack
 
 2020-08-19:
 

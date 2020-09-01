@@ -314,8 +314,12 @@ static int e3(struct test *tp)
 	cp = nxtarg(tp,1);
 	if(cp!=0 && (c_eq(cp,'=') || c2_eq(cp,'!','=')))
 		goto skip;
-	if(c2_eq(arg,'-','t'))
-	{
+	if(!sh_isoption(SH_POSIX) && c2_eq(arg,'-','t'))
+	{	/*
+		 * Ancient compatibility hack supporting test -t with no arguments == test -t 1.
+		 * This is only reached when doing a compound expression like: test 1 -eq 1 -a -t
+		 * (for simple 'test -t' this is handled in the parser, see qscan() in sh/parse.c).
+		 */
 		if(cp)
 		{
 			op = strtol(cp,&binop, 10);
@@ -323,7 +327,6 @@ static int e3(struct test *tp)
 		}
 		else
 		{
-		/* test -t with no arguments */
 			tp->ap--;
 			return(tty_check(1));
 		}
@@ -455,9 +458,6 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 	    {
 		char *last;
 		op = strtol(arg,&last, 10);
-		/* To make '-t 1' work in a $(comsub), fork. https://github.com/att/ast/issues/1079 */
-		if (op == 1 && shp->subshell && shp->comsub && !shp->subshare)
-			sh_subfork();
 		return(*last?0:tty_check(op));
 	    }
 	    case 'v':

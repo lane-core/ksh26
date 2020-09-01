@@ -162,6 +162,12 @@ int tty_check(int fd)
 {
 	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
 	struct termios tty;
+	/*
+	 * The tty_get check below does not work on 1 (stdout) in command substitutions. But comsubs fork upon redirecting 1,
+	 * and forking resets sh.subshell to 0, so we can safely return false when in a virtual subshell that is a comsub.
+	 */
+	if(fd==1 && sh.subshell && sh.comsub)
+		return(0);
 	ep->e_savefd = -1;
 	return(tty_get(fd,&tty)==0);
 }
