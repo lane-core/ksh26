@@ -1127,7 +1127,11 @@ int sh_type(register const char *path)
 	{
 		s++;
 		t |= SH_TYPE_SH;
-		if (!(t & SH_TYPE_KSH))
+#if _WINIX
+		if (!(t & SH_TYPE_KSH) && (!*s || *s == '.'))
+#else
+		if (!(t & SH_TYPE_KSH) && !*s)
+#endif
 			t |= SH_TYPE_POSIX;
 		if ((t & SH_TYPE_KSH) && *s == '9' && *(s+1) == '3')
 			s += 2;
