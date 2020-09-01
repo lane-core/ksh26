@@ -166,6 +166,12 @@ function valxml
 	return $errors
 }
 
+if	[[ ! -c /dev/tty || ! -w /dev/tty ]]
+then	print "The regression tests require a functioning /dev/tty." >&2
+	print "If not available, try script(1) to simulate a tty." >&2
+	exit 128
+fi
+
 command set +o posix 2>/dev/null
 unset DISPLAY FIGNORE HISTFILE POSIXLY_CORRECT _AST_FEATURES
 export ENV=/./dev/null
