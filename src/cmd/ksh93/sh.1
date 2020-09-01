@@ -3423,7 +3423,8 @@ otherwise, the file is created.
 Open file
 .I word\^
 for reading and writing
-as standard input.
+as standard output.
+If the \fBposix\fR option is active, it defaults to standard input instead.
 .TP
 .BI <>; word
 The same as
@@ -7040,6 +7041,7 @@ to fail or zero if no command has failed.
 Enable POSIX standard compatibility mode. This option
 is on by default if ksh is invoked as \fBsh\fR. It
 causes file descriptors > 2 to be left open when invoking another program,
+makes the \fB<>\fR redirection operator default to standard input,
 enables octal numbers in \fBlet\fR shell arithmetic (see \fBletoctal\fR), and
 disables the \fB&>\fR redirection shorthand.
 .TP 8

@@ -17,6 +17,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   * causes the 'let' arithmetic command to recognise octal numbers by
     leading zeros regardless of the setting of the 'letoctal' option
   * causes file descriptors > 2 to be left open when invoking another program
+  * makes the <> redirection operator default to stdin instead of stdout
+    (this keeps the 2020-05-13 BUG_REDIRIO fix for the POSIX mode while
+    restoring traditional ksh93 behaviour for backwards compatibility)
 
 2020-08-19:
 

@@ -601,7 +601,7 @@ int sh_lex(Lex_t* lp)
 						c  |= SYMPIPE;
 					else if(c=='<' && n=='>')
 					{
-						lp->digits = 0;
+						lp->digits = sh_isoption(SH_POSIX) ? 0 : 1;
 						c = IORDWRSYM;
 						fcgetc(n);
 						if(fcgetc(n)==';')

@@ -304,14 +304,14 @@ fi
 $SHELL -c 'exec 3<>; /dev/null'  2> /dev/null && err_exit '<>; with exec should be an error'
 $SHELL -c ': 3<>; /dev/null'  2> /dev/null || err_exit '<>; not working with at all'
 print $'hello\nworld' > $tmp/1
-if      ! $SHELL -c "false 1<>; $tmp/1"  2> /dev/null
+if      ! $SHELL -c "false <>; $tmp/1"  2> /dev/null
 then    [[ $(<$tmp/1) == $'hello\nworld' ]] || err_exit '<>; not preserving file on failure'
 fi
-if	! $SHELL -c "head -1 $tmp/1" 1<>; $tmp/1  2> /dev/null
+if	! $SHELL -c "head -1 $tmp/1" <>; $tmp/1  2> /dev/null
 then	[[ $(<$tmp/1) == hello ]] || err_exit '<>; not truncating file on success of head'
 fi
 print $'hello\nworld' > $tmp/1
-if	! $SHELL -c head  < $tmp/1 <#((6)) 1<>; $tmp/1  2> /dev/null
+if	! $SHELL -c head  < $tmp/1 <#((6)) <>; $tmp/1  2> /dev/null
 then	[[ $(<$tmp/1) == world ]] || err_exit '<>; not truncating file on success of behead'
 fi
 
