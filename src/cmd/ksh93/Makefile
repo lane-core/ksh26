@@ -153,7 +153,7 @@ shell$(RELEASE) $(VERSION) id=shell :LIBRARY: shell.3 nval.3 alarm.c cd_pwd.c cf
 	arith.c args.c array.c completion.c defs.c edit.c expand.c regress.c \
 	fault.c fcin.c history.c init.c io.c jobs.c lex.c macro.c name.c \
 	nvtree.c parse.c path.c string.c streval.c subshell.c tdump.c timers.c \
-	trestore.c waitevent.c xec.c env.c $(DATAFILES) $(FILES_opt) \
+	trestore.c waitevent.c xec.c $(DATAFILES) $(FILES_opt) \
 	-lcmd -last -lm
 
 "sol*.i386*"	:NOOPTIMIZE: main.c

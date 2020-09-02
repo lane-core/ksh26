@@ -59,10 +59,8 @@ pathnative(const char* path, char* buf, size_t siz)
 #endif /* _lib_pathnative */
 
 static void	attstore(Namval_t*,void*);
-#ifndef _ENV_H
-    static void	pushnam(Namval_t*,void*);
-    static char	*staknam(Namval_t*, char*);
-#endif
+static void	pushnam(Namval_t*,void*);
+static char	*staknam(Namval_t*, char*);
 static void	rightjust(char*, int, int);
 static char	*lastdot(char*, int);
 
@@ -109,9 +107,7 @@ struct adata
 #endif
 
 char		nv_local = 0;
-#ifndef _ENV_H
 static void(*nullscan)(Namval_t*,void*);
-#endif
 
 #if ( SFIO_VERSION  <= 20010201L )
 #   define _data        data
@@ -136,29 +132,6 @@ static char *getbuf(size_t len)
 	}
 	return(buf);
 }
-
-#ifdef _ENV_H
-void sh_envput(Env_t* ep,Namval_t *np)
-{
-	int offset = staktell();
-	Namarr_t *ap = nv_arrayptr(np);
-	char *val;
-	if(ap)
-	{
-		if(ap->nelem&ARRAY_UNDEF)
-			nv_putsub(np,"0",0L);
-		else if(!(val=nv_getsub(np)) || strcmp(val,"0"))
-			return;
-	}
-	if(!(val = nv_getval(np)))
-		return;
-	stakputs(nv_name(np));
-	stakputc('=');
-	stakputs(val);
-	stakseek(offset);
-	env_add(ep,stakptr(offset),ENV_STRDUP);
-}
-#endif
 
 /*
  * output variable name in format for re-input
@@ -2120,7 +2093,6 @@ static void rightjust(char *str, int size, int fill)
     }
 #endif /* SHOPT_MULTIBYTE */
 
-#ifndef _ENV_H
 static char *staknam(register Namval_t *np, char *value)
 {
 	register char *p,*q;
@@ -2133,35 +2105,10 @@ static char *staknam(register Namval_t *np, char *value)
 	}
 	return(q);
 }
-#endif
 
 /*
  * put the name and attribute into value of attributes variable
  */
-#ifdef _ENV_H
-static void attstore(register Namval_t *np, void *data)
-{
-	register int flag, c = ' ';
-	NOT_USED(data);
-	if(!(nv_isattr(np,NV_EXPORT)))
-		return;
-	flag = nv_isattr(np,NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER);
-	stakputc('=');
-	if((flag&NV_DOUBLE) == NV_DOUBLE)
-	{
-		/* export doubles as integers for ksh88 compatibility */
-		stakputc(c+NV_INTEGER|(flag&~(NV_DOUBLE|NV_EXPNOTE)));
-	}
-	else
-	{
-		stakputc(c+flag);
-		if(flag&NV_INTEGER)
-			c +=  nv_size(np);
-	}
-	stakputc(c);
-	stakputs(nv_name(np));
-}
-#else
 static void attstore(register Namval_t *np, void *data)
 {
 	register int flag = np->nvflag;
@@ -2194,9 +2141,7 @@ static void attstore(register Namval_t *np, void *data)
 	}
 	ap->attval = strcopy(++ap->attval,nv_name(np));
 }
-#endif
 
-#ifndef _ENV_H
 static void pushnam(Namval_t *np, void *data)
 {
 	register char *value;
@@ -2210,31 +2155,11 @@ static void pushnam(Namval_t *np, void *data)
 	if(nv_isattr(np,NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER))
 		ap->attsize += (strlen(nv_name(np))+4);
 }
-#endif
 
 /*
  * Generate the environment list for the child.
  */
 
-#ifdef _ENV_H
-char **sh_envgen(void)
-{
-	Shell_t *shp = sh_getinterp();
-	int offset,tell;
-	register char **er;
-	env_delete(shp->env,"_");
-	er = env_get(shp->env);
-	offset = staktell();
-	stakputs(e_envmarker);
-	tell = staktell();
-	nv_scan(shp->var_tree, attstore,(void*)0,0,(NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
-	if(tell ==staktell())
-		stakseek(offset);
-	else
-		*--er = stakfreeze(1)+offset;
-	return(er);
-}
-#else
 char **sh_envgen(void)
 {
 	register char **er;
@@ -2264,7 +2189,6 @@ char **sh_envgen(void)
 	*data.argnam = 0;
 	return(er);
 }
-#endif
 
 struct scan
 {

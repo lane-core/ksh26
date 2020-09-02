@@ -1911,10 +1911,6 @@ static void env_init(Shell_t *shp)
 	char			*dp,*next=0;
 	int			nenv=0,k=0,size=0;
 	Namval_t		*np0;
-#ifdef _ENV_H
-	shp->env = env_open(environ,3);
-	env_delete(shp->env,"_");
-#endif
 	if(!ep)
 		goto skip;
 	while(*ep++)
@@ -2008,9 +2004,6 @@ static void env_init(Shell_t *shp)
 			cp += 2;
 	}
 skip:
-#ifdef _ENV_H
-	env_delete(shp->env,e_envmarker);
-#endif
 	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
 	{
 		nv_offattr(PWDNOD,NV_TAGGED);

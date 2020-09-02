@@ -53,13 +53,9 @@
 #define Empty			((char*)(e_sptbnl+3))
 
 #define	env_change()		(++ast.env_serial)
-#if SHOPT_ENV
-#   include	<env.h>
-#else
-#   define Env_t		void
-#   define sh_envput(e,p)	env_change()
-#   define env_delete(e,p)	env_change()
-#endif
+#define Env_t		void
+#define sh_envput(e,p)	env_change()
+#define env_delete(e,p)	env_change()
 
 extern char*	sh_getenv(const char*);
 extern char*	sh_setenviron(const char*);
@@ -371,9 +367,6 @@ extern int		sh_debug(Shell_t *shp,const char*,const char*,const char*,char *cons
 extern int 		sh_echolist(Shell_t*,Sfio_t*, int, char**);
 extern struct argnod	*sh_endword(Shell_t*,int);
 extern char 		**sh_envgen(void);
-#if SHOPT_ENV
-extern void 		sh_envput(Env_t*, Namval_t*);
-#endif
 extern void 		sh_envnolocal(Namval_t*,void*);
 extern Sfdouble_t	sh_arith(Shell_t*,const char*);
 extern void		*sh_arithcomp(Shell_t *,char*);

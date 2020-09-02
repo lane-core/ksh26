@@ -126,14 +126,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		if(logdata.sh->subshell && !logdata.sh->subshare)
 			sh_subfork();
 		if(logdata.clear)
-		{
-#ifdef _ENV_H
-			env_close(logdata.sh->env);
-			logdata.sh->env = env_open((char**)0,3);
-#else
 			nv_scan(logdata.sh->var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
-#endif
-		}
 		while(arg)
 		{
 			if((cp=strchr(arg->argval,'=')) &&

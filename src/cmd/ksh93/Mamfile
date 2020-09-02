@@ -248,8 +248,6 @@ make include/regress.h implicit
 done include/regress.h dontcare
 prev include/shtable.h implicit
 prev include/shell.h implicit
-make include/env.h implicit
-done include/env.h dontcare
 prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
 prev include/name.h implicit
 make include/argnod.h implicit
@@ -1134,16 +1132,6 @@ meta xec.o %.c>%.o sh/xec.c xec
 prev sh/xec.c
 exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSHOPT_BGX -DSHOPT_TYPEDEF -DSHOPT_PFSH -DSHOPT_FILESCAN -DSHOPT_NAMESPACE -DSHOPT_OPTIMIZE -D_API_ast=20100309 -D_PACKAGE_ast -DSHOPT_STATS -DSHOPT_HISTEXPAND -D_BLD_shell -DERROR_CONTEXT_T=Error_context_t -DSHOPT_FIXEDARRAY -DSHOPT_ESH -DSHOPT_MULTIBYTE -DSHOPT_DYNAMIC -DKSHELL -DSHOPT_SUID_EXEC -DSHOPT_BRACEPAT -c sh/xec.c
 done xec.o generated
-make env.o
-make sh/env.c
-prev include/env.h implicit
-prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-done sh/env.c
-meta env.o %.c>%.o sh/env.c env
-prev sh/env.c
-exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -c sh/env.c
-done env.o generated
 make limits.o
 make data/limits.c
 prev include/ulimit.h implicit
@@ -1310,7 +1298,7 @@ prev edit/hexpand.c
 exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSHOPT_HISTEXPAND -DSHOPT_EDPREDICT -DSHOPT_MULTIBYTE -DKSHELL -DSHOPT_ESH -DSHOPT_VSH -D_PACKAGE_ast -DSHOPT_PFSH -DSHOPT_STATS -DSHOPT_NAMESPACE -D_BLD_shell -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -DSHOPT_FIXEDARRAY -c edit/hexpand.c
 done hexpand.o generated
 exec - ${AR} rc libshell.a alarm.o cd_pwd.o cflow.o deparse.o enum.o getopts.o hist.o misc.o print.o read.o sleep.o trap.o test.o typeset.o ulimit.o umask.o whence.o main.o nvdisc.o nvtype.o arith.o args.o array.o completion.o defs.o edit.o expand.o regress.o fault.o fcin.o
-exec - ${AR} rc libshell.a history.o init.o io.o jobs.o lex.o macro.o name.o nvtree.o parse.o path.o string.o streval.o subshell.o tdump.o timers.o trestore.o waitevent.o xec.o env.o limits.o msg.o strdata.o testops.o keywords.o options.o signals.o builtins.o variables.o lexstates.o emacs.o vi.o hexpand.o
+exec - ${AR} rc libshell.a history.o init.o io.o jobs.o lex.o macro.o name.o nvtree.o parse.o path.o string.o streval.o subshell.o tdump.o timers.o trestore.o waitevent.o xec.o limits.o msg.o strdata.o testops.o keywords.o options.o signals.o builtins.o variables.o lexstates.o emacs.o vi.o hexpand.o
 exec - (ranlib libshell.a) >/dev/null 2>&1 || true
 done libshell.a generated
 bind -lshell

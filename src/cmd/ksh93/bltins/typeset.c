@@ -111,19 +111,6 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 	argv += (opt_info.index-1);
 	if(*command=='r')
 		flag = (NV_ASSIGN|NV_RDONLY|NV_VARNAME);
-#ifdef _ENV_H
-	else if(!argv[1])
-	{
-		char *cp,**env=env_get(tdata.sh->env);
-		while(cp = *env++)
-		{
-			if(tdata.prefix)
-				sfputr(sfstdout,tdata.prefix,' ');
-			sfprintf(sfstdout,"%s\n",sh_fmtq(cp));
-		}
-		return(0);
-	}
-#endif
 	else
 		flag = (NV_ASSIGN|NV_EXPORT|NV_IDENT);
 	if(!tdata.sh->prefix)
