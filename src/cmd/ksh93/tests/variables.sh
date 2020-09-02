@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 [[ ${.sh.version} == "$KSH_VERSION" ]] || err_exit '.sh.version != KSH_VERSION'
 unset ss
@@ -74,7 +74,7 @@ cd /
 if	[[ $OLDPWD != $old ]]
 then	err_exit "OLDPWD variable failed -- expected '$old', got '$OLDPWD'"
 fi
-cd $old || err_exit cd failed
+cd "$old" || err_exit cd failed
 # REPLY
 read <<-!
 	foobar
@@ -220,6 +220,7 @@ done
 kill -s 0 $! || err_exit '$! does not point to latest asynchronous process'
 kill $!
 unset x
+cd /tmp || exit
 CDPATH=/
 x=$(cd ${tmp#/})
 if	[[ $x != $tmp ]]
@@ -234,6 +235,7 @@ x=$(cd ${tmp#/})
 if	[[ $x != $tmp ]]
 then	err_exit "CDPATH ${tmp#/} does not display new directory"
 fi
+cd "$tmp" || exit
 TMOUT=100
 (TMOUT=20)
 if	(( TMOUT !=100 ))
@@ -749,8 +751,6 @@ set --
 	exit $Errors
 )
 Errors=$?  # ensure error count survives subshell
-
-cd $tmp
 
 print print -n zzz > zzz
 chmod +x zzz

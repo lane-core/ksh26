@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 binecho=$(whence -p echo)
 
@@ -46,8 +46,6 @@ function check_restricted
 	grep restricted out  > /dev/null 2>&1
 }
 
-[[ $SHELL != /* ]] && SHELL=$pwd/$SHELL
-cd $tmp || err_exit "cd $tmp failed"
 ln -s $SHELL rksh
 PATH=$PWD:$PATH
 rksh -c  '[[ -o restricted ]]' || err_exit 'restricted option not set'

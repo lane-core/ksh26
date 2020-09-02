@@ -41,7 +41,7 @@ alias err_exit='err_exit $lineno'
 Command=${0##*/}
 integer Errors=0 lineno=1
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 whence -q pty || { err\_exit "$LINENO" "pty command not found -- tests skipped"; exit 0; }
 
 # On FreeBSD, the stty command does not appear to work correctly on a pty pseudoterminal.

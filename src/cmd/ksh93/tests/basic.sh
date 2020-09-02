@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 bincat=$(whence -p cat)
 binecho=$(whence -p echo)
@@ -66,9 +66,6 @@ umask u=rwx,go=rx || err_exit "umask u=rws,go=rx failed"
 if	[[ $(umask -S) != u=rwx,g=rx,o=rx ]]
 then	err_exit 'umask -S incorrect'
 fi
-pwd=$PWD
-[[ $SHELL != /* ]] && SHELL=$pwd/$SHELL
-cd $tmp || { err_exit "cd $tmp failed"; exit 1; }
 um=$(umask -S)
 ( umask 0777; > foobar )
 rm -f foobar
@@ -235,7 +232,6 @@ if	[[ $x != hello ]]
 then	err_exit "command substitution with stdout closed failed"
 fi
 exec >& 9
-cd $pwd
 x=$(export binecho bincat; cat <<\! | $SHELL
 "$binecho" | "$bincat"
 "$binecho" hello

@@ -29,7 +29,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 builtin vmstate 2>/dev/null || { err\_exit "$LINENO" 'vmstate built-in command not compiled in; skipping tests'; exit 0; }
 
 # Get the current amount of memory usage

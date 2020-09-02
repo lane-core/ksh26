@@ -27,7 +27,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer aware=0 contrary=0 Errors=0 ignorant=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 function test_glob
 {
@@ -88,8 +88,6 @@ function test_case
 alias test_case='test_case $LINENO'
 
 unset undefined
-
-cd $tmp || { err_exit "cd $tmp failed"; exit 1; }
 
 export LC_COLLATE=C
 touch B b

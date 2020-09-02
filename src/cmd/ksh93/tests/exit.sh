@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 function abspath
 {
@@ -41,7 +41,6 @@ function abspath
 #test for proper exit of shell
 builtin getconf
 ABSHELL=$(abspath)
-cd $tmp || { err_exit "cd $tmp failed"; exit 1; }
 print exit 0 >.profile
 ${ABSHELL}  <<!
 HOME=$PWD \
@@ -73,6 +72,7 @@ EOF
 if	[[ $($SHELL ./run.sh) != 123 ]]
 then	err_exit 'subshell trap on exit overwrites parent trap'
 fi
+cd /
 cd ~- || err_exit "cd back failed"
 $SHELL -c 'builtin -f cmd getconf; getconf --"?-version"; exit 0' >/dev/null 2>&1 || err_exit 'ksh plugin exit failed -- was ksh built with CCFLAGS+=$(CC.EXPORT.DYNAMIC)?'
 

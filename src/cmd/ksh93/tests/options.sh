@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 unset HISTFILE
 export LC_ALL=C ENV=/./dev/null
@@ -139,8 +139,7 @@ fi
 rm -rf $tmp/.kshrc
 
 if	command set -G 2> /dev/null
-then	cd $tmp
-	mkdir bar foo
+then	mkdir bar foo
 	> bar.c > bam.c
 	> bar/foo.c > bar/bam.c
 	> foo/bam.c
@@ -160,10 +159,8 @@ then	cd $tmp
 	expected='bam.c bar/bam.c foo/bam.c'
 	[[ $* == $expected ]] ||
 		err_exit "-G **/bam.c failed -- expected '$expected', got '$*'"
-	cd ~-
 fi
 
-cd $tmp
 t="<$$>.profile.<$$>"
 echo "echo '$t'" > .profile
 cp $SHELL ./-ksh
@@ -201,8 +198,7 @@ else
 	[[ $(HOME=$PWD ./-ksh -ip </dev/null 2>&1) == *$t* ]] &&
 		err_exit './-ksh -p does not ignore .profile'
 fi
-cd ~-
-rm -rf $tmp/.profile
+rm .profile
 
 # { exec interactive login_shell restricted xtrace } in the following test
 
@@ -441,7 +437,6 @@ PAR=(
 CMD=(	command-kill	script-kill	)
 ADD=(	''		'; :'		)
 
-cd $tmp
 print $'#!'$SHELL$'\nkill -KILL $$' > command-kill
 print $'kill -KILL $$' > script-kill
 chmod +x command-kill script-kill

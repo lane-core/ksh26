@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 Command=${0##*/}
 integer Errors=0
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 unset HISTFILE
 
@@ -49,7 +49,6 @@ done
 exec 3> /dev/null
 [[ $(fun) == good ]] || err_exit 'file 3 closed before subshell completes'
 exec 3>&-
-cd $tmp || { err_exit "cd $tmp failed"; exit ; }
 print foo > file1
 print bar >> file1
 if	[[ $(<file1) != $'foo\nbar' ]]
@@ -145,7 +144,6 @@ print world
 !
 chmod +x script
 [[ $( $SHELL ./script) == $'hello\nworld' ]] || err_exit 'closing 3 & 4 causes script to fail'
-cd ~- || err_exit "cd back failed"
 ( exec  > '' ) 2> /dev/null  && err_exit '> "" does not fail'
 unset x
 ( exec > ${x} ) 2> /dev/null && err_exit '> $x, where x null does not fail'
@@ -542,13 +540,9 @@ actual=$( (redirect /dev/null/foo >$tmp/wrong_redirect) 2>&1; echo " status = $?
 # Process substitution
 
 # An output process substitution should work when combined with a redirection.
-# The 'cd "$tmp"' is because in many versions of ksh the test creates a bizarre
-# file that isn't easy to delete individually.
-cd "$tmp"
 result=$("$SHELL" -c 'echo ok > >(sed s/ok/good/); wait')
 [[ $result == good ]] || err_exit 'process substitution does not work with redirections' \
 				"(expected 'good', got $(printf %q "$result"))"
-cd - >/dev/null
 
 # Process substitution in an interactive shell shouldn't print the
 # process ID of the asynchronous process.

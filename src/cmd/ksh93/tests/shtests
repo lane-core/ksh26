@@ -10,7 +10,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (AT&T Research/ksh93) 2020-08-11 $
+@(#)$Id: shtests (AT&T Research/ksh93) 2020-09-02 $
 ]
 '$USAGE_LICENSE$'
 [+NAME?shtests - ksh regression test harness]
@@ -355,6 +355,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		do	o=$u
 			tmp_s=$tmp/$u.$lang
 			mkdir -m700 "$tmp_s" || exit
+			cd "$tmp_s" || exit
 			if	[[ $lang == C ]]
 			then	lang=
 			else	o="$o($lang)"
@@ -363,9 +364,10 @@ do	[[ $i == *.sh ]] || i+='.sh'
 			echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
 			(
 				export ${lang:+"$lang"} "tmp=$tmp_s"
-				$valgrind $SHELL $trace $i
+				$valgrind $SHELL $trace "$OLDPWD/$i"
 			)
 			e=$?
+			cd "$OLDPWD" || exit
 			if	(( !keep ))
 			then	rm -rf "$tmp_s"
 			fi
@@ -395,7 +397,8 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
 		tmp_s=$tmp/$u.shcomp
 		mkdir -m700 "$tmp_s" || exit
-		if	$SHCOMP $i > $c
+		cd "$tmp_s" || exit
+		if	$SHCOMP "$OLDPWD/$i" > $c
 		then	if	tmp=$tmp_s $valgrind $SHELL $trace $c
 			then	echo test $o passed ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} "[ $t $T 0 errors ]"
 			else	e=$?
@@ -415,6 +418,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 			(( ++total_e ))
 			echo test $o failed to compile ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} with exit code $e "[ 1 test 1 error ]"
 		fi
+		cd "$OLDPWD" || exit
 		if	(( !keep ))
 		then	rm -rf "$tmp_s" "$c"
 		fi

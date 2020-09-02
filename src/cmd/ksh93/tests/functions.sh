@@ -28,7 +28,7 @@ alias err_exit='err_exit $LINENO'
 integer Errors=0
 Command=${0##*/}
 
-[[ -d $tmp && -w $tmp ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 compiled=''
 read -n4 c < $0 2> /dev/null
