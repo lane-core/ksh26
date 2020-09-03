@@ -98,11 +98,7 @@ struct checkpt
 	int		topfd;
 	int		mode;
 	struct openlist	*olist;
-#if (ERROR_VERSION >= 20030214L)
 	Error_context_t err;
-#else
-	struct errorcontext err;
-#endif
 };
 
 #define sh_pushcontext(shp,bp,n)( (bp)->mode=(n) , (bp)->olist=0,  \

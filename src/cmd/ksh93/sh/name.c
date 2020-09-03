@@ -1864,7 +1864,6 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			if(sp==up->cp && !(flags&NV_APPEND))
 				return;
 			dot = strlen(sp);
-#if (_AST_VERSION>=20030127L)
 			if(nv_isattr(np,NV_BINARY))
 			{
 				int oldsize = (flags&NV_APPEND)?nv_size(np):0;
@@ -1899,7 +1898,6 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				return;
 			}
 			else
-#endif
 			{
 				if(size==0 && nv_isattr(np,NV_HOST)!=NV_HOST &&nv_isattr(np,NV_LJUST|NV_RJUST|NV_ZFILL))
 					nv_setsize(np,size=dot);
@@ -2809,7 +2807,6 @@ char *nv_getval(register Namval_t *np)
 		return(fmtbase(ll,numeric, numeric&&numeric!=10));
 	}
 done:
-#if (_AST_VERSION>=20030127L)
 	/*
 	 * if NV_RAW flag is on, return pointer to binary data 
 	 * otherwise, base64 encode the data and return this string
@@ -2823,7 +2820,6 @@ done:
 		*ep = 0;
 		return(cp);
 	}
-#endif
 	if(!nv_isattr(np,NV_LJUST|NV_RJUST) && (numeric=nv_size(np)) && up->cp && up->cp[numeric])
 	{
 		char *cp = getbuf(numeric+1);

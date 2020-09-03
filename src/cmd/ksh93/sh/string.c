@@ -703,15 +703,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 
 const char *_sh_translate(const char *message)
 {
-#if ERROR_VERSION >= 20000317L
 	return(ERROR_translate(0,0,e_dict,message));
-#else
-#if ERROR_VERSION >= 20000101L
-	return(ERROR_translate(e_dict,message));
-#else
-	return(ERROR_translate(message,1));
-#endif
-#endif
 }
 
 /*
@@ -750,9 +742,7 @@ char *sh_checkid(char *str, char *last)
 	return(last);
 }
 
-#if	_AST_VERSION  <= 20000317L
 char *fmtident(const char *string)
 {
 	return((char*)string);
 }
-#endif

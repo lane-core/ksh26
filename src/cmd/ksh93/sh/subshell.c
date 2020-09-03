@@ -72,11 +72,7 @@ static struct subshell
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
 	Pathcomp_t	*pathlist; /* for PATH variable */
-#if (ERROR_VERSION >= 20030214L)
 	struct Error_context_s *errcontext;
-#else
-	struct errorcontext *errcontext;
-#endif
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process id */
 	Sfio_t*	saveout;/*saved standard output */

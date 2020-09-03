@@ -45,7 +45,7 @@ static int	cursig = -1;
 #if !_std_malloc
 #   include	<vmalloc.h>
 #endif
-#if  defined(VMFL) && (VMALLOC_VERSION>=20031205L)
+#if  defined(VMFL)
     /*
      * This exception handler is called after vmalloc() unlocks the region
      */
@@ -154,7 +154,7 @@ void	sh_fault(register int sig)
 			shp->trapnote |= SH_SIGSET;
 			if(sig <= shp->gd->sigmax)
 				shp->sigflag[sig] |= SH_SIGSET;
-#if  defined(VMFL) && (VMALLOC_VERSION>=20031205L)
+#if  defined(VMFL)
 			if(abortsig(sig))
 			{
 				/* abort inside malloc, process when malloc returns */

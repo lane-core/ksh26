@@ -243,11 +243,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case ':':
 			/* The following is for backward compatibility */
-#if OPT_VERSION >= 19990123
 			if(strcmp(opt_info.name,"-R")==0)
-#else
-			if(strcmp(opt_info.option,"-R")==0)
-#endif
 			{
 				rflag = 1;
 				if(error_info.errors==0)

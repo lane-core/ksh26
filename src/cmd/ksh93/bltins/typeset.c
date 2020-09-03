@@ -1043,11 +1043,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		if(list)
 			sfprintf(sfstdout, "%s %08lu %s\n", arg, ver, path);
 #else
-#if (_AST_VERSION>=20040404)
 		if(!(library = dllplug(SH_ID,arg,NIL(char*),RTLD_LAZY,NIL(char*),0)))
-#else
-		if(!(library = dllfind(arg,NIL(char*),RTLD_LAZY,NIL(char*),0)))
-#endif
 		{
 			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",arg,dlerror());
 			return(1);

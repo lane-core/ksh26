@@ -29,9 +29,7 @@
 #include	<ast.h>
 #include	<math.h>
 #include	"defs.h"
-#if _AST_VERSION >= 20030127L
-#   include	<ast_float.h>
-#endif
+#include	<ast_float.h>
 
 #if _ast_fltmax_double
 #define LDBL_LLONG_MAX		DBL_LLONG_MAX

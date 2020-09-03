@@ -118,13 +118,8 @@ extern struct jobs job;
 #ifdef vmlocked
 #define vmbusy()	vmlocked(Vmregion)
 #else
-#if VMALLOC_VERSION >= 20070911L
 #define vmbusy()	(vmstat(0,0)!=0)
 #endif
-#endif
-#endif
-#ifndef vmbusy
-#define vmbusy()	0
 #endif
 
 #define job_lock()	(job.in_critical++)

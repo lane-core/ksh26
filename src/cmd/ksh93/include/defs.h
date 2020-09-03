@@ -29,6 +29,9 @@
 #define defs_h_defined
 
 #include	<ast.h>
+#if !defined(AST_VERSION) || AST_VERSION < 20111111L
+#error libast version 20111111 or later is required
+#endif
 #if !SHOPT_MULTIBYTE
     /* disable multibyte without need for further '#if SHOPT_MULTIBYTE' */
 #   undef mbwide

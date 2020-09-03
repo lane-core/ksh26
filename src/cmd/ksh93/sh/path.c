@@ -830,11 +830,7 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 				if (dll = dllplugin(SH_ID, stakptr(m), NiL, SH_PLUGIN_VERSION, NiL, RTLD_LAZY, NiL, 0))
 					sh_addlib(shp,dll,stakptr(m),oldpp);
 #else
-#if (_AST_VERSION>=20040404)
 				if (dll = dllplug(SH_ID, stakptr(m), NiL, RTLD_LAZY, NiL, 0))
-#else
-				if (dll = dllfind(stakptr(m), NiL, RTLD_LAZY, NiL, 0))
-#endif
 				{
 					/*
 					 * this detects the 2007-05-11 builtin context change and also

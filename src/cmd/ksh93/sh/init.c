@@ -361,19 +361,11 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
      * This function needs to be modified to handle international
      * error message translations
      */
-#if ERROR_VERSION >= 20000101L
     static char* msg_translate(const char* catalog, const char* message)
     {
 	NOT_USED(catalog);
 	return((char*)message);
     }
-#else
-    static char* msg_translate(const char* message, int type)
-    {
-	NOT_USED(type);
-	return((char*)message);
-    }
-#endif
 
     /* Trap for LC_ALL, LC_CTYPE, LC_MESSAGES, LC_COLLATE and LANG */
     static void put_lang(Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -467,10 +459,6 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 			sh_lexstates[ST_BRACE]=(char*)sh_lexrstates[ST_BRACE];
 		}
 	}
-#if ERROR_VERSION < 20000101L
-	if(type==LC_ALL || type==LC_MESSAGES)
-		error_info.translate = msg_translate;
-#endif
     }
 #endif /* _hdr_locale */
 
@@ -1243,9 +1231,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->stk = stkstd;
 	sfsetbuf(shp->strbuf,(char*)0,64);
 	sh_onstate(SH_INIT);
-#if ERROR_VERSION >= 20000102L
 	error_info.catalog = e_dict;
-#endif
 #if SHOPT_REGRESS
 	{
 		Opt_t*	nopt;
@@ -1325,17 +1311,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		char *cp=nv_getval(L_ARGNOD);
 		char buff[PATH_MAX+1];
 		shp->gd->shpath = 0;
-#if _AST_VERSION >= 20090202L
 		if((n = pathprog(NiL, buff, sizeof(buff))) > 0 && n <= sizeof(buff))
 			shp->gd->shpath = strdup(buff);
-#else
-		sfprintf(shp->strbuf,"/proc/%d/exe",getpid());
-		if((n=readlink(sfstruse(shp->strbuf),buff,sizeof(buff)-1))>0)
-		{
-			buff[n] = 0;
-			shp->gd->shpath = strdup(buff);
-		}
-#endif
 		else if((cp && (sh_type(cp)&SH_TYPE_SH)) || (argc>0 && strchr(cp= *argv,'/')))
 		{
 			if(*cp=='/')
@@ -1472,11 +1449,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->bltindata.shtrap = sh_trap;
 	shp->bltindata.shexit = sh_exit;
 	shp->bltindata.shbltin = sh_addbuiltin;
-#if _AST_VERSION >= 20080617L
 	shp->bltindata.shgetenv = sh_getenv;
 	shp->bltindata.shsetenv = sh_setenviron;
 	astintercept(&shp->bltindata,1);
-#endif
 #if 0
 #define NV_MKINTTYPE(x,y,z)	nv_mkinttype(#x,sizeof(x),(x)-1<0,(y),(Namdisc_t*)z); 
 	NV_MKINTTYPE(pid_t,"process id",0);

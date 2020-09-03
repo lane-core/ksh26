@@ -74,7 +74,6 @@
 
 static struct glob	 *membase;
 
-#if GLOB_VERSION >= 20010916L
 static char *nextdir(glob_t *gp, char *dir)
 {
 	Shell_t	*shp = sh_getinterp();
@@ -88,7 +87,6 @@ static char *nextdir(glob_t *gp, char *dir)
 		return(pp->name);
 	return(0);
 }
-#endif
 
 int path_expand(Shell_t *shp,const char *pattern, struct argnod **arghead)
 {
@@ -108,9 +106,7 @@ int path_expand(Shell_t *shp,const char *pattern, struct argnod **arghead)
 #if KSHELL
 		extra += scantree(shp->alias_tree,pattern,arghead); 
 		extra += scantree(shp->fun_tree,pattern,arghead); 
-#   if GLOB_VERSION >= 20010916L
 		gp->gl_nextdir = nextdir;
-#   endif
 #endif /* KSHELL */
 		flags |= GLOB_COMPLETE;
 		flags &= ~GLOB_NOCHECK;
