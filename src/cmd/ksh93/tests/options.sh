@@ -531,4 +531,15 @@ print '. ./dotfile' > envfile
 print $'alias print=:\nprint foobar' > dotfile
 [[ $(ENV=/.$PWD/envfile $SHELL -i -c : 2>/dev/null) == foobar ]] && err_exit 'files source from profile does not process aliases correctly'
 
+# ======
+# test that '-o posix' option (not having a letter) does not affect "$-" expansion
+(
+	command set +o posix 2>/dev/null
+	opt1=$-
+	command set -o posix 2>/dev/null
+	opt2=$-
+	[[ $opt1 == "$opt2" ]]
+) || err_exit '-o posix option affects $- expansion'
+
+# ======
 exit $((Errors<125?Errors:125))
