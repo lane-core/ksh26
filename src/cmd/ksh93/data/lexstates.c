@@ -274,7 +274,7 @@ static const char sh_lexstate7[256] =
 	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,
 	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,	S_ERR,
 
-	S_ERR,	S_ERR,	S_ERR,	S_MOD2,	S_ERR,	S_MOD2,	S_ERR,	S_ERR,
+	S_ERR,	0,	S_ERR,	S_MOD2,	0,	S_MOD2,	S_ERR,	S_ERR,
 	S_ERR,	S_ERR,	S_MOD1,	S_MOD1,	S_ERR,	S_MOD1,	S_DOT,	S_MOD2,
 	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	S_MOD1,	S_ERR,	S_ERR,	S_MOD1,	S_ERR,	S_MOD1,

@@ -510,4 +510,14 @@ $SHELL -c '$(true << !)
 !' 2> /dev/null && err_exit "a here-doc that isn't completed before the closing ) in a command substitution doesn't cause an error"
 
 # ======
+# Check that ${p}, where p is a special parameter, does not cause a syntax error in a here-document.
+# Bug for ${!} and ${$} reported at: https://github.com/ksh93/ksh/issues/127
+for p in @ \* \# ! \$ - \? 0; do
+	err=$(eval ': <<EOF
+${'"$p"'}
+EOF
+' 2>&1) || err_exit "special parameter \${$p} throws syntax error in here-document (got \"$err\")"
+done
+
+# ======
 exit $((Errors<125?Errors:125))
