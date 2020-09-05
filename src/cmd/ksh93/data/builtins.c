@@ -241,7 +241,7 @@ const char sh_set[] =
 			"of the pipeline will be the value of the last "
 			"command to exit with non-zero exit status, or will "
 			"be zero if all commands return zero exit status.]"
-		"[+posix?Enable POSIX standard compatibility mode.]"
+		"[+posix?Enable full POSIX standard compliance mode.]"
 		"[+privileged?Equivalent to \b-p\b.]"
 		"[+rc?Do not run the \b.kshrc\b file for interactive shells.]"
 		"[+showme?Simple commands preceded by a \b;\b will be traced "

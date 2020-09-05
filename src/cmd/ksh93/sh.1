@@ -3602,7 +3602,7 @@ the file descriptor number in variable
 .PP
 A special shorthand redirection operator \fB&>\fR\fIword\fR is available; it
 is equivalent to \fB>\fR\fIword\fR\fB 2>&1\fR. It cannot be preceded by any
-digit or variable name. This shorthand is disabled if the \fIposix\fR shell
+digit or variable name. This shorthand is disabled if the \fBposix\fR shell
 option is active.
 .PP
 The order in which redirections are specified is significant.
@@ -7038,7 +7038,7 @@ will be the value of the last non-zero command
 to fail or zero if no command has failed.
 .TP 8
 .B posix
-Enable POSIX standard compatibility mode. This option
+Enable full POSIX standard compliance mode. This option
 is on by default if ksh is invoked as \fBsh\fR. It
 causes file descriptors > 2 to be left open when invoking another program,
 makes the \fB<>\fR redirection operator default to standard input,
