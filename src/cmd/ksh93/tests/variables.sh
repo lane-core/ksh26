@@ -1011,20 +1011,6 @@ $SHELL -c '
 e=$?
 ((e == 1)) || err_exit "Failure in making one or more special variables readonly in a subshell (exit status $e)"
 
-# ... subshell leak test
-$SHELL -c '
-	errors=0
-	for var
-	do	if	eval "($var=bug); [[ \${$var} == bug ]]" 2>/dev/null
-		then	echo "	$0: special variable $var leaks out of subshell" >&2
-			let errors++
-		fi
-	done
-	exit $((errors + 1))
-' subshell_leak_test "$@"
-e=$?
-((e == 1)) || err_exit "One or more special variables leak out of a subshell (exit status $e)"
-
 # ======
 # ${.sh.pid} should be the forked subshell's PID
 (
