@@ -500,7 +500,7 @@ typeset -A expect=(
 	[Z]='typeset -x -r -Z 0 -R 0 foo'
 #	[Z13]='typeset -x -r -Z 13 -R 13 foo'	# TODO: outputs 'typeset -x -r -Z 0 -R 0 foo'
 )
-for flag in a b i i37 l n s u A C E E12 F F12 H L Mtolower Mtoupper R X17 S T Z
+for flag in "${!expect[@]}"
 do	unset foo
 	actual=$(
 		redirect 2>&1
