@@ -233,10 +233,6 @@ int nv_subsaved(register Namval_t *np)
  *
  * add == 0:    Move the node pointer from the parent shell to the current virtual subshell.
  * add == 1:    Create a copy of the node pointer in the current virtual subshell.
- * add == 2:    This will create a copy of the node pointer like 1, but it will disable the
- *              optimization for ${.sh.level}.
- * add == 3:    This is like 1, but it will never skip the following variables:
- *              ${.sh.level}, $_, ${.sh.subscript} and ${.sh.name}.
  */
 Namval_t *sh_assignok(register Namval_t *np,int add)
 {
@@ -248,11 +244,8 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	Namval_t		*mpnext;
 	Namarr_t		*ap;
 	unsigned int		save;
-	/* don't bother to save if in a ${ subshare; } */
-	if(sp->subshare)
-		return(np);
-	/* don't bother with this */
-	if(!sp->shpwd || (add != 3 && ((add != 2 && np==SH_LEVELNOD) || np==L_ARGNOD || np==SH_SUBSCRNOD || np==SH_NAMENOD)))
+	/* don't save if told not to (see nv_restore()) or if we're in a ${ subshare; } */
+	if(!sp->shpwd || shp->subshare)
 		return(np);
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
