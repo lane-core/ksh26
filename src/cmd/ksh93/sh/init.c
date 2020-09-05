@@ -199,7 +199,7 @@ typedef struct _init_
 static Init_t		*ip;
 static int		lctype;
 static int		nbltins;
-static void		env_init(Shell_t*);
+static void		env_init(Shell_t*,int);
 static Init_t		*nv_init(Shell_t*);
 static Dt_t		*inittree(Shell_t*,const struct shtable2*);
 static int		shlvl;
@@ -1285,7 +1285,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	stakinstall(NIL(Stak_t*),nospace);
 	/* set up memory for name-value pairs */
 	shp->init_context =  nv_init(shp);
-	/* read the environment */
+	/* initialize shell type */
 	if(argc>0)
 	{
 		type = sh_type(*argv);
@@ -1294,7 +1294,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		if(type&SH_TYPE_POSIX)
 			sh_onoption(SH_POSIX);
 	}
-	env_init(shp);
+	/* read the environment; don't import attributes yet */
+	env_init(shp,0);
 	if(!ENVNOD->nvalue.cp)
 	{
 		sfprintf(shp->strbuf,"%s/.kshrc",nv_getval(HOME));
@@ -1395,6 +1396,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			beenhere = 2;
 		}
 	}
+	/* import variable attributes from environment */
+	if(!sh_isoption(SH_POSIX))
+		env_init(shp,1);
 #if SHOPT_PFSH
 	if (sh_isoption(SH_PFSH))
 	{
@@ -1876,16 +1880,24 @@ static Dt_t *inittree(Shell_t *shp,const struct shtable2 *name_vals)
 /*
  * read in the process environment and set up name-value pairs
  * skip over items that are not name-value pairs
+ *
+ * Must be called with import_attributes == 0 first, then again with
+ * import_attributes == 1 if variable attributes are to be imported
+ * from the environment.
  */
 
-static void env_init(Shell_t *shp)
+static void env_init(Shell_t *shp, int import_attributes)
 {
 	register char		*cp;
 	register Namval_t	*np,*mp;
 	register char		**ep=environ;
-	char			*dp,*next=0;
+	char			*dp;
 	int			nenv=0,k=0,size=0;
 	Namval_t		*np0;
+	static char		*next=0;  /* next variable whose attributes to import */
+
+	if(import_attributes)
+		goto import_attributes;
 	if(!ep)
 		goto skip;
 	while(*ep++)
@@ -1902,10 +1914,10 @@ static void env_init(Shell_t *shp)
 			mp->nvenv = (char*)cp;
 			dp[-1] = '=';
 		}
-		else if(*cp=='A' && cp[1]=='_' && cp[2]=='_' && cp[3]=='z' && cp[4]==0)
+		else if(strcmp(cp,e_envmarker)==0)
 		{
 			dp[-1] = '=';
-			next = cp+4;
+			next = cp + strlen(e_envmarker);
 			continue;
 		}
 		else
@@ -1915,7 +1927,7 @@ static void env_init(Shell_t *shp)
 			mp->nvname = cp;
 			size += strlen(cp);
 		}
-			nv_onattr(mp,NV_IMPORT);
+		nv_onattr(mp,NV_IMPORT);
 		if(mp->nvfun || nv_isattr(mp,NV_INTEGER))
 			nv_putval(mp,dp,0);
 		else
@@ -1937,6 +1949,18 @@ static void env_init(Shell_t *shp)
 		dp += size+1;
 		dtinsert(shp->var_base,np++);
 	}
+skip:
+	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
+	{
+		nv_offattr(PWDNOD,NV_TAGGED);
+		path_pwd(shp,0);
+	}
+	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
+		sh_onoption(SH_RESTRICTED); /* restricted shell */
+	return;
+
+	/* Import variable attributes from environment (from variable named by e_envmarker) */
+import_attributes:
 	while(cp=next)
 	{
 		if(next = strchr(++cp,'='))
@@ -1978,14 +2002,6 @@ static void env_init(Shell_t *shp)
 		else
 			cp += 2;
 	}
-skip:
-	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
-	{
-		nv_offattr(PWDNOD,NV_TAGGED);
-		path_pwd(shp,0);
-	}
-	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
-		sh_onoption(SH_RESTRICTED); /* restricted shell */
 	return;
 }
 

@@ -27,6 +27,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
     (this keeps the 2020-05-13 BUG_REDIRIO fix for the POSIX mode while
     restoring traditional ksh93 behaviour for backwards compatibility)
   * disables a noncompliant 'test -t' == 'test -t 1' compatibility hack
+  * disables passing an exported variable's attributes (such as integer or
+    readonly) to a new ksh process through the environment
 
 2020-08-19:
 

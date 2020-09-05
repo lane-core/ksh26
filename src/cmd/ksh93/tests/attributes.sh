@@ -86,6 +86,16 @@ fi
 if	[[ $($SHELL -c 'xi=xi+4;echo $xi') != 24 ]]
 then	err_exit export attributes fails
 fi
+if	[[ -o ?posix && $(set -o posix; "$SHELL" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+then	err_exit "attributes exported despite posix mode (-o posix)"
+fi
+if	[[ -o ?posix && $("$SHELL" -o posix -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+then	err_exit "attributes imported despite posix mode (-o posix)"
+fi
+ln -s "$SHELL" "$tmp/sh"
+if	[[ $("$tmp/sh" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+then	err_exit "attributes imported despite posix mode (invoked as sh)"
+fi
 x=$(foo=abc $SHELL <<!
 	foo=bar
 	$SHELL -c  'print \$foo'

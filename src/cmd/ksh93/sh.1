@@ -980,8 +980,9 @@ The attributes supported by the shell are described
 later with the
 .B typeset\^
 special built-in command.
-Exported variables pass values and attributes to
-the environment.
+Exported variables pass their attributes to the environment so that a newly
+invoked ksh that is a child or exec'ed process of the current shell will
+automatically import them, unless the \fBposix\fR shell option is on.
 .PP
 The shell supports both indexed and associative arrays.
 An element of an array variable is referenced by a
@@ -7040,6 +7041,7 @@ to fail or zero if no command has failed.
 .B posix
 Enable full POSIX standard compliance mode. This option
 is on by default if ksh is invoked as \fBsh\fR. It
+disables passing exported variables' attributes (such as integer or readonly) to a new ksh process through the environment,
 causes file descriptors > 2 to be left open when invoking another program,
 makes the \fB<>\fR redirection operator default to standard input,
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to \fBtest -t 1\fR (\fB[ -t 1 ]\fR),
