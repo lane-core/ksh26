@@ -1018,6 +1018,11 @@ int sh_lex(Lex_t* lp)
 				if(lp->kiafile)
 					refvar(lp,1);
 #endif /* SHOPT_KIA */
+				if(c == ':' || c == '-' || c == '+' || c == '=')
+				{
+					mode = ST_QUOTE;
+					continue;
+				}
 				if(c!=':' && fcgetc(n)>0)
 				{
 					if(n!=c)

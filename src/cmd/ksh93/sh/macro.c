@@ -1628,7 +1628,8 @@ retry1:
 			}
 			else
 			{
-				sh_lexskip(lp,RBRACE,0,(!newops&&mp->quote)?ST_QUOTE:ST_NESTED);
+				int state = (!newops && mp->quote || c=='-' || c=='+' || c=='=') ? ST_QUOTE : ST_NESTED;
+				sh_lexskip(lp, RBRACE, 0, state);
 				stkseek(stkp,offset);
 			}
 			argp=stkptr(stkp,offset);
