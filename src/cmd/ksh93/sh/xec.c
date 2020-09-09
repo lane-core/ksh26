@@ -972,8 +972,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 		if(was_monitor&flags)
 			sh_onstate(SH_MONITOR);
 		type = t->tre.tretyp;
-		if(!shp->intrap)
-			shp->oldexit=shp->exitval;
 		shp->exitval=0;
 		shp->lastsig = 0;
 		shp->lastpath = 0;

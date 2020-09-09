@@ -49,9 +49,3 @@ https://github.com/modernish/modernish/tree/0.16/lib/modernish/cap/
   parameter expansion inserts any IFS separator characters, those characters
   are erroneously interpreted as wildcards when quoted "$*" is used as the
   glob pattern.
-
-- BUG_LOOPRET2: If a 'return' command is given without a status argument
-  within the set of conditional commands in a 'while' or 'until' loop (i.e.,
-  between 'while'/'until' and 'do'), the exit status passed down from the
-  previous command is ignored and the function returns with status 0
-  instead.

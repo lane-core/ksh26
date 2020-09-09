@@ -3,6 +3,18 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-09-09:
+
+- Fixed BUG_LOOPRET2 and related bugs. The 'exit' and 'return' commands without
+  an argument now correctly default to passing down the exit status of the
+  last-run command. Tests like the following, in which the last-run command is
+  'false', now correctly output 1 instead of 0:
+	fn() { return || true; }; false; fn; echo "$?"
+	fn() { while return; do true; done; }; false; fn; echo "$?"
+	fn() { for i in 1; do return; done; }; false; fn; echo "$?"
+	fn() { case 1 in 1) return ;; esac; }; false; fn; echo "$?"
+	fn() { { return; } 2>&1; }; false; fn; echo "$?"
+
 2020-09-05:
 
 - Fixed erroneous syntax errors in parameter expansions such as ${var:-wor)d}
