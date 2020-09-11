@@ -3691,7 +3691,7 @@ are equivalent (as far as the above execution of
 .I cmd\^
 is concerned except for special built-in commands listed below \-
 those that are
-preceded with a dagger).
+marked with \fB\(dg\fR).
 .PP
 If the obsolete
 .B \-k
@@ -5495,10 +5495,11 @@ Commands that are preceded by a \(dd symbol below are
 Any following words
 that are in the format of a variable assignment
 are expanded with the same rules as a variable assignment.
-This means that
-tilde substitution is performed after the
+This means that tilde substitution is performed after the
 .B =
-sign and field splitting and file name generation are not
+sign, array assignments of the form
+\f2varname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
+are supported, and field splitting and file name generation are not
 performed.
 .PD
 .TP
@@ -5650,7 +5651,7 @@ via the
 file will associate with the pathname of the directory containing the
 .B .paths
 file.
-.P
+.IP
 The ISO C/C++ prototype is
 \f3b_\fP\f2mycommand\fP\f3(int\fP \f2argc\fP, \f3char *\fP\f2argv\fP\f3[]\fP, \f3void *\fP\f2context\fP\f3)\fP
 for the builtin command
@@ -5663,7 +5664,7 @@ elements and context is an optional pointer to a
 .B Shell_t
 structure as described in
 .BR <ast/shell.h> .
-.sp .5
+.IP
 Special built-ins cannot be bound to a pathname or deleted.
 The
 .B \-d
@@ -5770,50 +5771,6 @@ command may not be executed by
 .if \nZ=2 .B rksh93\^.
 .TP
 \f3command\fP \*(OK \f3\-pvxV\fP \*(CK \f2name\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
-Without the
-.B \-v
-or
-.B \-V
-options,
-.B command
-executes
-.I name\^
-with the arguments given by
-.IR arg .
-The
-.B \-p
-option causes
-the operating system's standard utilities path
-(as output by \f3getconf PATH\fP) to be searched
-rather than the one defined by the value of
-.SM
-.BR PATH .
-Functions and aliases will not be searched for when finding
-.IR name .
-In addition, if
-.I name\^
-refers to a special built-in,
-none of the special properties associated with the leading
-daggers will be honored.
-(For example, using
-.B "command set -o"
-.I "option-name"
-prevents a script from terminating when an invalid
-option name is given.)
-With the
-.B \-x
-option,
-if command execution would result in a failure because
-there are too many arguments, errno
-.SM
-.BR E2BIG ,
-the shell will invoke command
-.I name\^
-multiple times with a subset of the arguments on each invocation.
-Arguments that occur prior to the first word that
-expands to multiple arguments and after the last word
-that expands to multiple arguments will be passed on each invocation.
-The exit status will be the maximum invocation exit status.
 With the
 .B \-v
 option,
@@ -5827,6 +5784,63 @@ option causes
 .B command
 to act like
 .BR "whence \-v" .
+.IP
+Without the
+.B \-v
+or
+.B \-V
+options,
+.B command
+executes
+.I name\^
+with the arguments given by
+.IR arg .
+Functions and aliases will not be searched for when finding
+.IR name .
+If
+.I name\^
+refers to a special built-in,
+as marked with \fB\(dg\fR in this manual,
+.B command
+disables the special properties described above for that mark,
+executing the command as a regular built-in.
+(For example, using
+.B "command set \-o"
+.I "option-name"
+prevents a script from terminating when an invalid
+option name is given.)
+If
+.I name\^
+refers to a declaration built-in,
+as marked with \fB\(dd\fR in this manual,
+and the \fBposix\fR shell option is on,
+then the declaration properties are removed so that arguments containing
+\fB=\fR are not treated specially.
+.IP
+The
+.B \-p
+option causes
+the operating system's standard utilities path
+(as output by \f3getconf PATH\fP) to be searched
+rather than the one defined by the value of
+.SM
+.BR PATH .
+.IP
+The
+.B \-x
+option allows executing non-built-in commands with argument lists exceeding
+limitations imposed by the operating system. This functionality is similar to
+.BR xargs (1)
+but is easier to use.
+If a command cannot ordinarily be executed because there are too many
+arguments, the shell will invoke the indicated command multiple times
+with a subset of the arguments on each invocation.
+Any arguments (such as command options) that come before the first word
+that expands to multiple arguments, as well as any that follow the last
+word that expands to multiple arguments, are considered static arguments
+and are repeated for each invocation. When all invocations are completed,
+.B "command \-x"
+exits with the status of the invocation that had the highest exit status.
 .TP
 \(dd \f3compound\fP \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK .\|.\|.
 Causes each
@@ -7044,6 +7058,7 @@ is on by default if ksh is invoked as \fBsh\fR. It
 disables passing exported variables' attributes (such as integer or readonly) to a new ksh process through the environment,
 causes file descriptors > 2 to be left open when invoking another program,
 makes the \fB<>\fR redirection operator default to standard input,
+causes the \fBcommand\fR utility to disable declaration command properties of any declaration commands it invokes,
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to \fBtest -t 1\fR (\fB[ -t 1 ]\fR),
 enables octal numbers in \fBlet\fR shell arithmetic (see \fBletoctal\fR), and
 disables the \fB&>\fR redirection shorthand.
