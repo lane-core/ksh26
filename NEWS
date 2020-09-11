@@ -17,6 +17,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
      b. 'command' can now stop the shell from exiting if a command that it
 	invokes tries to modify a readonly variable (fixing BUG_CMDSPEXIT).
 
+- The 'history' (== 'hist -l') and 'r' (== 'hist -s') interactive shell
+  history commands have reverted to preset aliases and are now only loaded if
+  the shell is interactive and not initialised in POSIX mode. This avoids
+  unneeded conflicts with external commands by these names, particularly 'r'.
+
 2020-09-09:
 
 - Fixed BUG_LOOPRET2 and related bugs. The 'exit' and 'return' commands without
