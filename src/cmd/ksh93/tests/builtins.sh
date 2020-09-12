@@ -938,14 +938,20 @@ EOF
 
 # ==========
 # Builtins should handle unrecognized options correctly
-(
-	builtin $(builtin -l | awk -F "/" '/\/opt/ {print $5}') # Load all /opt/ast/bin builtins
-	for name in $(builtin -l | grep -Ev '(echo|/opt|test|true|false|getconf|uname|\[|:)'); do
-	    actual=$({ "$name" --this-option-does-not-exist; } 2>&1)
-	    expect="Usage: $name"
-	    [[ $actual =~ $expect ]] || err_exit "$name should show usage info on unrecognized options (expected $(printf '%q' "$expect"), got $(printf '%q' "$actual"))"
-	done
-)
+while IFS= read -r bltin <&3
+do	case $bltin in
+	echo | test | true | false | \[ | : | getconf | */getconf | uname | */uname)
+		continue ;;
+	/*/*)	expect="Usage: ${bltin##*/} "
+		actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
+	*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
+		continue ;;
+	*)	expect="Usage: $bltin "
+		actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
+	esac
+	[[ $actual == *"$expect"* ]] || err_exit "$bltin should show usage info on unrecognized options" \
+			"(expected string containing $(printf %q "$expect"), got $(printf %q "$actual"))"
+done 3< <(builtin)
 
 # ======
 exit $((Errors<125?Errors:125))
