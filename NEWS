@@ -8,6 +8,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Corrected rounding of floating point values by ksh's printf %f formatting
   operator. Fix contributed by @hyenias.
 
+- The forward-delete key now works as expected in emacs and vi editing modes.
+
 2020-09-11:
 
 - The 'command' regular builtin utility (which runs a simple command, removing

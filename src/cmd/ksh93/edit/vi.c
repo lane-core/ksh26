@@ -1606,6 +1606,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 	register int tcur_virt;
 	register int incr = -1;
 	register int bound = 0;
+	int c;
 
 	switch(motion)
 	{
@@ -1632,7 +1633,14 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		break;
 
 	case '[':
-		switch(motion=getcount(vp,ed_getchar(vp->ed,-1)))
+		c = ed_getchar(vp->ed,-1);
+		if(c=='3' && ed_getchar(vp->ed,-1)=='~')
+		{
+			/* VT220 forward-delete key */
+			ed_ungetchar(vp->ed,'x');
+			return(1);
+		}
+		switch(motion=getcount(vp,c))
 		{
 		    case 'A':
 #if SHOPT_EDPREDICT

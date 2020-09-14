@@ -1109,6 +1109,19 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			    case 'Y':
 				ed_ungetchar(ep->ed,cntl('E'));
 				return(-1);
+			    case '3':
+				if(ed_getchar(ep->ed,1)=='~')
+				{	/*
+					 * VT220 forward-delete key.
+					 * Since ERASECHAR and EOFCHAR are usually both mapped to ^D, we
+					 * should only issue ERASECHAR if there is something to delete,
+					 * otherwise forward-delete on empty line will terminate the shell.
+					 */
+					if(cur < eol)
+						ed_ungetchar(ep->ed,ERASECHAR);
+					return(-1);
+				}
+				/* FALLTHROUGH */
 			    default:
 				ed_ungetchar(ep->ed,i);
 			}
