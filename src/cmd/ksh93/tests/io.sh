@@ -619,4 +619,18 @@ fi
 [[ $(<bad.txt) == '' ]] || err_exit 'File descriptors > 2 inherited without POSIX mode' "(got $actual)"
 
 # ======
+# File descriptor leak with process substitution
+err=$(
+	ulimit -n 15 || exit 0
+	fdUser() {
+		:
+	}
+	set +x
+	for ((i=1; i<10; i++))
+	do	fdUser <(:) >(:) || exit
+	done 2>&1
+) || err_exit 'Process substitution leaks file descriptors when used as argument to function' \
+	"(got $(printf %q "$err"))"
+
+# ======
 exit $((Errors<125?Errors:125))
