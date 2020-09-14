@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-09-14:
+
+- Corrected rounding of floating point values by ksh's printf %f formatting
+  operator. Fix contributed by @hyenias.
+
 2020-09-11:
 
 - The 'command' regular builtin utility (which runs a simple command, removing
