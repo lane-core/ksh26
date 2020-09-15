@@ -229,4 +229,22 @@ err_exit_if_leak 'indexed array in function'
 LANG=$saveLANG		# comment out to test remaining leak (2/2)
 
 # ======
+# Memory leak in typeset (Red Hat #1036470)
+# Fix based on: https://src.fedoraproject.org/rpms/ksh/blob/642af4d6/f/ksh-20120801-memlik3.patch
+# The fix was backported from ksh 93v- beta.
+
+function myFunction
+{
+	typeset toPrint="something"
+	echo "${toPrint}"
+}
+state=$(myFunction)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	state=$(myFunction)
+done
+after=$(getmem)
+err_exit_if_leak 'typeset in function called by command substitution'
+
+# ======
 exit $((Errors<125?Errors:125))

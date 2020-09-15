@@ -211,16 +211,28 @@ void sh_subfork(void)
 	}
 }
 
-int nv_subsaved(register Namval_t *np)
+int nv_subsaved(register Namval_t *np, int flags)
 {
 	register struct subshell	*sp;
-	register struct Link		*lp;
+	register struct Link		*lp, *lpprev;
 	for(sp = (struct subshell*)subshell_data; sp; sp=sp->prev)
 	{
-		for(lp=sp->svar; lp; lp = lp->next)
+		lpprev = 0;
+		for(lp=sp->svar; lp; lpprev=lp, lp=lp->next)
 		{
 			if(lp->node==np)
+			{
+				if(flags&NV_TABLE)
+				{
+					if(lpprev)
+						lpprev->next = lp->next;
+					else
+						sp->svar = lp->next;
+					free((void*)np);
+					free((void*)lp);
+				}
 				return(1);
+			}
 		}
 	}
 	return(0);

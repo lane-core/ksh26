@@ -217,7 +217,7 @@ extern Namval_t		*nv_mount(Namval_t*, const char *name, Dt_t*);
 extern Namval_t		*nv_arraychild(Namval_t*, Namval_t*, int);
 extern int		nv_compare(Dt_t*, Void_t*, Void_t*, Dtdisc_t*);
 extern void		nv_outnode(Namval_t*,Sfio_t*, int, int);
-extern int		nv_subsaved(Namval_t*);
+extern int		nv_subsaved(Namval_t*, int);
 extern void		nv_typename(Namval_t*, Sfio_t*);
 extern void		nv_newtype(Namval_t*);
 extern int		nv_istable(Namval_t*);

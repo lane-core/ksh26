@@ -1259,7 +1259,7 @@ void nv_delete(Namval_t* np, Dt_t *root, int flags)
 	{
 		if(dtdelete(root,np))
 		{
-			if(!(flags&NV_NOFREE) && ((flags&NV_FUNCTION) || !nv_subsaved(np)))
+			if(!(flags&NV_NOFREE) && ((flags&NV_FUNCTION) || !nv_subsaved(np,flags&NV_TABLE)))
 			{
 				Namarr_t *ap;
 				if(nv_isarray(np) && np->nvfun && (ap=nv_arrayptr(np)) && array_assoc(ap))
@@ -2400,14 +2400,14 @@ static void table_unset(Shell_t *shp, register Dt_t *root, int flags, Dt_t *oroo
 			{
 				_nv_unset(nq,flags);
 				npnext = (Namval_t*)dtnext(root,nq);
-				nv_delete(nq,root,0);
+				nv_delete(nq,root,NV_TABLE);
 			}
 		}
 		npnext = (Namval_t*)dtnext(root,np);
 		if(nv_arrayptr(np))
 			nv_putsub(np,NIL(char*),ARRAY_SCAN);
 		_nv_unset(np,flags);
-		nv_delete(np,root,0);
+		nv_delete(np,root,NV_TABLE);
 	}
 }
 
