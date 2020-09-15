@@ -194,4 +194,39 @@ after=$(getmem)
 err_exit_if_leak 'script sourced in virtual subshell'
 
 # ======
+# Multiple leaks when using arrays in functions (Red Hat #921455)
+# Fix based on: https://src.fedoraproject.org/rpms/ksh/blob/642af4d6/f/ksh-20120801-memlik.patch
+
+# TODO: both of these tests still leak (although much less after the patch) when run in a non-C locale.
+saveLANG=$LANG; LANG=C	# comment out to test remaining leak (1/2)
+
+function _hash
+{
+	typeset w=([abc]=1 [def]=31534 [xyz]=42)
+	print -u2 $w 2>&-
+	# accessing the var will leak
+}
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	_hash
+done
+after=$(getmem)
+err_exit_if_leak 'associative array in function'
+
+function _array
+{
+	typeset w=(1 31534 42)
+	print -u2 $w 2>&-
+	# unset w will prevent leak
+}
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	_array
+done
+after=$(getmem)
+err_exit_if_leak 'indexed array in function'
+
+LANG=$saveLANG		# comment out to test remaining leak (2/2)
+
+# ======
 exit $((Errors<125?Errors:125))

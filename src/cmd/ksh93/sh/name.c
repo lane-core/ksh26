@@ -2404,6 +2404,8 @@ static void table_unset(Shell_t *shp, register Dt_t *root, int flags, Dt_t *oroo
 			}
 		}
 		npnext = (Namval_t*)dtnext(root,np);
+		if(nv_arrayptr(np))
+			nv_putsub(np,NIL(char*),ARRAY_SCAN);
 		_nv_unset(np,flags);
 		nv_delete(np,root,0);
 	}
@@ -3256,7 +3258,7 @@ int nv_rename(register Namval_t *np, int flags)
 	shp->last_root = last_root;
 	if(flags&NV_MOVE)
 	{
-		if(arraynp && !nv_isattr(np,NV_MINIMAL) && (mp=(Namval_t*)np->nvenv) && (ap=nv_arrayptr(mp)))
+		if(arraynp && !nv_isattr(np,NV_MINIMAL) && (mp=(Namval_t*)np->nvenv) && (ap=nv_arrayptr(mp)) && !ap->fun)
 			ap->nelem++;
 	}
 	if((nv_arrayptr(nr) && !arraynr) || nv_isvtree(nr))
