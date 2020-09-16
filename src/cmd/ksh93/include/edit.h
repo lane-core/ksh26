@@ -90,7 +90,6 @@ typedef struct edit
 	int	e_werase;
 	int	e_eof;
 	int	e_lnext;
-	int	e_fchar;
 	int	e_plen;		/* length of prompt string */
 	char	e_crlf;		/* zero if cannot return to beginning of line */
 	char	e_nocrnl;	/* don't put a new-line with ^L */
@@ -107,20 +106,15 @@ typedef struct edit
 	int	e_peol;		/* end of physical line position */
 	int	e_mode;		/* edit mode */
 	int	e_lookahead;	/* index in look-ahead buffer */
-	int	e_repeat;
-	int	e_saved;
 	int	e_fcol;		/* first column */
-	int	e_ucol;		/* column for undo */
 	int	e_wsize;	/* width of display window */
 	char	*e_outbase;	/* pointer to start of output buffer */
 	char	*e_outptr;	/* pointer to position in output buffer */
 	char	*e_outlast;	/* pointer to end of output buffer */
 	genchar	*e_inbuf;	/* pointer to input buffer */
 	char	*e_prompt;	/* pointer to buffer containing the prompt */
-	genchar	*e_ubuf;	/* pointer to the undo buffer */
 	genchar	*e_killbuf;	/* pointer to delete buffer */
 	char	e_search[SEARCHSIZE];	/* search string */
-	genchar	*e_Ubuf;	/* temporary workspace buffer */
 	genchar	*e_physbuf;	/* temporary workspace buffer */
 	int	e_lbuf[LOOKAHEAD];/* pointer to look-ahead buffer */
 	int	e_fd;		/* file descriptor */
@@ -135,10 +129,6 @@ typedef struct edit
 	char	e_echoctl;
 	char	e_tcgeta;
 	struct termio e_ott;
-#endif
-#if SHOPT_MULTIBYTE
-	int	e_curchar;
-	int	e_cursize;
 #endif
 	int	*e_globals;	/* global variables */
 	genchar	*e_window;	/* display window  image */
@@ -174,7 +164,6 @@ typedef struct edit
 	unsigned short	hoff;
 	unsigned short	hmax;
 	char		hpat[40];
-	char		*hstak;
 #endif /* SHOPT_EDPREDICT */
 } Edit_t;
 
