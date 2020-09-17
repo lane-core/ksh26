@@ -762,7 +762,8 @@ static int cntlmode(Vi_t *vp)
 		if(mvcursor(vp,c))
 		{
 			sync_cursor(vp);
-			vp->repeat = 1;
+			if( c != '[' )
+				vp->repeat = 1;
 			continue;
 		}
 
@@ -1053,10 +1054,7 @@ static int cntlmode(Vi_t *vp)
 			{
 				ed_ungetchar(vp->ed,c=ed_getchar(vp->ed,1));
 				if(c=='[')
-				{
-					vp->repeat = 1;
 					continue;
-				}
 			}
 		default:
 		ringbell:
@@ -1606,7 +1604,6 @@ static int mvcursor(register Vi_t* vp,register int motion)
 	register int tcur_virt;
 	register int incr = -1;
 	register int bound = 0;
-	int c;
 
 	switch(motion)
 	{
@@ -1633,16 +1630,10 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		break;
 
 	case '[':
-		c = ed_getchar(vp->ed,-1);
-		if(c=='3' && ed_getchar(vp->ed,-1)=='~')
-		{
-			/* VT220 forward-delete key */
-			ed_ungetchar(vp->ed,'x');
-			return(1);
-		}
-		switch(motion=getcount(vp,c))
+		switch(motion=ed_getchar(vp->ed,-1))
 		{
 		    case 'A':
+			/* VT220 up arrow */
 #if SHOPT_EDPREDICT
 			if(!vp->ed->hlist && cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
 #else
@@ -1665,22 +1656,36 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'k');
 			return(1);
 		    case 'B':
+			/* VT220 down arrow */
 			ed_ungetchar(vp->ed,'j');
 			return(1);
 		    case 'C':
-			motion = last_virt;
-			incr = 1;
-			goto walk;
+			/* VT220 right arrow */
+			ed_ungetchar(vp->ed,'l');
+			return(1);
 		    case 'D':
-			motion = first_virt;
-			goto walk;
+			/* VT220 left arrow */
+			ed_ungetchar(vp->ed,'h');
+			return(1);
 		    case 'H':
-			tcur_virt = 0;
-			break;
+			/* VT220 Home key */
+			ed_ungetchar(vp->ed,'0');
+			return(1);
 		    case 'F':
 		    case 'Y':
-			tcur_virt = last_virt;
-			break;
+			/* VT220 End key */
+			ed_ungetchar(vp->ed,'$');
+			return(1);
+		    case '3':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{
+				/* VT220 forward-delete key */
+				ed_ungetchar(vp->ed,'x');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,bound);
+			/* FALLTHROUGH */
 		    default:
 			ed_ungetchar(vp->ed,motion);
 			return(0);

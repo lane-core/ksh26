@@ -184,6 +184,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	register int count;
 	register Emacs_t *ep = ed->e_emacs;
 	int adjust,oadjust;
+	int vt220_save_repeat = 0;
 	char backslash;
 	genchar *kptr;
 	char prompt[PRSIZE];
@@ -313,6 +314,11 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			killing = 0;
 #endif
 		oadjust = count = adjust;
+		if(vt220_save_repeat)
+		{
+			count = vt220_save_repeat;
+			vt220_save_repeat = 0;
+		}
 		if(count<0)
 			count = 1;
 		adjust = -1;
@@ -607,6 +613,7 @@ update:
 			ep->ed->e_nocrnl = 0;
 			continue;
 		case cntl('[') :
+			vt220_save_repeat = oadjust;
 		do_escape:
 			adjust = escape(ep,out,oadjust);
 			continue;
@@ -1067,6 +1074,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			switch(i=ed_getchar(ep->ed,1))
 			{
 			    case 'A':
+				/* VT220 up arrow */
 #if SHOPT_EDPREDICT
 				if(!ep->ed->hlist && cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
 #else
@@ -1094,23 +1102,28 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				ed_ungetchar(ep->ed,cntl('P'));
 				return(-1);
 			    case 'B':
+				/* VT220 down arrow */
 				ed_ungetchar(ep->ed,cntl('N'));
 				return(-1);
 			    case 'C':
+				/* VT220 right arrow */
 				ed_ungetchar(ep->ed,cntl('F'));
 				return(-1);
 			    case 'D':
+				/* VT220 left arrow */
 				ed_ungetchar(ep->ed,cntl('B'));
 				return(-1);
 			    case 'H':
+				/* VT220 Home key */
 				ed_ungetchar(ep->ed,cntl('A'));
 				return(-1);
 			    case 'F':
 			    case 'Y':
+				/* VT220 End key */
 				ed_ungetchar(ep->ed,cntl('E'));
 				return(-1);
 			    case '3':
-				if(ed_getchar(ep->ed,1)=='~')
+				if((ch=ed_getchar(ep->ed,1))=='~')
 				{	/*
 					 * VT220 forward-delete key.
 					 * Since ERASECHAR and EOFCHAR are usually both mapped to ^D, we
@@ -1121,6 +1134,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 						ed_ungetchar(ep->ed,ERASECHAR);
 					return(-1);
 				}
+				ed_ungetchar(ep->ed,ch);
 				/* FALLTHROUGH */
 			    default:
 				ed_ungetchar(ep->ed,i);
