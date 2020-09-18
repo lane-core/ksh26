@@ -77,7 +77,7 @@ then
 		integer running=0 maxrunning=0
 		trap "((running--))" CHLD
 		for ((i=0; i<JOBCOUNT; i++))
-		do	sleep .1 &
+		do	sleep .5 &
 			if	((++running > maxrunning))
 			then	((maxrunning=running))
 			fi
