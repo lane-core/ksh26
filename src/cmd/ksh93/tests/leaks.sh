@@ -247,4 +247,15 @@ after=$(getmem)
 err_exit_if_leak 'typeset in function called by command substitution'
 
 # ======
+# Check that unsetting an alias frees both the node and its value
+
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	alias "test$i=command$i"
+	unalias "test$i"
+done
+after=$(getmem)
+err_exit_if_leak 'unalias'
+
+# ======
 exit $((Errors<125?Errors:125))
