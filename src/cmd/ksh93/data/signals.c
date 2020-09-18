@@ -18,6 +18,7 @@
 *                                                                      *
 ***********************************************************************/
 #include	"defs.h"
+#include	"jobs.h"
 
 #if defined(SIGCLD) && !defined(SIGCHLD)
 #   define SIGCHLD	SIGCLD
