@@ -1056,7 +1056,7 @@ int ed_getchar(register Edit_t *ep,int mode)
 		{
 			if(mode<=0 && -c == ep->e_intr)
 			{
-				sh_fault(SIGINT);
+				killpg(getpgrp(),SIGINT);
 				siglongjmp(ep->e_env, UINTR);
 			}
 			if(mode<=0 && ep->sh->st.trap[SH_KEYTRAP])

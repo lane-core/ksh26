@@ -1971,7 +1971,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			shp->exitval = n;
 #ifdef SIGTSTP
-			if(!pipejob && sh_isstate(SH_MONITOR))
+			if(!pipejob && sh_isstate(SH_MONITOR) && sh_isoption(SH_INTERACTIVE))
 				tcsetpgrp(JOBTTY,shp->gd->pid);
 #endif /*SIGTSTP */
 			job.curpgid = savepgid;

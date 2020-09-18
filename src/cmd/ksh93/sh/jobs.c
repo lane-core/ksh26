@@ -440,7 +440,7 @@ int job_reap(register int sig)
 		{
 			px = job_byjid((int)pw->p_job);
 			for(; px && (px->p_flag&P_DONE); px=px->p_nxtproc);
-			if(!px)
+			if(!px && sh_isoption(SH_INTERACTIVE))
 				tcsetpgrp(JOBTTY,job.mypid);
 		}
 #ifndef SHOPT_BGX
@@ -739,7 +739,7 @@ static void job_reset(register struct process *pw)
 	/* save the terminal state for current job */
 #ifdef SIGTSTP
 	job_fgrp(pw,tcgetpgrp(job.fd));
-	if(tcsetpgrp(job.fd,job.mypid) !=0)
+	if(sh_isoption(SH_INTERACTIVE) && tcsetpgrp(job.fd,job.mypid) !=0)
 		return;
 #endif	/* SIGTSTP */
 	/* force the following tty_get() to do a tcgetattr() unless fg */

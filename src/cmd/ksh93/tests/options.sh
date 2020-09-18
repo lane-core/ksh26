@@ -542,4 +542,9 @@ print $'alias print=:\nprint foobar' > dotfile
 ) || err_exit '-o posix option affects $- expansion'
 
 # ======
+# ksh 93u+ did not honor 'monitor' option on command line (rhbz#960034)
+"$SHELL" -m -c '[[ -o monitor ]]' || err_exit 'option -m on command line does not work'
+"$SHELL" -o monitor -c '[[ -o monitor ]]' || err_exit 'option -o monitor on command line does not work'
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -13,6 +13,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - When a background job on an interactive shell received SIGINT or SIGPIPE, the
   job termination message was empty. It now shows "Interrupt" or "Broken Pipe".
 
+- The -m (-o monitor) option is no longer ignored when specified on the shell
+  invocation command line.
+
+- A script that is interrupted with Ctrl+C now terminates its background jobs
+  as expected, unless the -m (-o monitor) option was turned on.
+
 2020-09-14:
 
 - Corrected rounding of floating point values by ksh's printf %f formatting
