@@ -72,12 +72,15 @@ fi
 wait
 rm -f out2
 
-[[ $( trap 'print -n got_child' SIGCHLD
-	sleep .2 &
+actual=$( trap 'print -n got_child' SIGCHLD
+	sleep .4 &
 	for	((i=0; i < 4; i++))
-	do 	sleep .075
+	do 	sleep .15
 		print -n $i
-	done) == 01got_child23 ]] || err_exit 'SIGCHLD not working'
+	done)
+expect=01got_child23
+[[ $actual == "$expect" ]] || err_exit 'SIGCHLD not working' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # begin standalone SIGINT test generation
 
