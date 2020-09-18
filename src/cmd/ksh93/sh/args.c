@@ -289,9 +289,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		}
 		argc--;
 	}
-	/* handling SH_INTERACTIVE and SH_PRIVILEGED has been moved to
-	 * sh_applyopts(), so that the code can be reused from b_shopt(), too
-	 */
+	/* SH_INTERACTIVE and SH_PRIVILEGED are handled in sh_applyopts() */
 	sh_applyopts(ap->sh,newflags);
 #if SHOPT_KIA
 	if(ap->kiafile)
@@ -342,6 +340,21 @@ void sh_applyopts(Shell_t* shp,Shopt_t newflags)
 			(shp->gd->groupid!=shp->gd->egroupid && setgid(shp->gd->egroupid)<0) ||
 			(shp->gd->userid==shp->gd->euserid && shp->gd->groupid==shp->gd->egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
+	}
+	/* -o posix also switches -o braceexpand and -o letoctal */
+	if(!sh_isoption(SH_POSIX) && is_option(&newflags,SH_POSIX))
+	{
+#if SHOPT_BRACEPAT
+		off_option(&newflags,SH_BRACEEXPAND);
+#endif
+		on_option(&newflags,SH_LETOCTAL);
+	}
+	else if(sh_isoption(SH_POSIX) && !is_option(&newflags,SH_POSIX))
+	{
+#if SHOPT_BRACEPAT
+		on_option(&newflags,SH_BRACEEXPAND);
+#endif
+		off_option(&newflags,SH_LETOCTAL);
 	}
 	shp->options = newflags;
 }

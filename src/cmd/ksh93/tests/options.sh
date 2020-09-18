@@ -533,9 +533,10 @@ print $'alias print=:\nprint foobar' > dotfile
 
 # ======
 # test that '-o posix' option (not having a letter) does not affect "$-" expansion
+# other than B = braceexpand
 (
 	command set +o posix 2>/dev/null
-	opt1=$-
+	opt1=${-/B/}
 	command set -o posix 2>/dev/null
 	opt2=$-
 	[[ $opt1 == "$opt2" ]]

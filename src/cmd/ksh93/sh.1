@@ -6370,12 +6370,10 @@ to be evaluated.
 .B let
 only recognizes octal constants starting with
 .B 0
-if one of the
+when the
 .B set
-options
+option
 .B letoctal
-or
-.B posix
 is on.
 See
 .I "Arithmetic Evaluation"
@@ -6906,7 +6904,8 @@ is used, the variable
 is not unset first.
 .TP 8
 .B \-B
-Enable brace group expansion.  On by default.
+Enable brace group expansion. On by default, except
+if ksh is invoked as \fBsh\fR, \fBrsh\fR, or \fBpfsh\fR.
 .TP 8
 .B \-C
 Prevents redirection
@@ -7034,8 +7033,7 @@ The
 .B let
 command allows octal constants starting with
 .BR 0 .
-If the \fBposix\fR shell option is active,
-octals are recognized regardless of this option.
+On by default if ksh is invoked as \fBsh\fR, \fBrsh\fR, or \fBpfsh\fR.
 .TP 8
 .B markdirs
 All directory names resulting from file name generation have a trailing
@@ -7081,16 +7079,37 @@ will be the value of the last non-zero command
 to fail or zero if no command has failed.
 .TP 8
 .B posix
-Enable full POSIX standard compliance mode. This option
-is on by default if ksh is invoked as \fBsh\fR, \fBrsh\fR, or \fBpfsh\fR. It
-disables passing exported variables' attributes (such as integer or readonly) to a new ksh process through the environment,
-causes file descriptors > 2 to be left open when invoking another program,
-makes the \fB<>\fR redirection operator default to standard input,
-causes the \fBcommand\fR utility to disable declaration command properties of any declaration commands it invokes,
-skips the initialization of preset aliases upon invoking an interactive shell,
-disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to \fBtest -t 1\fR (\fB[ -t 1 ]\fR),
-enables octal numbers in \fBlet\fR shell arithmetic (see \fBletoctal\fR), and
-disables the \fB&>\fR redirection shorthand.
+Enables the POSIX standard mode for maximum compatibility with other compliant
+shells. At the moment that the \fBposix\fR option is turned on, it also turns
+on \fBletoctal\fR and turns off \fB\-B\fR/\fBbraceexpand\fR; the reverse is
+done when \fBposix\fR is turned back off. (These options can still be
+controlled independently in between.) Furthermore, the \fBposix\fR option
+is automaticaly turned on upon invocation if ksh is invoked as \fBsh\fR,
+\fBrsh\fR, or \fBpfsh\fR. In that case, or if the option is turned on by
+specifying \fB-o posix\fR on the invocation command line, the invoked shell
+will not set the preset aliases even if interactive, and will not import type
+attributes for variables (such as integer or readonly) from the environment.
+.RS 8
+.PP
+In addition, while on, the \fBposix\fR option
+.IP \[bu] 3
+disables exporting variable type attributes to the environment for other ksh
+processes to import;
+.IP \[bu]
+causes file descriptors > 2 to be left open when invoking another program;
+.IP \[bu]
+disables the \fB&>\fR redirection shorthand;
+.IP \[bu]
+makes the \fB<>\fR redirection operator default to redirecting standard input
+if no file descriptor number precedes it;
+.IP \[bu]
+causes the \fBcommand\fR utility to disable declaration command properties of
+any declaration commands it invokes;
+and
+.IP \[bu]
+disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to
+\fBtest -t 1\fR (\fB[ -t 1 ]\fR).
+.RE
 .TP 8
 .B privileged
 Same as

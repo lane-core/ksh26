@@ -390,10 +390,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			char	lastbase=0, *val = xp, oerrno = errno;
 			lvalue->eflag = 0;
 			errno = 0;
-			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL) && !sh_isoption(SH_POSIX))
+			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL))
 			{	/*
 				 * Since we're running the "let" builtin, disable octal number processing by
-				 * skipping all initial zeros, unless the 'letoctal' or 'posix' option is on.
+				 * skipping all initial zeros, unless the 'letoctal' option is on.
 				 */
 				while(*val=='0' && isdigit(val[1]))
 					val++;
