@@ -312,6 +312,13 @@ EOF
 EOF
 } 2> /dev/null || err_exit 'typeset -R should not preserve old attributes'
 
+unset x
+typeset -R 3 x
+x=12345
+x=9876
+[[ $x == 876 ]] || err_exit "typeset -R not working with reassignment (expected 876, got $x)"
+unset x
+
 expected='YWJjZGVmZ2hpag=='
 unset foo
 typeset -b -Z10 foo
