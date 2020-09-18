@@ -30,17 +30,33 @@ Command=${0##*/}
 integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
-builtin vmstate 2>/dev/null || { err\_exit "$LINENO" 'vmstate built-in command not compiled in; skipping tests'; exit 0; }
 
-# Get the current amount of memory usage
-function getmem
-{
-	vmstate --format='%(busy_size)u'
-}
-n=$(getmem)
-if	! let "($n) == ($n) && n > 0"	# not a non-zero number?
-then	err\_exit "$LINENO" "vmstate built-in command not functioning; tests cannot be run"
-	exit 1
+
+# Determine method for running tests.
+# The 'vmstate' builtin can be used if ksh was compiled with vmalloc.
+if	builtin vmstate 2>/dev/null &&
+	n=$(vmstate --format='%(busy_size)u') &&
+	let "($n) == ($n) && n > 0"	# non-zero number?
+then	N=512			# number of iterations for each test
+	unit=bytes
+	tolerance=$((4*N))	# tolerate 4 bytes per iteration to account for vmalloc artefacts
+	function getmem
+	{
+		vmstate --format='%(busy_size)u'
+	}
+# Otherwise, make do with the nonstandard 'rss' (real resident size) keyword
+# of the 'ps' command (the standard 'vsz', virtual size, is not usable).
+elif	n=$(ps -o rss= -p "$$" 2>/dev/null) &&
+	let "($n) == ($n) && n > 0"
+then	N=16384
+	unit=KiB
+	tolerance=$((8*N/1024))	# tolerate 8 bytes per iteration to account for malloc/ps artefacts
+	function getmem
+	{
+		ps -o rss= -p "$$"
+	}
+else	err\_exit "$LINENO" 'WARNING: cannot find method to measure memory usage; skipping tests'
+	exit 0
 fi
 
 # test for variable reset leak #
@@ -57,18 +73,13 @@ function test_reset
 # Initialise variables used below to avoid false leaks
 before=0 after=0 i=0 u=0
 
-# Number of iterations for each test
-N=512
 
-# Check results. Add a tolerance of 2 bytes per iteration. Some tests appear to have tiny leaks, but they
-# must be vmalloc artefacts; they may increase with the number of iterations, then suddenly go away when the
-# number of iterations is large enough (e.g. 10000) and don't return when increasing iterations further.
-#
+# Check results.
 # The function has 'err_exit' in the name so that shtests counts each call as at test.
 function err_exit_if_leak
 {
-	if	((after > before + 2 * N))
-	then	err\_exit "$1" "$2 (leaked $((after - before)) bytes after $N iterations)"
+	if	((after > before + tolerance))
+	then	err\_exit "$1" "$2 (leaked approx $((after - before)) $unit after $N iterations)"
 	fi
 }
 alias err_exit_if_leak='err_exit_if_leak "$LINENO"'
@@ -91,6 +102,9 @@ done
 
 data="(v=;sid=;di=;hi=;ti='1328244300';lv='o';id='172.3.161.178';var=(k='conn_num._total';u=;fr=;l='Number of Connections';n='22';t='number';))"
 read -C stat <<< "$data"
+for ((i=0; i < 8; i++))	# steady state first
+do	print -r -- "$data" | while read -u$n -C stat; do :; done {n}<&0-
+done
 before=$(getmem)
 for ((i=0; i < N; i++))
 do	print -r -- "$data"
@@ -109,7 +123,6 @@ for ((i=0; i < N; i++))
 do      read -C stat <<< "$data"
 done
 after=$(getmem)
-# this test can show minor variations in memory usage when run with shcomp: https://github.com/ksh93/ksh/issues/70
 err_exit_if_leak "memory leak with read -C when using <<<"
 
 # ======
