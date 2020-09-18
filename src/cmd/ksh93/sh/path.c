@@ -1531,7 +1531,7 @@ static int path_chkpaths(Shell_t *shp,Pathcomp_t *first, Pathcomp_t* old,Pathcom
 				{
 					char *ptr = stakptr(offset+pp->len+1);
 					if(ep)
-						strcpy(ptr,ep);
+						memmove(ptr,ep,strlen(ep)+1);
 					path_addcomp(shp,first,old,stakptr(offset),PATH_FPATH|PATH_BFPATH);
 				}
 			}
