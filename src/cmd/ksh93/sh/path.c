@@ -612,6 +612,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 		}
 		while((rp=dtnext(shp->fpathdict,rp)) && strcmp(pname,rp->fname)==0);
 		sh_close(fno);
+		free((void*)pname);
 		return;
 	}
 	sh_onstate(SH_NOLOG);

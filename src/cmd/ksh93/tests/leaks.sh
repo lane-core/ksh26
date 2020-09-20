@@ -271,4 +271,44 @@ after=$(getmem)
 err_exit_if_leak 'unalias'
 
 # ======
+# Red Hat bug rhbz#982142: command substitution leaks
+
+# case1: Nested command substitutions
+# (reportedly already fixed in 93u+, but let's keep the test)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	a=`true 1 + \`true 1 + 1\``	# was: a=`expr 1 + \`expr 1 + 1\``
+done
+after=$(getmem)
+err_exit_if_leak 'nested command substitutions'
+
+# case2: Command alias
+alias ls='true -ltr'			# was: alias ls='ls -ltr'
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	eval 'a=`ls`'
+done
+after=$(getmem)
+unalias ls
+err_exit_if_leak 'alias in command substitution'
+
+# case3: Function call via autoload
+cat >$tmp/func1 <<\EOF
+function func1
+{
+    echo "func1 call";
+}
+EOF
+FPATH=$tmp
+autoload func1
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	a=`func1`
+done
+after=$(getmem)
+unset -f func1
+unset -v FPATH
+err_exit_if_leak 'function call via autoload in command substitution'
+
+# ======
 exit $((Errors<125?Errors:125))
