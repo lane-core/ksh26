@@ -641,7 +641,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			if(troot==shp->track_tree && tp->aflag=='-')
 			{
 				np = nv_search(name,troot,NV_ADD);
-				path_alias(np,path_absolute(shp,nv_name(np),NIL(Pathcomp_t*)));
+				path_alias(np,path_absolute(shp,nv_name(np),NIL(Pathcomp_t*),0));
 				continue;
 			}
 			np = nv_open(name,troot,nvflags|((nvflags&NV_ASSIGN)?0:NV_ARRAY)|((iarray|(nvflags&(NV_REF|NV_NOADD)==NV_REF))?NV_FARRAY:0));
@@ -990,7 +990,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	tdata.sh = context->shp;
 	stkp = tdata.sh->stk;
 	if(!tdata.sh->pathlist)
-		path_absolute(tdata.sh,argv[0],NIL(Pathcomp_t*));
+		path_absolute(tdata.sh,argv[0],NIL(Pathcomp_t*),0);
 	while (n = optget(argv,sh_optbuiltin)) switch (n)
 	{
 	    case 's':

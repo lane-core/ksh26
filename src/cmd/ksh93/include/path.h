@@ -78,7 +78,7 @@ extern Pathcomp_t	*path_addpath(Shell_t*,Pathcomp_t*,const char*,int);
 extern Pathcomp_t	*path_dup(Pathcomp_t*);
 extern void		path_delete(Pathcomp_t*);
 extern void 		path_alias(Namval_t*,Pathcomp_t*);
-extern Pathcomp_t 	*path_absolute(Shell_t*, const char*, Pathcomp_t*);
+extern Pathcomp_t 	*path_absolute(Shell_t*, const char*, Pathcomp_t*, int);
 extern char 		*path_basename(const char*);
 extern char 		*path_fullname(Shell_t*,const char*);
 extern int 		path_expand(Shell_t*,const char*, struct argnod**);

@@ -3,6 +3,16 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-09-20:
+
+- Bugfix: when whence -v/-a found an "undefined" (i.e. autoloadable) function
+  in $FPATH, it actually loaded the function as a side effect of reporting on
+  its existence. Now it only reports, as documented.
+
+- 'whence' will now canonicalise paths properly, resolving '.' and '..'
+  elements in paths given to it. It also no longer prefixes a spurious
+  double slash when doing something like 'cd / && whence bin/echo'.
+
 2020-09-18:
 
 - Setting the 'posix' option now turns off the 'braceexpand' option, as brace

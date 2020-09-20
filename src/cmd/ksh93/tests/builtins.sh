@@ -763,7 +763,7 @@ foo=BUG command eval ':'
 [[ $foo == BUG ]] && err_exit '`command` fails to disable the special properties of special builtins'
 
 # ======
-# 'whence -a' tests
+# whence -a/-v tests
 
 # wrong path to tracked aliases after loading builtin: https://github.com/ksh93/ksh/pull/25
 actual=$("$SHELL" -c '
@@ -771,34 +771,75 @@ actual=$("$SHELL" -c '
 	builtin chmod
 	whence -a chmod
 ')
-expected="chmod is a shell builtin
-$(whence -a -p chmod | sed 's/^/chmod is /')
+expect="chmod is a shell builtin
 chmod is a tracked alias for $(whence -p chmod)"
-[[ $actual == $expected ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
-	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+[[ $actual == "$expect" ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # spurious 'undefined function' message: https://github.com/ksh93/ksh/issues/26
 actual=$("$SHELL" -c 'whence -a printf')
-expected="printf is a shell builtin
+expect="printf is a shell builtin
 $(whence -a -p printf | sed 's/^/printf is /')"
-[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output" \
-	"(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+[[ $actual == "$expect" ]] || err_exit "'whence -a': incorrect output" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # 'whence -a'/'type -a' failed to list builtin if function exists: https://github.com/ksh93/ksh/issues/83
 actual=$(printf() { :; }; whence -a printf)
-expected="printf is a function
+expect="printf is a function
 printf is a shell builtin
 $(whence -a -p printf | sed 's/^/printf is /')"
-[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output for function+builtin" \
-        "(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
-
-# 'whence -a'/'type -a' failed to list builtin if autoload function exists: https://github.com/ksh93/ksh/issues/83
+[[ $actual == "$expect" ]] || err_exit "'whence -a': incorrect output for function+builtin" \
+        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 actual=$(autoload printf; whence -a printf)
-expected="printf is an undefined function
+expect="printf is an undefined function
 printf is a shell builtin
 $(whence -a -p printf | sed 's/^/printf is /')"
-[[ $actual == $expected ]] || err_exit "'whence -a': incorrect output for autoload+builtin" \
-        "(expected $(printf %q "$expected"), got $(printf %q "$actual"))"
+[[ $actual == "$expect" ]] || err_exit "'whence -a': incorrect output for autoload+builtin" \
+        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# 'whence -v' canonicalized paths improperly: https://github.com/ksh93/ksh/issues/84
+cmdpath=${ whence -p printf; }
+actual=$(cd /; whence -v "${cmdpath#/}")
+expect="${cmdpath#/} is $cmdpath"
+[[ $actual == "$expect" ]] || err_exit "'whence -v': incorrect canonicalization of initial /" \
+        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+dotdot=
+num=$(set -f; IFS=/; set -- $PWD; echo $#)
+for ((i=1; i<num; i++))
+do	dotdot+='../'
+done
+actual=$(cd /; whence -v "$dotdot${cmdpath#/}")
+expect="$dotdot${cmdpath#/} is $cmdpath"
+[[ $actual == "$expect" ]] || err_exit "'whence -v': incorrect canonicalization of pathname containing '..'" \
+        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# even absolute paths should be canonicalized
+if	[[ -x /usr/bin/env && -d /usr/lib ]]	# even NixOS has this...
+then	expect='/usr/lib/../bin/./env is /usr/bin/env'
+	actual=$(whence -v /usr/lib/../bin/./env)
+	[[ $actual == "$expect" ]] || err_exit "'whence -v': incorrect canonicalization of absolute path" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+fi
+
+# whence -v/-a should not autoload functions itself
+echo 'ls() { echo "Oops, I'\''m a function!"; }' >$tmp/ls
+expect=$'/dev/null\n/dev/null'
+actual=$(FPATH=$tmp; ls /dev/null; whence -a ls >/dev/null; ls /dev/null)
+[[ $actual == "$expect" ]] || err_exit "'whence -a': mistaken \$FPATH function autoload (non-executable file)" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+chmod +x "$tmp/ls"
+actual=$(FPATH=$tmp; ls /dev/null; whence -a ls >/dev/null; ls /dev/null)
+[[ $actual == "$expect" ]] || err_exit "'whence -a': mistaken \$FPATH function autoload (executable file)" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# "tracked aliases" (known on other shells as hash table entries) are really just cached PATH search
+# results; they should be reported independently from real aliases, as they're actually completely
+# different things, and "tracked aliases" are actually used when bypassing an alias (with e.g. \ls).
+expect="ls is an alias for 'echo ALL UR F1LEZ R G0N3'
+ls is a tracked alias for /bin/ls"
+actual=$(hash -r; alias ls='echo ALL UR F1LEZ R G0N3'; hash ls; whence -a ls)
+[[ $actual == "$expect" ]] || err_exit "'whence -a' does not report tracked alias if alias exists" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'

@@ -137,16 +137,13 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 	register const char *cp;
 	register int aflag,r=0;
 	register const char *msg;
-	int	tofree;
 	Namval_t *nq;
 	char *notused;
 	Pathcomp_t *pp=0;
-	int notrack = 1;
 	if(flags&Q_FLAG)
 		flags &= ~A_FLAG;
 	while(name= *argv++)
 	{
-		tofree=0;
 		aflag = ((flags&A_FLAG)!=0);
 		cp = 0;
 		np = 0;
@@ -164,7 +161,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		}
 		/* non-tracked aliases */
 		if((np=nv_search(name,shp->alias_tree,0))
-			&& !nv_isnull(np) && !(notrack=nv_isattr(np,NV_TAGGED))
+			&& !nv_isnull(np) && !nv_isattr(np,NV_TAGGED)
 			&& (cp=nv_getval(np))) 
 		{
 			if(flags&V_FLAG)
@@ -213,74 +210,67 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			aflag++;
 		}
 	search:
-		if(sh_isstate(SH_DEFPATH))
-		{
-			cp=0;
-			notrack=1;
-		}
 		do
 		{
-			if(path_search(shp,name,&pp,2+(aflag>1)))
+			int maybe_undef_fn = 0;  /* flag for possible undefined (i.e. autoloadable) function */
+			/*
+			 * See comments in sh/path.c for info on what path_search()'s true/false return values mean
+			 */
+			if(path_search(shp, name, &pp, aflag>1 ? 3 : 2))
 			{
 				cp = name;
-				if((flags&P_FLAG) && *cp!='/')
-					cp = 0;
+				if(*cp!='/')
+				{
+					if(flags&P_FLAG)
+						cp = 0;
+					else
+						maybe_undef_fn = 1;
+				}
 			}
 			else
 			{
 				cp = stakptr(PATH_OFFSET);
 				if(*cp==0)
 					cp = 0;
-				else if(*cp!='/')
-				{
-					cp = path_fullname(shp,cp);
-					tofree=1;
-				}
 			}
 			if(flags&Q_FLAG)
 			{
 				pp = 0;
 				r |= !cp;
 			}
+			else if(maybe_undef_fn)
+			{
+				/* Skip defined function or builtin (already done above) */
+				if(!nv_search(cp,shp->fun_tree,0))
+				{
+					/* Undefined/autoloadable function on FPATH */
+					sfputr(sfstdout,sh_fmtq(cp),-1);
+					if(flags&V_FLAG)
+						sfputr(sfstdout,sh_translate(is_ufunction),-1);
+					sfputc(sfstdout,'\n');
+				}
+			}
 			else if(cp)
 			{
+				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
 				if(flags&V_FLAG)
 				{
-					if(*cp!= '/')
-					{
-						if(!np && (np=nv_search(name,shp->track_tree,0)))
-						{
-							const char *command_path = np->nvalue.pathcomp->name;
-							sfprintf(sfstdout,"%s %s %s/%s\n",name,sh_translate(is_talias),command_path,cp);
-						}
-						continue;
-					}
 					sfputr(sfstdout,sh_fmtq(name),' ');
 					/* built-in version of program */
-					if(*cp=='/' && (np=nv_search(cp,shp->bltin_tree,0)))
+					if(nv_search(cp,shp->bltin_tree,0))
 						msg = sh_translate(is_builtver);
 					/* tracked aliases next */
-					else if(aflag>1 || !notrack || strchr(name,'/'))
-						msg = sh_translate("is");
-					else
+					else if(!sh_isstate(SH_DEFPATH)
+					&& (np = nv_search(name,shp->track_tree,0))
+					&& !nv_isattr(np,NV_NOALIAS)
+					&& strcmp(cp,nv_getval(np))==0)
 						msg = sh_translate(is_talias);
+					else
+						msg = sh_translate("is");
 					sfputr(sfstdout,msg,' ');
 				}
 				sfputr(sfstdout,sh_fmtq(cp),'\n');
-				if(aflag)
-				{
-					if(aflag<=1)
-						aflag++;
-					if (pp)
-						pp = pp->next;
-				}
-				else
-					pp = 0;
-				if(tofree)
-				{
-					free((char*)cp);
-					tofree = 0;
-				}
+				free((char*)cp);
 			}
 			else if(aflag<=1) 
 			{
@@ -288,6 +278,16 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				if(flags&V_FLAG)
 					 errormsg(SH_DICT,ERROR_exit(0),e_found,sh_fmtq(name));
 			}
+			/* If -a given, continue with next result */
+			if(aflag)
+			{
+				if(aflag<=1)
+					aflag++;
+				if(pp)
+					pp = pp->next;
+			}
+			else
+				pp = 0;
 		} while(pp);
 	}
 	return(r);

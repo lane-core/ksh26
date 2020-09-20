@@ -300,7 +300,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 					if(fdin < 0 && !strchr(name,'/'))
 					{
 #ifdef PATH_BFPATH
-						if(path_absolute(shp,name,NIL(Pathcomp_t*)))
+						if(path_absolute(shp,name,NIL(Pathcomp_t*),0))
 							sp = stakptr(PATH_OFFSET);
 #else
 							sp = path_absolute(shp,name,NIL(char*));

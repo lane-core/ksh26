@@ -643,12 +643,26 @@ static void funload(Shell_t *shp,int fno, const char *name)
 
 /*
  * do a path search and track alias if requested
- * if flag is 0, or if name not found, then try autoloading function
- * if flag==2 or 3, returns 1 if name found on FPATH
- * if flag==3 no tracked alias will be set
- * returns 1, if function was autoloaded.
+ *
+ * If flag is 0, or if name not found, then try autoloading function and return 1 if successful.
+ * If flag is >=1, do a regular path search. If it yields an autoloadable function, load it.
+ * If flag is 2 or 3, never autoload a function but return 1 if name found on FPATH.
+ * If flag is 3, no tracked alias will be set (IOW, the result won't be cached in the hash table).
  * If oldpp is not NULL, it will contain a pointer to the path component
  *    where it was found.
+ *
+ * path_search() returns 1/true if:
+ * - the given absolute path was found executable
+ * - the given name is a function or non-path-bound builtin, and a path search found nothing external
+ * - the given name matched an autoloadable function on FPATH
+ *
+ * path_search() returns 0/false if:
+ * - the given relative path was found executable; the PWD is prefixed to make it absolute
+ * - a tracked alias (a.k.a. hash table entry) was found and used
+ * - the given name was found on PATH as an executable command or path-bound builtin (irrespective of
+ *   whether it exists as a function or normal builtin); its full path is written on the stack, except
+ *   if the matching $PATH entry is '.' or empty, the simple name is written without prefixing the PWD
+ * - nothing executable was found
  */
 
 int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int flag)
@@ -658,6 +672,7 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 	Pathcomp_t *pp=0;
 	if(name && strchr(name,'/'))
 	{
+		char *pwd;
 		stakseek(PATH_OFFSET);
 		stakputs(name);
 		if(canexecute(shp,stakptr(PATH_OFFSET),0)<0)
@@ -668,7 +683,9 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 		if(*name=='/')
 			return(1);
 		stakseek(PATH_OFFSET);
-		stakputs(path_pwd(shp,1));
+		pwd = path_pwd(shp,1);
+		if(pwd[1])		/* if pwd=="/", avoid starting with "//" */
+			stakputs(pwd);
 		stakputc('/');
 		stakputs(name);
 		stakputc(0);
@@ -697,7 +714,7 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 			stakputc(0);
 			return(0);
 		}
-		pp = path_absolute(shp,name,oldpp?*oldpp:NIL(Pathcomp_t*));
+		pp = path_absolute(shp,name,oldpp?*oldpp:NIL(Pathcomp_t*),flag);
 		if(oldpp)
 			*oldpp = pp;
 		if(!pp && (np=nv_search(name,shp->fun_tree,0))&&np->nvalue.ip)
@@ -711,7 +728,7 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 			pp=sh_isstate(SH_DEFPATH)?shp->defpathlist:shp->pathlist;
 		if(pp && strmatch(name,e_alphanum)  && (fno=path_opentype(shp,name,pp,1))>=0)
 		{
-			if(flag==2)
+			if(flag >= 2)
 			{
 				sh_close(fno);
 				return(1);
@@ -732,8 +749,10 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 
 /*
  * do a path search and find the full pathname of file name
+ *
+ * If flag >= 2, do not autoload functions (cf. path_search()).
  */
-Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp)
+Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp, int flag)
 {
 	register int	f,isfun;
 	int		noexec=0;
@@ -874,10 +893,12 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 		}
 		if(isfun && f>=0)
 		{
-			nv_onattr(nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE),NV_LTOU|NV_FUNCTION);
-			funload(shp,f,name);
-			close(f);
-			f = -1;
+			if(flag < 2)
+			{
+				nv_onattr(nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE),NV_LTOU|NV_FUNCTION);
+				funload(shp,f,name);
+				close(f);
+			}
 			return(0);
 		}
 		else if(f>=0 && (oldpp->flags & PATH_STD_DIR))

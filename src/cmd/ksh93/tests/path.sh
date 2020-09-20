@@ -165,22 +165,28 @@ do	exp="$cmd found"
 	print print $exp > $cmd
 	$chmod +x $cmd
 	got=$($SHELL -c "unset FPATH; PATH=/dev/null; $cmd" 2>&1)
-	[[ $got == $exp ]] && err_exit "$cmd as last command should not find ./$cmd with PATH=/dev/null"
-	got=$($SHELL -c "unset FPATH; PATH=/dev/null; $cmd" 2>&1)
-	[[ $got == $exp ]] && err_exit "$cmd should not find ./$cmd with PATH=/dev/null"
+	[[ $got == "$exp" ]] && err_exit "$cmd as last command should not find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	exp=$PWD/./$cmd
-	got=$(unset FPATH; PATH=/dev/null; whence ./$cmd)
-	[[ $got == $exp ]] || err_exit "whence $cmd should find ./$cmd with PATH=/dev/null"
+	got=$($SHELL -c "unset FPATH; PATH=/dev/null; $cmd" 2>&1)
+	[[ $got == "$exp" ]] && err_exit "$cmd should not find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	exp=$PWD/$cmd
+	got=$(unset FPATH; PATH=/dev/null; whence ./$cmd)
+	[[ $got == "$exp" ]] || err_exit "whence $cmd should find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	got=$(unset FPATH; PATH=/dev/null; whence $PWD/$cmd)
-	[[ $got == $exp ]] || err_exit "whence \$PWD/$cmd should find ./$cmd with PATH=/dev/null"
+	[[ $got == "$exp" ]] || err_exit "whence \$PWD/$cmd should find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 
 exp=''
 got=$($SHELL -c "unset FPATH; PATH=/dev/null; whence ./notfound" 2>&1)
-[[ $got == $exp ]] || err_exit "whence ./$cmd failed -- expected '$exp', got '$got'"
+[[ $got == "$exp" ]] || err_exit "whence ./$cmd failed -- expected '$exp', got '$got'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 got=$($SHELL -c "unset FPATH; PATH=/dev/null; whence $PWD/notfound" 2>&1)
-[[ $got == $exp ]] || err_exit "whence \$PWD/$cmd failed -- expected '$exp', got '$got'"
+[[ $got == "$exp" ]] || err_exit "whence \$PWD/$cmd failed -- expected '$exp', got '$got'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 unset FPATH
 PATH=/dev/null
@@ -189,36 +195,46 @@ do	exp="$cmd found"
 	print print $exp > $cmd
 	$chmod +x $cmd
 	got=$($cmd 2>&1)
-	[[ $got == $exp ]] && err_exit "$cmd as last command should not find ./$cmd with PATH=/dev/null"
+	[[ $got == "$exp" ]] && err_exit "$cmd as last command should not find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	got=$($cmd 2>&1; :)
-	[[ $got == $exp ]] && err_exit "$cmd should not find ./$cmd with PATH=/dev/null"
-	exp=$PWD/./$cmd
-	got=$(whence ./$cmd)
-	[[ $got == $exp ]] || err_exit "whence ./$cmd should find ./$cmd with PATH=/dev/null"
+	[[ $got == "$exp" ]] && err_exit "$cmd should not find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	exp=$PWD/$cmd
+	got=$(whence ./$cmd)
+	[[ $got == "$exp" ]] || err_exit "whence ./$cmd should find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	got=$(whence $PWD/$cmd)
-	[[ $got == $exp ]] || err_exit "whence \$PWD/$cmd should find ./$cmd with PATH=/dev/null"
+	[[ $got == "$exp" ]] || err_exit "whence \$PWD/$cmd should find ./$cmd with PATH=/dev/null" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	got=$(cd / && whence "${OLDPWD#/}/$cmd")
+	[[ $got == "$exp" ]] || err_exit "whence output should not start with '//' if PWD is '/'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 exp=''
 got=$(whence ./notfound)
-[[ $got == $exp ]] || err_exit "whence ./$cmd failed -- expected '$exp', got '$got'"
+[[ $got == "$exp" ]] || err_exit "whence ./$cmd failed -- expected '$exp', got '$got'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 got=$(whence $PWD/notfound)
-[[ $got == $exp ]] || err_exit "whence \$PWD/$cmd failed -- expected '$exp', got '$got'"
-
+[[ $got == "$exp" ]] || err_exit "whence \$PWD/$cmd failed -- expected '$exp', got '$got'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 PATH=$d:
 command -p cp "$rm" kshrm
-if	[[ $(whence kshrm) != $PWD/kshrm  ]]
-then	err_exit 'trailing : in pathname not working'
-fi
+got=$(whence kshrm)
+exp=$PWD/kshrm
+[[ $got == "$exp" ]] || err_exit 'trailing : in pathname not working' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 command -p cp "$rm" rm
 PATH=:$d
-if	[[ $(whence rm) != $PWD/rm ]]
-then	err_exit 'leading : in pathname not working'
-fi
+got=$(whence rm)
+exp=$PWD/rm
+[[ $got == "$exp" ]] || err_exit 'leading : in pathname not working' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 PATH=$d: whence rm > /dev/null
-if	[[ $(whence rm) != $PWD/rm ]]
-then	err_exit 'pathname not restored after scoping'
-fi
+got=$(whence rm)
+exp=$PWD/rm
+[[ $got == "$exp" ]] || err_exit 'pathname not restored after scoping' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 command -p mkdir bin
 print 'print ok' > bin/tst
 command -p chmod +x bin/tst

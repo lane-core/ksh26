@@ -3619,7 +3619,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 			&& !nv_isattr(np,NV_NOALIAS)
 			&& np->nvalue.cp)
 				path = nv_getval(np);
-			else if(path_absolute(shp,path,NIL(Pathcomp_t*)))
+			else if(path_absolute(shp,path,NIL(Pathcomp_t*),0))
 			{
 				path = stkptr(shp->stk,PATH_OFFSET);
 				stkfreeze(shp->stk,0);
