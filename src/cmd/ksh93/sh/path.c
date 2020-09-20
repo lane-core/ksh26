@@ -897,8 +897,8 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 			{
 				nv_onattr(nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE),NV_LTOU|NV_FUNCTION);
 				funload(shp,f,name);
-				close(f);
 			}
+			close(f);
 			return(0);
 		}
 		else if(f>=0 && (oldpp->flags & PATH_STD_DIR))
