@@ -759,5 +759,40 @@ SHELL=$SHELL "$SHELL" -c '
 ' | awk '/^DEBUG/ { pid[NR] = $2; }  END { exit !(pid[1] == pid[2] && pid[2] == pid[3]); }' \
 || err_exit "setting PATH to readonly in subshell triggers an erroneous fork"
 
+# ======'
+# Test command substitution with external command in here-document
+# https://github.com/ksh93/ksh/issues/104
+expect=$'/dev/null\n/dev/null'
+actual=$(
+	cat <<-EOF
+		$(ls /dev/null)
+		`ls /dev/null`
+	EOF
+)
+[[ $actual == "$expect" ]] || err_exit 'Command substitution in here-document fails' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ...and in pipeline (rhbz#994251)
+expect=/dev/null
+actual=$(cat /dev/null | "$binecho" `ls /dev/null`)
+[[ $actual == "$expect" ]] || err_exit 'Command substitution in pipeline fails (1)' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ...and in pipeline again (rhbz#1036802: standard error was misdirected)
+expect=$'END2\naaa\nEND1\nEND3'
+actual=$(export bincat binecho; "$SHELL" 2>&1 -c \
+	'function foo
+	{
+		"$binecho" hello >/dev/null 2>&1
+		"$binecho" aaa | "$bincat"
+		echo END1
+		echo END2 >&2
+	}
+	echo "$(foo)" >&2
+	echo END3 >&2
+	exit')
+[[ $actual == "$expect" ]] || err_exit 'Command substitution in pipeline fails (2)' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
 # ======
 exit $((Errors<125?Errors:125))

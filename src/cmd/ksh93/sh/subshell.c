@@ -123,7 +123,8 @@ void	sh_subtmpfile(Shell_t *shp)
 		else if(errno!=EBADF)
 			errormsg(SH_DICT,ERROR_system(1),e_toomany);
 		/* popping a discipline forces a /tmp file create */
-		sfdisc(sfstdout,SF_POPDISC);
+		if(shp->comsub != 1)
+			sfdisc(sfstdout,SF_POPDISC);
 		if((fd=sffileno(sfstdout))<0)
 		{
 			/* unable to create the /tmp file so use a pipe */
@@ -173,6 +174,7 @@ void sh_subfork(void)
 	register struct subshell *sp = subshell_data;
 	Shell_t	*shp = sp->shp;
 	unsigned int curenv = shp->curenv;
+	char comsub = shp->comsub;
 	pid_t pid;
 	char *trap = shp->st.trapcom[0];
 	if(trap)
@@ -204,7 +206,7 @@ void sh_subfork(void)
 		shp->subshell = 0;
 		shp->comsub = 0;
 		sp->subpid=0;
-		shp->st.trapcom[0] = trap;
+		shp->st.trapcom[0] = (comsub==2 ? NULL : trap);
 		shp->savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		SH_SUBSHELLNOD->nvalue.s--;
@@ -653,6 +655,13 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		else
 		{
+			if(comsub!=1 && shp->spid)
+			{
+				job_wait(shp->spid);
+				if(shp->pipepid==shp->spid)
+					shp->spid = 0;
+				shp->pipepid = 0;
+			}
 			/* move tmp file to iop and restore sfstdout */
 			iop = sfswap(sfstdout,NIL(Sfio_t*));
 			if(!iop)
@@ -761,7 +770,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->coutpipe = sp->coutpipe;
 	}
 	shp->subshare = sp->subshare;
-	shp->comsub = sp->comsub;
 	shp->subdup = sp->subdup;
 	if(shp->subshell)
 	{
@@ -790,7 +798,12 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(nsig>0)
 		kill(getpid(),nsig);
 	if(sp->subpid)
+	{
 		job_wait(sp->subpid);
+		if(comsub>1)
+			sh_iounpipe(shp);
+	}
+	shp->comsub = sp->comsub;
 	if(comsub && iop && sp->pipefd<0)
 		sfseek(iop,(off_t)0,SEEK_SET);
 	if(shp->trapnote)

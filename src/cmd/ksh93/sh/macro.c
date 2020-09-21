@@ -385,7 +385,7 @@ void sh_machere(Shell_t *shp,Sfio_t *infile, Sfio_t *outfile, char *string)
 				break;
 			    }
 			    case S_PAR:
-				comsubst(mp,(Shnode_t*)0,1);
+				comsubst(mp,(Shnode_t*)0,3);
 				break;
 			    case S_EOF:
 				if((c=fcfill()) > 0)
@@ -1150,7 +1150,7 @@ retry1:
 	    case S_PAR:
 		if(type)
 			goto nosub;
-		comsubst(mp,(Shnode_t*)0,1);
+		comsubst(mp,(Shnode_t*)0,3);
 		return(1);
 	    case S_DIG:
 		var = 0;
