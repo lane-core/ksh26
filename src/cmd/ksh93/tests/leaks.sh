@@ -301,6 +301,7 @@ function func1
 EOF
 FPATH=$tmp
 autoload func1
+a=`func1`  # steady memory state
 before=$(getmem)
 for ((i=0; i < N; i++))
 do	a=`func1`
