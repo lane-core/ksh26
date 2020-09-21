@@ -759,7 +759,7 @@ SHELL=$SHELL "$SHELL" -c '
 ' | awk '/^DEBUG/ { pid[NR] = $2; }  END { exit !(pid[1] == pid[2] && pid[2] == pid[3]); }' \
 || err_exit "setting PATH to readonly in subshell triggers an erroneous fork"
 
-# ======'
+# ======
 # Test command substitution with external command in here-document
 # https://github.com/ksh93/ksh/issues/104
 expect=$'/dev/null\n/dev/null'
