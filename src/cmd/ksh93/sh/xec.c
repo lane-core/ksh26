@@ -1927,7 +1927,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				memset(exitval,0,job.waitall*sizeof(int));
 			}
 			else
-				job.waitall |= !pipejob && sh_isstate(SH_MONITOR);
+				job.waitall |= (job.bktick_waitall || !pipejob && sh_isstate(SH_MONITOR));
 			job_lock();
 			nlock++;
 			do

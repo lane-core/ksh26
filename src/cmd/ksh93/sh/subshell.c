@@ -524,7 +524,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->comsub = shp->comsub;
 	shp->subshare = comsub==2 ||  (comsub==1 && sh_isoption(SH_SUBSHARE));
 	if(comsub)
+	{
 		shp->comsub = comsub;
+		job.bktick_waitall = (comsub==1);
+	}
 	if(!comsub || !shp->subshare)
 	{
 		struct subshell *xp;
@@ -655,6 +658,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		else
 		{
+			job.bktick_waitall = 0;
 			if(comsub!=1 && shp->spid)
 			{
 				job_wait(shp->spid);

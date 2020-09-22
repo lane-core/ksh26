@@ -32,6 +32,7 @@ integer Errors=0
 
 bincat=$(whence -p cat)
 binecho=$(whence -p echo)
+binfalse=$(whence -p false)
 # make an external 'sleep' command that supports fractional seconds
 binsleep=$tmp/.sleep.sh  # hide to exclude from simple wildcard expansion
 cat >"$binsleep" <<EOF
@@ -418,7 +419,6 @@ expected=foreback
 got=$(print -n fore; (sleep .2;print back)&)
 [[ $got == $expected ]] || err_exit "command substitution background process output error -- got '$got', expected '$expected'"
 
-binfalse=$(whence -p false)
 for false in false $binfalse
 do	x=$($false) && err_exit "x=\$($false) should fail"
 	$($false) && err_exit "\$($false) should fail"
@@ -691,6 +691,24 @@ expect=$'fooテスト\n0テスト\n1テスト'
 actual=$(exptest foo)
 [[ $actual == "$expect" ]] || err_exit 'Corruption of multibyte char following expansion of single-char name' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
+# Crash in job handling code when running backtick-style command substitutions (rhbz#825520)
+# The regression sometimes doesn't just crash, but freezes hard, so requires special handling.
+cat >$tmp/backtick_crash.ksh <<'EOF'
+binfalse=$(whence -p false) || exit
+for ((i=0; i<250; i++))
+do	test -z `"$binfalse" | "$binfalse" | /dev/null/nothing`
+done
+EOF
+"$SHELL" -i "$tmp/backtick_crash.ksh" 2>/dev/null &	# run test as bg job
+test_pid=$!
+(sleep 10; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
+sleep_pid=$!
+{ wait "$test_pid"; } 2>/dev/null			# suppress any crash messages, which 'wait' would print
+e=$?							# get job's exit status from 'wait'
+((!e)) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+kill "$sleep_pid" 2>/dev/null
 
 # ======
 exit $((Errors<125?Errors:125))

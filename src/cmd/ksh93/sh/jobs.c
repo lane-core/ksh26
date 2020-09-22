@@ -1803,6 +1803,7 @@ again:
 	{
 		count = bp->count;
 		jp = bp->list;
+		jpold = 0;
 		goto again;
 	}
 	if(jp)
