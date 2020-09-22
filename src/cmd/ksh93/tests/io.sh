@@ -462,6 +462,7 @@ got=$(<$tmp/22.out)
 
 tmp=$tmp $SHELL 2> /dev/null -c 'exec 3<&1 ; exec 1<&- ; exec > $tmp/outfile;print foobar' || err_exit 'exec 1<&- causes failure'
 [[ $(<$tmp/outfile) == foobar ]] || err_exit 'outfile does not contain foobar'
+[[ $(<$tmp/outfile) == foobar ]] <&- >&- 2>&- || err_exit '$(<file) does not work with stdin, stdout and/or stderr closed'
 
 print hello there world > $tmp/foobar
 sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar

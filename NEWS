@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   to lose the output of the commands they ran. This bug occurred when ksh was
   compiled with the SHOPT_SPAWN compile-time option.
 
+- Bugfix: var=$(< file) now reads the file even if the standard inout, standard
+  output and/or standard error file descriptors are closed.
+
 2020-09-20:
 
 - Bugfix: when whence -v/-a found an "undefined" (i.e. autoloadable) function

@@ -1266,6 +1266,8 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 				if(flag==SH_SHOWME)
 					goto traceit;
 				fd=sh_chkopen(fname);
+				if(flag==3)			/* make sure that $(<file) works...	*/
+					fd=sh_iomovefd(fd);	/* ...with stdin/stdout/stderr closed	*/
 			}
 			else if(sh_isoption(SH_RESTRICTED))
 				errormsg(SH_DICT,ERROR_exit(1),e_restricted,fname);
