@@ -843,12 +843,52 @@ actual=$(hash -r; alias ls='echo ALL UR F1LEZ R G0N3'; hash ls; whence -a ls)
 
 # ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'
-(
-	cd "$tmp"
-	mkdir foo .bar
-	cd foo
-	cd ../.bar
-) || err_exit 'cd ../.bar when ../.bar exists should not fail'
+# https://bugzilla.redhat.com/889748
+expect=$tmp/.ssh
+actual=$( HOME=$tmp
+	mkdir ~/.ssh 2>&1 &&
+	cd ~/.ssh 2>&1 &&
+	cd ../.ssh 2>&1 &&
+	print -r -- "$PWD" )
+[[ $actual == "$expect" ]] || err_exit 'changing to a hidden directory using a path that contains the parent directory (..) fails' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+expect=$tmp/.java
+actual=$( mkdir "$tmp/java" "$tmp/.java" 2>&1 &&
+	cd "$tmp/.java" 2>&1 &&
+	cd ../.java 2>&1 &&
+	pwd )
+[[ $actual == "$expect" ]] || err_exit 'the dot (.) part of the directory name is being stripped' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# check that we cannot cd into a regular file and get misbehaviour
+: > "$tmp/regular_file"
+expect=": cd: $tmp/regular_file: [Not a directory]"
+actual=$(cd "$tmp/regular_file" 2>&1)
+e=$?
+[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a regular file' \
+	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+
+# https://bugzilla.redhat.com/1102627
+mkdir -m 600 "$tmp/no_x_dir"
+expect=": cd: $tmp/no_x_dir: [Permission denied]"
+actual=$(cd "$tmp/no_x_dir" 2>&1)
+e=$?
+[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (absolute path arg)' \
+	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+expect=": cd: no_x_dir: [Permission denied]"
+actual=$(cd "$tmp" 2>&1 && cd "no_x_dir" 2>&1)
+e=$?
+[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
+	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+
+# https://bugzilla.redhat.com/1133582
+expect=$HOME
+actual=$({ a=`cd; pwd`; } >&-; print -r -- "$a")
+[[ $actual == "$expect" ]] || err_exit "'cd' broke old-form command substitution with outer stdout closed" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$({ a=$(cd; pwd); } >&-; print -r -- "$a")
+[[ $actual == "$expect" ]] || err_exit "'cd' broke new-form command substitution with outer stdout closed" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
 # 'readonly' should set the correct scope when creating variables in functions
