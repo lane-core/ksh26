@@ -836,7 +836,7 @@ actual=$(FPATH=$tmp; ls /dev/null; whence -a ls >/dev/null; ls /dev/null)
 # results; they should be reported independently from real aliases, as they're actually completely
 # different things, and "tracked aliases" are actually used when bypassing an alias (with e.g. \ls).
 expect="ls is an alias for 'echo ALL UR F1LEZ R G0N3'
-ls is a tracked alias for /bin/ls"
+ls is a tracked alias for ${ whence -p ls; }"
 actual=$(hash -r; alias ls='echo ALL UR F1LEZ R G0N3'; hash ls; whence -a ls)
 [[ $actual == "$expect" ]] || err_exit "'whence -a' does not report tracked alias if alias exists" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
