@@ -857,10 +857,10 @@ unset foo
 	function test_func
 	{
 		readonly foo="bar"
-		[[ "$foo" = "bar" ]] || err_exit "readonly variable is not assigned a value inside functions"
+		[[ $foo = "bar" ]]
 	}
 	test_func
-)
+) || err_exit "readonly variable is not assigned a value inside functions"
 
 # ======
 # Test the output of nonstandard date formats with 'printf %T'
@@ -981,7 +981,7 @@ EOF
 # Builtins should handle unrecognized options correctly
 while IFS= read -r bltin <&3
 do	case $bltin in
-	echo | test | true | false | \[ | : | getconf | */getconf | uname | */uname)
+	echo | test | true | false | \[ | : | getconf | */getconf | uname | */uname | login | newgrp)
 		continue ;;
 	/*/*)	expect="Usage: ${bltin##*/} "
 		actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
