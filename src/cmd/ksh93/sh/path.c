@@ -1077,7 +1077,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 #if _lib_readlink
 	/* save original pathname */
 	stakseek(PATH_OFFSET);
-	pidsize = sfprintf(stkstd,"*%d*",spawn?getpid():getppid());
+	pidsize = sfprintf(stkstd,"*%d*",spawn?shgd->current_pid:getppid());
 	stakputs(opath);
 	opath = stakfreeze(1)+PATH_OFFSET+pidsize;
 	/* only use tracked alias if we're not searching default path */
@@ -1304,7 +1304,7 @@ static void exscript(Shell_t *shp,register char *path,register char *argv[],char
 		}
 		if((euserid=geteuid()) != shp->gd->userid)
 		{
-			strncpy(name+9,fmtbase((long)getpid(),10,0),sizeof(name)-10);
+			strncpy(name+9,fmtbase((long)shgd->current_pid,10,0),sizeof(name)-10);
 			/* create a suid open file with owner equal effective uid */
 			if((n=open(name,O_CREAT|O_TRUNC|O_WRONLY,S_ISUID|S_IXUSR)) < 0)
 				goto fail;

@@ -1058,7 +1058,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		stakseek(0);
 	}
 	stakputc('.');
-	sfprintf(stkstd,"%<#d_%d{;.tmp",getpid(),fno);
+	sfprintf(stkstd,"%<#d_%d{;.tmp",shgd->current_pid,fno);
 	tname = stakfreeze(1);
 	switch(mode)
 	{
@@ -1410,7 +1410,7 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 			}
 			if(!np)
 			{
-				if(flag==0 || tname || (flag==1 && fn==1 && (shp->fdstatus[fn]&IONOSEEK) && shp->outpipepid && shp->outpipepid==getpid()))
+				if(flag==0 || tname || (flag==1 && fn==1 && (shp->fdstatus[fn]&IONOSEEK) && shp->outpipepid == shgd->current_pid))
 				{
 					if(fd==fn)
 					{
@@ -2170,7 +2170,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 #ifdef DEBUG
 	if(flag==SF_READ || flag==SF_WRITE)
 	{
-		char *z = fmtbase((long)getpid(),0,0);
+		char *z = fmtbase((long)shgd->current_pid,0,0);
 		write(ERRIO,z,strlen(z));
 		write(ERRIO,": ",2);
 		write(ERRIO,"attempt to ",11);

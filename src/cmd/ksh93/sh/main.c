@@ -146,8 +146,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	{
 		/* begin script execution here */
 		sh_reinit((char**)0);
-		shp->gd->pid = getpid();
-		shp->gd->ppid = getppid();
 	}
 	shp->fn_depth = shp->dot_depth = 0;
 	command = error_info.id;
@@ -518,7 +516,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 			{
 				buff.mode = SH_JMPERREXIT;
 #ifdef DEBUG
-				errormsg(SH_DICT,ERROR_warn(0),"%d: mode changed to JMP_EXIT",getpid());
+				errormsg(SH_DICT,ERROR_warn(0),"%d: mode changed to JMP_EXIT",shgd->current_pid);
 #endif
 			}
 		}

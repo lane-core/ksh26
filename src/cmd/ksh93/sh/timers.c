@@ -94,7 +94,7 @@ static void sigalrm(int sig)
 	if(time_state&SIGALRM_CALL)
 		time_state &= ~SIGALRM_CALL;
 	else if(alarm(0))
-		kill(getpid(),SIGALRM|SH_TRAP);
+		kill(shgd->current_pid,SIGALRM|SH_TRAP);
 	if(time_state)
 	{
 		if(time_state&IN_ADDTIMEOUT)

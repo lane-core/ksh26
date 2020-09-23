@@ -306,7 +306,7 @@ int sh_lex(Lex_t *lp)
 		if(flag&ARG_QUOTED)
 			quoted = "quoted:";
 	}
-	sfprintf(sfstderr,"%d: line %d: %o:%s%s%s%s %s\n",getpid(),shp->inlineno,tok,quoted,
+	sfprintf(sfstderr,"%d: line %d: %o:%s%s%s%s %s\n",shgd->current_pid,shp->inlineno,tok,quoted,
 		macro, split, expand, fmttoken(lp,tok,tokstr));
 	return(tok);
 }

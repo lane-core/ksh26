@@ -1574,6 +1574,9 @@ int sh_reinit(char *argv[])
 	shp->inpipe = shp->outpipe = 0;
 	job_clear();
 	job.in_critical = 0;
+	/* update ${.sh.pid}, $$, $PPID */
+	shgd->current_pid = shgd->pid = getpid();
+	shgd->ppid = getppid();
 	return(1);
 }
 

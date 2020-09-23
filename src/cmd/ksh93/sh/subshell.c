@@ -791,7 +791,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			sp->prev->sig = sp->sig;
 		else
 		{
-			kill(getpid(),sp->sig);
+			kill(shgd->current_pid,sp->sig);
 			sh_chktrap(shp);
 		}
 	}
@@ -800,7 +800,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	nsig = shp->savesig;
 	shp->savesig = 0;
 	if(nsig>0)
-		kill(getpid(),nsig);
+		kill(shgd->current_pid,nsig);
 	if(sp->subpid)
 	{
 		job_wait(sp->subpid);
@@ -816,7 +816,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	{
 		int sig = shp->exitval&SH_EXITMASK;
 		if(sig==SIGINT || sig== SIGQUIT)
-			kill(getpid(),sig);
+			kill(shgd->current_pid,sig);
 	}
 	if(duped)
 	{
@@ -825,9 +825,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		errormsg(SH_DICT,ERROR_system(1),e_redirect);
 	}
 	if(shp->ignsig)
-		kill(getpid(),shp->ignsig);
+		kill(shgd->current_pid,shp->ignsig);
 	if(jmpval==SH_JMPSUB && shp->lastsig)
-		kill(getpid(),shp->lastsig);
+		kill(shgd->current_pid,shp->lastsig);
 	if(jmpval && shp->toomany)
 		siglongjmp(*shp->jmplist,jmpval);
 	return(iop);

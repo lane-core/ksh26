@@ -660,7 +660,7 @@ void sh_done(void *ptr, register int sig)
 		}
 		signal(sig,SIG_DFL);
 		sigrelease(sig);
-		kill(getpid(),sig);
+		kill(shgd->current_pid,sig);
 		pause();
 	}
 #if SHOPT_KIA

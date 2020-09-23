@@ -1636,7 +1636,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						shp->trapnote &= ~SH_SIGIGNORE;
 						if(shp->exitval == (SH_EXITSIG|SIGINT))
-							kill(getpid(),SIGINT);
+							kill(shgd->current_pid,SIGINT);
 					}
 				}
 				if(type&FAMP)
@@ -2887,8 +2887,9 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 #if !_std_malloc
 	vmtrace(-1);
 #endif
-	shp->outpipepid = ((flags&FPOU)?getpid():0);
 	/* This is the child process */
+	shgd->current_pid = getpid();  /* ${.sh.pid} */
+	shp->outpipepid = ((flags&FPOU)?shgd->current_pid:0);
 	if(shp->trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
 	shp->gd->nforks=0;
@@ -2898,7 +2899,7 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 		sh_offstate(SH_MONITOR);
 	if(sh_isstate(SH_MONITOR))
 	{
-		parent = getpid();
+		parent = shgd->current_pid;
 		if(postid==0)
 			job.curpgid = parent;
 		while(setpgid(0,job.curpgid)<0 && job.curpgid!=parent)
@@ -2925,9 +2926,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	sh_onstate(SH_NOLOG);
 	if (shp->fn_reset)
 		shp->fn_depth = shp->fn_reset = 0;
-	/* Set ${.sh.pid} to the child process ID */
-	shp->gd->current_pid = getpid();
-	SH_PIDNOD->nvalue.lp = &shp->gd->current_pid;
 #if SHOPT_ACCT
 	sh_accsusp();
 #endif	/* SHOPT_ACCT */
@@ -2944,7 +2942,7 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	sig = shp->savesig;
 	shp->savesig = 0;
 	if(sig>0)
-		kill(getpid(),sig);
+		kill(shgd->current_pid,sig);
 	sh_sigcheck(shp);
 	usepipe=0;
 	return(0);
@@ -2965,7 +2963,7 @@ pid_t sh_fork(Shell_t *shp,int flags, int *jobid)
 	sig = shp->savesig;
 	shp->savesig = 0;
 	if(sig>0)
-		kill(getpid(),sig);
+		kill(shgd->current_pid,sig);
 	job_fork(parent);
 	return(parent);
 }
@@ -3177,7 +3175,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	if(jmpval)
 		r=shp->exitval;
 	if(r>SH_EXITSIG && ((r&SH_EXITMASK)==SIGINT || ((r&SH_EXITMASK)==SIGQUIT)))
-		kill(getpid(),r&SH_EXITMASK);
+		kill(shgd->current_pid,r&SH_EXITMASK);
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap(shp);
