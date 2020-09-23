@@ -227,7 +227,7 @@ static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	register const char *cp, *name=nv_name(np);
 	register int	newopt=0;
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	if(*name=='E' && nv_getval(sh_scoped(shp,VISINOD)))
 		goto done;
 	if(!(cp=val) && (*name=='E' || !(cp=nv_getval(sh_scoped(shp,EDITNOD)))))
@@ -254,7 +254,7 @@ done:
 /* Trap for HISTFILE and HISTSIZE variables */
 static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	void 	*histopen = shp->gd->hist_ptr;
 	char	*cp;
 	if(val && histopen)
@@ -278,7 +278,7 @@ static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t
 /* Trap for OPTINDEX */
 static void put_optindex(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	shp->st.opterror = shp->st.optchar = 0;
 	nv_putv(np, val, flags, fp);
 	if(!val)
@@ -303,7 +303,7 @@ static Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, int flags, Namfun_t 
 /* Trap for restricted variables FPATH, PATH, SHELL, ENV */
 static void put_restricted(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	int	path_scoped = 0, fpath_scoped=0;
 	Pathcomp_t *pp;
 	char *name = nv_name(np);
@@ -345,7 +345,7 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	Pathcomp_t *pp;
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	nv_putv(np, val, flags, fp);
 	if(!shp->cdpathlist)
 		return;
@@ -369,7 +369,7 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
     /* Trap for LC_ALL, LC_CTYPE, LC_MESSAGES, LC_COLLATE and LANG */
     static void put_lang(Namval_t* np,const char *val,int flags,Namfun_t *fp)
     {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	int type;
 	char *name = nv_name(np);
 	if(name==(LCALLNOD)->nvname)
@@ -494,7 +494,7 @@ static char* get_ifs(register Namval_t* np, Namfun_t *fp)
 	register struct ifs *ip = (struct ifs*)fp;
 	register char *cp, *value;
 	register int c,n;
-	register Shell_t *shp = nv_shell(np);
+	register Shell_t *shp = sh_getinterp();
 	value = nv_getv(np,fp);
 	if(np!=ip->ifsnp)
 	{
@@ -573,7 +573,7 @@ static void put_seconds(register Namval_t* np,const char *val,int flags,Namfun_t
 
 static char* get_seconds(register Namval_t* np, Namfun_t *fp)
 {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	register int places = nv_size(np);
 	struct tms tp;
 	double d, offset = (np->nvalue.dp?*np->nvalue.dp:0);
@@ -657,7 +657,7 @@ static Sfdouble_t nget_lineno(Namval_t* np, Namfun_t *fp)
 static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	register long n;
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	if(!val)
 	{
 		fp = nv_stack(np, NIL(Namfun_t*));
@@ -681,7 +681,7 @@ static char* get_lineno(register Namval_t* np, Namfun_t *fp)
 
 static char* get_lastarg(Namval_t* np, Namfun_t *fp)
 {
-	Shell_t	*shp = nv_shell(np);
+	Shell_t	*shp = sh_getinterp();
 	char	*cp;
 	int	pid;
         if(sh_isstate(SH_INIT) && (cp=shp->lastarg) && *cp=='*' && (pid=strtol(cp+1,&cp,10)) && *cp=='*')
@@ -691,7 +691,7 @@ static char* get_lastarg(Namval_t* np, Namfun_t *fp)
 
 static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	Shell_t *shp = nv_shell(np);
+	Shell_t *shp = sh_getinterp();
 	if(flags&NV_INTEGER)
 	{
 		sfprintf(shp->strbuf,"%.*g",12,*((double*)val));
@@ -934,7 +934,7 @@ static void math_init(Shell_t *shp)
 
 static Namval_t *create_math(Namval_t *np,const char *name,int flag,Namfun_t *fp)
 {
-	Shell_t		*shp = nv_shell(np);
+	Shell_t		*shp = sh_getinterp();
 	if(!name)
 		return(SH_MATHNOD);
 	if(name[0]!='a' || name[1]!='r' || name[2]!='g' || name[4] || !isdigit(name[3]) || (name[3]=='0' || (name[3]-'0')>MAX_MATH_ARGS))
@@ -945,7 +945,7 @@ static Namval_t *create_math(Namval_t *np,const char *name,int flag,Namfun_t *fp
 
 static char* get_math(register Namval_t* np, Namfun_t *fp)
 {
-	Shell_t		*shp = nv_shell(np);
+	Shell_t		*shp = sh_getinterp();
 	Namval_t	*mp,fake;
 	char		*val;
 	int		first=0;
@@ -966,7 +966,7 @@ static char* get_math(register Namval_t* np, Namfun_t *fp)
 
 static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namfun_t *fp)
 {
-	Shell_t		*shp=nv_shell(np);
+	Shell_t		*shp=sh_getinterp();
 	Namval_t	*mp,fake;
 	char		*name;
 	int		getname=0, off=staktell();

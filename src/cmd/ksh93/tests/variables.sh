@@ -868,7 +868,7 @@ actual=$(env SHLVL="2#11+x[\$(env echo Exploited vuln CVE-2019-14868 >&2)0]" "$S
 [[ $actual == $expect ]] || err_exit "expression allowed on env var import (expected '$expect', got '$actual')"
 
 # ======
-# Check unset and cleanup/restore behavior of special variables.
+# Check unset, attribute and cleanup/restore behavior of special variables.
 
 # Keep the list in sync (minus ".sh") with shtab_variables[] in src/cmd/ksh93/data/variables.c
 # Note: as long as changing $PATH forks a virtual subshell, "PATH" should also be excluded below.
@@ -954,8 +954,8 @@ $SHELL -c '
 	done
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' unset_test "$@"
-e=$?
-((e == 1)) || err_exit "Failure in unsetting one or more special variables (exit status $e)"
+(((e = $?) == 1)) || err_exit "Failure in unsetting one or more special variables" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
 # ... unset in virtual subshell inside of nested function
 $SHELL -c '
@@ -984,8 +984,8 @@ $SHELL -c '
 	fun1 "$@"
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' unset_subsh_fun_test "$@"
-e=$?
-((e == 1)) || err_exit "Unset of special variable(s) in a virtual subshell within a nested function fails (exit status $e)"
+(((e = $?) == 1)) || err_exit "Unset of special variable(s) in a virtual subshell within a nested function fails" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
 # ... readonly in subshell
 $SHELL -c '
@@ -1008,8 +1008,8 @@ $SHELL -c '
 	done
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' readonly_test "$@"
-e=$?
-((e == 1)) || err_exit "Failure in making one or more special variables readonly in a subshell (exit status $e)"
+(((e = $?) == 1)) || err_exit "Failure in making one or more special variables readonly in a subshell" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
 # ... subshell leak test
 $SHELL -c '
@@ -1025,8 +1025,44 @@ $SHELL -c '
 	done
 	exit $((errors + 1))
 ' subshell_leak_test "$@"
-e=$?
-((e == 1)) || err_exit "One or more special variables leak out of a subshell (exit status $e)"
+(((e = $?) == 1)) || err_exit "One or more special variables leak out of a subshell" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+
+# ... upper/lowercase test
+$SHELL -c '
+	typeset -u upper
+	typeset -l lower
+	errors=0
+	PS1=/dev/null/test_my_case_too
+	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1 CSWIDTH=$PS1
+	for var
+	do	case $var in
+		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats)
+			# these are expected to fail below as their values change; just test against crashing
+			typeset -u "$var"
+			typeset -l "$var"
+			continue ;;
+		esac
+		nameref val=$var
+		upper=$val
+		lower=$val
+		typeset -u "$var"
+		if	[[ $val != "$upper" ]]
+		then	echo "	$0: typeset -u does not work on special variable $var" \
+				"(expected $(printf %q "$upper"), got $(printf %q "$val"))" >&2
+			let errors++
+		fi
+		typeset -l "$var"
+		if	[[ $val != "$lower" ]]
+		then	echo "	$0: typeset -l does not work on special variable $var" \
+				"(expected $(printf %q "$lower"), got $(printf %q "$val"))" >&2
+			let errors++
+		fi
+	done
+	exit $((errors + 1))
+' changecase_test "$@" PATH	# do include PATH here as well
+(((e = $?) == 1)) || err_exit "typeset -l/-u doesn't work on special variables" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
 # ======
 # ${.sh.pid} should be the forked subshell's PID

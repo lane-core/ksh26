@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a crash that could occur when running a pipeline containing
   backtick-style command substitutions with job control enabled.
 
+- Fixed a crash that occurred when using 'typeset -u' or 'typeset -l' on a
+  special variable such as PATH, ENV or SHELL.
+
 2020-09-21:
 
 - A bug was fixed that caused command substitutions embedded in here-documents

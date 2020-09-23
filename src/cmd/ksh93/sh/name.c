@@ -3624,17 +3624,6 @@ int nv_setsize(register Namval_t *np, int size)
 	return(oldsize);
 }
 
-Shell_t	*nv_shell(Namval_t *np)
-{
-	Namfun_t *fp;
-	for(fp=np->nvfun;fp;fp=fp->next)
-	{
-		if(!fp->disc)
-			return((Shell_t*)fp->last);
-	}
-	return(0);
-}
-
 #undef nv_unset
 
 void	nv_unset(register Namval_t *np)

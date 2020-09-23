@@ -359,7 +359,6 @@ struct shared
 #define SH_FUNEVAL		0x10000	/* for sh_eval for function load */
 
 extern struct shared	*shgd;
-extern Shell_t		*nv_shell(Namval_t*);
 extern void		sh_applyopts(Shell_t*,Shopt_t);
 extern char 		**sh_argbuild(Shell_t*,int*,const struct comnod*,int);
 extern struct dolnod	*sh_argfree(Shell_t *, struct dolnod*,int);
