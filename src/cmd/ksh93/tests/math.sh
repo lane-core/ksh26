@@ -204,7 +204,6 @@ do	tf=$i
 	pf=${ printf '%.3f' tf ;}
 	if	[[ $tf != "$pf" ]]
 	then	err_exit "typeset -F formatted data does not match its printf. typeset -F 3: $tf != $pf"
-		break
 	fi
 done
 unset i tf pf; typeset -lF 3 tf
@@ -213,7 +212,6 @@ do	tf=$i
 	pf=${ printf '%.3Lf' tf ;}
 	if	[[ $tf != "$pf" ]]
 	then	err_exit "typeset -lF formatted data does not match its printf. typeset -lF 3: $tf != $pf"
-		break
 	fi
 done
 unset i tf pf; typeset -E 3 tf
@@ -222,7 +220,6 @@ do	tf=$i
 	pf=${ printf '%.3g' tf ;}
 	if	[[ $tf != "$pf" ]]
 	then	err_exit "typeset -E formatted data does not match its printf. typeset -E 3: $tf != $pf"
-		break
 	fi
 done
 unset i tf pf; typeset -lE 3 tf
@@ -231,7 +228,6 @@ do	tf=$i
 	pf=${ printf '%.3Lg' tf ;}
 	if	[[ $tf != "$pf" ]]
 	then	err_exit "typeset -lE formatted data does not match its printf. typeset -lE 3: $tf != $pf"
-		break
 	fi
 done
 unset i tf pf
