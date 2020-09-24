@@ -106,10 +106,11 @@ static unsigned int subenv;
  * This routine will turn the sftmp() file into a real /tmp file or pipe
  * if the /tmp file create fails
  */
-void	sh_subtmpfile(Shell_t *shp)
+void	sh_subtmpfile(char comsub_flag)
 {
 	if(sfset(sfstdout,0,0)&SF_STRING)
 	{
+		Shell_t *shp = sh_getinterp();
 		register int fd;
 		register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 		register struct subshell *sp = subshell_data->pipe;
@@ -123,7 +124,7 @@ void	sh_subtmpfile(Shell_t *shp)
 		else if(errno!=EBADF)
 			errormsg(SH_DICT,ERROR_system(1),e_toomany);
 		/* popping a discipline forces a /tmp file create */
-		if(shp->comsub != 1)
+		if(comsub_flag != 1)
 			sfdisc(sfstdout,SF_POPDISC);
 		if((fd=sffileno(sfstdout))<0)
 		{
@@ -181,7 +182,7 @@ void sh_subfork(void)
 		trap = strdup(trap);
 	/* see whether inside $(...) */
 	if(sp->pipe)
-		sh_subtmpfile(shp);
+		sh_subtmpfile(shp->comsub);
 	shp->curenv = 0;
 	shp->savesig = -1;
 	if(pid = sh_fork(shp,FSHOWME,NIL(int*)))

@@ -693,22 +693,4 @@ actual=$(exptest foo)
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
-# Crash in job handling code when running backtick-style command substitutions (rhbz#825520)
-# The regression sometimes doesn't just crash, but freezes hard, so requires special handling.
-cat >$tmp/backtick_crash.ksh <<'EOF'
-binfalse=$(whence -p false) || exit
-for ((i=0; i<250; i++))
-do	test -z `"$binfalse" | "$binfalse" | /dev/null/nothing`
-done
-EOF
-"$SHELL" -i "$tmp/backtick_crash.ksh" 2>/dev/null &	# run test as bg job
-test_pid=$!
-(sleep 10; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
-sleep_pid=$!
-{ wait "$test_pid"; } 2>/dev/null			# suppress any crash messages, which 'wait' would print
-e=$?							# get job's exit status from 'wait'
-((!e)) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
-kill "$sleep_pid" 2>/dev/null
-
-# ======
 exit $((Errors<125?Errors:125))

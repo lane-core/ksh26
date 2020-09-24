@@ -795,4 +795,31 @@ actual=$(export bincat binecho; "$SHELL" 2>&1 -c \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
+# Crash in job handling code when running backtick-style command substitutions (rhbz#825520)
+# The regression sometimes doesn't just crash, but freezes hard, so requires special handling.
+cat >$tmp/backtick_crash.ksh <<'EOF'
+binfalse=$(whence -p false) || exit
+for ((i=0; i<250; i++))
+do	test -z `"$binfalse" | "$binfalse" | /dev/null/nothing`
+done
+EOF
+"$SHELL" -i "$tmp/backtick_crash.ksh" 2>/dev/null &	# run test as bg job
+test_pid=$!
+(sleep 10; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
+sleep_pid=$!
+{ wait "$test_pid"; } 2>/dev/null			# get job's exit status, suppressing signal messages
+((!(e = $?))) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+kill "$sleep_pid" 2>/dev/null
+
+# ======
+# Backtick command substitution hangs when filling out pipe buffer (rhbz#1062296)
+"$SHELL" -c 'HANG=`dd if=/dev/zero bs=1k count=117 2>/dev/null`' &
+test_pid=$!
+(sleep 2; kill -s KILL "$test_pid" 2>/dev/null) &
+sleep_pid=$!
+{ wait "$test_pid"; } 2>/dev/null
+((!(e = $?))) || err_exit "backtick comsub hang (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+kill "$sleep_pid" 2>/dev/null
+
+# ======
 exit $((Errors<125?Errors:125))

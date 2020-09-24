@@ -1319,7 +1319,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->notify = 0;
 						bp->flags = (OPTIMIZE!=0);
 						if(shp->subshell && nv_isattr(np,BLT_NOSFIO))
-							sh_subtmpfile(shp);
+							sh_subtmpfile(shp->comsub);
 						if(execflg && !shp->subshell &&
 							!shp->st.trapcom[0] && !shp->st.trap[SH_ERRTRAP] && shp->fn_depth==0 && !nv_isattr(np,BLT_ENV))
 						{
@@ -1527,10 +1527,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int pipes[3];
 			if(shp->subshell)
 			{
-				sh_subtmpfile(shp);
+				sh_subtmpfile(2);
+				if(shp->comsub==1 && (!(shp->fdstatus[1]&IONOSEEK)))
+					unpipe = iousepipe(shp);
 				if((type&(FAMP|TFORK))==(FAMP|TFORK))
 				{
-					if(shp->comsub && !(shp->fdstatus[1]&IONOSEEK))
+					if(shp->comsub && !(shp->fdstatus[1]&IONOSEEK) && !unpipe)
 						unpipe = iousepipe(shp);
 					sh_subfork();
 				}
@@ -1909,7 +1911,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			job.curjobid = 0;
 			if(shp->subshell)
 			{
-				sh_subtmpfile(shp);
+				sh_subtmpfile(2);
 				if(shp->comsub==1 && !(shp->fdstatus[1]&IONOSEEK))
 					iousepipe(shp);
 			}

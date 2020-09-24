@@ -211,7 +211,7 @@ struct shared
 	unsigned char	ignsig;		/* ignored signal in subshell */ \
 	unsigned char	lastsig;	/* last signal received */ \
 	char		pathinit;	/* pathinit called from subshell */ \
-	char		comsub;		/* set when in $() comsub */ \
+	char		comsub;		/* set to 1 when in `` comsub, 2 when in $() comsub */ \
 	char		subshare;	/* set when in ${..} comsub */ \
 	char		toomany;	/* set when out of fd's */ \
 	char		instance;	/* in set_instance */ \
@@ -399,7 +399,7 @@ extern Namval_t		*sh_scoped(Shell_t*, Namval_t*);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
-extern void		sh_subtmpfile(Shell_t*);
+extern void		sh_subtmpfile(char);
 extern char 		*sh_substitute(const char*,const char*,char*);
 extern void		sh_timetraps(Shell_t*);
 extern const char	*_sh_translate(const char*);
