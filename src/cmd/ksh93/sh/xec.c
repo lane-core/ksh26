@@ -1528,14 +1528,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(shp->subshell)
 			{
 				sh_subtmpfile(2);
-				if(shp->comsub==1 && (!(shp->fdstatus[1]&IONOSEEK)))
+				if((shp->comsub && (type&(FAMP|TFORK))==(FAMP|TFORK) || shp->comsub==1) &&
+				!(shp->fdstatus[1]&IONOSEEK))
 					unpipe = iousepipe(shp);
 				if((type&(FAMP|TFORK))==(FAMP|TFORK))
-				{
-					if(shp->comsub && !(shp->fdstatus[1]&IONOSEEK) && !unpipe)
-						unpipe = iousepipe(shp);
 					sh_subfork();
-				}
 			}
 			no_fork = !ntflag && !(type&(FAMP|FPOU)) && !shp->subshell &&
 			    !(shp->st.trapcom[SIGINT] && *shp->st.trapcom[SIGINT]) &&
