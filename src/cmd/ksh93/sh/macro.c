@@ -2489,10 +2489,11 @@ static void endfield(register Mac_t *mp,int split)
 		{
 			mp->shp->argaddr = 0;
 #if SHOPT_BRACEPAT
-			count = path_generate(mp->shp,argp,mp->arghead);
-#else
-			count = path_expand(mp->shp,argp->argval,mp->arghead);
+			if(sh_isoption(SH_BRACEEXPAND))
+				count = path_generate(mp->shp,argp,mp->arghead);
+			else
 #endif /* SHOPT_BRACEPAT */
+				count = path_expand(mp->shp,argp->argval,mp->arghead);
 			if(count)
 				mp->fields += count;
 			else if(split)	/* pattern is null string */

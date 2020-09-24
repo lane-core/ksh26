@@ -548,4 +548,18 @@ print $'alias print=:\nprint foobar' > dotfile
 "$SHELL" -o monitor -c '[[ -o monitor ]]' || err_exit 'option -o monitor on command line does not work'
 
 # ======
+# Brace expansion could not be turned off in command substitutions (rhbz#1078698)
+set -B
+expect='test{1,2}'
+actual=$(set +B; echo `echo test{1,2}`)
+[[ $actual == "$expect" ]] || err_exit 'Brace expansion not turned off in `comsub`' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(set +B; echo $(echo test{1,2}))
+[[ $actual == "$expect" ]] || err_exit 'Brace expansion not turned off in $(comsub)' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(set +B; echo ${ echo test{1,2}; })
+[[ $actual == "$expect" ]] || err_exit 'Brace expansion not turned off in ${ comsub; }' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
 exit $((Errors<125?Errors:125))
