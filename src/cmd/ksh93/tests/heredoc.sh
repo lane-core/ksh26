@@ -501,8 +501,19 @@ x=$( $SHELL 2> /dev/null 'read <<< $(<'"$tmp"'/foofile) 2> /dev/null;print -r "$
 # ======
 # A syntax error should not occur if a command substitution is run on the same line
 # as a here document.
-$SHELL -c 'true << EOF || true "$(true)"
-EOF' || err_exit 'placing a command substitution and here-doc on the same line causes a syntax error'
+got=$("$SHELL" -c 'true << EOF || true "$(true)"
+EOF' 2>&1) || err_exit 'placing a command substitution and here-doc on the same line causes a syntax error' \
+	"(got $(printf %q "$got"))"
+
+# Another version of this regression from Red Hat bug 1036931
+expect='gamma'
+actual=$("$SHELL" -c 'cat <<EOF | tail -$((5-4))
+alpha
+beta
+gamma
+EOF' 2>&1)
+[[ $actual == "$expect" ]] || err_exit 'Syntax error on arith expansion on same line as here-doc' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # A here-document in a command substitution should cause a syntax error if it isn't
 # completed inside of the command substitution.
