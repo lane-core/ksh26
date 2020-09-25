@@ -2096,6 +2096,7 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 			}
 #endif	/* TIOCLBIC */
 			cp = sh_mactry(shp,nv_getval(sh_scoped(shp,PS1NOD)));
+			shp->exitval = 0;
 			for(;c= *cp;cp++)
 			{
 				if(c==HIST_CHAR)
