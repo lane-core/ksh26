@@ -49,8 +49,6 @@
 #   include	<nc.h>
 #endif	/* _hdr_nc */
 
-#define CMD_LENGTH	64
-
 /* These routines are referenced by this module */
 static void	exfile(Shell_t*, Sfio_t*,int);
 static void	chkmail(Shell_t *shp, char*);
@@ -340,6 +338,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	}
 	else
 	{
+		/* beenhere > 0: We're in a forked child, about to execute a script without a hashbang path. */
 		fdin = shp->infd;
 		fixargs(shp->st.dolv,1);
 	}
@@ -697,6 +696,13 @@ static void chkmail(Shell_t *shp, char *files)
 #if defined(_lib_fork) && !defined(_NEXT_SOURCE)
 /*
  * fix up command line for ps command
+ *
+ * This function is invoked when ksh needs to run a script without a
+ * #!/hashbang/path. Instead of letting the kernel invoke a shell, ksh
+ * exfile()s the script itself from sh_main(). In the forked child, it calls
+ * fixargs() to set the argument list in the environment to the args of the
+ * new script, so that 'ps' and /proc/PID/cmdline show the expected output.
+ *
  * mode is 0 for initialization
  */
 static void fixargs(char **argv, int mode)
@@ -727,19 +733,6 @@ static void fixargs(char **argv, int mode)
 		buff = argv[0];
 		while(cp = *argv++)
 			command_len += strlen(cp)+1;
-		if(environ && *environ==buff+command_len)
-		{
-			for(argv=environ; cp = *argv; cp++)
-			{
-				if(command_len > CMD_LENGTH)
-				{
-					command_len = CMD_LENGTH;
-					break;
-				}
-				*argv++ = strdup(cp);
-				command_len += strlen(cp)+1;
-			}
-		}
 		command_len -= 1;
 		return;
 	}
@@ -754,7 +747,8 @@ static void fixargs(char **argv, int mode)
 		offset += size;
 		buff[offset++] = ' ';
 	}
-	buff[offset-1] = 0;
+	offset--;
+	memset(&buff[offset], 0, command_len - offset);
 #   ifdef PSTAT
 	un.pst_command = stakptr(0);
 	pstat(PSTAT_SETCMD,un,0,0,0);

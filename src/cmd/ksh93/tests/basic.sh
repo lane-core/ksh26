@@ -693,4 +693,28 @@ actual=$(exptest foo)
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
+# ksh didn't rewrite argv correctly (rhbz#1047506)
+# When running a script without a #! hashbang path, ksh attempts to replace argv with the arguments
+# of the script. However, fixargs() didn't wipe out the rest of previous arguments after the last
+# \0. This caused an erroneous record in /proc/<PID>/cmdline and the output of the ps command.
+if	actual=$(UNIX95=1 ps -o args= -p "$$" 2>&1)	# UNIX95=1 makes this work on HP-UX
+	# Some 'ps' implementations add leading and/or trailing whitespace. Remove.
+	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
+	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
+	[[ $actual == "$SHELL $0" ]]  # this is how shtests invokes this script
+then	expect='./atest 1 2'
+	echo 'sleep 10; exit 0' >atest
+	chmod 755 atest
+	./atest 1 2 &
+	actual=$(UNIX95=1 ps -o args= -p "$!")
+	kill "$!"
+	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
+	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
+	[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+else	err_exit "warning: skipping argv rewrite test due to noncompliant 'ps' utility (got $(printf %q "$actual"))"
+	let Errors--
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

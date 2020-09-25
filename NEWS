@@ -3,6 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-09-25:
+
+- When ksh invoked a shell script that does not have a leading
+  #!/hashbang/path, 'ps' and /proc/<PID>/cmdline showed corrupted output if
+  the new script's command line was shorter than that of the invoking script.
+  This has been fixed by wiping the arguments buffer correctly.
+
 2020-09-24:
 
 - An omission made it impossible to turn off brace expansion within command
