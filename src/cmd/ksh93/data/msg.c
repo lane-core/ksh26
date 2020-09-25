@@ -141,6 +141,7 @@ const char is_alias[]		= "%s is an alias for ";
 const char is_talias[]		= "is a tracked alias for";
 const char is_function[]	= " is a function";
 const char is_ufunction[]	= " is an undefined function";
+const char e_autoloadfrom[]	= " (autoload from %s)";
 #ifdef JOBS
 #   ifdef SIGTSTP
 	const char e_newtty[]	= "Switching to new tty driver...";

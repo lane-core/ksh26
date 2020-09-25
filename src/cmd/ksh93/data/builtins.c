@@ -1988,7 +1988,7 @@ _JOB_
 ;
 
 const char sh_optwhence[] =
-"[-1c?\n@(#)$Id: whence (AT&T Research/ksh93) 2020-07-20 $\n]"
+"[-1c?\n@(#)$Id: whence (AT&T Research/ksh93) 2020-09-25 $\n]"
 USAGE_LICENSE
 "[+NAME?whence, type - locate a command and describe its type]"
 "[+DESCRIPTION?Without \b-v\b, \bwhence\b writes on standard output an "

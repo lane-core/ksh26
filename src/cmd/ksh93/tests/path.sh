@@ -29,6 +29,7 @@ Command=${0##*/}
 integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+PATH_orig=$PATH
 
 type /xxxxxx > out1 2> out2
 [[ -s out1 ]] && err_exit 'type should not write on stdout for not found case'
@@ -417,6 +418,8 @@ ${.sh.version}
 END
 ) || err_exit '${.sh.xxx} variables causes cat not be found'
 
+PATH=$PATH_orig
+
 # ======
 # Check that 'command -p' searches the default OS utility PATH.
 expect=/dev/null
@@ -447,6 +450,39 @@ expect=$(builtin getconf; PATH=$(getconf PATH); whence -p ls)
 actual=$(PATH=$tmp; redirect 2>&1; hash ls; command -p -v ls)
 [[ $actual == "$expect" ]] || err_exit "'command -p -v' fails to search default path if tracked alias exists" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
+# Unlike pdksh, ksh93 didn't report the path to autoloadable functions, which was an annoying omission.
+if	((.sh.version >= 20200925))
+then	fundir=$tmp/whencefun
+	mkdir $fundir
+	echo "whence_FPATH_test() { echo I\'m just on FPATH; }" >$fundir/whence_FPATH_test
+	echo "whence_autoload_test() { echo I was explicitly autoloaded; }" >$fundir/whence_autoload_test
+	echo "function chmod { echo Hi, I\'m your new chmod!; }" >$fundir/chmod
+	echo "function ls { echo Hi, I\'m your new ls!; }" >$fundir/ls
+	hash -r
+	actual=$("$SHELL" -c 'FPATH=$1
+			autoload chmod whence_autoload_test
+			whence -a chmod whence_FPATH_test whence_autoload_test ls cp
+			whence_FPATH_test
+			whence_autoload_test
+			cp --totally-invalid-option 2>/dev/null
+			ls --totally-invalid-option 2>/dev/null
+			chmod --totally-invalid-option' \
+		whence_autoload_test "$fundir" 2>&1)
+	expect="chmod is an undefined function (autoload from $fundir/chmod)"
+	expect+=$'\n'"chmod is ${ whence -p chmod; }"
+	expect+=$'\n'"whence_FPATH_test is an undefined function (autoload from $fundir/whence_FPATH_test)"
+	expect+=$'\n'"whence_autoload_test is an undefined function (autoload from $fundir/whence_autoload_test)"
+	expect+=$'\n'"ls is a tracked alias for ${ whence -p ls; }"
+	expect+=$'\n'"ls is an undefined function (autoload from $fundir/ls)"
+	expect+=$'\n'"cp is a tracked alias for ${ whence -p cp; }"
+	expect+=$'\n'"I'm just on FPATH"
+	expect+=$'\n'"I was explicitly autoloaded"
+	expect+=$'\n'"Hi, I'm your new chmod!"
+	[[ $actual == "$expect" ]] || err_exit "failure in reporting or running autoloadable functions" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

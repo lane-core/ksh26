@@ -5,6 +5,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2020-09-25:
 
+- whence -v/-a now reports the path to the file that an "undefined" (i.e.
+  autoloadable) function will be loaded from when invoked, if found in $FPATH.
+
 - When ksh invoked a shell script that does not have a leading
   #!/hashbang/path, 'ps' and /proc/<PID>/cmdline showed corrupted output if
   the new script's command line was shorter than that of the invoking script.

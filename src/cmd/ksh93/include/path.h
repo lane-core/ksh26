@@ -129,6 +129,7 @@ extern const char is_reserved[];
 extern const char is_talias[];
 extern const char is_function[];
 extern const char is_ufunction[];
+extern const char e_autoloadfrom[];
 #ifdef SHELLMAGIC
     extern const char e_prohibited[];
 #endif /* SHELLMAGIC */

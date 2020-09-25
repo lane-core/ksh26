@@ -139,7 +139,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 	register const char *msg;
 	Namval_t *nq;
 	char *notused;
-	Pathcomp_t *pp=0;
+	Pathcomp_t *pp;
 	if(flags&Q_FLAG)
 		flags &= ~A_FLAG;
 	while(name= *argv++)
@@ -179,16 +179,24 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 	bltins:
 		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && !is_abuiltin(np))
 		{
-			if(flags&V_FLAG)
-				if(nv_isnull(np))
-					cp = sh_translate(is_ufunction);
-				else
-					cp = sh_translate(is_function);
-			else
-				cp = "";
 			if(flags&Q_FLAG)
 				continue;
-			sfprintf(sfstdout,"%s%s\n",name,cp);
+			sfputr(sfstdout,name,-1);
+			if(flags&V_FLAG)
+			{
+				if(nv_isnull(np))
+				{
+					sfprintf(sfstdout,sh_translate(is_ufunction));
+					pp = 0;
+					while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
+						;
+					if(*stakptr(PATH_OFFSET)=='/')
+						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
+				}
+				else
+					sfprintf(sfstdout,sh_translate(is_function));
+			}
+			sfputc(sfstdout,'\n');
 			if(!aflag)
 				continue;
 			aflag++;
@@ -210,6 +218,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			aflag++;
 		}
 	search:
+		pp = 0;
 		do
 		{
 			int maybe_undef_fn = 0;  /* flag for possible undefined (i.e. autoloadable) function */
@@ -246,7 +255,10 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 					/* Undefined/autoloadable function on FPATH */
 					sfputr(sfstdout,sh_fmtq(cp),-1);
 					if(flags&V_FLAG)
-						sfputr(sfstdout,sh_translate(is_ufunction),-1);
+					{
+						sfprintf(sfstdout,sh_translate(is_ufunction));
+						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
+					}
 					sfputc(sfstdout,'\n');
 				}
 			}
