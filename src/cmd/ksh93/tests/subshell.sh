@@ -821,5 +821,14 @@ sleep_pid=$!
 ((!(e = $?))) || err_exit "backtick comsub hang (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 kill "$sleep_pid" 2>/dev/null
 
+# Backtick command substitution with pipe hangs when filling out pipe buffer (rhbz#1138751)
+"$SHELL" -c 'HANG=`dd if=/dev/zero bs=1k count=117 2>/dev/null | cat`' &
+test_pid=$!
+(sleep 2; kill -s KILL "$test_pid" 2>/dev/null) &
+sleep_pid=$!
+{ wait "$test_pid"; } 2>/dev/null
+((!(e = $?))) || err_exit "backtick comsub with pipe hangs (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+kill "$sleep_pid" 2>/dev/null
+
 # ======
 exit $((Errors<125?Errors:125))
