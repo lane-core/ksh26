@@ -3234,11 +3234,14 @@ static void sh_funct(Shell_t *shp,Namval_t *np,int argn, char *argv[],struct arg
 	nv_putval(SH_FUNNAMENOD,fname,NV_NOFREE);
 	nv_putval(SH_PATHNAMENOD,shp->st.filename,NV_NOFREE);
 	shp->pipepid = pipepid;
-	np->nvalue.rp->running  -= 2;
-	if(np->nvalue.rp && np->nvalue.rp->running==1)
+	if(np->nvalue.rp)
 	{
-		np->nvalue.rp->running = 0;
-		_nv_unset(np, NV_RDONLY);
+		np->nvalue.rp->running  -= 2;
+		if(np->nvalue.rp->running==1)
+		{
+			np->nvalue.rp->running = 0;
+			_nv_unset(np, NV_RDONLY);
+		}
 	}
 }
 
