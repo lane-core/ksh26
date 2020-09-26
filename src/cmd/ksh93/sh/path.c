@@ -236,14 +236,14 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 /*
  * make sure PWD is set up correctly
  * Return the present working directory
- * Invokes getcwd() if flag==0 and if necessary
+ * Invokes getcwd() if necessary
  * Sets the PWD variable to this value
  */
 char *path_pwd(Shell_t *shp,int flag)
 {
 	register char *cp;
-	register char *dfault = (char*)e_dot;
 	register int count = 0;
+	NOT_USED(flag);
 	if(shp->pwd)
 		return((char*)shp->pwd);
 	while(1) 
@@ -261,11 +261,6 @@ char *path_pwd(Shell_t *shp,int flag)
 				cp = "/";
 				break;
 			case 3:
-				cp = (char*)e_crondir;
-				if(flag) /* skip next case when non-zero flag */
-					++count;
-				break;
-			case 4:
 			{
 				if(cp=getcwd(NIL(char*),0))
 				{  
@@ -276,8 +271,8 @@ char *path_pwd(Shell_t *shp,int flag)
 				}
 				break;
 			}
-			case 5:
-				return(dfault);
+			case 4:
+				return((char*)e_dot);
 		}
 		if(cp && *cp=='/' && test_inode(cp,e_dot))
 			break;
