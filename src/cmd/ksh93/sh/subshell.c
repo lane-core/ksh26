@@ -662,7 +662,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			job.bktick_waitall = 0;
 			if(comsub!=1 && shp->spid)
 			{
+				int e = shp->exitval;
 				job_wait(shp->spid);
+				shp->exitval = e;
 				if(shp->pipepid==shp->spid)
 					shp->spid = 0;
 				shp->pipepid = 0;

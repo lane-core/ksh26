@@ -1276,4 +1276,35 @@ EOF
 [[ $? == 2 ]] && err_exit 'Over-shifting in a POSIX function does not terminate the script if the function call has a redirection'
 
 # ======
+# https://bugzilla.redhat.com/1116508
+expect=$'13/37/1/1'
+actual=$(
+	foo() {
+		print foo | read
+		return 13
+	}
+	out=$(foo)
+	print -n $?/
+	foo() {
+		print foo | read
+		ls /dev/null
+		return 37
+	}
+	out=$(foo)
+	print -n $?/
+	foo() {
+		print foo | ! read
+	}
+	out=$(foo)
+	print -n $?/
+	foo() {
+		! true
+	}
+	out=$(foo)
+	print -n $?
+)
+[[ $actual == "$expect" ]] || err_exit "wrong exit status from function invoked by command substitution" \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+
+# ======
 exit $((Errors<125?Errors:125))
