@@ -199,7 +199,8 @@ typedef struct _init_
 static Init_t		*ip;
 static int		lctype;
 static int		nbltins;
-static void		env_init(Shell_t*,int);
+static char		*env_init(Shell_t*);
+static void		env_import_attributes(Shell_t*,char*);
 static Init_t		*nv_init(Shell_t*);
 static int		shlvl;
 
@@ -1179,6 +1180,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	Shell_t	*shp;
 	register int n;
 	int type;
+	char *save_envmarker;
 	static char *login_files[3];
 	memfatal();
 	n = strlen(e_version);
@@ -1293,8 +1295,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		if(type&SH_TYPE_POSIX)
 			sh_onoption(SH_POSIX);
 	}
-	/* read the environment; don't import attributes yet */
-	env_init(shp,0);
+	/* read the environment; don't import attributes yet, but save pointer to them */
+	save_envmarker = env_init(shp);
 	if(!ENVNOD->nvalue.cp)
 	{
 		sfprintf(shp->strbuf,"%s/.kshrc",nv_getval(HOME));
@@ -1397,7 +1399,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	}
 	/* import variable attributes from environment */
 	if(!sh_isoption(SH_POSIX))
-		env_init(shp,1);
+		env_import_attributes(shp,save_envmarker);
 #if SHOPT_PFSH
 	if (sh_isoption(SH_PFSH))
 	{
@@ -1883,75 +1885,35 @@ Dt_t *sh_inittree(Shell_t *shp,const struct shtable2 *name_vals)
  * read in the process environment and set up name-value pairs
  * skip over items that are not name-value pairs
  *
- * Must be called with import_attributes == 0 first, then again with
- * import_attributes == 1 if variable attributes are to be imported
- * from the environment.
+ * Returns pointer to A__z env var from which to import attributes, or 0.
  */
 
-static void env_init(Shell_t *shp, int import_attributes)
+static char *env_init(Shell_t *shp)
 {
 	register char		*cp;
-	register Namval_t	*np,*mp;
+	register Namval_t	*np;
 	register char		**ep=environ;
-	char			*dp;
-	int			nenv=0,k=0,size=0;
-	Namval_t		*np0;
-	static char		*next=0;  /* next variable whose attributes to import */
-
-	if(import_attributes)
-		goto import_attributes;
-	if(!ep)
-		goto skip;
-	while(*ep++)
-		nenv++;
-	np = newof(0,Namval_t,nenv,0);
-	for(np0=np,ep=environ;cp= *ep; ep++)
+	char			*next = 0;	/* pointer to A__z env var */
+	if(ep)
 	{
-		dp = strchr(cp,'=');
-		if(!dp)
-			continue;
-		*dp++ = 0;
-		if(mp = dtmatch(shp->var_base,cp))
+		while(cp = *ep++)
 		{
-			mp->nvenv = (char*)cp;
-			dp[-1] = '=';
+			/* The magic A__z env var is an invention of ksh88. See e_envmarker[]. */
+			if(*cp=='A' && cp[1]=='_' && cp[2]=='_' && cp[3]=='z' && cp[4]=='=')
+				next = cp + 4;
+			else if(np = nv_open(cp,shp->var_tree,(NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL)))
+			{
+				nv_onattr(np,NV_IMPORT);
+				np->nvenv = cp;
+				nv_close(np);
+			}
+			else  /* swap with front */
+			{
+				ep[-1] = environ[shp->nenv];
+				environ[shp->nenv++] = cp;
+			}
 		}
-		else if(strcmp(cp,e_envmarker)==0)
-		{
-			dp[-1] = '=';
-			next = cp + strlen(e_envmarker);
-			continue;
-		}
-		else
-		{
-			k++;
-			mp = np++;
-			mp->nvname = cp;
-			size += strlen(cp);
-		}
-		nv_onattr(mp,NV_IMPORT);
-		if(mp->nvfun || nv_isattr(mp,NV_INTEGER))
-			nv_putval(mp,dp,0);
-		else
-		{
-			mp->nvalue.cp = dp;
-			nv_onattr(mp,NV_NOFREE);
-		}
-		nv_onattr(mp,NV_EXPORT|NV_IMPORT);
 	}
-	np =  (Namval_t*)realloc((void*)np0,k*sizeof(Namval_t));
-	dp = (char*)malloc(size+k);
-	while(k-->0)
-	{
-		size = strlen(np->nvname);
-		memcpy(dp,np->nvname,size+1);
-		np->nvname[size] = '=';
-		np->nvenv = np->nvname;
-		np->nvname = dp;
-		dp += size+1;
-		dtinsert(shp->var_base,np++);
-	}
-skip:
 	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
 	{
 		nv_offattr(PWDNOD,NV_TAGGED);
@@ -1959,10 +1921,17 @@ skip:
 	}
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
-	return;
+	return(next);
+}
 
-	/* Import variable attributes from environment (from variable named by e_envmarker) */
-import_attributes:
+/*
+ * Import variable attributes from magic A__z env var pointed to by 'next'.
+ * If next == 0, this function does nothing.
+ */
+static void env_import_attributes(Shell_t *shp, char *next)
+{
+	register char		*cp;
+	register Namval_t	*np;
 	while(cp=next)
 	{
 		if(next = strchr(++cp,'='))
@@ -1975,7 +1944,7 @@ import_attributes:
 			if((flag&NV_INTEGER) && size==0)
 			{
 				/* check for floating*/
-				char *val = nv_getval(np);
+				char *dp, *val = nv_getval(np);
 				strtol(val,&dp,10);
 				if(*dp=='.' || *dp=='e' || *dp=='E')
 				{
@@ -1998,11 +1967,7 @@ import_attributes:
 				}
 			}
 			nv_newattr(np,flag|NV_IMPORT|NV_EXPORT,size);
-			if((flag&(NV_INTEGER|NV_UTOL|NV_LTOU))==(NV_UTOL|NV_LTOU))
-				nv_mapchar(np,(flag&NV_UTOL)?e_tolower:e_toupper);
 		}
-		else
-			cp += 2;
 	}
 	return;
 }

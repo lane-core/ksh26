@@ -7,6 +7,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - 'whence -f' now completely ignores the existence of functions, as documented.
 
+- ksh now does not import environment variables whose names are not valid in
+  the shell language, as it would be impossible to change or unset them.
+  However, they stay in the environment to be passed to child processes.
+
 2020-09-25:
 
 - whence -v/-a now reports the path to the file that an "undefined" (i.e.

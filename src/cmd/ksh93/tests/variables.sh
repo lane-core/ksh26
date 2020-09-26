@@ -1124,4 +1124,11 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 done
 
 # ======
+# https://bugzilla.redhat.com/1147645
+case $'\n'$(env 'BASH_FUNC_a%%=() { echo test; }' "$SHELL" -c set) in
+*$'\nBASH_FUNC_a%%='* )
+	err_exit 'ksh imports environment variables with invalid names' ;;
+esac
+
+# ======
 exit $((Errors<125?Errors:125))
