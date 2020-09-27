@@ -634,4 +634,20 @@ err=$(
 	"(got $(printf %q "$err"))"
 
 # ======
+# A redirection with a null command could crash under certain circumstances (rhbz#1200534)
+"$SHELL" -i >/dev/null -c '
+	function dlog
+	{
+		fc -ln -0
+	}
+	trap dlog DEBUG
+	for((i=0;i<1000;i++))
+	do	>"$1/rhbz1200534"
+	done
+	exit
+' empty_redir_crash_test "$tmp"
+((!(e = $?))) || err_exit 'crash on null-command redirection with DEBUG trap' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
