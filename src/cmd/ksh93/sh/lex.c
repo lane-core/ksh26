@@ -1541,6 +1541,7 @@ breakloop:
 
 /*
  * read to end of command substitution
+ * of the form $(...)
  */
 static int comsub(register Lex_t *lp, int endtok)
 {
@@ -1593,7 +1594,14 @@ static int comsub(register Lex_t *lp, int endtok)
 				if(n==4)
 					break;
 				if(sh_lexstates[ST_NAME][c])
+				{
+					if(c==' ' || c=='\t')
+					{
+						n = 0;
+						continue;
+					}
 					goto skip;
+				}
 				word[n++] = c;
 			}
 			if(sh_lexstates[ST_NAME][c]==S_BREAK)

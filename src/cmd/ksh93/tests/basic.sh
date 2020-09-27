@@ -717,4 +717,13 @@ else	err_exit "warning: skipping argv rewrite test due to noncompliant 'ps' util
 fi
 
 # ======
+# https://bugzilla.redhat.com/1241013
+got=$(eval 'x=$(for i in test; do case $i in test) true;; esac; done)' 2>&1) \
+|| err_exit "case in a for loop inside a \$(comsub) caused syntax error (got $(printf %q "$got"))"
+got=$(eval 'x=${ for i in test; do case $i in test) true;; esac; done; }' 2>&1) \
+|| err_exit "case in a for loop inside a \${ comsub; } caused syntax error (got $(printf %q "$got"))"
+got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
+|| err_exit "case in a for loop inside a \`comsub\` caused syntax error (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
