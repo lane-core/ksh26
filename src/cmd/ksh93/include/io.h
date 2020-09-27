@@ -79,6 +79,7 @@ extern Sfio_t 	*sh_iostream(Shell_t*,int);
 extern int	sh_redirect(Shell_t*,struct ionod*,int);
 extern void 	sh_iosave(Shell_t *, int,int,char*);
 extern int 	sh_iovalidfd(Shell_t*, int);
+extern int	sh_iosafefd(Shell_t*, int);
 extern int 	sh_inuse(Shell_t*, int);
 extern void 	sh_iounsave(Shell_t*);
 extern void	sh_iounpipe(Shell_t*);

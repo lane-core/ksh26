@@ -436,6 +436,24 @@ int  sh_iovalidfd(Shell_t *shp, int fd)
 	return(1);
 }
 
+int  sh_iosafefd(Shell_t* shp, int sfd)
+{
+	register int	fd;
+	while(1)
+	{
+		for(fd=0; fd < shp->topfd; fd++)
+		{
+			if (filemap[fd].save_fd==sfd || filemap[fd].orig_fd==sfd || (fcntl(sfd, F_GETFD) != -1 || errno != EBADF))
+			{
+				sfd++;
+				continue;
+			}
+		}
+		break;
+	}
+	return(sfd);
+}
+
 int  sh_inuse(Shell_t *shp, int fd)
 {
 	return(fd < shp->gd->lim.open_max && shp->fdptrs[fd]);

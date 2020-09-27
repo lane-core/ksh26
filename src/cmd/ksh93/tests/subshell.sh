@@ -831,4 +831,21 @@ sleep_pid=$!
 kill "$sleep_pid" 2>/dev/null
 
 # ======
+# https://bugzilla.redhat.com/1116072
+
+expect='return-value'
+function get_value
+{
+	/dev/null/foo 2>/dev/null	# trigger part 1: external command (even nonexistent)
+	exec 3>&-			# trigger part 2: close file descriptor 3
+	print return-value		# with the bug, the comsub won't output this
+}
+actual=$(get_value)
+[[ $actual == "$expect" ]] || err_exit "\$(Comsub) failed to return output (expected '$expect', got '$actual')"
+actual=${ get_value; }
+[[ $actual == "$expect" ]] || err_exit "\${ Comsub; } failed to return output (expected '$expect', got '$actual')"
+actual=`get_value`
+[[ $actual == "$expect" ]] || err_exit "\`Comsub\` failed to return output (expected '$expect', got '$actual')"
+
+# ======
 exit $((Errors<125?Errors:125))
