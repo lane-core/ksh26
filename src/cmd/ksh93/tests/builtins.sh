@@ -1056,4 +1056,26 @@ do	case $bltin in
 done 3< <(builtin)
 
 # ======
+# The 'alarm' builtin could make 'read' crash due to IFS table corruption caused by unsafe asynchronous execution.
+# https://bugzilla.redhat.com/1176670
+if	(builtin alarm) 2>/dev/null
+then	got=$( { "$SHELL" -c '
+		builtin alarm
+		alarm -r alarm_handler +.001
+		i=0
+		function alarm_handler.alarm
+		{
+			let "(++i) > 100" && exit
+		}
+		while :; do
+			echo cargo,odds and ends,jetsam,junk,wreckage,castoffs,sea-drift
+		done | while IFS="," read arg1 arg2 arg3 arg4 junk; do
+			:
+		done
+	'; } 2>&1)
+	((!(e = $?))) || err_exit 'crash with alarm and IFS' \
+		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

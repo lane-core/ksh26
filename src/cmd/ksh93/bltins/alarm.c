@@ -26,6 +26,18 @@
  *
  */
 
+/*
+ * TODO: 2014 email from David Korn cited at <https://bugzilla.redhat.com/1176670>:
+ *
+ * > I never documented the alarm builtin because it is problematic.  The
+ * > problem is that traps can't safely be handled asynchronously.  What should
+ * > happen is that the trap is marked for execution (sh_trapnote) and run after
+ * > the current command completes.  The time trap should wake up the shell if
+ * > it is blocked and it should return and then handle the trap.
+ *
+ * When that is done, the save_ifstable workaround can probably be removed.
+ */
+
 #include	"defs.h"
 #include	<error.h>
 #include	<stak.h>
@@ -141,7 +153,12 @@ void	sh_timetraps(Shell_t *shp)
 			{
 				tp->flags &= ~L_FLAG;
 				if(tp->action)
+				{
+					char	save_ifstable[256];
+					memcpy(save_ifstable,shp->ifstable,sizeof(save_ifstable));
 					sh_fun(tp->action,tp->node,(char**)0);
+					memcpy(shp->ifstable,save_ifstable,sizeof(save_ifstable));
+				}
 				tp->flags &= ~L_FLAG;
 				if(!tp->flags)
 				{

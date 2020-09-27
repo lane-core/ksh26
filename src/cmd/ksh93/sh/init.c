@@ -503,21 +503,14 @@ static char* get_ifs(register Namval_t* np, Namfun_t *fp)
 		memset(shp->ifstable,0,(1<<CHAR_BIT));
 		if(cp=value)
 		{
-#if SHOPT_MULTIBYTE
-			while(n=mbsize(cp),c= *(unsigned char*)cp)
-#else
-			while(c= *(unsigned char*)cp++)
-#endif /* SHOPT_MULTIBYTE */
+			while(n = mbsize(cp), c = *(unsigned char*)cp++)
 			{
-#if SHOPT_MULTIBYTE
-				cp++;
 				if(n>1)
 				{
 					cp += (n-1);
 					shp->ifstable[c] = S_MBYTE;
 					continue;
 				}
-#endif /* SHOPT_MULTIBYTE */
 				n = S_DELIM;
 				if(c== *cp)
 					cp++;
@@ -533,6 +526,7 @@ static char* get_ifs(register Namval_t* np, Namfun_t *fp)
 			shp->ifstable[' '] = shp->ifstable['\t'] = S_SPACE;
 			shp->ifstable['\n'] = S_NL;
 		}
+		shp->ifstable[0] = S_EOF;
 	}
 	return(value);
 }
