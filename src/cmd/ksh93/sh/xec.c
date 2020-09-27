@@ -1871,14 +1871,17 @@ int sh_exec(register const Shnode_t *t, int flags)
 					shp->exitval -= 128;
 				sh_done(shp,0);
 			}
-			else if(((type=t->par.partre->tre.tretyp)&FAMP) && ((type&COMMSK)==TFORK))
+			else if(((type=t->par.partre->tre.tretyp)&FAMP) && ((type&COMMSK)==TFORK)
+			&& !sh_isoption(SH_INTERACTIVE) && !job.jobcontrol)
 			{
+				/* Optimize '( simple_command & )' */
 				pid_t	pid;
 				sfsync(NIL(Sfio_t*));
 				while((pid=fork())< 0)
 					_sh_fork(shp,pid,0,0);
 				if(pid==0)
 				{
+					shgd->current_pid = getpid();
 					sh_exec(t->par.partre,flags);
 					shp->st.trapcom[0]=0;
 					sh_done(shp,0);
