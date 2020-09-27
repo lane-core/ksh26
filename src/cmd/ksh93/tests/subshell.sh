@@ -852,7 +852,6 @@ actual=`get_value`
 
 cat >$tmp/crash_rhbz1117404.ksh <<-'EOF'
 	trap "" HUP			# trigger part 1: signal ignored in main shell
-	i=0
 	for((i=0; i<2500; i++))
 	do	(trap ": foo" HUP)	# trigger part 2: any trap (empty or not) on same signal in subshell
 	done

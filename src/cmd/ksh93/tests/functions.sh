@@ -1307,4 +1307,21 @@ actual=$(
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
+# https://bugzilla.redhat.com/1117404
+
+cat >$tmp/crash_rhbz1117404.ksh <<-'EOF'
+	trap "" HUP			# trigger part 1: signal ignored in main shell
+	function ksh_fun
+	{
+		trap ": foo" HUP	# trigger part 2: any local trap (empty or not) on same signal in ksh function
+	}
+	for((i=0; i<2500; i++))
+	do	ksh_fun
+	done
+EOF
+got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
+((!(e = $?))) || err_exit 'crash while handling function-local trap' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
