@@ -848,4 +848,18 @@ actual=`get_value`
 [[ $actual == "$expect" ]] || err_exit "\`Comsub\` failed to return output (expected '$expect', got '$actual')"
 
 # ======
+# https://bugzilla.redhat.com/1117404
+
+cat >$tmp/crash_rhbz1117404.ksh <<-'EOF'
+	trap "" HUP			# trigger part 1: signal ignored in main shell
+	i=0
+	for((i=0; i<2500; i++))
+	do	(trap ": foo" HUP)	# trigger part 2: any trap (empty or not) on same signal in subshell
+	done
+EOF
+got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
+((!(e = $?))) || err_exit 'crash while handling subshell trap' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

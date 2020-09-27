@@ -3042,10 +3042,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	struct dolnod		*argsav=0,*saveargfor;
 	struct sh_scoped	savst, *prevscope = shp->st.self;
 	struct argnod		*envlist=0;
-	int			jmpval;
+	int			isig,jmpval;
 	volatile int		r = 0;
 	int			n;
-	char 			*savstak;
+	char 			**savsig;
 	struct funenv		*fp = 0;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 	Namval_t		*nspace = shp->namespace;
@@ -3091,10 +3091,24 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	shp->st.cmdname = argv[0];
 	/* save trap table */
-	if((nsig=shp->st.trapmax*sizeof(char*))>0 || shp->st.trapcom[0])
+	if((nsig=shp->st.trapmax)>0 || shp->st.trapcom[0])
 	{
-		nsig += sizeof(char*);
-		memcpy(savstak=stakalloc(nsig),(char*)&shp->st.trapcom[0],nsig);
+		++nsig;
+		savsig = malloc(nsig * sizeof(char*));
+		/*
+		 * the data is, usually, modified in code like:
+		 *	tmp = buf[i]; buf[i] = strdup(tmp); free(tmp);
+		 * so shp->st.trapcom needs a "deep copy" to properly save/restore pointers.
+		 */
+		for (isig = 0; isig < nsig; ++isig)
+		{
+			if(shp->st.trapcom[isig] == Empty)
+				savsig[isig] = Empty;
+			else if(shp->st.trapcom[isig])
+				savsig[isig] = strdup(shp->st.trapcom[isig]);
+			else
+				savsig[isig] = NULL;
+		}
 	}
 	sh_sigreset(0);
 	argsav = sh_argnew(shp,argv,&saveargfor);
@@ -3158,10 +3172,14 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	shp->topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(shp,IFSNOD));
 	if(nsig)
-		memcpy((char*)&shp->st.trapcom[0],savstak,nsig);
+	{
+		for (isig = 0; isig < nsig; ++isig)
+			if (shp->st.trapcom[isig] && shp->st.trapcom[isig]!=Empty)
+				free(shp->st.trapcom[isig]);
+		memcpy((char*)&shp->st.trapcom[0],savsig,nsig*sizeof(char*));
+		free((void*)savsig);
+	}
 	shp->trapnote=0;
-	if(nsig)
-		stakset(savstak,0);
 	shp->options = options;
 	shp->last_root = last_root;
 	if(jmpval == SH_JMPSUB)
