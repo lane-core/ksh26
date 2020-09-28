@@ -5,7 +5,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2020-09-27:
 
-- The shell's lexical analisys of a 'case' statement within a do...done block
+- The shell's lexical analysis of a 'case' statement within a do...done block
   within a command substitution of the form $(...) has been fixed so that code
   like the following no longer throws a spurious syntax error:
 	x=$(for i in 1; do case $i in word) true;; esac; done)
