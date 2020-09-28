@@ -37,6 +37,7 @@ read -n4 c < $0 2> /dev/null
 ulimit -c 0
 
 binecho=$(whence -p echo)
+bin_sleep=$(whence -p sleep)
 
 integer foo=33
 bar=bye
@@ -1120,13 +1121,12 @@ function foo
 bar=bam
 foo
 
-sleep=$(whence -p sleep)
 function gosleep
 {
-	$sleep 4
+	"$bin_sleep" 1
 }
 x=$(
-	(sleep 2; pid=; ps | grep sleep | read pid extra; [[ $pid ]] && kill -- $pid) &
+	(sleep .25; pid=; ps | grep sleep | read pid extra; [[ $pid ]] && kill -- "$pid") &
 	gosleep 2> /dev/null
 	print ok
 )
