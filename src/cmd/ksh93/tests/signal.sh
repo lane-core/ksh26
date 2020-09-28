@@ -481,4 +481,18 @@ then
 fi
 
 # ======
+# Due to an off-by-one error, the last signal in 'kill -l' output wasn't treated properly and could crash.
+
+sig=$(kill -l | tail -n 1)
+exp="OK: $sig"
+
+got=$(export sig; "$SHELL" -c '
+	trap "print '\''OK: $sig'\''" "$sig"
+	(kill -s "$sig" "$$")
+	trap - "$sig"
+' 2>&1)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "failed to handle SIG$sig from subshell" \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

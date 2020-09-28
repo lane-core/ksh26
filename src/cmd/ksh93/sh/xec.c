@@ -3096,7 +3096,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	/* save trap table */
 	if((nsig=shp->st.trapmax)>0 || shp->st.trapcom[0])
 	{
-		++nsig;
 		savsig = malloc(nsig * sizeof(char*));
 		/*
 		 * the data is, usually, modified in code like:

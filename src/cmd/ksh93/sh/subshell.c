@@ -571,7 +571,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->st.otrap = savst.trap;
 		if((nsig=shp->st.trapmax)>0 || shp->st.trapcom[0])
 		{
-			++nsig;
 			savsig = malloc(nsig * sizeof(char*));
 			/*
 			 * the data is, usually, modified in code like:
