@@ -2954,10 +2954,12 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 			nv_onattr(np,NV_EXPORT);
 			sh_envput(shp->env,np);
 		}
-		if((n^newatts)==NV_EXPORT)
+		if((n^newatts)==NV_EXPORT && size==-1)
 			return;
 	}
 	oldsize = nv_size(np);
+	if(size==-1)
+		size = oldsize;
 	if((size==oldsize|| (n&NV_INTEGER)) && !trans && ((n^newatts)&~NV_NOCHANGE)==0)
 	{
 		if(size)

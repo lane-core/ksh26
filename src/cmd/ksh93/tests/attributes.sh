@@ -30,6 +30,23 @@ integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
+# ======
+# as of 93u+, typeset -xu/-xl failed to change case in a value (rhbz#1188377)
+# (this test failed to fail when it was added at the end, so it's at the start)
+unset test_u test_xu test_txu
+typeset -u test_u=uppercase
+typeset -xu test_xu=uppercase
+typeset -txu test_txu=uppercase
+typeset -l test_l=LOWERCASE
+typeset -xl test_xl=LOWERCASE
+typeset -txl test_txl=LOWERCASE
+exp="UPPERCASE UPPERCASE UPPERCASE lowercase lowercase lowercase"
+got="${test_u} ${test_xu} ${test_txu} ${test_l} ${test_xl} ${test_txl}"
+[[ $got == "$exp" ]] || err_exit "typeset failed to change case in variable" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset ${!test_*}
+
+# ======
 r=readonly u=Uppercase l=Lowercase i=22 i8=10 L=abc L5=def uL5=abcdef xi=20
 x=export t=tagged H=hostname LZ5=026 RZ5=026 Z5=123 lR5=ABcdef R5=def n=l
 for option in u l i i8 L L5 LZ5 RZ5 Z5 r x H t R5 uL5 lR5 xi n

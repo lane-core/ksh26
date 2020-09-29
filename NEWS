@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-09-30:
+
+- Fixed: 'typeset -xu' and 'typeset -xl' (export + change case) failed to
+  change the case of a variable's value in certain conditions.
+
 2020-09-28:
 
 - While executing a ksh-style function, ksh 93u+ ignored all signals for which
