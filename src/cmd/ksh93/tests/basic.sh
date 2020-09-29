@@ -708,6 +708,7 @@ then	expect='./atest 1 2'
 	./atest 1 2 &
 	actual=$(UNIX95=1 ps -o args= -p "$!")
 	kill "$!"
+	[[ $actual =~ \(.*\)$ ]] && actual=${actual%\(*}  # BSD 'ps' adds " (ksh)"
 	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
 	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
 	[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
