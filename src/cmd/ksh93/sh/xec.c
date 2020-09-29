@@ -3193,7 +3193,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(jmpval)
 		r=shp->exitval;
-	if(r>SH_EXITSIG && ((r&SH_EXITMASK)==SIGINT || ((r&SH_EXITMASK)==SIGQUIT)))
+	if(nsig && r>SH_EXITSIG)
 		kill(shgd->current_pid,r&SH_EXITMASK);
 	if(jmpval > SH_JMPFUN)
 	{

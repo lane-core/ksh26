@@ -426,6 +426,8 @@ then	{
 	[[ $(kill -l $?) == RTMIN ]] || err_exit 'wait interrupted by signal not caught should exit with the value of that signal+256'
 fi
 
+# sh.1: "A trap condition that is not caught or ignored by the function causes
+# the function to terminate and the condition to be passed on to the caller."
 function b
 {
 	sleep .3
@@ -434,16 +436,17 @@ function b
 
 function a
 {
-	trap 'print int'  TERM
+	trap 'endc=1' TERM
 	b
 	enda=1
 }
 
 { sleep .1;kill -s TERM $$;}&
-unset enda endb
+unset enda endb endc
 a
 [[ $endb ]] &&  err_exit 'TERM signal did not kill function b'
 [[ $enda == 1 ]] || err_exit 'TERM signal killed function a'
+[[ $endc == 1 ]] || err_exit 'TERM trap not triggered in function a'
 
 # ======
 # Exit status checks
@@ -492,6 +495,36 @@ got=$(export sig; "$SHELL" -c '
 	trap - "$sig"
 ' 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "failed to handle SIG$sig from subshell" \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+got=$(export sig; "$SHELL" -c '
+	function tryTrap
+	{
+		kill -s "$1" "$$"
+	}
+	trap "print '\''OK: $sig'\''" "$sig"
+	tryTrap "$sig"
+	trap - "$sig"
+' 2>&1)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "failed to handle SIG$sig from ksh function" \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
+# ksh-style functions didn't handle signals other than SIGINT and SIGQUIT (rhbz#1454804)
+exp="HUP INT PIPE QUIT TERM USR1 USR2"
+got=$(export exp; "$SHELL" -c '
+	function tryTrap
+	{
+		kill -s "$1" "$$"
+	}
+	for sig in $exp			# split
+	do	trap "print -n '\''$sig '\''" "$sig"
+		tryTrap "$sig"
+		trap - "$sig"
+	done
+' 2>&1)
+got=${got% }	# rm final space
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "ksh function ignores global signal traps" \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
