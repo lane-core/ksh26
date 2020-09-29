@@ -50,6 +50,13 @@ __STDPP__directive pragma pp:nohide strdup
 #define extern	__EXPORT__
 #endif
 
+/*
+ * Work around a null-test optimization bug in GCC.
+ * https://bugzilla.redhat.com/1221766
+ */
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 extern char*
 strdup(register const char* s)
 {
@@ -58,3 +65,5 @@ strdup(register const char* s)
 
 	return (s && (t = oldof(0, char, n = strlen(s) + 1, 0))) ? (char*)memcpy(t, s, n) : (char*)0;
 }
+
+#pragma GCC pop_options
