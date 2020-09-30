@@ -109,8 +109,9 @@ fi
 if	[[ -o ?posix && $("$SHELL" -o posix -c 'xi=xi+4;echo $xi') != "xi+4" ]]
 then	err_exit "attributes imported despite posix mode (-o posix)"
 fi
-ln -s "$SHELL" "$tmp/sh"
-if	[[ $("$tmp/sh" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+if	[[ -o ?posix ]] &&
+	ln -s "$SHELL" "$tmp/sh" &&
+	[[ $("$tmp/sh" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
 then	err_exit "attributes imported despite posix mode (invoked as sh)"
 fi
 x=$(foo=abc $SHELL <<!

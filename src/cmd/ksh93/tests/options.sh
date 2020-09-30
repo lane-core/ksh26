@@ -534,6 +534,7 @@ print $'alias print=:\nprint foobar' > dotfile
 # ======
 # test that '-o posix' option (not having a letter) does not affect "$-" expansion
 # other than B = braceexpand
+if [[ -o ?posix ]]; then
 (
 	command set +o posix 2>/dev/null
 	opt1=${-/B/}
@@ -541,6 +542,7 @@ print $'alias print=:\nprint foobar' > dotfile
 	opt2=$-
 	[[ $opt1 == "$opt2" ]]
 ) || err_exit '-o posix option affects $- expansion'
+fi
 
 # ======
 # ksh 93u+ did not honor 'monitor' option on command line (rhbz#960034)
