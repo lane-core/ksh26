@@ -1819,7 +1819,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				type = shp->exitval;
 				if(!(type&SH_EXITSIG))
 				{
-					/* wait for remainder of pipline */
+					/* wait for remainder of pipeline */
 					if(shp->pipepid>1)
 					{
 						job_wait(shp->pipepid);
@@ -1834,11 +1834,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh_iounpipe(shp);
 				shp->pipepid = 0;
 				shp->st.ioset = 0;
-				if(simple && was_errexit)
-				{
-					echeck = 1;
-					sh_onstate(SH_ERREXIT);
-				}
 			}
 			if(jmpval>SH_JMPIO)
 				siglongjmp(*shp->jmplist,jmpval);
@@ -1908,6 +1903,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int	savejobid = job.curjobid;
 			int	*exitval=0,*saveexitval = job.exitval;
 			pid_t	savepgid = job.curpgid;
+			echeck = 1;
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(shp->subshell)

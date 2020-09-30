@@ -523,9 +523,11 @@ do	print hello
 done |  "$binsleep" .1
 (( (SECONDS-s) < .2 )) || err_exit 'early termination not causing broken pipe'
 
-[[ $({ trap 'print trap' 0; print -n | $(whence -p cat); } & wait $!) == trap ]] || err_exit 'trap on exit not getting triggered'
-var=$({ trap 'print trap' ERR; print -n | $binfalse; } & wait $!)
-[[ $var == trap ]] || err_exit 'trap on ERR not getting triggered'
+got=$({ trap 'print trap' 0; print -n | "$bincat"; } & wait "$!")
+[[ $got == trap ]] || err_exit "trap on exit not correctly triggered (expected 'trap', got $(printf %q "$got"))"
+
+got=$({ trap 'print trap' ERR; print -n | "$binfalse"; } & wait "$!")
+[[ $got == trap ]] || err_exit "trap on ERR not correctly triggered (expected 'trap', got $(printf %q "$got"))"
 
 exp=
 got=$(

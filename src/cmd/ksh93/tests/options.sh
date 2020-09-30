@@ -562,4 +562,14 @@ actual=$(set +B; echo ${ echo test{1,2}; })
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
+# ksh 93u+ did not correctly handle the combination of pipefail and (errexit or the ERR trap).
+# https://github.com/ksh93/ksh/issues/121
+got=$("$SHELL" -o errexit -o pipefail -c '(exit 3) | true; echo "still here despite $? status"' 2>&1)
+let "(e=$?)==3" && [[ -z $got ]] || err_exit 'errexit + pipefail failed' \
+	"(expected status 3, ''; got status $e, $(printf %q "$got"))"
+got=$("$SHELL" -o pipefail -c 'trap "print ERR\ trap" ERR; true | exit 3 | false | true | true' 2>&1)
+let "(e=$?)==1" && [[ $got == 'ERR trap' ]] || err_exit 'ERR trap + pipefail failed' \
+	"(expected status 1, 'ERR trap'; got status $e, $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

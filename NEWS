@@ -8,6 +8,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed: 'typeset -xu' and 'typeset -xl' (export + change case) failed to
   change the case of a variable's value in certain conditions.
 
+- A ksh 93u+ regression was fixed in the combination of ERR trap handling and
+  the 'pipefail' option. A pipeline now triggers the ERR trap correctly again
+  if the 'pipefail' option is active and any of the pipeline elements return a
+  nonzero exit status. Similarly, if both the 'errexit' and 'pipefail' options
+  are active, ksh now correctly exits if any pipeline element returns nonzero.
+
 2020-09-28:
 
 - While executing a ksh-style function, ksh 93u+ ignored all signals for which
