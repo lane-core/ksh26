@@ -86,7 +86,6 @@ typedef union Shnode_u Shnode_t;
 #define SH_GMACS	24
 #define SH_EMACS	25
 #define SH_PRIVILEGED	26
-#define SH_SUBSHARE	27	/* subshell shares state with parent */
 #define SH_NOLOG	28
 #define SH_NOTIFY	29
 #define SH_DICTIONARY	30

@@ -211,8 +211,8 @@ struct shared
 	unsigned char	ignsig;		/* ignored signal in subshell */ \
 	unsigned char	lastsig;	/* last signal received */ \
 	char		pathinit;	/* pathinit called from subshell */ \
-	char		comsub;		/* set to 1 when in `` comsub, 2 when in $() comsub */ \
-	char		subshare;	/* set when in ${..} comsub */ \
+	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...) */ \
+	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */ \
 	char		toomany;	/* set when out of fd's */ \
 	char		instance;	/* in set_instance */ \
 	char		decomma;	/* decimal_point=',' */ \

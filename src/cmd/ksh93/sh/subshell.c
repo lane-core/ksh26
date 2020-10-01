@@ -523,7 +523,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		job.curpgid = 0;
 	sp->subshare = shp->subshare;
 	sp->comsub = shp->comsub;
-	shp->subshare = comsub==2 ||  (comsub==1 && sh_isoption(SH_SUBSHARE));
+	shp->subshare = comsub==2;
 	if(comsub)
 	{
 		shp->comsub = comsub;
