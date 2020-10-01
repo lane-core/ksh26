@@ -21,20 +21,18 @@
 ***********************************************************************/
 #include	"sfhdr.h"
 
-/* The following are only needed on Solaris/Illumos, as it doesn't support POSIX recv(2) with MSG_PEEK.
- * On at least macOS and Linux, sfpkrd() runs significantly faster if we disable these. */
-#if !__sun
+/*
+ * The preferred method is POSIX recv(2) with MSG_PEEK, which is detected as 'socket_peek'.
+ * On Solaris/Illumos (__sun), _stream_peek and _lib_select are needed, as _socket_peek doesn't work correctly.
+ * On at least macOS and Linux, sfpkrd() runs significantly faster if we disable these.
+ */
+#if _socket_peek && !__sun
 #undef _stream_peek
 #undef _lib_select
 #endif
 
-/* Non-SunOS systems require POSIX recv(2) with MSG_PEEK, which is detected as 'socket_peek'. */
-#if !_socket_peek && !__sun
-#if __APPLE__
+#if __APPLE__ && !_socket_peek
 #error The socket_peek feature is required. (Hey Apple, revert your src__lib__libast__features__lib.diff patch; it caused multiple regressions, and the hanging bug it fixed is now fixed correctly. See <https://github.com/ksh93/ksh/issues/118>.)
-#else
-#error The socket_peek feature is required.
-#endif
 #endif
 
 /*	Read/Peek a record from an unseekable device
