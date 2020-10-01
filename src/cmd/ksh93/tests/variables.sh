@@ -1131,4 +1131,51 @@ case $'\n'$(env 'BASH_FUNC_a%%=() { echo test; }' "$SHELL" -c set) in
 esac
 
 # ======
+# Autoloading a function caused $LINENO to be off by the # of lines in the function definition file.
+# https://github.com/ksh93/ksh/issues/116
+
+cd "$tmp" || exit 128
+
+cat >lineno_autoload <<'EOF'
+echo "begin: main script \$LINENO == $LINENO"
+function main_script_fn
+{
+	lineno_autoload_fn
+	(: ${bad\subst\in\main_script_fn\on\line\5})
+}
+main_script_fn
+(eval 'syntax error(')
+(: ${bad\subst\in\main\script\on\line\9})
+echo "end: main script \$LINENO == $LINENO"
+EOF
+
+cat >lineno_autoload_fn <<'EOF'
+function lineno_autoload_fn
+{
+	echo "Hi, I'm a function! On line 3, my \$LINENO is $LINENO"
+	(: ${bad\subst\in\function\on\line\4})
+	(eval 'syntax error(')
+	echo "Hi, I'm still a function! On line 6, my \$LINENO is $LINENO"
+}
+echo "In definition file, outside function: \$LINENO on line 8 is $LINENO"
+: ${bad\subst\in\def\file\on\line\9}
+EOF
+
+exp="begin: main script \$LINENO == 1
+In definition file, outside function: \$LINENO on line 8 is 8
+./lineno_autoload[7]: main_script_fn: line 9: \${bad\subst\in\def\file\on\line\9}: bad substitution
+Hi, I'm a function! On line 3, my \$LINENO is 3
+./lineno_autoload[7]: main_script_fn[4]: lineno_autoload_fn: line 4: \${bad\subst\in\function\on\line\4}: bad substitution
+./lineno_autoload[7]: main_script_fn[4]: lineno_autoload_fn[5]: eval: syntax error at line 1: \`(' unexpected
+Hi, I'm still a function! On line 6, my \$LINENO is 6
+./lineno_autoload[7]: main_script_fn: line 5: \${bad\subst\in\main_script_fn\on\line\5}: bad substitution
+./lineno_autoload[8]: eval: syntax error at line 1: \`(' unexpected
+./lineno_autoload: line 9: \${bad\subst\in\main\script\on\line\9}: bad substitution
+end: main script \$LINENO == 10"
+
+got=$(FPATH=$tmp "$SHELL" ./lineno_autoload 2>&1)
+[[ $got == "$exp" ]] || err_exit 'Regression in \$LINENO and/or error messages.' \
+	$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /')"
+
+# ======
 exit $((Errors<125?Errors:125))

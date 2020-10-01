@@ -14,6 +14,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   nonzero exit status. Similarly, if both the 'errexit' and 'pipefail' options
   are active, ksh now correctly exits if any pipeline element returns nonzero.
 
+- Autoloading a function no longer causes the calling script's $LINENO to be
+  off by the number of lines in the function definition file that was loaded.
+  This also corrects line numbers in warnings and error messages.
+
 2020-09-28:
 
 - While executing a ksh-style function, ksh 93u+ ignored all signals for which

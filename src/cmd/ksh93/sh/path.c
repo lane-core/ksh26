@@ -582,7 +582,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	char		*pname,*oldname=shp->st.filename, buff[IOBSIZE+1];
 	Namval_t	*np;
 	struct Ufunction *rp,*rpfirst;
-	int		 savestates = sh_getstate(), oldload=shp->funload;
+	int		savestates = sh_getstate(), oldload=shp->funload, savelineno = shp->inlineno;
 	pname = path_fullname(shp,stakptr(PATH_OFFSET));
 	if(shp->fpathdict && (rp = dtmatch(shp->fpathdict,(void*)pname)))
 	{
@@ -615,6 +615,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	shp->readscript = (char*)name;
 	shp->st.filename = pname;
 	shp->funload = 1;
+	shp->inlineno = 1;
 	error_info.line = 0;
 	sh_eval(sfnew(NIL(Sfio_t*),buff,IOBSIZE,fno,SF_READ),SH_FUNEVAL);
 	sh_close(fno);
@@ -631,6 +632,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 		pname = 0;
 	free((void*)shp->st.filename);
 	shp->funload = oldload;
+	shp->inlineno = savelineno;
 	shp->st.filename = oldname;
 	sh_setstate(savestates);
 	if(pname)
