@@ -633,6 +633,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(shp->savesig < 0)
 		{
 			shp->savesig = 0;
+			sh_offstate(SH_INTERACTIVE);
 			sh_exec(t,flags);
 		}
 	}

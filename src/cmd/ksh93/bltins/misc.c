@@ -418,8 +418,7 @@ int    b_bg(register int n,register char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(!sh_isoption(SH_MONITOR) || !job.jobcontrol)
 	{
-		if(sh_isstate(SH_INTERACTIVE))
-			errormsg(SH_DICT,ERROR_exit(1),e_no_jctl);
+		errormsg(SH_DICT,ERROR_exit(1),e_no_jctl);
 		return(1);
 	}
 	if(flag=='d' && *argv==0)
