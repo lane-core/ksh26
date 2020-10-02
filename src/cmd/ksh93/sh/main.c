@@ -402,7 +402,6 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 			buff.mode = SH_JMPEXIT;
 			sh_onoption(SH_TRACKALL);
 		}
-		sh_offstate(SH_INTERACTIVE);
 		if(sh_isoption(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		sh_offstate(SH_HISTORY);

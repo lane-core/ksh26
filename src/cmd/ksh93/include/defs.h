@@ -71,12 +71,6 @@
 extern char*	sh_getenv(const char*);
 extern char*	sh_setenviron(const char*);
 
-/*
- * note that the first few fields have to be the same as for
- * Shscoped_t in <shell.h>
- */
-
-
 struct sh_scoped
 {
 	struct sh_scoped *prevst;	/* pointer to previous state */
@@ -90,7 +84,7 @@ struct sh_scoped
 	struct sh_scoped *self;		/* pointer to copy of this scope*/
 	Dt_t		*var_local;	/* local level variables for name() */
 	struct slnod	*staklist;	/* link list of function stacks */
-	int		states;
+	int		states;		/* shell state bits used by sh_isstate(), etc. */
 	int		breakcnt;
 	int		execbrk;
 	int		loopcnt;

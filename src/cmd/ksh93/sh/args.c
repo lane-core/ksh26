@@ -29,6 +29,7 @@
 
 #include	"defs.h"
 #include	"path.h"
+#include	"jobs.h"
 #include	"builtins.h"
 #include	"terminal.h"
 #include	"edit.h"
@@ -682,8 +683,10 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 {
 	/* argument of the form <(cmd) or >(cmd) */
 	register struct argnod *ap;
-	int monitor, interactive, fd, pv[3];
-	int subshell = shp->subshell;
+	int fd, pv[3];
+	int savestates = sh_getstate();
+	char savejobcontrol = job.jobcontrol;
+	unsigned int savesubshell = shp->subshell;
 	ap = (struct argnod*)stkseek(shp->stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
@@ -708,32 +711,21 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 	sfputr(shp->stk,fmtbase((long)pv[fd],10,0),0);
 	ap = (struct argnod*)stkfreeze(shp->stk,0);
 	shp->inpipe = shp->outpipe = 0;
-
 	/* turn off job control */
-	if(interactive = (sh_isstate(SH_INTERACTIVE)!=0))
-		sh_offstate(SH_INTERACTIVE);
-	if(monitor = (sh_isstate(SH_MONITOR)!=0))
-		sh_offstate(SH_MONITOR);
-
+	sh_offstate(SH_INTERACTIVE);
+	sh_offstate(SH_MONITOR);
+	job.jobcontrol = 0;
 	/* do the process substitution */
 	shp->subshell = 0;
 	if(fd)
-	{
 		shp->inpipe = pv;
-		sh_exec((Shnode_t*)argp->argchn.ap,(int)sh_isstate(SH_ERREXIT));
-	}
 	else
-	{
 		shp->outpipe = pv;
-		sh_exec((Shnode_t*)argp->argchn.ap,(int)sh_isstate(SH_ERREXIT));
-	}
-
+	sh_exec((Shnode_t*)argp->argchn.ap,(int)sh_isstate(SH_ERREXIT));
 	/* restore the previous state */
-	shp->subshell = subshell;
-	if(monitor)
-		sh_onstate(SH_MONITOR);
-	if(interactive)
-		sh_onstate(SH_INTERACTIVE);
+	shp->subshell = savesubshell;
+	job.jobcontrol = savejobcontrol;
+	sh_setstate(savestates);
 #if SHOPT_DEVFD
 	close(pv[1-fd]);
 	sh_iosave(shp,-pv[fd], shp->topfd, (char*)0);

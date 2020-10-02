@@ -980,12 +980,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			job.curjobid = 0;
 			flags &= ~sh_state(SH_INTERACTIVE);
 		}
-		sh_offstate(SH_ERREXIT);
 		sh_offstate(SH_DEFPATH);
-		if(was_errexit&flags)
-			sh_onstate(SH_ERREXIT);
-		if(was_monitor&flags)
-			sh_onstate(SH_MONITOR);
+		if(!(flags & sh_state(SH_ERREXIT)))
+			sh_offstate(SH_ERREXIT);
 		type = t->tre.tretyp;
 		shp->exitval=0;
 		shp->lastsig = 0;
