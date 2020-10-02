@@ -224,8 +224,8 @@ do
 	trap - TERM
 	[[ $sleep_pid ]] && kill $sleep_pid
 	
-# TODO: The /bin/cat iteration of this test is known to hang intermittently.
-# See: https://github.com/ksh93/ksh/issues/132
+# TODO: The /bin/cat iteration of this test is known to hang intermittently on Debian and
+# derived systems (such as Ubuntu). See: https://github.com/ksh93/ksh/issues/132
 # It is temporarily disabled here to avoid Github CI failures due to this known issue
 # while we work on other things. Export DEBUG_COPROCESS to include it in the tests.
 if [[ $cat != "$bincat" || -v DEBUG_COPROCESS ]]; then
