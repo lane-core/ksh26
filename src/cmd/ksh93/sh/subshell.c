@@ -75,11 +75,11 @@ static struct subshell
 	struct Error_context_s *errcontext;
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process id */
-	Sfio_t*	saveout;/*saved standard output */
+	Sfio_t*		saveout;/* saved standard output */
 	char		*pwd;	/* present working directory */
 	const char	*shpwd;	/* saved pointer to sh.pwd */
 	void		*jobs;	/* save job info */
-	int		pwdfd;	/* file descritor for pwd */
+	int		pwdfd;	/* file descriptor for PWD */
 	mode_t		mask;	/* saved umask */
 	short		tmpfd;	/* saved tmp file descriptor */
 	short		pipefd;	/* read fd if pipe is created */

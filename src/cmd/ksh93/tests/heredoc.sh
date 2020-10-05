@@ -175,7 +175,7 @@ cat  > "$f" <<- '!!!!'
 !!!!
 chmod 755 "$f"
 if	[[ $($SHELL  "$f") != abc ]]
-then	err_exit	'here document descritor was closed'
+then	err_exit	'here document descriptor was closed'
 fi
 cat  > "$f" <<- '!!!!'
 	exec 0<&-
