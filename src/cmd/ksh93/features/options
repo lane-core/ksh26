@@ -2,15 +2,15 @@
 
 tst	cross{
 	: check for shell magic #!
-	cat > /tmp/file$$ <<!
-	#! /bin/echo
+	cat > "$EXECROOT/file$$" <<!
+	#! /usr/bin/env true
 	exit 1
 	!
-	chmod 755 /tmp/file$$
-	if	/tmp/file$$ > /dev/null
+	chmod 755 "$EXECROOT/file$$"
+	if	"$EXECROOT/file$$" 2>/dev/null
 	then	echo "#define SHELLMAGIC	1"
 	fi
-	rm -f /tmp/file$$
+	rm -f "$EXECROOT/file$$"
 	
 	option() # name value
 	{
@@ -26,7 +26,6 @@ tst	cross{
 	
 	ls /dev/fd/9 9<&0 >/dev/null 2>&1
 	option DEVFD $?
-	exec 9<&-
 	case  `echo a | tr a '\012' | wc -l` in
 	*1*)	option MULTIBYTE 0 ;;
 	esac
@@ -36,8 +35,6 @@ tst	cross{
 	option TEST_L $?
 	test -f /etc/ksh.kshrc -o -f /etc/bash.bashrc &&
 	option SYSRC 0
-	test -f /bin/universe && univ=`/bin/universe` > /dev/null 2>&1 -a ucb = "$univ"
-	option UCB $?
 }end
 
 cat{
