@@ -92,6 +92,14 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		dir = nv_getval(opwdnod);
 	if(!dir || *dir==0)
 		errormsg(SH_DICT,ERROR_exit(1),argc==2?e_subst+4:e_direct);
+#if !_lib_fchdir
+	/*
+	 * If sh_subshell() in subshell.c cannot use fchdir(2) to restore the PWD using a saved file descriptor,
+	 * we must fork any virtual subshell now to avoid the possibility of ending up in the wrong PWD on exit.
+	 */
+	if(shp->subshell && !shp->subshare)
+		sh_subfork();
+#endif /* !lib_fchdir */
 #if _WINIX
 	if(*dir != '/' && (dir[1]!=':'))
 #else

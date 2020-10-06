@@ -26,6 +26,10 @@
  *
  */
 
+#ifdef __linux__
+#define _GNU_SOURCE	/* needed for O_PATH */
+#endif
+
 #include	"defs.h"
 #include	<ls.h>
 #include	"io.h"
@@ -44,7 +48,7 @@
 #   ifdef O_PATH
 #	define O_SEARCH	O_PATH
 #   else
-#	define O_SEARCH	0
+#	define O_SEARCH	O_RDONLY
 #   endif
 #endif
 
@@ -79,7 +83,6 @@ static struct subshell
 	char		*pwd;	/* present working directory */
 	const char	*shpwd;	/* saved pointer to sh.pwd */
 	void		*jobs;	/* save job info */
-	int		pwdfd;	/* file descriptor for PWD */
 	mode_t		mask;	/* saved umask */
 	short		tmpfd;	/* saved tmp file descriptor */
 	short		pipefd;	/* read fd if pipe is created */
@@ -96,7 +99,10 @@ static struct subshell
 	int		subdup;
 	char		subshare;
 	char		comsub;
+#if _lib_fchdir
+	int		pwdfd;	/* file descriptor for PWD */
 	char		pwdclose;
+#endif /* _lib_fchdir */
 } *subshell_data;
 
 static unsigned int subenv;
@@ -470,7 +476,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 {
 	struct subshell sub_data;
 	register struct subshell *sp = &sub_data;
-	int jmpval,isig,nsig=0,duped=0;
+	int jmpval,isig,nsig=0,fatalerror=0,saveerrno=0;
 	unsigned int savecurenv = shp->curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
@@ -513,7 +519,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->pathinit = 0;
 	}
 	sp->pathlist = path_dup((Pathcomp_t*)shp->pathlist);
+#if _lib_fchdir
 	sp->pwdfd = -1;
+#endif /* _lib_fchdir */
 	if(!shp->pwd)
 		path_pwd(shp,0);
 	sp->bckpid = shp->bckpid;
@@ -533,7 +541,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	{
 		struct subshell *xp;
 		sp->shpwd = shp->pwd;
-#ifdef _lib_fchdir
+#if _lib_fchdir
 		for(xp=sp->prev; xp; xp=xp->prev) 
 		{
 			if(xp->pwdfd>0 && strcmp(xp->pwd,shp->pwd)==0)
@@ -544,9 +552,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		if(sp->pwdfd<0)
 		{
-			int n = open(".",O_RDONLY);
-			if(O_SEARCH && errno==EACCES)
-				n =  open(".",O_RDONLY);
+			int n = open(".",O_SEARCH);
 			if(n>=0)
 			{
 				sp->pwdfd = n;
@@ -562,7 +568,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				}
 			}
 		}
-#endif
+#endif /* _lib_fchdir */
 		sp->pwd = (shp->pwd?strdup(shp->pwd):0);
 		sp->mask = shp->mask;
 		sh_stats(STAT_SUBSHELL);
@@ -633,6 +639,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(shp->savesig < 0)
 		{
 			shp->savesig = 0;
+#if _lib_fchdir
+			if(sp->pwdfd < 0 && !shp->subshare)	/* if we couldn't get a file descriptor to our PWD ... */
+				sh_subfork();			/* ...we have to fork, as we cannot fchdir back to it. */
+#endif /* _lib_fchdir */
 			sh_offstate(SH_INTERACTIVE);
 			sh_exec(t,flags);
 		}
@@ -715,7 +725,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		{
 			close(1);
 			if (fcntl(sp->tmpfd,F_DUPFD,1) != 1)
-				duped++;
+			{
+				saveerrno = errno;
+				fatalerror = 1;
+			}
 			sh_close(sp->tmpfd);
 		}
 		shp->fdstatus[1] = sp->fdstatus;
@@ -759,13 +772,15 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			Namval_t *pwdnod = sh_scoped(shp,PWDNOD);
 			if(shp->pwd)
 			{
-				if(sp->pwdfd >=0)
+#if _lib_fchdir
+				if(fchdir(sp->pwdfd) < 0)
+#else
+				if(chdir(sp->pwd) < 0)
+#endif /* _lib_fchdir */
 				{
-					if(fchdir(sp->pwdfd)<0)
-						chdir(sp->pwd);
+					saveerrno = errno;
+					fatalerror = 2;
 				}
-				else
-					chdir(sp->pwd);
 				shp->pwd=sp->pwd;
 				path_newdir(shp,shp->pathlist);
 			}
@@ -780,8 +795,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		else
 			free((void*)sp->pwd);
+#if _lib_fchdir
 		if(sp->pwdclose)
 			close(sp->pwdfd);
+#endif /* _lib_fchdir */
 		if(sp->mask!=shp->mask)
 			umask(shp->mask=sp->mask);
 		if(shp->coutpipe!=sp->coutpipe)
@@ -838,11 +855,24 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(sig==SIGINT || sig== SIGQUIT)
 			kill(shgd->current_pid,sig);
 	}
-	if(duped)
+	if(fatalerror)
 	{
 		((struct checkpt*)shp->jmplist)->mode = SH_JMPERREXIT;
-		shp->toomany = 1;
-		errormsg(SH_DICT,ERROR_system(1),e_redirect);
+		switch(fatalerror)
+		{
+			case 1:
+				shp->toomany = 1;
+				errno = saveerrno;
+				errormsg(SH_DICT,ERROR_system(1),e_redirect);
+			case 2:
+				/* reinit PWD as it will be wrong */
+				shp->pwd = NULL;
+				path_pwd(shp,0);
+				errno = saveerrno;
+				errormsg(SH_DICT,ERROR_system(1),"Failed to restore PWD upon exiting subshell");
+			default:
+				errormsg(SH_DICT,ERROR_system(1),"Subshell error %d",fatalerror);
+		}
 	}
 	if(shp->ignsig)
 		kill(shgd->current_pid,shp->ignsig);

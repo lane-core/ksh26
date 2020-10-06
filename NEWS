@@ -3,6 +3,20 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2020-10-06:
+
+- The security of virtual/non-forking subshells that locally change the present
+  working directory (PWD) using 'cd' has been improved in two ways.
+  1. On entering a subshell, if the parent shell's PWD proves inaccessible upon
+     saving it, the subshell will now fork into a separate process so the
+     parent process never changes its PWD, avoiding the need to restore it.
+  2. If some attack renders the parent shell's PWD unrestorable *after* ksh
+     enters a virtual subshell, ksh will now error out on exiting it, as
+     continuing would mean running arbitrary commands in the wrong PWD.
+  Hopefully this is an acceptable compromise between performance and security.
+  The proper fix would be to always fork a subshell when changing the working
+  directory within it, but the resulting slowdown would likely be unpopular.
+
 2020-09-30:
 
 - Fixed: 'typeset -xu' and 'typeset -xl' (export + change case) failed to
