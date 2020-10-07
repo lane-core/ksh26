@@ -610,7 +610,6 @@ static void funload(Shell_t *shp,int fno, const char *name)
 		free((void*)pname);
 		return;
 	}
-	sh_onstate(SH_NOLOG);
 	sh_onstate(SH_NOALIAS);
 	shp->readscript = (char*)name;
 	shp->st.filename = pname;

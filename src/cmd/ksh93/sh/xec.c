@@ -2919,7 +2919,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	shp->login_sh = 0;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
-	sh_onstate(SH_NOLOG);
 	if (shp->fn_reset)
 		shp->fn_depth = shp->fn_reset = 0;
 #if SHOPT_ACCT
