@@ -467,7 +467,7 @@ then	fundir=$tmp/whencefun
 			whence_FPATH_test
 			whence_autoload_test
 			cp --totally-invalid-option 2>/dev/null
-			ls --totally-invalid-option 2>/dev/null
+			ls --totally-invalid-option /dev/null/foo 2>/dev/null
 			chmod --totally-invalid-option' \
 		whence_autoload_test "$fundir" 2>&1)
 	expect="chmod is an undefined function (autoload from $fundir/chmod)"
