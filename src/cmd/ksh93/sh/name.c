@@ -34,7 +34,6 @@
 #include	"streval.h"
 
 #define NVCACHE		8	/* must be a power of 2 */
-#define Empty	((char*)(e_sptbnl+3))
 static char	*savesub = 0;
 static char	Null[1];
 static Namval_t	NullNode;
