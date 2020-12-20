@@ -29,6 +29,28 @@ Command=${0##*/}
 integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+
+# to avoid spurious test failures with 'whence -a' tests, we need
+# to remove any duplicate paths to the same directory from $PATH.
+function rm_path_dups
+{
+	typeset IFS=':' p seen s newpath
+	set -o noglob
+	p=$PATH:	# IFS field splitting discards a final empty field; add one to avoid that
+	for p in $p
+	do	if	[[ -z $p ]]
+		then	# empty $PATH element == current dir
+			p='.'
+		fi
+		for	s in $seen
+		do	[[ $p -ef $s ]] && continue 2
+		done
+		newpath=${newpath:+$newpath:}$p
+		seen=$seen$p:
+	done
+	PATH=$newpath
+}
+rm_path_dups
 PATH_orig=$PATH
 
 # output all paths to a command, skipping duplicates in $PATH
