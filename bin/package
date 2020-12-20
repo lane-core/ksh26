@@ -4967,6 +4967,44 @@ admin)	while	test ! -f $admin_db
 clean|clobber)
 	cd $PACKAGEROOT
 	$exec rm -rf arch/$HOSTTYPE
+	if	test "$flat" = 1
+	then	$exec rm -rf \
+			bin/.paths \
+			bin/ar \
+			bin/cc \
+			bin/crossexec \
+			bin/ditto \
+			bin/filter \
+			bin/hurl \
+			bin/iffe \
+			bin/ksh \
+			bin/mamake \
+			bin/mktest \
+			bin/ok/ \
+			bin/proto \
+			bin/pty \
+			bin/ratz \
+			bin/regress \
+			bin/release \
+			bin/rt \
+			bin/shcomp \
+			bin/suid_exec \
+			bin/*.old \
+			fun/ \
+			include/ \
+			lib/file/ \
+			lib/lib/ \
+			lib/libast.a \
+			lib/libcmd.a \
+			lib/libdll.a \
+			lib/libshell.a \
+			lib/libsum.a \
+			lib/*.old \
+			lib/make/ \
+			lib/package/gen/ \
+			lib/probe/ \
+			man/
+	fi
 	exit
 	;;
 
