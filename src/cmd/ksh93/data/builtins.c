@@ -1522,7 +1522,7 @@ USAGE_LICENSE
 	"[+-?Executing \bcommand -p\b \a...\a .]"
 	"}"
 "[s?Read the commands from standard input.  The positional parameters will be "
-	"initialized from \aarg\a.]"
+	"initialized from \aarg\a. This option is forced on if no \aarg\a is given.]"
 "[D\f:dump-strings\f?Do not execute the script, but output the set of double "
 	"quoted strings preceded by a \b$\b.  These strings are needed for "
 	"localization of the script to different locales.]"

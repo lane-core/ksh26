@@ -264,7 +264,7 @@ struct shared
 	Dt_t		*transdict; \
 	char		ifstable[256]; \
 	unsigned long	test; \
-	Shopt_t		offoptions; \
+	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */ \
 	Shopt_t		glob_options; \
 	Namval_t	*typeinit; \
 	Namfun_t	nvfun; \

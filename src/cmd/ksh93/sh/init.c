@@ -1355,7 +1355,10 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		shp->st.dolv=argv+(argc-1)-shp->st.dolc;
 		shp->st.dolv[0] = argv[0];
 		if(shp->st.dolc < 1)
+		{
 			sh_onoption(SH_SFLAG);
+			off_option(&shp->offoptions,SH_SFLAG);
+		}
 		if(!sh_isoption(SH_SFLAG))
 		{
 			shp->st.dolc--;
