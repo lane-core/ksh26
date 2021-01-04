@@ -5411,6 +5411,25 @@ license)# all work in $PACKAGESRC/LICENSES
 	;;
 
 make|view)
+	# Add flags for build type
+	case `git branch 2>/dev/null` in
+	'' | *\*\ [0-9]*.[0-9]*)
+		# If we're not on a git branch (tarball) or on a branch that starts
+		# with a number (release branch), then compile as a release version
+		CCFLAGS="-D_AST_ksh_release${CCFLAGS:+ $CCFLAGS}"  # prefix it to allow override with -U
+		export CCFLAGS
+		;;
+	*)	# Otherwise, add 8-character git commit hash if available, and if the working dir is clean
+		git_commit=`git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD`
+		case $git_commit in
+		????????)
+			CCFLAGS="-D_AST_git_commit=\\\"$git_commit\\\"${CCFLAGS:+ $CCFLAGS}"
+			export CCFLAGS
+			;;
+		esac
+		unset git_commit
+		;;
+	esac
 	# Hack to build on some systems that need an explicit link with libm due to a bug in the build system
 	case `uname` in
 	NetBSD | SunOS)

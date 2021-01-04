@@ -107,6 +107,10 @@ char e_version[]	= "\n@(#)$Id: Version "
 #define ATTRS		1
 			"R"
 #endif
+#if !_std_malloc && !_AST_std_malloc
+#define ATTRS		1
+			"v"	/* uses vmalloc */
+#endif
 #if ATTRS
 			" "
 #endif

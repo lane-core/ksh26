@@ -1486,6 +1486,7 @@ USAGE_LICENSE
 const char sh_optksh[] =
 "+[-1?\n@(#)$Id: sh (AT&T Research) "SH_RELEASE" $\n]"
 USAGE_LICENSE
+"[-copyright?(c) 2020-2021 Contributors to ksh " SH_RELEASE_FORK "]"
 "[+NAME?\b\f?\f\b - Shell, the standard command language interpreter]"
 "[+DESCRIPTION?\b\f?\f\b is a command language interpreter that "
 	"executes commands read from a command line string, the "
