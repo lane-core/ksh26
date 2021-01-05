@@ -832,6 +832,12 @@ actual=$({ a=$(cd; pwd); } >&-; print -r -- "$a")
 [[ $actual == "$expect" ]] || err_exit "'cd' broke new-form command substitution with outer stdout closed" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# CDPATH was not ignored by 'cd ./dir': https://github.com/ksh93/ksh/issues/151
+expect=': cd: ./dev: [No such file or directory]'
+actual=$( (CDPATH=/ cd -P ./dev && pwd) 2>&1 )
+let "(e=$?)==1" && [[ $actual == *"$expect" ]] || err_exit "CDPATH not ignored by cd ./dir" \
+	"(expected *$(printf %q "$expect") with status 1, got $(printf %q "$actual") with status $e)"
+
 # ======
 # 'readonly' should set the correct scope when creating variables in functions
 unset foo

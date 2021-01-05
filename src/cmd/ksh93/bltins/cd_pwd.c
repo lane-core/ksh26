@@ -100,11 +100,15 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(shp->subshell && !shp->subshare)
 		sh_subfork();
 #endif /* !lib_fchdir */
+	/*
+	 * Do $CDPATH processing, except if the path is absolute or the first component is '.' or '..'
+	 */
+	if(dir[0] != '/'
 #if _WINIX
-	if(*dir != '/' && (dir[1]!=':'))
-#else
-	if(*dir != '/')
+	&& dir[1] != ':'  /* on Windows, an initial drive letter plus ':' denotes an absolute path */
 #endif /* _WINIX */
+	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
+	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
 		if(!(cdpath = (Pathcomp_t*)shp->cdpathlist) && (dp=sh_scoped(shp,CDPNOD)->nvalue.cp))
 		{
