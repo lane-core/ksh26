@@ -388,6 +388,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		else
 		{
 			char	lastbase=0, *val = xp, oerrno = errno;
+			const char radix = GETDECIMAL(0);
 			lvalue->eflag = 0;
 			errno = 0;
 			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL))
@@ -418,7 +419,9 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				c='e';
 			else
 				c = *str;
-			if(c==GETDECIMAL(0) || c=='e' || c == 'E' || lastbase == 16 && (c == 'p' || c == 'P'))
+			if(c=='.' && radix!='.')
+				errormsg(SH_DICT,ERROR_exit(1),"%s: radix point '.' requires LC_NUMERIC=C",val);
+			if(c==radix || c=='e' || c == 'E' || lastbase == 16 && (c == 'p' || c == 'P'))
 			{
 				lvalue->isfloat=1;
 				r = strtold(val,&str);
