@@ -1570,17 +1570,6 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 #endif /* SHOPT_FIXEDARRAY */
 	if(!(flags&NV_RDONLY) && nv_isattr (np, NV_RDONLY))
 		errormsg(SH_DICT,ERROR_exit(1),e_readonly, nv_name(np));
-
-	/*
-	 * Resetting the PATH in a non-forking subshell will reset the parent shell's
-	 * hash table, so work around the problem by forking before sh_assignok
-	 * -- however, don't do this if we were told to ignore the variable's readonly state (i.e.
-	 * if the NV_RDONLY flag is set), because that means we're restoring the parent shell state
-	 * after exiting a virtual subshell, and we would end up forking the parent shell instead.
-	 */
-	if(np == PATHNOD && !(flags & NV_RDONLY) && shp->subshell && !shp->subshare)
-		sh_subfork();
-
 	/*
 	 * The following could cause the shell to fork if assignment
 	 * would cause a side effect
@@ -2244,6 +2233,11 @@ static int scanfilter(Dt_t *dict, void *arg, void *data)
 void nv_rehash(register Namval_t *np,void *data)
 {
 	NOT_USED(data);
+	if(sh.subshell)
+	{
+		/* invalidate subshell node; if none exists, add a dummy */
+		np = nv_search(nv_name(np),sh.track_tree,NV_ADD|HASH_NOSCOPE);
+	}
 	nv_onattr(np,NV_NOALIAS);
 }
 

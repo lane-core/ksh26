@@ -312,4 +312,102 @@ unset -v FPATH
 err_exit_if_leak 'function call via autoload in command substitution'
 
 # ======
+
+# add some random utilities to the hash table to detect memory leak on hash table reset when changing PATH
+random_utils=(chmod cp mv awk sed diff comm cut sort uniq date env find mkdir rmdir pr sleep)
+
+save_PATH=$PATH
+hash "${random_utils[@]}"
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	hash -r
+	hash "${random_utils[@]}"
+done
+after=$(getmem)
+err_exit_if_leak 'clear hash table (hash -r) in main shell'
+
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	PATH=/dev/null
+	PATH=$save_PATH
+	hash "${random_utils[@]}"
+done
+after=$(getmem)
+err_exit_if_leak 'set PATH value in main shell'
+
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	PATH=/dev/null command true
+done
+after=$(getmem)
+err_exit_if_leak 'run command with preceding PATH assignment in main shell'
+
+: <<'disabled'	# TODO: known leak (approx 73552 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	typeset -A PATH
+	unset PATH
+	PATH=$save_PATH
+	hash "${random_utils[@]}"
+done
+after=$(getmem)
+err_exit_if_leak 'set PATH attribute in main shell'
+disabled
+
+: <<'disabled'	# TODO: known leak (approx 99568 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	unset PATH
+	PATH=$save_PATH
+	hash "${random_utils[@]}"
+done
+after=$(getmem)
+err_exit_if_leak 'unset PATH in main shell'
+disabled
+
+hash "${random_utils[@]}"
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(hash -r)
+done
+after=$(getmem)
+err_exit_if_leak 'clear hash table (hash -r) in subshell'
+
+: <<'disabled'	# TODO: known leak (approx 123520 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(PATH=/dev/null)
+done
+after=$(getmem)
+err_exit_if_leak 'set PATH value in subshell'
+disabled
+
+: <<'disabled'	# TODO: known leak (approx 24544 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(PATH=/dev/null command true)
+done
+after=$(getmem)
+err_exit_if_leak 'run command with preceding PATH assignment in subshell'
+disabled
+
+: <<'disabled'	# TODO: known leak (approx 131200 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(readonly PATH)
+done
+after=$(getmem)
+err_exit_if_leak 'set PATH attribute in subshell'
+disabled
+
+: <<'disabled'	# TODO: known leak (approx 229440 bytes after 512 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(unset PATH)
+done
+after=$(getmem)
+err_exit_if_leak 'unset PATH in subshell'
+disabled
+
+# ======
 exit $((Errors<125?Errors:125))

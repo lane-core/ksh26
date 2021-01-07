@@ -137,7 +137,7 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 	tdata.sh = context->shp;
 	troot = tdata.sh->alias_tree;
 	if(*argv[0]=='h')
-		flag = NV_TAGGED;
+		flag |= NV_TAGGED;
 	if(argv[1])
 	{
 		opt_info.offset = 0;
@@ -170,17 +170,16 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NIL(char*)));
 		argv += (opt_info.index-1);
 	}
-	/* fork a virtual subshell to avoid affecting parent shell's hash/alias table */
-	if((argv[1] || rflag) && tdata.sh->subshell && !tdata.sh->subshare)
-		sh_subfork();
 	/* 'alias -t', 'hash' */
 	if(flag&NV_TAGGED)
 	{
-		troot = tdata.sh->track_tree;	/* use hash table */
+		troot = sh_subtracktree(1);	/* use hash table */
 		tdata.aflag = '-';		/* make setall() treat 'hash' like 'alias -t' */
 		if(rflag)			/* hash -r: clear hash table */
 			nv_scan(troot,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	}
+	else if(argv[1] && tdata.sh->subshell && !tdata.sh->subshare)
+		sh_subfork();			/* avoid affecting main shell's alias table */
 	return(setall(argv,flag,troot,&tdata));
 }
 
@@ -642,7 +641,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			/* tracked alias */
 			if(troot==shp->track_tree && tp->aflag=='-')
 			{
-				np = nv_search(name,troot,NV_ADD);
+				np = nv_search(name,troot,NV_ADD|HASH_NOSCOPE);
 				path_alias(np,path_absolute(shp,nv_name(np),NIL(Pathcomp_t*),0));
 				continue;
 			}
@@ -1206,31 +1205,6 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 		dtclear(troot);
 		return(r);
 	}
-
-	/*
-	 * Unsetting the PATH in a non-forked subshell will cause the parent shell's hash table to be reset,
-	 * so fork to work around the problem. To avoid crashing, this must be done before calling sh_pushcontext(),
-	 * so we need to loop through the args separately and check if any node is equal to PATHNOD.
-	 */
-	if(shp->subshell && !shp->subshare && troot==shp->var_tree)
-	{
-		char **argv_tmp = argv;
-		while(name = *argv_tmp++)
-		{
-			np=nv_open(name,troot,NV_NOADD|nflag);
-			if(!np)
-				continue;
-			/* Are we changing the PATH? */
-			if(np==PATHNOD)
-			{
-				nv_close(np);
-				sh_subfork();
-				break;
-			}
-			nv_close(np);
-		}
-	}
-
 	sh_pushcontext(shp,&buff,1);
 	while(name = *argv++)
 	{

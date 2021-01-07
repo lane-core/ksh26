@@ -903,7 +903,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh93) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh93) 2021-01-07 $\n]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
 	"locations of recently used programs. If given no arguments, it lists "

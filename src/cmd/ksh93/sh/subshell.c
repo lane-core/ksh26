@@ -75,6 +75,7 @@ static struct subshell
 	Dt_t		*var;	/* variable table at time of subshell */
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
+	Dt_t		*strack;/* tracked alias scope for subshell */
 	Pathcomp_t	*pathlist; /* for PATH variable */
 	struct Error_context_s *errcontext;
 	Shopt_t		options;/* save shell options */
@@ -394,21 +395,35 @@ static void nv_restore(struct subshell *sp)
 }
 
 /*
+ * Return pointer to tracked alias tree (a.k.a. hash table, i.e. cached $PATH search results).
+ * Create new one if in a subshell and one doesn't exist and 'create' is non-zero.
+ */
+Dt_t *sh_subtracktree(int create)
+{
+	register struct subshell *sp = subshell_data;
+	if(create && sh.subshell && !sh.subshare && sp && !sp->strack)
+	{
+		sp->strack = dtopen(&_Nvdisc,Dtset);
+		dtview(sp->strack,sh.track_tree);
+		sh.track_tree = sp->strack;
+	}
+	return(sh.track_tree);
+}
+
+/*
  * return pointer to function tree
  * create new one if in a subshell and one doesn't exist and create is non-zero
  */
 Dt_t *sh_subfuntree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(!sp || sp->shp->curenv==0)
-		return(sh.fun_tree);
-	if(!sp->sfun && create && !sp->shp->subshare)
+	if(create && sh.subshell && !sh.subshare && sp && !sp->sfun)
 	{
 		sp->sfun = dtopen(&_Nvdisc,Dtoset);
-		dtview(sp->sfun,sp->shp->fun_tree);
-		sp->shp->fun_tree = sp->sfun;
+		dtview(sp->sfun,sh.fun_tree);
+		sh.fun_tree = sp->sfun;
 	}
-	return(sp->shp->fun_tree);
+	return(sh.fun_tree);
 }
 
 /*
@@ -743,6 +758,29 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	{
 		int n;
 		shp->options = sp->options;
+		/* Clean up subshell hash table. */
+		if(sp->strack)
+		{
+			Namval_t *np, *prev_np;
+			/* Detach this scope from the unified view. */
+			shp->track_tree = dtview(sp->strack,0);
+			/* Delete (free) all elements of the subshell hash table. To allow dtnext() to
+			   set the pointer to the next item, we have to delete one item beind the loop. */
+			prev_np = 0;
+			np = (Namval_t*)dtfirst(sp->strack);
+			while(np)
+			{
+				if(prev_np)
+					nv_delete(prev_np,sp->strack,0);
+				prev_np = np;
+				np = (Namval_t*)dtnext(sp->strack,np);
+			}
+			if(prev_np)
+				nv_delete(prev_np,sp->strack,0);
+			/* Close and free the table itself. */
+			dtclose(sp->strack);
+		}
+		/* Clean up subshell function table. */
 		if(sp->sfun)
 		{
 			shp->fun_tree = dtview(sp->sfun,0);

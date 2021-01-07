@@ -44,9 +44,8 @@
 static void rehash(register Namval_t *np,void *data)
 {
 	Pathcomp_t *pp = (Pathcomp_t*)np->nvalue.cp;
-	NOT_USED(data);
 	if(pp && *pp->name!='/')
-		_nv_unset(np,0);
+		nv_rehash(np,data);
 }
 
 int	b_cd(int argc, char *argv[],Shbltin_t *context)
@@ -210,7 +209,7 @@ success:
 	nv_putval(pwdnod,dir,NV_RDONLY);
 	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
 	shp->pwd = pwdnod->nvalue.cp;
-	nv_scan(shp->track_tree,rehash,(void*)0,NV_TAGGED,NV_TAGGED);
+	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	path_newdir(shp,shp->pathlist);
 	path_newdir(shp,shp->cdpathlist);
 	if(oldpwd)

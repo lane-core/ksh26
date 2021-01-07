@@ -390,6 +390,7 @@ extern Sfio_t		*sh_sfeval(char*[]);
 extern void		sh_setmatch(Shell_t*,const char*,int,int,int[],int);
 extern void             sh_scope(Shell_t*, struct argnod*, int);
 extern Namval_t		*sh_scoped(Shell_t*, Namval_t*);
+extern Dt_t		*sh_subtracktree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);

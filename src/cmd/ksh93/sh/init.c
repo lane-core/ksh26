@@ -317,7 +317,7 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 	if(np==PATHNOD	|| (path_scoped=(strcmp(name,PATHNOD->nvname)==0)))		
 	{
 		/* Clear the hash table */
-		nv_scan(shp->track_tree,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
+		nv_scan(sh_subtracktree(1),nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 		if(path_scoped && !val)
 			val = PATHNOD->nvalue.cp;
 	}

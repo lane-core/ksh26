@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a crash that could occur while ksh updated ${.sh.match}.
 
+- Any changes to the hash table (a.k.a. "tracked aliases", i.e. cached $PATH
+  searches) in a subshell now no longer affect the parent shell's hash table.
+
 2021-01-05:
 
 - Fixed a bug in 'cd' that caused 'cd ./foo' to search for 'foo' in $CDPATH.
@@ -632,10 +635,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - The 'hash' utility is now a regular builtin instead of an alias to
   'alias -t --'. The functionality of the old command has been removed
   from the alias builtin.
-
-- Changing the hash table in a subshell will no longer affect the parent
-  shell's hash table. This fix applies to the hash utility and when the
-  PATH is reset manually.
 
 - 'set +r' is no longer able to unset the restricted option. This change
   makes the behavior of 'set +r' identical to 'set +o restricted'.

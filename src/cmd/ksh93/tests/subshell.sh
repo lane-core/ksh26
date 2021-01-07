@@ -719,19 +719,24 @@ v=${ eval 'al'; alias al='echo subshare'; } && [[ $v == 'mainalias' && $(eval 'a
 # Resetting a subshell's hash table should not affect the parent shell
 check_hash_table()
 {
-	[[ $(hash) ]] || err_\exit $1 $'resetting the hash table in a subshell affects the parent shell\'s hash table'
+	[[ -n ${ hash; } ]] || err_\exit $1 "resetting the hash table in a subshell affects the parent shell's hash table"
 	# Ensure the hash table isn't empty before the next test is run
 	hash -r chmod
 }
-
 (hash -r); check_hash_table $LINENO					# err_exit (count me)
 (PATH="$PATH"); check_hash_table $LINENO				# err_exit (count me)
 (unset PATH); check_hash_table $LINENO					# err_exit (count me)
 (nameref PATH_TWO=PATH; unset PATH_TWO); check_hash_table $LINENO	# err_exit (count me)
 
 # Adding a utility to a subshell's hash table should not affect the parent shell
-(hash cat)
-[[ $(hash) == "chmod=$(whence -p chmod)" ]] || err_exit $'changes to a subshell\'s hash table affect the parent shell'
+hash -r
+(hash ls)
+[[ -z ${ hash; } ]] || err_exit "changes to a subshell's hash table affect the parent shell"
+
+# Running a command in a subshell should not affect the parent shell's hash table
+hash -r
+(ls /dev/null >/dev/null)
+[[ -z ${ hash; } ]] || err_exit "command run in subshell added to parent shell's hash table"
 
 # ======
 # Variables set in functions inside of a virtual subshell should not affect the
@@ -747,17 +752,19 @@ EOF
 v=$($SHELL $testvars) && [[ "$v" == "a= b= c=0" ]] || err_exit 'variables set in subshells are not confined to the subshell'
 
 # ======
-# Setting PATH in virtual subshell should trigger a fork; restoring PATH after leaving virtual subshell should not.
-SHELL=$SHELL "$SHELL" -c '
+got=$("$SHELL" -c '
+	PATH=/dev/null/1
 	(
 		echo "DEBUG ${.sh.pid}"
+		PATH=/dev/null/2
 		readonly PATH
 		echo "DEBUG ${.sh.pid}"
 	)
-	echo "DEBUG ${.sh.pid}"
+	[[ $PATH == /dev/null/1 ]] && echo "DEBUG ${.sh.pid}" || echo "DEBUG -1 == wrong"
 	: extra command to disable "-c" exec optimization
-' | awk '/^DEBUG/ { pid[NR] = $2; }  END { exit !(pid[1] == pid[2] && pid[2] == pid[3]); }' \
-|| err_exit "setting PATH to readonly in subshell triggers an erroneous fork"
+' 2>&1) \
+&& awk '/^DEBUG/ { pid[NR] = $2; }  END { exit !(pid[1] == pid[2] && pid[2] == pid[3]); }' <<<"$got" \
+|| err_exit "setting PATH to a readonly value in a subshell either fails or forks (got $(printf %q "$got"))"
 
 # ======
 # Test command substitution with external command in here-document
