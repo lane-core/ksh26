@@ -725,6 +725,7 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 	register int	i,n,x;
 	unsigned int	savesub = shp->subshell;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
+	Namarr_t	*ap_save = ap;
 	shp->subshell = 0;
 #ifndef SHOPT_2DMATCH
 	index = 0;
@@ -754,8 +755,7 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 			nv_disc(SH_MATCHNOD,&mp->hdr,NV_LAST);
 		if(nmatch)
 			nv_putsub(SH_MATCHNOD, NIL(char*), (nmatch-1)|ARRAY_FILL|ARRAY_SETSUB);
-		ap = nv_arrayptr(SH_MATCHNOD);
-		ap->nelem = mp->nmatch = nmatch;
+		ap_save->nelem = mp->nmatch = nmatch;
 		mp->v = v;
 		mp->first = match[0];
 	}
@@ -773,8 +773,7 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 				nv_putsub(SH_MATCHNOD, (char*)0, i);
 				nv_arraychild(SH_MATCHNOD, np,0);
 			}
-			if(ap = nv_arrayptr(SH_MATCHNOD))
-				ap->nelem = mp->nmatch;
+			ap_save->nelem = mp->nmatch;
 		}
 		ap = nv_arrayptr(np);
 		nv_putsub(np, NIL(char*), index|ARRAY_FILL|ARRAY_SETSUB);
@@ -808,7 +807,7 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 				x=1;
 
 		}
-		ap->nelem -= x;
+		ap_save->nelem -= x;
 		while(i < 2*mp->nmatch)
 			mp->match[index+i++] = -1;
 		memcpy(mp->val,v+n,vsize);
