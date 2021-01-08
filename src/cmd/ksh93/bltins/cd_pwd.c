@@ -212,7 +212,7 @@ success:
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	path_newdir(shp,shp->pathlist);
 	path_newdir(shp,shp->cdpathlist);
-	if(oldpwd)
+	if(oldpwd && oldpwd!=e_dot)
 		free(oldpwd);
 	return(0);
 }
