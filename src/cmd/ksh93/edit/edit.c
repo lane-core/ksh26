@@ -658,7 +658,8 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			{
 				int skip=0;
 				ep->e_crlf = 0;
-				*pp++ = c;
+				if(pp<ppmax)
+					*pp++ = c;
 				for(n=1; c = *last++; n++)
 				{
 					if(pp < ppmax)

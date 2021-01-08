@@ -59,7 +59,7 @@
 #endif /* SHOPT_MULTIBYTE */
 
 #define TABSIZE	8
-#define PRSIZE	160
+#define PRSIZE	256
 #define MAXLINE	1024		/* longest edit line permitted */
 
 typedef struct _edit_pos
