@@ -1911,6 +1911,8 @@ static char *env_init(Shell_t *shp)
 			/* The magic A__z env var is an invention of ksh88. See e_envmarker[]. */
 			if(*cp=='A' && cp[1]=='_' && cp[2]=='_' && cp[3]=='z' && cp[4]=='=')
 				next = cp + 4;
+			else if(strncmp(cp,"KSH_VERSION=",12)==0)
+				continue;
 			else if(np = nv_open(cp,shp->var_tree,(NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL)))
 			{
 				nv_onattr(np,NV_IMPORT);
