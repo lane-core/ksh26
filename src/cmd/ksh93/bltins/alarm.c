@@ -134,7 +134,7 @@ static void	trap_timeout(void* handle)
 		tp->timeout = 0;
 	tp->flags |= L_FLAG;
 	tp->sh->sigflag[SIGALRM] |= SH_SIGALRM;
-	if(sh_isstate(SH_TTYWAIT))
+	if(sh_isstate(SH_TTYWAIT) && !tp->sh->bltinfun)
 		sh_timetraps(tp->sh);
 }
 
