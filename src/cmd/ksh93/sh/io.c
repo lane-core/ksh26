@@ -436,22 +436,28 @@ int  sh_iovalidfd(Shell_t *shp, int fd)
 	return(1);
 }
 
-int  sh_iosafefd(Shell_t* shp, int sfd)
+/*
+ * Return the lowest numbered fd that is equal to or greater than
+ * the requested 'min_fd' and which is not currently in use.
+ */
+int  sh_iosafefd(Shell_t* shp, int min_fd)
 {
 	register int	fd;
 	while(1)
 	{
-		for(fd=0; fd < shp->topfd; fd++)
+		if(fcntl(min_fd, F_GETFD) == -1)
 		{
-			if (filemap[fd].save_fd==sfd || filemap[fd].orig_fd==sfd || (fcntl(sfd, F_GETFD) != -1 || errno != EBADF))
+			for(fd = 0; fd < shp->topfd; fd++)
 			{
-				sfd++;
-				continue;
+				if (filemap[fd].save_fd == min_fd || filemap[fd].orig_fd == min_fd)
+					break;
 			}
+			if(fd == shp->topfd)
+				break;
 		}
-		break;
+		min_fd++;
 	}
-	return(sfd);
+	return(min_fd);
 }
 
 int  sh_inuse(Shell_t *shp, int fd)

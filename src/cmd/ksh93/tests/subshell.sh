@@ -854,6 +854,32 @@ actual=${ get_value; }
 actual=`get_value`
 [[ $actual == "$expect" ]] || err_exit "\`Comsub\` failed to return output (expected '$expect', got '$actual')"
 
+# more tests from https://github.com/oracle/solaris-userland/blob/master/components/ksh93/patches/285-30771135.patch
+tmpfile=$tmp/1116072.dummy
+touch "$tmpfile"
+exp='return value'
+function get_value
+{
+	case=$1
+	(( case >= 1 )) && exec 3< $tmpfile
+	(( case >= 2 )) && exec 4< $tmpfile
+	(( case >= 3 )) && exec 6< $tmpfile
+	# To trigger the bug we have to spawn an external command.
+	$(whence -p true)
+	(( case >= 1 )) && exec 3<&-
+	(( case >= 2 )) && exec 4<&-
+	(( case >= 3 )) && exec 6<&-
+	print "$exp"
+}
+got=$(get_value 0)
+[[ $got == "$exp" ]] || err_exit "failed to capture subshell output when closing fd: case 0"
+got=$(get_value 1)
+[[ $got == "$exp" ]] || err_exit "failed to capture subshell output when closing fd: case 1"
+got=$(get_value 2)
+[[ $got == "$exp" ]] || err_exit "failed to capture subshell output when closing fd: case 2"
+got=$(get_value 3)
+[[ $got == "$exp" ]] || err_exit "failed to capture subshell output when closing fd: case 3"
+
 # ======
 # https://bugzilla.redhat.com/1117404
 
