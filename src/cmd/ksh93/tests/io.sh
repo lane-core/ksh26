@@ -650,4 +650,52 @@ err=$(
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# stdout was misdirected if an EXIT/ERR trap handler was defined in a -c script
+# https://github.com/att/ast/issues/36
+exp=$'exit to stdout\ntrap to stdout'
+exp2=$'exit to file\ntrap to file'
+got=$(export tmp; "$SHELL" -ec \
+'	function log
+	{
+		echo "$* to stdout"
+		echo "$* to file" >> $tmp/ast36_a.test.log
+	}
+	function test_exit
+	{
+		log trap
+	}
+	trap test_exit EXIT
+	log exit
+')
+[[ $got == "$exp" ]] || err_exit 'stdout misdirected to file with EXIT/ERR trap defined (1)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+[[ $(< $tmp/ast36_a.test.log) == "$exp2" ]] || err_exit 'stdout not correctly redirected to file with EXIT/ERR trap defined (1)' \
+	"(expected $(printf %q "$exp2"), wrote $(printf %q "$(< $tmp/ast36_a.test.log)"))"
+
+exp=$'trap to stdout\nexit to stdout'
+exp2=$'trap to file\nexit to file'
+got=$(export tmp; "$SHELL" -ec \
+'	function log
+	{
+		echo "$* to stdout"
+		echo "$* to file" >> $tmp/ast36_b.test.log
+	}
+	function test_exit
+	{
+		trap test_exittrap EXIT
+		log trap
+	}
+	function test_exittrap
+	{
+		log exit
+	}
+	test_exit
+')
+[[ $got == "$exp" ]] || err_exit 'stdout misdirected to file with EXIT/ERR trap defined (2)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+[[ $(< $tmp/ast36_b.test.log) == "$exp2" ]] || err_exit 'stdout not correctly redirected to file with EXIT/ERR trap defined (2)' \
+	"(expected $(printf %q "$exp2"), wrote $(printf %q "$(< $tmp/ast36_b.test.log)"))"
+
+
+# ======
 exit $((Errors<125?Errors:125))

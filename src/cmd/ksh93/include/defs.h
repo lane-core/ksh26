@@ -272,7 +272,10 @@ struct shared
 	Namfun_t	nvfun; \
 	char		*mathnodes; \
 	char		*bltin_dir; \
-	struct Regress_s*regress;
+	struct Regress_s*regress; \
+	char 		exittrap; \
+	char 		errtrap; \
+	char 		end_fn;
 
 #include	<shell.h>
 
