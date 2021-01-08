@@ -1178,7 +1178,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	register int n;
 	int type;
 	char *save_envmarker;
-	static char *login_files[3];
+	static char *login_files[2];
 	memfatal();
 	n = strlen(e_version);
 	if(e_version[n-1]=='$' && e_version[n-2]==' ')
@@ -1450,7 +1450,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
         shp->topscope = (Shscope_t*)shp->st.self;
 	sh_offstate(SH_INIT);
 	login_files[0] = (char*)e_profile;
-	login_files[1] = ".profile";
 	shp->gd->login_files = login_files;
 	shp->bltindata.version = SH_VERSION;
 	shp->bltindata.shp = shp;
