@@ -80,7 +80,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	dir =  argv[0];
 	if(error_info.errors>0 || argc >2)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
-	oldpwd = (char*)shp->pwd;
+	oldpwd = path_pwd(shp,0);
 	opwdnod = (shp->subshell?sh_assignok(OLDPWDNOD,1):OLDPWDNOD); 
 	pwdnod = (shp->subshell?sh_assignok(PWDNOD,1):PWDNOD); 
 	if(argc==2)
