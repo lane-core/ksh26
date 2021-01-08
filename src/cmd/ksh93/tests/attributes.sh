@@ -414,6 +414,7 @@ typeset -u got
 exp=100
 ((got=$exp))
 [[ $got == $exp ]] || err_exit "typeset -l fails on numeric value -- expected '$exp', got '$got'"
+unset got
 
 unset s
 typeset -a -u s=( hello world chicken )
@@ -559,6 +560,32 @@ do	unset x
 	[[ $(typeset -p x) == 'typeset -i x' ]] || err_exit "typeset -i base limits failed to default to 10 with base: $base."
 done
 unset x base
+
+# ======
+# reproducer from https://github.com/att/ast/issues/7
+# https://github.com/oracle/solaris-userland/blob/master/components/ksh93/patches/250-22561374.patch
+tmpfile=$tmp/250-22561374.log
+function proxy
+{
+	export myvar="bla"
+	child
+	unset myvar
+}
+function child
+{
+	echo "myvar=$myvar" >> $tmpfile
+}
+function dotest
+{
+	$(child)
+	$(proxy)
+	$(child)
+}
+dotest
+exp=$'myvar=\nmyvar=bla\nmyvar='
+got=$(< $tmpfile)
+[[ $got == "$exp" ]] || err_exit 'variable exported in function in a subshell is also visible in a different subshell' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
