@@ -2849,7 +2849,7 @@ cat $INITROOT/$i.sh
 			(
 				cd "$TMPDIR" || exit 3
 				cp $INITROOT/hello.c pkg$$.c || exit 3
-				sh $cc -o pkg$$.exe pkg$$.c > pkg$$.e 2>&1 || {
+				$cc -o pkg$$.exe pkg$$.c > pkg$$.e 2>&1 || {
 					if $cc -Dnew=old -o pkg$$.exe pkg$$.c > /dev/null 2>&1
 					then	echo "$command: ${warn}$CC: must be a C compiler (not C++)" >&2
 					else	cat pkg$$.e
