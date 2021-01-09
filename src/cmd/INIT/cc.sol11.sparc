@@ -1,0 +1,9 @@
+: solaris.sparc cc wrapper for reasonable ansi C defaults and 32 bit : 2012-05-18 :
+
+HOSTTYPE=sol11.sparc
+
+case " $* " in
+*" -dumpmachine "*) echo $HOSTTYPE; exit ;;
+esac
+
+$CC_EXPLICIT -m32 -xc99 -D_XPG6 "$@"
