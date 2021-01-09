@@ -2643,11 +2643,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 		}
-		if(shp->trapnote&SH_SIGALRM)
-		{
-			shp->trapnote &= ~SH_SIGALRM;
-			sh_timetraps(shp);
-		}
 		if(shp->trapnote || (shp->exitval && sh_isstate(SH_ERREXIT)) &&
 			t && echeck) 
 			sh_chktrap(shp);
