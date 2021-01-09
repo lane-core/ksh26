@@ -63,7 +63,10 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 			goto bad;
 	}
 	if (err = posix_spawn(&pid, path, NiL, &attr, argv, envv ? envv : environ))
-		goto bad;
+	{
+		if ((err != EPERM) || (err = posix_spawn(&pid, path, NiL, NiL, argv, envv ? envv : environ)))
+			goto bad;
+	}
 	posix_spawnattr_destroy(&attr);
 #if _lib_posix_spawn < 2
 	if (waitpid(pid, &err, WNOHANG|WNOWAIT) == pid && EXIT_STATUS(err) == 127)
