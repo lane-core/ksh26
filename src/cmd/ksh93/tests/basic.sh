@@ -708,7 +708,8 @@ getPsOutput() {
 	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
 	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
 }
-if	getPsOutput "$$"
+if	[[ $(uname -s) != FreeBSD ]] &&
+	getPsOutput "$$" &&
 	[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
 then	expect='./atest 1 2'
 	echo 'sleep 10; exit 0' >atest
@@ -718,8 +719,6 @@ then	expect='./atest 1 2'
 	kill "$!"
 	[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
 		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-else	err_exit "warning: skipping argv rewrite test due to noncompliant 'ps' utility (got $(printf %q "$actual"))"
-	let Errors--
 fi
 unset -f getPsOutput
 

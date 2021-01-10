@@ -52,7 +52,7 @@
 /* These routines are referenced by this module */
 static void	exfile(Shell_t*, Sfio_t*,int);
 static void	chkmail(Shell_t *shp, char*);
-#if defined(_lib_fork) && !defined(_NEXT_SOURCE)
+#if defined(_lib_fork) && !defined(_NEXT_SOURCE) && !defined(__FreeBSD__)
     static void	fixargs(char**,int);
 #else
 #   define fixargs(a,b)
@@ -697,7 +697,7 @@ static void chkmail(Shell_t *shp, char *files)
 #   define PSTAT	1
 #endif
 
-#if defined(_lib_fork) && !defined(_NEXT_SOURCE)
+#if defined(_lib_fork) && !defined(_NEXT_SOURCE) && !defined(__FreeBSD__)
 /*
  * fix up command line for ps command
  *
@@ -735,9 +735,7 @@ static void fixargs(char **argv, int mode)
 	if(mode==0)
 	{
 		buff = argv[0];
-		while(cp = *argv++)
-			command_len += strlen(cp)+1;
-		command_len -= 1;
+		command_len = environ[0] - buff - 1;
 		return;
 	}
 #   endif /* PSTAT */
