@@ -302,6 +302,7 @@ then	PATH=
 	fi
 fi
 PATH=/dev:$tmp
+export PATH
 x=$(whence rm)
 typeset foo=$(PATH=/xyz:/abc :)
 y=$(whence rm)

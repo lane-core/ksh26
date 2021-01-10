@@ -488,7 +488,7 @@ L raw Bourne mode literal tab characters with wide characters disabled
 # This gets handled by ed_read() in edit.c; it does not expand tab
 # characters on the command line.
 
-d 10
+d 20
 p :test-1:
 w set +o vi +o emacs
 p :test-2:
@@ -504,7 +504,7 @@ L raw Bourne mode literal tab characters with wide characters enabled
 # This gets handled by ed_viread() in vi.c (even though vi mode is off);
 # it expands tab characters to spaces on the command line.
 
-d 10
+d 20
 p :test-1:
 w set +o vi +o emacs
 p :test-2:
@@ -520,7 +520,7 @@ L raw Bourne mode backslash handling
 # The escaping backslash feature should be disabled in the raw Bourne mode.
 # This is tested with both erase and kill characters.
 
-d 10
+d 20
 p :test-1:
 w set +o vi +o emacs; stty erase ^H kill ^X
 p :test-2:
@@ -540,7 +540,7 @@ L escaping backslashes in $mode mode
 # Backslashes should only be escaped if the previous input was a backslash.
 # Other backslashes stored in the input buffer should be erased normally.
 
-d 10
+d 20
 p :test-1:
 w set -o $mode; stty erase ^H
 p :test-2:
