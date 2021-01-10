@@ -1062,14 +1062,17 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		sfputr(stkp,name,0);
 		errmsg = 0;
 		addr = 0;
+#if SHOPT_DYNAMIC
 		if(dlete || liblist)
 			for(n=(nlib?nlib:dlete); --n>=0;)
 			{
-#if SHOPT_DYNAMIC
 				if(!dlete && !liblist[n].dll)
 					continue;
 				if(dlete || (addr = (Shbltin_f)dlllook(liblist[n].dll,stkptr(stkp,flag))))
 #else
+		if(dlete)
+			for(n=dlete; --n>=0;)
+			{
 				if(dlete)
 #endif /* SHOPT_DYNAMIC */
 				{
