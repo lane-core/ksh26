@@ -822,6 +822,7 @@ actual=$(cd "$tmp" 2>&1 && cd "no_x_dir" 2>&1)
 e=$?
 [[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+rmdir "$tmp/no_x_dir"	# on HP-UX, 'rm -rf $tmp' won't work unless we rmdir this or fix the perms
 
 # https://bugzilla.redhat.com/1133582
 expect=$HOME
