@@ -44,6 +44,7 @@ static char		*Zero = "0";
 #define isnan(n)	(fpclassify(n)==FP_NAN)
 #define isnanl(n)	(fpclassify(n)==FP_NAN)
 #else
+#error "This is an invalid test for NaN"
 #define isnan(n)	(memcmp((void*)&n,(void*)&_Sfdnan,sizeof(n))==0)
 #define isnanl(n)	(memcmp((void*)&n,(void*)&_Sflnan,sizeof(n))==0)
 #endif

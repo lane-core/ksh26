@@ -993,6 +993,7 @@ tst	- -DSCAN=1 - -lm -DSTRTO=1 - -DMAC=1 - -DDIV=1 - -DEXP=1 - -DADD=1 - -DMPY=1
 	#include <stdio.h>
 	#include <sys/types.h>
 	#include <signal.h>
+	#include <string.h>
 	#if _hdr_float
 	#include <float.h>
 	#endif
@@ -1094,6 +1095,7 @@ tst	- -DSCAN=1 - -lm -DSTRTO=1 - -DMAC=1 - -DDIV=1 - -DEXP=1 - -DADD=1 - -DMPY=1
 		char*	e;
 	#endif
 
+	memset(&f, '\0', sizeof(f));
 	#if SCAN
 		if (sscanf(NAN, "%Lg", &f) != 1)
 			return 1;
@@ -1103,6 +1105,7 @@ tst	- -DSCAN=1 - -lm -DSTRTO=1 - -DMAC=1 - -DDIV=1 - -DEXP=1 - -DADD=1 - -DMPY=1
 			return 1;
 	#endif
 		list("ldbl", "nan", &f, sizeof(f));
+	memset(&f, '\0', sizeof(f));
 	#if SCAN
 		if (sscanf(INF, "%Lg", &f) != 1)
 			return 1;
