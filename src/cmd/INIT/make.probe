@@ -34,7 +34,7 @@ probe_lib_all_undef="-all -notall -all -none -Bwhole-archive -Bno-whole-archive 
 probe_lib_multiple="-Wl,-zmuldefs"
 probe_libdir="shlib lib"
 probe_nmflags="'' -p -B"
-probe_optimize="-Os"
+probe_optimize="-Os -O2 -O"
 probe_pic="-Kpic -KPIC -fpic -fPIC -pic -PIC +z +Z"
 probe_no_protect="'-fno-stack-protector -fno-stack-protector-all' -GS-"
 probe_readonly="-R -Krodata -xMerge -Wa,-r"
@@ -1553,16 +1553,11 @@ then	e=`wc -c < e`
 	case $version_string in
 	$probe_gcc_version)	probe_optimize="$probe_gcc_optimize $probe_optimize" ;;
 	esac
-	eval set x $probe_optimize
-	while	:
-	do	shift
-		case $# in
-		0)	break ;;
-		esac
-		rm -f warn.$obj
-		$cc $1 -c warn.$src 2>e && test -f warn.$obj || continue
+	for i in $probe_optimize
+	do	rm -f warn.$obj
+		$cc $i -c warn.$src 2>e && test -f warn.$obj || continue
 		case `wc -c < e` in
-		$e)	optimize=$1; break ;;
+		$e)	optimize=$i; break ;;
 		esac
 	done
 
