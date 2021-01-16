@@ -2491,24 +2491,15 @@ int b() { return 0; }
 			esac
 			;;
 		*)	case $bits in
-			'')	case `file /bin/sh 2>/dev/null` in
-				*universal*64* | *64-bit* | *x86[_-]64*)
-					pwd=`pwd`
-					cd "$TMPDIR"
+			'')	bits=`	cd "$TMPDIR"
 					tmp=hi$$
 					trap 'rm -f $tmp.*' 0 1 2
-					cat > $tmp.a.c <<!
-int main() { return 0; }
-!
-					if	$cc -o $tmp.a.exe $tmp.a.c
-					then	case `file $tmp.a.exe` in
-						*64*)	bits=64 ;;
-						esac
-					fi </dev/null >/dev/null 2>&1
-					rm -f $tmp.*
-					trap - 0 1 2
-					cd $pwd
-					;;
+					echo 'int main() { return 0; }' > $tmp.a.c
+					$cc -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
+					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  `
+				case $bits in
+				*64*)	bits=64 ;;
+				*)	bits= ;;
 				esac
 				;;
 			esac
