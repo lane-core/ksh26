@@ -833,7 +833,9 @@ unsigned int conf[] = {
 		[ -f $tmp.1.e ] || cp $tmp.e $tmp.1.e
 		snl='\
 '
-		grep 'error:' $tmp.e | sed "s/did you mean.*//" |
+		# Extract failing identifiers. Try to isolate compiler errors while eliminating suggestions.
+		# As of 2021, known to work on: gcc, clang, Solaris Studio cc
+		sed -n 's/[Dd]id you mean.*//; /[Ww]arning:/ d; /[Ee]rror:/ p; /[Ll]ine [0-9][0-9]*:/ p' $tmp.e |
 		sed "s/[^_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789][^_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789]*/${snl}/g" |
 		grep '^[_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz][_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789]*$' |
 		sort -u > $tmp.n
