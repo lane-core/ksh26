@@ -3032,6 +3032,7 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 			if(!mp)
 				nv_putval (np, cp, NV_RDONLY);
 			free(cp);
+			cp = 0;
 		}
 	}
 	while(ap && nv_nextsub(np));
