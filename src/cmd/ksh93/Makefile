@@ -1,5 +1,9 @@
 /*
  * ksh makefile
+ *
+ * NOTE: since ksh 93u+m does not use/include nmake for various reasons,
+ * any changes here are ineffective and this is for reference only. Edit
+ * Mamfile instead (though it might still be good to update this too).
  */
 
 SH := $(PWD:B:/[0-9]*$//:N=ksh*:-ksh)		/* name of the shell program */
@@ -37,7 +41,7 @@ SHOPT_MULTIBYTE == 1		/* multibyte character handling */
 SHOPT_NAMESPACE == 1		/* allow namespaces */
 SHOPT_OLDTERMIO ==		/* support both TCGETA and TCGETS */
 SHOPT_OPTIMIZE == 1		/* optimize loop invariants */
-SHOPT_PFSH == 1			/* solaris exec_attr(4) profile execution */
+SHOPT_PFSH == 0			/* solaris exec_attr(4) profile execution */
 SHOPT_P_SUID ==			/* real uid's that require -p for set[ug]id */
 SHOPT_RAWONLY == 1		/* make viraw the only vi mode */
 SHOPT_REGRESS ==		/* enable __regress__ builtin and instrumented intercepts for testing */
