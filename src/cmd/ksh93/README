@@ -6,16 +6,13 @@ ksh-93 has been compiled and run on several machines with several
 operating systems.  The end of this file contains a partial list of
 operating systems and machines that ksh-93 has been known to run on.
 
-The layout of files for ksh-93 has changed somewhat since ksh-88,
-the last major release.  Most of the source code for ksh remains in
-the sh directory.  However, the shell editing and history routines
-are in the edit sub-directory.  The code for shell built-ins is
-in the bltins directory.  The data directory contains read-only
-data tables and messages that are used by the shell.  The include
-files remain in the include directory and the shlib directory
-is gone.  The features directory replaces the older install
-directory. The method for generating systems specific feature
-information has changed substantially.
+Most of the source code for ksh is in the src/cmd/ksh93/sh
+directory. For information on what's where, see the file DESIGN.
+
+A new '-o posix' shell option has been added to ksh 93u+m that makes the
+ksh language more compatible with other shells by following the POSIX
+standard more closely. See the manual page for details. It is enabled by
+default if ksh is invoked as sh, otherwise it is disabled by default.
 
 The Makefile file contains several compilation options that can be set
 before compiling ksh.  Options are of the form SHOPT_option and become
@@ -82,7 +79,6 @@ The following compile options are set automatically by the feature testing:
     DEVFD   Set when /dev/fd is a directory that names open files.
     SHELLMAGIC
             Set on systems that recognize script beginning with #! specially.
-    VPIX    Set on systems the have /usr/bin/vpix program for running MS-DOS.
 
 
 In most instances, you will generate ksh from a higher level directory
@@ -107,9 +103,6 @@ a script.  ksh93 is able to recognize files in this format and process
 them as scripts.  You can use shcomp to send out scripts when you
 don't want to give away the original script source.
 
-It is advisable that you put the line PWD=$HOME;export PWD into the
-/etc/profile file to reduce initialization time for ksh.
-
 To be able to run setuid/setgid shell scripts, or scripts without read
 permission, the SUID_EXEC compile option must be on, and ksh must be installed
 in the /bin directory, the /usr/bin directory, the /usr/lbin directory,
@@ -125,10 +118,10 @@ or $ENV file when it the real and effective user/group id's are not
 equal.
 
 The tests sub-directory contains a number of regression tests for ksh.
-To run all these tests with the shell you just built, go to the tests
-directory and run the command
-        SHELL=$dir/ksh $dir/ksh shtests
-where dir is the directory of the ksh you want to test.
+To run all these tests with the shell you just built, run the command
+	bin/shtests
+For help and more options, type
+	bin/shtests --man
 
 The file PROMO.mm is an advertisement that extolls the virtues of ksh.
 The file sh.1 contains the troff (man) description of this Shell.
@@ -165,66 +158,38 @@ this translate() function send mail to the address below.
 
 Please report any problems or suggestions to:
 
-dgk@research.att.com
+https://github.com/ksh93/ksh
 
 
-ksh93 has been compiled and alpha tested on the following.  An asterisk
-signifies that ksh has been installed as /bin/sh on this machine.
+ksh 93u+m 1.0.0 has been compiled and alpha tested on the following.
+An asterisk signifies minor regression test failures (one or two minor
+things amiss), two asterisks signify moderate regression test failures
+(some functionality does not work), and three asterisks signify serious
+failures (crashes, and/or essential functionality does not work).
 
-*    Sun OS 4.1.[123] on sparc.
-     Sun OS 4.1.1 on sun.
-     Solaris 2.[1-9] on sparc.
-     Solaris 2.[4-8] on X86.
-     HP/UX 8 on HP-9000/730.
-     HP/UX 9 on HP-9000/730.
-     HP/UX 10 on HP-9000/857.
-     HP/UX 11 on pa-risc.
-     System V Release 3 on Counterpoint C19
-     System V Release  4 on AT&T Intel 486.
-     System V Release  4 on NCR 4850 Intel 486.
-     IRIX Release 4.0.? System V on SGI-MIPS.
-     IRIX Release 5.1 System V on SGI-MIPS.
-     IRIX Release 6.[1-5] System V on SGI-MIPS.
-     System V Release 3.2 on 3B2. 
-     UTS 5.2.6 on Amdahl 3090,5990,580.
-     System V Release 3.2 on i386.
-     SMP_DC.OSx olivetti dcosx MIServer-S 2/128.
-     SMP_DC.OSx Pyramid dcosx MIServer-S 2/160 r3000.
-     4.3BSD on Vax 8650.
-     AIX release 2 on RS6000.
-     AIX 3.2 on RS6000.
-     Linux 1.X on Intel
-     Linux 2.X on Intel
-     Linux 2.X on Alpha
-     Linux 2.X on Alpha
-     Linux 2.X on OS/390
-     Linux 2.X on sparc
-     Linux 2.4 on intel itanium 64
-     Linux Slackware on sparc64
-*    Linux ARM on i-PAQ 
-     OSF1 on DEC alpha.
-     OSF4 on DEC alpha.
-     UMIPS 4.52 on mips.
-     BSD-i [2-4] on X86.
-     OpenBSD on X86
-     NetBSD on X86
-     FreeBSD on X86
-     NeXT on Intel X86.
-     NeXT on HP.
-*    Windows NT using UWIN on X86
-*    Windows NT using UWIN on alpha
-     Windows NT using Cygwin on X86
-     Windows NT with NutCracker libraries.
-     Windows NT with Portage libraries.
-     Windows 3.1 using custom C library.
-     OpenEdition on MVS
-     Darwin OS X on PPC
-     MVS on OS 390
-     SCO Openserver 3.2 on X86
-     Unixware 7 on X86
+*	DragonFly BSD on x86_64
+	FreeBSD on x86_64
+	GNU/Linux: CentOS on x86_64
+	GNU/Linux: Debian on x86_64
+	GNU/Linux: Gentoo on i386
+	GNU/Linux: NixOS on x86_64
+	GNU/Linux: Slackware on x86_64
+	GNU/Linux: Ubuntu on x86_64
+***	HP-UX 11 on pa-risc
+*	illumos: OmniOS 2020-08-19 (gcc) on x86_64
+	macOS 10.14.6 (Mojave) on x86_64
+***	NetBSD on x86_64
+**	OpenBSD on x86_64
+*	Solaris 11.4 (gcc) on x86_64
+	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
+***	Windows 7 using Cygwin on x86
 
 Good luck!!
 
+The ksh 93u+m contributors
+https://github.com/ksh93/ksh
+
+Originally written by:
 David Korn
 dgk@research.att.com
 

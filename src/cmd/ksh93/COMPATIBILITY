@@ -1,9 +1,82 @@
+		ksh 93u+m vs. ksh 93u+
+
+The following is a list of changes between ksh 93u+ 2012-08-01 and the new
+ksh 93u+m reboot that could cause incompatibilities in rare corner cases.
+Fixes of clear bugs in ksh 93u+ are not included here, even though any bugfix
+could potentially cause an incompatibility in a script that relies on the bug.
+For more details, see the NEWS file and for complete details, see the git log.
+
+0.	A new '-o posix' shell option has been added to ksh 93u+m that makes
+	the ksh language more compatible with other shells by following the
+	POSIX standard more closely. See the manual page for details. It is
+	enabled by default if ksh is invoked as sh.
+
+1.	File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
+	never matches the special navigational names '.' (current directory)
+	and '..' (parent directory). This change makes a pattern like .*
+	useful; it now matches all hidden 'dotfiles' in the current directory.
+
+2.	The bash-style &>foo redirection operator (shorthand for >foo 2>&1) can
+	now always be used if -o posix is off, and not only in profile scripts.
+
+3.	Most predefined aliases have been converted to regular built-in
+	commands that work the same way. 'unalias' no longer removes these.
+	To remove a built-in command, use 'builtin -d'. The 'history' and 'r'
+	predefined aliases remain, but are now only set on interactive shells.
+	There are some minor changes in behaviour in some former aliases:
+	-  'redirect' now checks if all arguments are valid redirections
+	   before performing them. If an error occurs, it issues an error
+	   message instead of terminating the shell.
+	-  'suspend' now refuses to suspend a login shell, as there is probably
+	   no parent shell to return to and the login session would freeze.
+	-  'times' now gives high precision output in a POSIX compliant format.
+
+4.	'command' no longer expands aliases in its first argument, as this is
+	no longer required after change 3 above. In the unlikely event that you
+	still need this behavior, you can set:
+		alias command='command '
+
+5.	The undocumented 'login' and 'newgrp' builtin commands have been
+	removed. These replaced your shell session with the external commands
+	by the same name, as in 'exec'. If an error occurred (e.g. due to a
+	typo), you would end up immediately logged out. If you do want this
+	behavior, you can restore it by setting:
+		alias login='exec login'
+		alias newgrp='exec newgrp'
+
+6.	'case' no longer retries to match patterns as literal strings if they
+	fail to match as patterns. This undocumented behaviour broke validation
+	use cases that are expected to work. For example:
+		n='[0-9]'
+		case $n in
+		[0-9])	echo "$n is a number" ;;
+		esac
+	would output "[0-9] is a number". In the unlikely event that a script
+	does rely on this behavior, it can be fixed like this:
+		case $n in
+		[0-9] | "[0-9]")
+			echo "$n is a number or the number pattern" ;;
+		esac
+
+7.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
+	if a nonexistent positional parameter such as $1, $2, ... is accessed.
+	(This does *not* apply to "$@" and "$*".)
+
+8.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
+	if $! is accessed before the shell has launched any background process.
+
+9.	The 'print', 'printf' and 'echo' builtin commands now return a nonzero
+	exit status if an input/output error occurs.
+
+10.	The 'unalias' builtin will now return a non-zero status if it tries to
+	remove a previously set alias that is not currently set.
+
+____________________________________________________________________________
 
 		KSH-93 VS. KSH-88
 
-
 The following is a list of known incompatibilities between ksh-93 and ksh-88.
-I have not include cases that are clearly bugs in ksh-88.  I also have
+I have not included cases that are clearly bugs in ksh-88.  I also have
 omitted features that are completely upward compatible.
 
 1.	Functions, defined with name() with ksh-93 are compatible with
