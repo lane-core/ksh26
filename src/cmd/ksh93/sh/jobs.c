@@ -1699,6 +1699,8 @@ static struct process *job_unpost(register struct process *pwtop,int notify)
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	pwtop = pw = job_byjid((int)pwtop->p_job);
+	if(!pw)
+		return(0);
 #ifdef SHOPT_BGX
 	if(pw->p_flag&P_BG) 
 		return(pw);
