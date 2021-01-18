@@ -56,7 +56,7 @@ make FEATURE/pty implicit
 meta FEATURE/pty features/%>FEATURE/% features/pty pty
 make features/pty
 done features/pty
-exec - iffe -v -c '${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS}   ${LDFLAGS} ' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
+exec - iffe -v -c '${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -lm' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
 done FEATURE/pty generated
 make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 done ${PACKAGE_ast_INCLUDE}/ast_time.h
@@ -77,7 +77,7 @@ exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCL
 done pty.o generated
 bind -lutil dontcare
 setv CMD_STANDALONE -DCMD_STANDALONE="b_pty"
-exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
+exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -lm ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 done pty generated
 make ${INSTALLROOT}/bin
 exec - if silent test ! -d ${INSTALLROOT}/bin

@@ -75,6 +75,7 @@ tst	run{
 	echo "#define _DLL_NEXT_PATH	\"$lib\""
 }end
 tst	- output{
+	#include <math.h>
 	#if defined(__MVS__) && !defined(__SUSV3)
 	#define __SUSV3		1
 	#endif

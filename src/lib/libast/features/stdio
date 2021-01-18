@@ -15,6 +15,7 @@ cat{
 
 	#undef	FILE
 	#undef	_FILE
+	#undef	__FILE_T
 	#undef	fpos_t
 	#undef	fpos64_t
 

@@ -1404,19 +1404,6 @@ case $ksh_relflags in
 	assign="${assign:+$assign }KSH_RELFLAGS=\"\$ksh_relflags\"" ;;
 esac
 
-# Hack to build on some systems that need an explicit link with libm due to a bug in the build system
-case `uname` in
-NetBSD | SunOS | DragonFly)
-	case " $LDFLAGS " in
-	*" -m "*)
-		;;
-	*)	LDFLAGS="-lm${LDFLAGS:+ $LDFLAGS}"
-		export LDFLAGS
-		;;
-	esac
-	;;
-esac
-
 # grab action specific args
 
 case $action in
