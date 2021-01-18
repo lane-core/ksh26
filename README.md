@@ -55,15 +55,27 @@ improved release out there.
 
 ## Build
 
-After cloning this repo, cd to the top directory of it and run:
+After downloading a release or cloning the ksh git repository, cd to the top
+directory of it and run:
 ```sh
 bin/package make
 ```
 If you have trouble or want to tune the binaries, you may pass additional
-compiler and linker flags by appending it to the command shown above. E.g.:
+compiler and linker flags. It is usually best to export these as environment
+variables *before* running `bin/package` as they could change the name of
+the build subdirectory of the `arch` directory, so exporting them is a
+convenient way to keep them consistent between build and test commands.
+**Note that this system uses `CCFLAGS` instead of the usual `CFLAGS`.**
+An example that makes Solaris Studio cc produce a 64-bit binary:
 ```sh
-bin/package make \
-    SHELL=/bin/bash CCFLAGS="-xc99 -D_XPG6 -m64 -xO4" LDFLAGS="-m64"
+export CCFLAGS="-xc99 -m64 -O2" LDFLAGS="-m64"
+bin/package make
+```
+Alternatively you can append these to the command, and they will only be
+used for that command. You can also specify an alternative shell in which
+to run the build scripts this way. For example:
+```sh
+bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" LDFLAGS="-L/opt/local/lib"
 ```
 For more information run
 ```sh
