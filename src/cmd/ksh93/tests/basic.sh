@@ -121,7 +121,10 @@ then	set -- TT*
 	then	err_exit 'TT* not expanding when file TT* exists'
 	fi
 fi
+
+cd /dev
 cd ~- || err_exit "cd back failed"
+
 cat > $tmp/script <<- !
 	#! $SHELL
 	print -r -- \$0
