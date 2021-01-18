@@ -36,6 +36,7 @@
 #include <ctype.h>
 #include <mc.h>
 #include <namval.h>
+#include <errno.h>
 
 #if ( _lib_wcwidth || _lib_wctomb ) && _hdr_wctype
 #include <wctype.h>

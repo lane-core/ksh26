@@ -6,7 +6,7 @@ set	include .
 cat{
 	#ifndef _AST_WCHAR_H
 	#define _AST_WCHAR_H	1
-	#ifdef __FreeBSD__
+	#if defined(__FreeBSD__) || defined(__DragonFly__)
 	#define _STDFILE_DECLARED 1
 	#endif
 }end

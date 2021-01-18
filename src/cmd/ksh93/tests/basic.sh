@@ -711,7 +711,7 @@ getPsOutput() {
 	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
 	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
 }
-if	[[ ! $(uname -s) =~ ^(FreeBSD|SunOS)$ ]] &&
+if	[[ ! $(uname -s) =~ ^(FreeBSD|DragonFly|SunOS)$ ]] &&
 	getPsOutput "$$" &&
 	[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
 then	expect='./atest 1 2'

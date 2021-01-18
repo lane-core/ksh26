@@ -1306,8 +1306,8 @@ extern int	poll _ARG_((ulong, struct pollfd*, int));
 _END_EXTERNS_
 
 #ifdef _SF_HIDESFFLAGS
-#undef SF_FLAGS
-#define SF_FLAGS        0177177 /* PUBLIC FLAGS PASSABLE TO SFNEW()     */
+#undef SFIO_FLAGS
+#define SFIO_FLAGS        0177177 /* PUBLIC FLAGS PASSABLE TO SFNEW()     */
 #endif
 
 #endif /*_SFHDR_H*/
