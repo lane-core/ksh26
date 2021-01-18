@@ -3101,6 +3101,7 @@ int x;
 									case $verbose in
 									1)	echo "$command: $x: unchanged" >&$stderr ;;
 									esac
+									touch "$x"  # avoid rerunning test on subsequent runs
 								else	case $x in
 									${dir}[\\/]$cur)	test -d $dir || mkdir $dir || exit 1 ;;
 									esac
