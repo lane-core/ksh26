@@ -56,6 +56,7 @@ static void	chkmail(Shell_t *shp, char*);
     static void	fixargs(char**,int);
 #else
 #   define fixargs(a,b)
+#   define fixargs_disabled	1
 #endif
 
 #ifndef environ
@@ -697,7 +698,7 @@ static void chkmail(Shell_t *shp, char *files)
 #   define PSTAT	1
 #endif
 
-#if defined(_lib_fork) && !defined(_NEXT_SOURCE) && !defined(__FreeBSD__) && !defined(__DragonFly__) && !defined(__sun)
+#if !defined(fixargs_disabled)
 /*
  * fix up command line for ps command
  *
@@ -757,4 +758,4 @@ static void fixargs(char **argv, int mode)
 #   endif /* PSTAT */
 #endif /* EXECARGS */
 }
-#endif /* _lib_fork */
+#endif /* !fixargs_disabled */
