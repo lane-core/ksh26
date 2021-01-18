@@ -7,6 +7,7 @@ setv AS as
 setv ASFLAGS
 setv CC cc
 setv mam_cc_FLAGS
+setv KSH_RELFLAGS
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv COTEMP $$
@@ -532,9 +533,9 @@ done ast.h dontcare virtual
 done mamake.c
 meta mamake.o %.c>%.o mamake.c mamake
 prev mamake.c
-exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DUSAGE_LICENSE=\""[-author?Glenn Fowler <gsf@research.att.com>][-copyright?Copyright (c) 1994-2012 AT&T Intellectual Property][-license?http://www.eclipse.org/org/documents/epl-v10.html]"\" -c mamake.c
+exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -DUSAGE_LICENSE=\""[-author?Glenn Fowler <gsf@research.att.com>][-copyright?Copyright (c) 1994-2012 AT&T Intellectual Property][-license?http://www.eclipse.org/org/documents/epl-v10.html]"\" -c mamake.c
 done mamake.o generated
-exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
+exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
 done mamake generated
 make proto
 make proto.o
@@ -542,9 +543,9 @@ make proto.c
 done proto.c
 meta proto.o %.c>%.o proto.c proto
 prev proto.c
-exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c proto.c
+exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -c proto.c
 done proto.o generated
-exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o proto proto.o
+exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o proto proto.o
 done proto generated
 make ratz
 make ratz.o
@@ -567,9 +568,9 @@ prev ast.h implicit
 done ratz.c
 meta ratz.o %.c>%.o ratz.c ratz
 prev ratz.c
-exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c ratz.c
+exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -c ratz.c
 done ratz.o generated
-exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o ratz ratz.o
+exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o ratz ratz.o
 done ratz generated
 make release
 make release.o
@@ -578,9 +579,9 @@ prev ast.h implicit
 done release.c
 meta release.o %.c>%.o release.c release
 prev release.c
-exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DUSAGE_LICENSE=\""[-author?Glenn Fowler <gsf@research.att.com>][-copyright?Copyright (c) 1994-2012 AT&T Intellectual Property][-license?http://www.eclipse.org/org/documents/epl-v10.html]"\" -c release.c
+exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -DUSAGE_LICENSE=\""[-author?Glenn Fowler <gsf@research.att.com>][-copyright?Copyright (c) 1994-2012 AT&T Intellectual Property][-license?http://www.eclipse.org/org/documents/epl-v10.html]"\" -c release.c
 done release.o generated
-exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o release release.o
+exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o release release.o
 done release generated
 make mprobe
 make mprobe.sh

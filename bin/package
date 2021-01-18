@@ -1384,6 +1384,40 @@ case $CC in
 *)	export CC ;;
 esac
 
+# Add build type flags via KSH_RELFLAGS, which is used in src/cmd/ksh93/Mamfile.
+# (Avoid using CCFLAGS; setting it would overwrite autodetected optimization flags.)
+ksh_relflags=
+case `git branch 2>/dev/null` in
+'' | *\*\ [0-9]*.[0-9]*)
+	# If we're not on a git branch (tarball) or on a branch that starts
+	# with a number (release branch), then compile as a release version
+	ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_ksh_release" ;;
+*)	# Otherwise, add 8-character git commit hash if available, and if the working dir is clean
+	git_commit=`git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD`
+	case $git_commit in
+	????????)
+		ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_git_commit=\\\"$git_commit\\\"" ;;
+	esac
+	unset git_commit ;;
+esac
+case $ksh_relflags in
+?*)	# add the extra flags as an argument to mamake
+	assign="${assign:+$assign }KSH_RELFLAGS=\"\$ksh_relflags\"" ;;
+esac
+
+# Hack to build on some systems that need an explicit link with libm due to a bug in the build system
+case `uname` in
+NetBSD | SunOS)
+	case " $LDFLAGS " in
+	*" -m "*)
+		;;
+	*)	LDFLAGS="-lm${LDFLAGS:+ $LDFLAGS}"
+		export LDFLAGS
+		;;
+	esac
+	;;
+esac
+
 # grab action specific args
 
 case $action in
@@ -5402,49 +5436,6 @@ license)# all work in $PACKAGESRC/LICENSES
 	;;
 
 make|view)
-	# Add flags for build type
-	case `git branch 2>/dev/null` in
-	'' | *\*\ [0-9]*.[0-9]*)
-		# If we're not on a git branch (tarball) or on a branch that starts
-		# with a number (release branch), then compile as a release version
-		CCFLAGS="-D_AST_ksh_release${CCFLAGS:+ $CCFLAGS}"  # prefix it to allow override with -U
-		export CCFLAGS
-		;;
-	*)	# Otherwise, add 8-character git commit hash if available, and if the working dir is clean
-		git_commit=`git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD`
-		case $git_commit in
-		????????)
-			CCFLAGS="-D_AST_git_commit=\\\"$git_commit\\\"${CCFLAGS:+ $CCFLAGS}"
-			export CCFLAGS
-			;;
-		esac
-		unset git_commit
-		;;
-	esac
-	# Hack to build on some systems that need an explicit link with libm due to a bug in the build system
-	case `uname` in
-	NetBSD | SunOS)
-		case " $LDFLAGS " in
-		*" -m "*)
-			;;
-		*)	LDFLAGS="-lm${LDFLAGS:+ $LDFLAGS}"
-			export LDFLAGS
-			;;
-		esac
-		;;
-	esac
-	# Hack for Solaris gcc, which needs -D_XPG6 in C flags to not segfault
-	case `uname` in
-	SunOS)	case "$CC, $CCFLAGS " in
-		*" -D_XPG6 "*)
-			;;
-		*gcc,*)	CCFLAGS="-D_XPG6${CCFLAGS:+ $CCFLAGS}"
-			export CCFLAGS
-			;;
-		esac
-		;;
-	esac
-
 	cd $PACKAGEROOT
 	case $package in
 	'')	lic="lib/package/*.lic"
