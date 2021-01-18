@@ -29,8 +29,11 @@ tst	cross{
 	case  `echo a | tr a '\012' | wc -l` in
 	*1*)	option MULTIBYTE 0 ;;
 	esac
-	test -x /bin/pfexec -o -x /usr/bin/pfexec
-	option PFSH $?
+
+	# deprecated: Solaris disabled SHOPT_PFSH in its build
+	#test -x /bin/pfexec -o -x /usr/bin/pfexec
+	#option PFSH $?
+
 	/bin/test ! -l . 2> /dev/null
 	option TEST_L $?
 	test -f /etc/ksh.kshrc -o -f /etc/bash.bashrc &&
