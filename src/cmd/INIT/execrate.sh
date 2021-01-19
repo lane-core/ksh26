@@ -19,7 +19,7 @@
 ########################################################################
 : wrapper for .exe challenged win32 systems/commands
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 
 command=execrate
 

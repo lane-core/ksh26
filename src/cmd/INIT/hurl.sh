@@ -19,7 +19,7 @@
 ########################################################################
 : copy http url data
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 
 command=hurl
 agent="$command/2009-01-20 (AT&T Research)"

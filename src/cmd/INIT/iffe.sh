@@ -25,7 +25,7 @@
 #
 # NOTE: .exe a.out suffix and [\\/] in path patterns for dos/nt
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 
 command=iffe
 version=2012-07-17 # update in USAGE too #

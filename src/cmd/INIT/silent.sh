@@ -20,7 +20,7 @@
 # non-ksh stub for the nmake silent prefix
 # @(#)silent (AT&T Research) 1992-08-11
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 modern_export=`v=; export v=ok 2>/dev/null; echo "$v"`
 
 while	:

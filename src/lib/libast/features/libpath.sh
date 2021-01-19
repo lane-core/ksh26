@@ -22,7 +22,7 @@
 
 case $ZSH_VERSION in
 ?*)	emulate ksh ;;
-*)	(set -o posix) 2>/dev/null && set -o posix ;;
+*)	(command set -o posix) 2>/dev/null && set -o posix ;;
 esac
 
 ok=0

@@ -23,7 +23,7 @@
 
 command=package
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 path=Bad
 case $PATH in
 Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2

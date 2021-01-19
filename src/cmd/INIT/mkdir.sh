@@ -20,7 +20,7 @@
 ########################################################################
 : mkdir for systems that do not support -p : 2002-09-01 :
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 
 MKDIR=mkdir
 CHMOD=chmod
