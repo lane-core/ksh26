@@ -90,7 +90,7 @@ static struct subshell
 	char		jobcontrol;
 	char		monitor;
 	unsigned char	fdstatus;
-	int		fdsaved; /* bit make for saved files */
+	int		fdsaved; /* bit mask for saved file descriptors */
 	int		sig;	/* signal for $$ */
 	pid_t		bckpid;
 	pid_t		cpid;
@@ -457,8 +457,8 @@ int sh_subsavefd(register int fd)
 	register int old=0;
 	if(sp)
 	{
-		old = !(sp->fdsaved&(1<<(fd-1)));
-		sp->fdsaved |= (1<<(fd-1));
+		old = !(sp->fdsaved&(1<<fd));
+		sp->fdsaved |= (1<<fd);
 	}
 	return(old);
 }
