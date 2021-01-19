@@ -414,7 +414,7 @@ USAGE_LICENSE
 ;
 
 const char sh_optcd[] =
-"[-1c?\n@(#)$Id: cd (AT&T Research) 1999-06-05 $\n]"
+"[-1c?\n@(#)$Id: cd (AT&T Research/ksh93) 2021-01-19 $\n]"
 USAGE_LICENSE
 "[+NAME?cd - change working directory ]"
 "[+DESCRIPTION?\bcd\b changes the current working directory of the "

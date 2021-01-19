@@ -894,4 +894,16 @@ got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# Segmentation fault when using cd in a subshell, when current directory cannot be determined
+# https://github.com/ksh93/ksh/issues/153
+cd "$tmp"
+mkdir deleted
+cd deleted
+tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/deleted"'
+exp="PWD=$PWD"
+got=$( { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1 )
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore nonexistent PWD on exiting a virtual subshell' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

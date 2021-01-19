@@ -558,7 +558,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 #if _lib_fchdir
 		for(xp=sp->prev; xp; xp=xp->prev) 
 		{
-			if(xp->pwdfd>0 && strcmp(xp->pwd,shp->pwd)==0)
+			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,shp->pwd)==0)
 			{
 				sp->pwdfd = xp->pwdfd;
 				break;
