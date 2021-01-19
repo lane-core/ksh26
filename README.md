@@ -37,21 +37,12 @@ to breathe new life into the KornShell by extensively refactoring the last
 unstable AST beta version (93v-).
 While that ksh2020 branch is now abandoned and still has many critical bugs,
 it also had a lot of bugs fixed. More importantly, the AST issue tracker
-now contains a lot of documentation on how to fix those bugs, which makes
+now contains a lot of documentation on how to fix those bugs, which made
 it possible to backport many of them to the last stable release instead.
-
-In February 2020, having concluded the AST 93v- beta was too broken to
-base new work on, others decided to start a new fork based on the last stable
-93u+ 2012-08-01 release. Unfortunately, as of June 2020, the new
-[ksh-community](https://github.com/ksh-community/ksh/)
-organisation is yet to see any significant activity four months after its
-bootstrapping. I hope that will change; I am ready to join efforts with them
-at any time, as well as anyone else who wants to contribute.
-
-The last stable ksh93 release from 2012 is the least buggy release currently
-available, but it still has many serious bugs. So it is well past time to
-start fixing those bugs, leave the rest of the code alone, and get an
-improved release out there.
+This ksh 93u+m reboot now incorporates many of these bugfixes, as well as
+many patches from Red Hat, Solaris, as well as new fixes from the community.
+Though there are many bugs left to fix, we are confident at this point that
+93u+m is already the least buggy branch of ksh93 ever released.
 
 ## Build
 
