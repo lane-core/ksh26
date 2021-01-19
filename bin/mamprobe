@@ -21,7 +21,7 @@
 # mamprobe - generate MAM cc probe info
 # Glenn Fowler <gsf@research.att.com>
 
-(set -o posix) 2>/dev/null && set -o posix
+(command set -o posix) 2>/dev/null && set -o posix
 
 command=mamprobe
 
