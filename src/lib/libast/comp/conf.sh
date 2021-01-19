@@ -1567,7 +1567,7 @@ extern const int	prefix_elements;
 } > $tmp.2
 case $debug in
 -d7)	echo $command: $tmp.2 ${base}.h ;;
-*)	cmp -s $tmp.2 ${base}.h 2>/dev/null || mv $tmp.2 ${base}.h ;;
+*)	cmp -s "$tmp.2" "${base}.h" 2>/dev/null && touch "${base}.h" || mv "$tmp.2" "${base}.h" ;;
 esac
 
 case $verbose in
@@ -1624,7 +1624,7 @@ const int	conf_elements = (int)sizeof(conf) / (int)sizeof(conf[0]);
 } > $tmp.4
 case $debug in
 -d7)	echo $command: $tmp.4 ${base}.c ;;
-*)	cmp -s $tmp.4 ${base}.c 2>/dev/null || mv $tmp.4 ${base}.c ;;
+*)	cmp -s "$tmp.4" "${base}.c" 2>/dev/null && touch "${base.c}" || mv "$tmp.4" "${base}.c" ;;
 esac
 
 # limits.h generation code
@@ -1646,6 +1646,6 @@ test -f $tmp.l && cat $tmp.l
 } > $tmp.5
 case $debug in
 -d7)	echo $command: $tmp.5 ${base}.h ;;
-*)	cmp -s $tmp.5 ${base}.h 2>/dev/null || mv $tmp.5 ${base}.h ;;
+*)	cmp -s "$tmp.5" "${base}.h" 2>/dev/null && touch "${base}.h" || mv "$tmp.5" "${base}.h" ;;
 esac
 exit 0
