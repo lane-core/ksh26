@@ -721,10 +721,11 @@ set -- {1..32768}
 (( $# == 32768 )) || err_exit "\$# failed -- expected 32768, got $#"
 set --
 
+unset r v x
 (
-	unset r v x
+	ulimit -t unlimited  # TODO: this test messes up LINENO past the subshell unless we fork it
 	x=foo
-	for v in EDITOR VISUAL OPTIND CDPATH FPATH PATH ENV LINENO RANDOM SECONDS _
+	for v in EDITOR VISUAL OPTIND CDPATH FPATH PATH ENV RANDOM SECONDS _ LINENO
 	do	nameref r=$v
 		unset $v
 		if	( $SHELL -c "unset $v; : \$$v" ) 2>/dev/null
@@ -734,7 +735,15 @@ set --
 		else	err_exit "unset $v; : \$$v failed"
 		fi
 	done
-
+	exit $Errors
+)
+Errors=$?  # ensure error count survives subshell
+(
+	errmsg=$({ LANG=bad_LOCALE; } 2>&1)
+	if	[[ -z $errmsg ]]
+	then	print -u2 -r "${Command}[$LINENO]: warning: C library does not seem to verify locales: skipping LC_* tests"
+		exit $Errors
+	fi
 	x=x
 	for v in LC_ALL LC_CTYPE LC_MESSAGES LC_COLLATE LC_NUMERIC
 	do	nameref r=$v
@@ -747,7 +756,6 @@ set --
 		{ g=$( r=C; r=$x; print -- $r ); } 2>/dev/null
 		[[ $g == 'C' ]] || err_exit "$v=C; $v=$x failed -- expected 'C', got '$g'"
 	done
-
 	exit $Errors
 )
 Errors=$?  # ensure error count survives subshell
