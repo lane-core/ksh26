@@ -811,6 +811,9 @@ e=$?
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
 
 # https://bugzilla.redhat.com/1102627
+if	[[ $(id -u) == '0' ]]
+then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping tests involving directory search (x) permission"
+else
 mkdir -m 600 "$tmp/no_x_dir"
 expect=": cd: $tmp/no_x_dir: [Permission denied]"
 actual=$(cd "$tmp/no_x_dir" 2>&1)
@@ -823,6 +826,7 @@ e=$?
 [[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
 rmdir "$tmp/no_x_dir"	# on HP-UX, 'rm -rf $tmp' won't work unless we rmdir this or fix the perms
+fi
 
 # https://bugzilla.redhat.com/1133582
 expect=$HOME
