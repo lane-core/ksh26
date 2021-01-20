@@ -904,6 +904,15 @@ exp="PWD=$PWD"
 got=$( { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1 )
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore nonexistent PWD on exiting a virtual subshell' \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+cd "$tmp"
+mkdir recreated
+cd recreated
+tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/recreated"; mkdir "$tmp/recreated"'
+exp="PWD=$PWD"
+got=$( { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1 )
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore re-created PWD on exiting a virtual subshell' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+cd "$tmp"
 
 # ======
 exit $((Errors<125?Errors:125))

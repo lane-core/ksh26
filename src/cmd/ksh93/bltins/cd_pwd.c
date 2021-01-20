@@ -37,7 +37,6 @@
 #include	"name.h"
 #include	"builtins.h"
 #include	<ls.h>
-#include	<ast_dir.h>
 
 /*
  * Invalidate path name bindings to relative paths
@@ -99,10 +98,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(shp->subshell && !shp->subshare)
 	{
 #if _lib_fchdir
-		DIR *testdir;
-		if(testdir = opendir(nv_getval(pwdnod)))
-			closedir(testdir);
-		else
+		if(!test_inode(nv_getval(pwdnod),e_dot))
 #endif
 			sh_subfork();
 	}
