@@ -37,6 +37,7 @@
 #include	"name.h"
 #include	"builtins.h"
 #include	<ls.h>
+#include	"test.h"
 
 /*
  * Invalidate path name bindings to relative paths
