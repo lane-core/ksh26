@@ -735,4 +735,16 @@ got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
 || err_exit "case in a for loop inside a \`comsub\` caused syntax error (got $(printf %q "$got"))"
 
 # ======
+# The DEBUG trap had side effects on the exit status
+# https://github.com/ksh93/ksh/issues/155 (#4)
+trap ':' DEBUG
+(exit 123)
+(((e=$?)==123)) || err_exit "DEBUG trap run in subshell affects exit status (expected 123, got $e)"
+r=$(exit 123)
+(((e=$?)==123)) || err_exit "DEBUG trap run in \$(comsub) affects exit status (expected 123, got $e)"
+r=`exit 123`
+(((e=$?)==123)) || err_exit "DEBUG trap run in \`comsub\` affects exit status (expected 123, got $e)"
+trap - DEBUG
+
+# ======
 exit $((Errors<125?Errors:125))

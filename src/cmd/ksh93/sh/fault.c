@@ -489,7 +489,7 @@ int sh_trap(const char *trap, int mode)
 	sh_popcontext(shp,&buff);
 	shp->intrap--;
 	sfsync(shp->outpool);
-	if(!shp->indebug && jmpval!=SH_JMPEXIT && jmpval!=SH_JMPFUN)
+	if(jmpval!=SH_JMPEXIT && jmpval!=SH_JMPFUN)
 		shp->exitval=savxit;
 	stakset(savptr,staktop);
 	fcrestore(&savefc);
