@@ -1624,7 +1624,7 @@ const int	conf_elements = (int)sizeof(conf) / (int)sizeof(conf[0]);
 } > $tmp.4
 case $debug in
 -d7)	echo $command: $tmp.4 ${base}.c ;;
-*)	cmp -s "$tmp.4" "${base}.c" 2>/dev/null && touch "${base.c}" || mv "$tmp.4" "${base}.c" ;;
+*)	cmp -s "$tmp.4" "${base}.c" 2>/dev/null && touch "${base}.c" || mv "$tmp.4" "${base}.c" ;;
 esac
 
 # limits.h generation code
