@@ -208,6 +208,9 @@ w allo
 u ^hello\r?\n$
 !
 
+if	[[ $(id -u) == 0 ]]
+then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 096(C)"
+else
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 096(C)
@@ -236,6 +239,7 @@ r stty intr \^C
 r echo
 r history
 !
+fi
 
 # err_exit #
 tst $LINENO <<"!"
@@ -249,6 +253,9 @@ c echo ok\n
 u ^ok\r?\n$
 !
 
+if	[[ $(id -u) == 0 ]]
+then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 099(C)"
+else
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 099(C)
@@ -277,6 +284,7 @@ r stty intr \^C
 r echo last
 r history
 !
+fi
 
 # err_exit #
 tst $LINENO <<"!"
@@ -356,6 +364,9 @@ c \cD
 u ^done\r?\n$
 !
 
+if	[[ $(id -u) == 0 ]]
+then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 111(C)"
+else
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 111(C)
@@ -375,6 +386,7 @@ w history
 u #echo save
 r history
 !
+fi
 
 # Following test is disabled because it fails on too many systems, either intermittently
 # or consistently, through no fault of ksh, because vi(1) somehow fails to write "/tmp/"
@@ -404,6 +416,9 @@ u ^hello world\r?\n$
 !
 end_disabled
 
+if	[[ $(id -u) == 0 ]]
+then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 251(C)"
+else
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 251(C)
@@ -446,6 +461,7 @@ r echo repeat-2
 c n
 r echo repeat-3
 !
+fi
 
 # Following test is disabled because a bug in pty causes it to fail on too
 # many operating systems. Apparently pty doesn't handle SIGTSTP correctly:
