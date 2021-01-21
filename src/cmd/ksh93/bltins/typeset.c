@@ -196,9 +196,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
 	int		isfloat=0, shortint=0, sflag=0;
-	char		**new_argv;
 
-	new_argv = (char **)stakalloc((argc + 2) * sizeof(char*));
 	memset((void*)&tdata,0,sizeof(tdata));
 	tdata.sh = context->shp;
 	troot = tdata.sh->var_tree;
@@ -210,6 +208,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 	}
 	else if(argv[0][0] != 't')		/* not <t>ypeset */
 	{
+		char **new_argv = (char **)stakalloc((argc + 2) * sizeof(char*));
 		new_argv[0] = "typeset";
 		if(argv[0][0] == 'a')		/* <a>utoload == typeset -fu */
 			new_argv[1] = "-fu";
