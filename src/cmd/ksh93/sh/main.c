@@ -43,6 +43,7 @@
 #include	"timeout.h"
 #include	"FEATURE/time"
 #include	"FEATURE/pstat"
+#include	"FEATURE/setproctitle"
 #include	"FEATURE/execargs"
 #include	"FEATURE/externs"
 #ifdef	_hdr_nc
@@ -52,7 +53,7 @@
 /* These routines are referenced by this module */
 static void	exfile(Shell_t*, Sfio_t*,int);
 static void	chkmail(Shell_t *shp, char*);
-#if defined(_lib_fork) && !defined(_NEXT_SOURCE) && !defined(__FreeBSD__) && !defined(__DragonFly__) && !defined(__sun)
+#if defined(_lib_fork) && !defined(_NEXT_SOURCE) && !defined(__USLC__) && !defined(__sun)
     static void	fixargs(char**,int);
 #else
 #   define fixargs(a,b)
@@ -714,11 +715,11 @@ static void fixargs(char **argv, int mode)
 #if EXECARGS
 	*execargs=(char *)argv;
 #else
-	static char *buff;
-	static int command_len;
 	register char *cp;
 	int offset=0,size;
 #   ifdef PSTAT
+	static int command_len;
+	char *buff;
 	union pstun un;
 	if(mode==0)
 	{
@@ -731,7 +732,14 @@ static void fixargs(char **argv, int mode)
 	}
 	stakseek(command_len+2);
 	buff = stakseek(0);
+#   elif _lib_setproctitle
+#	define command_len 255
+	char buff[command_len + 1];
+	if(mode==0)
+		return;
 #   else
+	static int command_len;
+	static char *buff;
 	if(mode==0)
 	{
 		buff = argv[0];
@@ -750,10 +758,12 @@ static void fixargs(char **argv, int mode)
 		buff[offset++] = ' ';
 	}
 	offset--;
-	memset(&buff[offset], 0, command_len - offset);
+	memset(&buff[offset], 0, command_len - offset + 1);
 #   ifdef PSTAT
 	un.pst_command = stakptr(0);
 	pstat(PSTAT_SETCMD,un,0,0,0);
+#   elif _lib_setproctitle
+	setproctitle("%s",buff);
 #   endif /* PSTAT */
 #endif /* EXECARGS */
 }

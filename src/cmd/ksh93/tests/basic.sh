@@ -705,13 +705,14 @@ actual=$(exptest foo)
 getPsOutput() {
 	# UNIX95=1 makes this work on HP-UX.
 	actual=$(UNIX95=1 ps -o args= -p "$1" 2>&1)
-	# BSD 'ps' appends " (ksh)". Remove.
-	[[ $actual =~ \(.*\)$ ]] && actual=${actual%\(*}
+	# BSD: setproctitle(3) prepends "ksh:" and ps(1) appends " (ksh)". Remove.
+	actual=${actual#'ksh: '}
+	actual=${actual%' (ksh)'}
 	# Some 'ps' implementations add leading and/or trailing whitespace. Remove.
 	while [[ $actual == [[:space:]]* ]]; do actual=${actual#?}; done
 	while [[ $actual == *[[:space:]] ]]; do actual=${actual%?}; done
 }
-if	[[ ! $(uname -s) =~ ^(FreeBSD|DragonFly|SunOS)$ ]] &&
+if	[[ ! $(uname -s) =~ ^(SunOS|UnixWare)$ ]] &&
 	getPsOutput "$$" &&
 	[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
 then	expect='./atest 1 2'
