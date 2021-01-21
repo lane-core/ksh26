@@ -41,6 +41,7 @@
 #include	"builtins.h"
 #include	"test.h"
 #include	"history.h"
+#include	"version.h"
 
 #define HERE_MEM	SF_BUFSIZE	/* size of here-docs kept in memory */
 
@@ -358,7 +359,7 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 			fcclose();
 			fcrestore(&sav_input);
 			lexp->arg = sav_arg;
-			if(version > 3)
+			if(version > SHCOMP_HDR_VERSION)
 				errormsg(SH_DICT,ERROR_exit(1),e_lexversion);
 			if(sffileno(iop)==shp->infd || (flag&SH_FUNEVAL))
 				shp->binscript = 1;

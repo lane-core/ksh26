@@ -182,6 +182,7 @@ failures (crashes, and/or essential functionality does not work).
 **	OpenBSD on x86_64
 *	Solaris 11.4 (gcc) on x86_64
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
+***	UnixWare 7.1.4 on x86
 ***	Windows 7 using Cygwin on x86
 
 Good luck!!

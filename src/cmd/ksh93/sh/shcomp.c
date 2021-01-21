@@ -26,9 +26,12 @@
  *
  */
 
+#include "version.h"
+
 static const char usage[] =
-"[-?\n@(#)$Id: shcomp (AT&T Research) 2003-03-02 $\n]"
+"[-?\n@(#)$Id: shcomp (AT&T Research/ksh93) " SH_RELEASE " $\n]"
 USAGE_LICENSE
+"[-copyright?" SH_RELEASE_CPYR "]"
 "[+NAME?shcomp - compile a shell script]"
 "[+DESCRIPTION?Unless \b-D\b is specified, \bshcomp\b takes a shell script, "
 	"\ainfile\a, and creates a binary format file, \aoutfile\a, that "
@@ -64,8 +67,7 @@ USAGE_LICENSE
 #include	"sys/stat.h"
 
 #define CNTL(x)	((x)&037)
-#define VERSION	3
-static const char header[6] = { CNTL('k'),CNTL('s'),CNTL('h'),0,VERSION,0 };
+static const char header[6] = { CNTL('k'),CNTL('s'),CNTL('h'),0,SHCOMP_HDR_VERSION,0 };
 
 int main(int argc, char *argv[])
 {

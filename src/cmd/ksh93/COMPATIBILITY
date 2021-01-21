@@ -11,19 +11,22 @@ For more details, see the NEWS file and for complete details, see the git log.
 	POSIX standard more closely. See the manual page for details. It is
 	enabled by default if ksh is invoked as sh.
 
-1.	File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
+1.	Bytecode compiled by shcomp 93u+m will not run on older ksh versions.
+	(However, bytecode compiled by older shcomp will run on ksh 93u+m.)
+
+2.	File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
 	never matches the special navigational names '.' (current directory)
 	and '..' (parent directory). This change makes a pattern like .*
 	useful; it now matches all hidden 'dotfiles' in the current directory.
 
-2.	The bash-style &>foo redirection operator (shorthand for >foo 2>&1) can
+3.	The bash-style &>foo redirection operator (shorthand for >foo 2>&1) can
 	now always be used if -o posix is off, and not only in profile scripts.
 
-3.	Most predefined aliases have been converted to regular built-in
+4.	Most predefined aliases have been converted to regular built-in
 	commands that work the same way. 'unalias' no longer removes these.
 	To remove a built-in command, use 'builtin -d'. The 'history' and 'r'
 	predefined aliases remain, but are now only set on interactive shells.
-	There are some minor changes in behaviour in some former aliases:
+	There are some minor changes in behavior in some former aliases:
 	-  'redirect' now checks if all arguments are valid redirections
 	   before performing them. If an error occurs, it issues an error
 	   message instead of terminating the shell.
@@ -31,12 +34,12 @@ For more details, see the NEWS file and for complete details, see the git log.
 	   no parent shell to return to and the login session would freeze.
 	-  'times' now gives high precision output in a POSIX compliant format.
 
-4.	'command' no longer expands aliases in its first argument, as this is
+5.	'command' no longer expands aliases in its first argument, as this is
 	no longer required after change 3 above. In the unlikely event that you
 	still need this behavior, you can set:
 		alias command='command '
 
-5.	The undocumented 'login' and 'newgrp' builtin commands have been
+6.	The undocumented 'login' and 'newgrp' builtin commands have been
 	removed. These replaced your shell session with the external commands
 	by the same name, as in 'exec'. If an error occurred (e.g. due to a
 	typo), you would end up immediately logged out. If you do want this
@@ -44,7 +47,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 		alias login='exec login'
 		alias newgrp='exec newgrp'
 
-6.	'case' no longer retries to match patterns as literal strings if they
+7.	'case' no longer retries to match patterns as literal strings if they
 	fail to match as patterns. This undocumented behaviour broke validation
 	use cases that are expected to work. For example:
 		n='[0-9]'
@@ -58,17 +61,23 @@ For more details, see the NEWS file and for complete details, see the git log.
 			echo "$n is a number or the number pattern" ;;
 		esac
 
-7.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
+8.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
 	if a nonexistent positional parameter such as $1, $2, ... is accessed.
 	(This does *not* apply to "$@" and "$*".)
 
-8.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
+9.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
 	if $! is accessed before the shell has launched any background process.
 
-9.	The 'print', 'printf' and 'echo' builtin commands now return a nonzero
+10.	The 'print', 'printf' and 'echo' builtin commands now return a nonzero
 	exit status if an input/output error occurs.
 
-10.	The 'typeset' builtin now properly detects and reports options that
+11.	Four obsolete date format specifiers for 'printf %(format)T' were
+	changed to make them compatible with modern date(1) commands:
+	- %k and %l now return a blank-padded hour (24-hour and 12-hour clock).
+	- %f now returns a date with the format '%Y.%m.%d-%H:%M:%S'.
+	- %q now returns the quarter of the current year.
+
+12.	The 'typeset' builtin now properly detects and reports options that
 	cannot be used together if they are given as part of the same command.
 
 ____________________________________________________________________________
