@@ -907,21 +907,24 @@ function testusage {
 
 actual=$(testusage -\?)
 expect='Usage: testusage [-xyz] [ name=value ... ]
-   Or: testusage [ options ] -y [ name ... ]'
+   Or: testusage -y [ name ... ]
+ Help: testusage [ --help | --man ] 2>&1'
 [[ $actual == "$expect" ]] || err_exit "getopts: '-?' output" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 actual=$(testusage --\?x)
-expect='Usage: testusage [ options | --help | --man ] [ name=value ... ]
-   Or: testusage [ options ] -y [ name ... ]
+expect='Usage: testusage [ options ] [ name=value ... ]
+   Or: testusage -y [ name ... ]
+ Help: testusage [ --help | --man ] 2>&1
 OPTIONS
   -x, --xylophone Lorem.'
 [[ $actual == "$expect" ]] || err_exit "getopts: '--?x' output" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 actual=$(testusage --help)
-expect='Usage: testusage [ options | --help | --man ] [ name=value ... ]
-   Or: testusage [ options ] -y [ name ... ]
+expect='Usage: testusage [ options ] [ name=value ... ]
+   Or: testusage -y [ name ... ]
+ Help: testusage [ --help | --man ] 2>&1
 OPTIONS
   -x, --xylophone Lorem.
   -y, --ypsilon   Ipsum.
@@ -934,8 +937,8 @@ expect='NAME
   foo - bar
 
 SYNOPSIS
-  foo [ options | --help | --man ] [ name=value ... ]
-  foo [ options | --help | --man ] -y [ name ... ]
+  foo [ options ] [ name=value ... ]
+  foo -y [ name ... ]
 
 DESC
   Baz.

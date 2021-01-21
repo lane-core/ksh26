@@ -1634,28 +1634,37 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 			t = (char*)memchr(p, '\n', n);
 			if (style >= STYLE_man)
 			{
+				int firstline = !a;
+				/* --man page: print command name */
 				if (!(a = id))
 					a = "...";
-				sfprintf(sp, "\t%s%s%s%s[%s%s%s%s%s|%s%s--help%s%s|%s%s--man%s%s]",
-					font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0), b,
-					b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b,
-					b, font(FONT_ITALIC, style, 1), font(FONT_ITALIC, style, 0), b,
-					b, font(FONT_ITALIC, style, 1), font(FONT_ITALIC, style, 0), b);
+				sfprintf(sp, "\t%s%s%s", font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0));
+				if (firstline)
+				{
+					/* Append "[ options ]" label */
+					sfprintf(sp, "%s[%s%s%s%s%s]",
+						b, b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b);
+				}
 			}
 			else if (a)
-				sfprintf(sp, "%*.*s%s%s%s[%s%s%s]", OPT_USAGE - 1, OPT_USAGE - 1, T(NiL, ID, "Or:"), b, a, b, b, o, b);
+			{
+				/* Usage/--help, line 2+: specific usages. Prefix by "Or:" */
+				sfprintf(sp, "%*.*s%s%s", OPT_USAGE - 1, OPT_USAGE - 1, T(NiL, ID, "Or:"), b, a);
+			}
 			else
 			{
+				/* Usage on unknown long option error: no short options are printed, so print "[ options ]" */
 				if (!(a = error_info.id) && !(a = id))
 					a = "...";
 				if (!sfstrtell(sp))
-					sfprintf(sp, "[%s%s%s|%s--help%s|%s--man%s]", b, o, b, b, b, b, b);
+					sfprintf(sp, "[%s%s%s]", b, o, b);
 			}
 			if (!t)
 				break;
 			i = ++t - p;
 			if (i)
 			{
+				/* Print options for usage line */
 				sfputr(sp, b, -1);
 				if (X(catalog))
 				{
@@ -1668,6 +1677,7 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 				else
 					sfwrite(sp, p, i);
 			}
+			/* New line */
 			if (style == STYLE_html)
 				sfputr(sp, "<BR>", '\n');
 			else if (style == STYLE_nroff)
@@ -1683,8 +1693,15 @@ args(register Sfio_t* sp, register char* p, register int n, int flags, int style
 			}
 		}
 	}
+	/* Print options for the last usage line */
 	if (n)
 		label(sp, sep, p, 0, n, 0, style, 0, ip, version, id, catalog);
+	/* In usage/--help messages, tell the user how to get more help */
+	if (style < STYLE_man)
+	{
+		sfprintf(sp, "\n%*.*s%s%s [%s--help%s|%s--man%s] 2>&1",
+			OPT_USAGE - 1, OPT_USAGE - 1, T(NiL, ID, "Help:"), b, a, b, b, b, b);
+	}
 }
 
 /*
