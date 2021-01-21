@@ -195,7 +195,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, shortint=0, sflag=0;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0;
 
 	memset((void*)&tdata,0,sizeof(tdata));
 	tdata.sh = context->shp;
@@ -297,6 +297,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 					tdata.argnum = (int)opt_info.num;
 				if(tdata.argnum < 0)
 					errormsg(SH_DICT,ERROR_exit(1), e_badfield, tdata.argnum);
+				isadjust = 1;
 				if(n=='Z')
 					flag |= NV_ZFILL;
 				else
@@ -377,18 +378,36 @@ endargs:
 		argv--;
 	if((flag&NV_ZFILL) && !(flag&NV_LJUST))
 		flag |= NV_RJUST;
-	if((flag&NV_INTEGER) && (flag&(NV_LJUST|NV_RJUST|NV_ZFILL)))
+	if((isfloat || flag&NV_INTEGER) && isadjust)
+	{
+		errormsg(SH_DICT,2,e_optincompat2,"-i/-F/-E/-X","-L/-R/-Z");
 		error_info.errors++;
+	}
 	if((flag&NV_BINARY) && (flag&(NV_LJUST|NV_UTOL|NV_LTOU)))
+	{
+		errormsg(SH_DICT,2,e_optincompat2,"-b","-L/-u/-l");
 		error_info.errors++;
+	}
 	if((flag&NV_MOVE) && (flag&~(NV_MOVE|NV_VARNAME|NV_ASSIGN)))
+	{
+		errormsg(SH_DICT,2,e_optincompat1,"-m");
 		error_info.errors++;
+	}
 	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN)))
+	{
+		errormsg(SH_DICT,2,e_optincompat1,"-n");
 		error_info.errors++;
+	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
+	{
+		errormsg(SH_DICT,2,e_optincompat1,"-T");
 		error_info.errors++;
+	}
 	if(troot==tdata.sh->fun_tree && ((isfloat || flag&~(NV_FUNCT|NV_TAGGED|NV_EXPORT|NV_LTOU))))
+	{
+		errormsg(SH_DICT,2,e_optincompat1,"-f");
 		error_info.errors++;
+	}
 	if(sflag && troot==tdata.sh->fun_tree)
 	{
 		/* static function */

@@ -639,9 +639,6 @@ bar.foo+=(bam)
 [[ ${bar.foo[0]} == bam ]] || err_exit 'appending to empty array variable in type does not create element 0'
 
 # ======
-# 'typeset -RF' should not create variables that cause crashes
-"$SHELL" -c 'typeset -RF foo=1; test $foo' || err_exit 'typeset -RF does not work'
-
 # Type names that have 'a' as the first letter should be functional
 "$SHELL" -c 'typeset -T al=(typeset bar); al foo=(bar=testset)' || err_exit "type names that start with 'a' don't work"
 

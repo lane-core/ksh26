@@ -230,6 +230,8 @@ extern const Namdisc_t	ENUM_disc;
 extern char		nv_local;
 extern Dtdisc_t		_Nvdisc;
 extern const char	*nv_discnames[];
+extern const char	e_optincompat1[];
+extern const char	e_optincompat2[];
 extern const char	e_subscript[];
 extern const char	e_nullset[];
 extern const char	e_notset[];

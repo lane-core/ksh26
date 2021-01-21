@@ -68,8 +68,8 @@ For more details, see the NEWS file and for complete details, see the git log.
 9.	The 'print', 'printf' and 'echo' builtin commands now return a nonzero
 	exit status if an input/output error occurs.
 
-10.	The 'unalias' builtin will now return a non-zero status if it tries to
-	remove a previously set alias that is not currently set.
+10.	The 'typeset' builtin now properly detects and reports options that
+	cannot be used together if they are given as part of the same command.
 
 ____________________________________________________________________________
 

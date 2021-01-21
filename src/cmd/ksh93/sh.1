@@ -7799,13 +7799,30 @@ cannot be exported.
 .PD
 .PP
 The
-.B \-i
-attribute cannot be specified along with
+.BR \-i ,
+.BR \-F ,
+.BR \-E ,
+and
+.B \-X
+options cannot be specified along with
 .BR \-R ,
 .BR \-L ,
-.BR \-Z ,
 or
-.BR \-f .
+.BR \-Z .
+The
+.B \-b
+option cannot be specified along with
+.BR \-L ,
+.BR \-u ,
+or
+.BR \-l .
+The
+.BR \-f ,
+.BR \-m ,
+.BR \-n ,
+and
+.B \-T
+options cannot be used together with any other option.
 .PP
 Using
 .B \+

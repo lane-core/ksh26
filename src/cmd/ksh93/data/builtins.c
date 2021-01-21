@@ -1718,7 +1718,7 @@ USAGE_LICENSE
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (AT&T Research/ksh93) 2020-07-15 $\n]"
+"+[-1c?\n@(#)$Id: typeset (AT&T Research/ksh93) 2021-01-20 $\n]"
 USAGE_LICENSE
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1738,7 +1738,7 @@ USAGE_LICENSE
 "[+?Note also the following builtin command equivalents:]{"
 	"[+autoload?\btypeset -fu\b]"
 	"[+compound?\btypeset -C\b]"
-	"[+float?\btypeset -lE\b]"
+	"[+float ?\btypeset -lE\b]"
 	"[+functions?\btypeset -f\b]"
 	"[+integer?\btypeset -li\b]"
 	"[+nameref?\btypeset -n\b]"
@@ -1768,11 +1768,9 @@ USAGE_LICENSE
 "[l?Without \b-i\b, sets character mapping to \btolower\b. When used "
 	"with \b-i\b, \b-E\b, or \b-F\b indicates long variant.]"
 "[m?Move.  The value is the name of a variable whose value will be "
-	"moved to \aname\a.  The original variable will be unset.  Cannot be "
-	"used with any other options.]"
+	"moved to \aname\a.  The original variable will be unset.]"
 "[n?Name reference.  The value is the name of a variable that \aname\a "
-	"references.  \aname\a cannot contain a \b.\b.  Cannot be used with "
-	"any other options.]"
+	"references.  \aname\a cannot contain a \b.\b.]"
 "[p?Causes the output to be in a format that can be used as input to the "
 	"shell to recreate the attributes for variables.]"
 "[r?Enables readonly.  Once enabled it cannot be disabled.  See "
@@ -1830,6 +1828,9 @@ USAGE_LICENSE
 "\n"
 "\n[name[=value]...]\n"
 " -f [name...]\n"
+" -m [name=name...]\n"
+" -n [name=name...]\n"
+" -T [tname[=(type definition)]...]\n"
 "\n"
 "[+EXIT STATUS?]{"
         "[+0?No errors occurred.]"

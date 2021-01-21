@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed: executing a DEBUG trap in a command substitution had side effects
   on the exit status ($?) of non-trap commands.
 
+- The typeset builtin command now gives an informative error message if an
+  incompatible combination of options is given.
+
 2021-01-19:
 
 - Fixed a crash when using 'cd' in a virtual/non-forking subshell in a
