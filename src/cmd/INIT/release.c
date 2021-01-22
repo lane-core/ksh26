@@ -18,6 +18,7 @@
 *                                                                      *
 ***********************************************************************/
 #pragma prototyped
+#pragma clang diagnostic ignored "-Wparentheses"
 
 /*
  * release -- list recent release changes

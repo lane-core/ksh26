@@ -6,7 +6,4 @@ case " $* " in
 *" -dumpmachine "*) echo $HOSTTYPE; exit ;;
 esac
 
-exec /usr/bin/cc -P \
-	-Wno-unused-value \
-	-Wno-parentheses \
-	"$@"
+exec /usr/bin/cc -P "$@"

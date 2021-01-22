@@ -31,6 +31,29 @@ Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2
 	exit 1 ;;
 esac
 
+unset CDPATH
+case $0 in
+-*)
+	echo "dodgy \$0: $0" >&2
+	exit 1 ;;
+*/package)
+	mydir=`echo "$0" | sed 's,/package$,,'`
+	cd "$mydir" || exit
+	case $PWD in
+	*/bin)	;;
+	*)	echo "this script must live in bin/" >&2
+		exit 1 ;;
+	esac
+	cd .. || exit
+	unset mydir ;;
+package)
+	echo "this script must be invoked with a direct path, e.g. bin/package" >&2
+	exit 1 ;;
+*)
+	echo "this script must be named 'package'" >&2
+	exit 1 ;;
+esac
+
 # shell checks
 checksh()
 {
@@ -64,7 +87,7 @@ usr="/home"
 lib="" # nee /usr/local/lib /usr/local/shlib
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
-makefiles="Mamfile Nmakefile nmakefile Makefile makefile"
+makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
 env="HOSTTYPE NPROC PACKAGEROOT INSTALLROOT PATH"
 checksum=md5sum
 checksum_commands="$checksum md5"
@@ -1403,6 +1426,20 @@ esac
 case $ksh_relflags in
 ?*)	# add the extra flags as an argument to mamake
 	assign="${assign:+$assign }KSH_RELFLAGS=\"\$ksh_relflags\"" ;;
+esac
+
+# Add ksh compile-options via KSH_SHOPTFLAGS.
+SHOPT()
+{
+	case $1 in
+	*=?*)	ksh_shoptflags="${ksh_shoptflags:+$ksh_shoptflags }-DSHOPT_$1" ;;
+	esac
+}
+ksh_shoptflags=
+. src/cmd/ksh93/SHOPT.sh	# this script calls SHOPT() to set options
+case $ksh_shoptflags in
+?*)	# add the extra flags as an argument to mamake
+	assign="${assign:+$assign }KSH_SHOPTFLAGS=\"\$ksh_shoptflags\"" ;;
 esac
 
 # grab action specific args
@@ -4037,12 +4074,6 @@ make_recurse() # dir
 		then	return
 		fi
 	done
-	if	test -d $1
-	then	case $exec in
-		'')	echo :MAKE: > $1/Makefile || exit ;;
-		*)	$exec "echo :MAKE: > $1/Makefile" ;;
-		esac
-	fi
 }
 
 get() # host path [ file size ]
@@ -7218,7 +7249,7 @@ update)	# download the latest release.version for selected packages
 use)	# finalize the environment
 
 	x=:..
-	for d in `( cd $PACKAGEROOT; ls src/*/Makefile src/*/Nmakefile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u )`
+	for d in `( cd $PACKAGEROOT; ls src/*/Mamfile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u )`
 	do	x=$x:$INSTALLROOT/$d
 	done
 	x=$x:$INSTALLROOT

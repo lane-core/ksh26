@@ -46,11 +46,18 @@ Though there are many bugs left to fix, we are confident at this point that
 
 ## Build
 
-After downloading a release or cloning the ksh git repository, cd to the top
-directory of it and run:
+To build ksh with a custom configuration of features, edit
+[`src/cmd/ksh93/SHOPT.sh`](/ksh93/ksh/blob/master/src/cmd/ksh93/SHOPT.sh).
+
+Then `cd` to the top directory and run:
 ```sh
 bin/package make
 ```
+
+The compiled binaries are stored in the `arch` directory, in a subdirectory
+that corresponds to your architecture. The command `bin/package host type`
+outputs the name of this subdirectory.
+
 If you have trouble or want to tune the binaries, you may pass additional
 compiler and linker flags. It is usually best to export these as environment
 variables *before* running `bin/package` as they could change the name of
@@ -59,7 +66,7 @@ convenient way to keep them consistent between build and test commands.
 **Note that this system uses `CCFLAGS` instead of the usual `CFLAGS`.**
 An example that makes Solaris Studio cc produce a 64-bit binary:
 ```sh
-export CCFLAGS="-xc99 -m64 -O2" LDFLAGS="-m64"
+export CCFLAGS="-xc99 -m64 -O" LDFLAGS="-m64"
 bin/package make
 ```
 Alternatively you can append these to the command, and they will only be

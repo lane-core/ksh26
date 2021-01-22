@@ -43,8 +43,7 @@ init)	echo "cc: arguments expected" >&2
 	;;
 cpp)	$CC -E "$@"
 	;;
-cc)	$CC -D_ast_int8_t=int64_t -D_lib_memccpy \
-		-Wno-unused-value -Wno-parentheses -Wno-macro-redefined "$@"
+cc)	$CC -D_ast_int8_t=int64_t -D_lib_memccpy "$@"
 	;;
 dll)	$CC -Wl,-flat_namespace -dynamiclib -undefined dynamic_lookup "$@"
 	;;
