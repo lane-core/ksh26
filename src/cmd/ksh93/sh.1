@@ -20,13 +20,13 @@
 .\}
 .SH NAME
 .if \nZ=0 \{\
-sh, rsh, pfsh \- shell, the standard/restricted command and programming language
+sh, rsh \- shell, the standard/restricted command and programming language
 .\}
 .if \nZ=1 \{\
-ksh, rksh, pfksh \- KornShell, a standard/restricted command and programming language
+ksh, rksh \- KornShell, a standard/restricted command and programming language
 .\}
 .if \nZ=2 \{\
-ksh93, rksh93, pfksh93 \- KornShell, a standard/restricted command and programming language
+ksh93, rksh93 \- KornShell, a standard/restricted command and programming language
 .\}
 .SH SYNOPSIS
 .if \nZ=0 \{\
@@ -39,7 +39,7 @@ ksh93, rksh93, pfksh93 \- KornShell, a standard/restricted command and programmi
 .B ksh93
 .\}
 [
-.B \(+-abcefhiklmnoprstuvxBCDEGHP
+.B \(+-abcefhiklmnoprstuvxBCDEGH
 ] [
 .B \(+-o
 option ] .\|.\|. [
@@ -80,18 +80,6 @@ command interpreter
 .if \nZ=2 .IR ksh93 ;
 it is used to set up login names and execution environments whose
 capabilities are more controlled than those of the standard shell.
-.if \nZ=0 .I Rpfsh\^
-.if \nZ=1 .I Rpfksh\^
-.if \nZ=2 .I Rpfksh93\^
-is a profile shell version of the
-.if \nZ=0 standard
-command interpreter
-.if \nZ=0 .IR sh ;
-.if \nZ=1 .IR ksh ;
-.if \nZ=2 .IR ksh93 ;
-it is used to execute commands with the attributes specified by
-the user's profiles (see
-.IR pfexec (1)).
 See
 .I Invocation\^
 below
@@ -2148,12 +2136,6 @@ At invocation, if the basename of this variable is
 or
 .BR krsh ,
 then the shell becomes restricted.
-If it is
-.BR pfsh
-or
-.BR pfksh ,
-then the shell becomes a profile shell (see
-.IR pfexec (1)).
 .TP
 .SM
 .B TIMEFORMAT
@@ -6901,7 +6883,7 @@ is not unset first.
 .TP 8
 .B \-B
 Enable brace group expansion. On by default, except
-if ksh is invoked as \fBsh\fR, \fBrsh\fR, or \fBpfsh\fR.
+if ksh is invoked as \fBsh\fR or \fBrsh\fR.
 .TP 8
 .B \-C
 Prevents redirection
@@ -7029,7 +7011,7 @@ The
 .B let
 command allows octal constants starting with
 .BR 0 .
-On by default if ksh is invoked as \fBsh\fR, \fBrsh\fR, or \fBpfsh\fR.
+On by default if ksh is invoked as \fBsh\fR or \fBrsh\fR.
 .TP 8
 .B markdirs
 All directory names resulting from file name generation have a trailing
@@ -7080,8 +7062,8 @@ shells. At the moment that the \fBposix\fR option is turned on, it also turns
 on \fBletoctal\fR and turns off \fB\-B\fR/\fBbraceexpand\fR; the reverse is
 done when \fBposix\fR is turned back off. (These options can still be
 controlled independently in between.) Furthermore, the \fBposix\fR option
-is automaticaly turned on upon invocation if ksh is invoked as \fBsh\fR,
-\fBrsh\fR, or \fBpfsh\fR. In that case, or if the option is turned on by
+is automaticaly turned on upon invocation if ksh is invoked as \fBsh\fR
+or \fBrsh\fR. In that case, or if the option is turned on by
 specifying \fB-o posix\fR on the invocation command line, the invoked shell
 will not set the preset aliases even if interactive, and will not import type
 attributes for variables (such as integer or readonly) from the environment.
@@ -8140,17 +8122,10 @@ is
 or
 .BR krsh ,
 then the shell becomes restricted.
-If it is
-.BR pfsh
-or
-.BR pfksh ,
-then the shell becomes a profile shell (see
-.IR pfexec (1)).
 If the basename is
-.BR sh ,
-.BR rsh ,
+.B sh
 or
-.BR pfsh ,
+.BR rsh ,
 or the
 .B \-o\ posix
 option is given on the invocation command line, then
@@ -8263,14 +8238,6 @@ In all cases, \s-1QUIT\s+1 is ignored by the shell.
 If the
 .B \-r
 option is present, the shell is a restricted shell.
-.TP
-.B \-P
-If
-.B \-P
-or
-.B \-o profile
-is present, the shell is a profile shell (see
-.IR pfexec (1)).
 .PP
 The remaining options and arguments are described under the
 .B set
