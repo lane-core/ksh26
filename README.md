@@ -47,7 +47,7 @@ Though there are many bugs left to fix, we are confident at this point that
 ## Build
 
 To build ksh with a custom configuration of features, edit
-[`src/cmd/ksh93/SHOPT.sh`](/ksh93/ksh/blob/master/src/cmd/ksh93/SHOPT.sh).
+[`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/master/src/cmd/ksh93/SHOPT.sh).
 
 Then `cd` to the top directory and run:
 ```sh

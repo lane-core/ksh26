@@ -1435,7 +1435,11 @@ SHOPT()
 	esac
 }
 ksh_shoptflags=
-. src/cmd/ksh93/SHOPT.sh	# this script calls SHOPT() to set options
+shopt_sh='src/cmd/ksh93/SHOPT.sh'	# this script calls SHOPT() to set options
+if	test -f "$shopt_sh"
+then	. "$shopt_sh"
+else	echo "WARNING: $shopt_sh is missing" >&2
+fi
 case $ksh_shoptflags in
 ?*)	# add the extra flags as an argument to mamake
 	assign="${assign:+$assign }KSH_SHOPTFLAGS=\"\$ksh_shoptflags\"" ;;
