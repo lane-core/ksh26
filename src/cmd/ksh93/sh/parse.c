@@ -39,6 +39,7 @@
 #include	"shlex.h"
 #include	"history.h"
 #include	"builtins.h"
+#include	"path.h"
 #include	"test.h"
 #include	"history.h"
 #include	"version.h"
@@ -93,7 +94,6 @@ static struct argnod	*label_last;
 #define getnode(type)	((Shnode_t*)stakalloc(sizeof(struct type)))
 
 #if SHOPT_KIA
-#include	"path.h"
 /*
  * write out entities for each item in the list
  * type=='V' for variable assignment lists

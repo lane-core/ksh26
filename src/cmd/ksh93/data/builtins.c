@@ -1538,7 +1538,7 @@ USAGE_LICENSE
 #endif
 #if SHOPT_KIA
 "[R]:[file?Do not execute the script, but create a cross reference database "
-	"in \afile\a that can be used a separate shell script browser.  The "
+	"in \afile\a that can be used in a separate shell script browser. The "
 	"-R option requires a script to be specified as the first operand.]"
 #endif /* SHOPT_KIA */
 #if SHOPT_REGRESS

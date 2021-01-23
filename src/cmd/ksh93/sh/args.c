@@ -117,7 +117,9 @@ int sh_argopts(int argc,register char *argv[], void *context)
 	Shell_t		*shp = (Shell_t*)context;
 	register int	n,o;
 	register Arg_t	*ap = (Arg_t*)(shp->arg_context);
+#if SHOPT_KIA
 	Lex_t		*lp = (Lex_t*)(shp->lex_context);
+#endif
 	Shopt_t		newflags;
 	int setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
 	Namval_t *np = NIL(Namval_t*);

@@ -41,8 +41,6 @@ ksh93, rksh93, pfksh93 \- KornShell, a standard/restricted command and programmi
 [
 .B \(+-abcefhiklmnoprstuvxBCDEGHP
 ] [
-.B \-R
-file ] [
 .B \(+-o
 option ] .\|.\|. [
 .B \-
@@ -60,8 +58,6 @@ option ] .\|.\|. [
 [
 .B \(+-abcefhiklmnopstuvxBCDEGH
 ] [
-.B \-R
-file ] [
 .B \(+-o
 option ] .\|.\|. [
 .B \-
@@ -8275,17 +8271,6 @@ or
 .B \-o profile
 is present, the shell is a profile shell (see
 .IR pfexec (1)).
-.TP
-.BI \-R " filename\^"
-The
-.B \-R
-.I filename\^
-option is used
-to generate a cross reference database
-that can be used by a separate utility
-to find definitions and references for variables and commands.
-The filename argument specifies the generated database. A script file must be
-provided on the command line as well.
 .PP
 The remaining options and arguments are described under the
 .B set
