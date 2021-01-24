@@ -3,11 +3,19 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-01-24:
+
+- Fixed: an unquoted variable expansion evaluated in a DEBUG trap action caused
+  IFS field splitting to be deactivated in code executed after the trap action.
+  This bug was introduced in ksh 93t+ 2009-11-30.
+
 2021-01-23:
 
 - Fixed: when the DEBUG trap was redefined in a subshell, the DEBUG trap in
   the parent environment was corrupted or the shell crashed.
   When a redirection was used in a DEBUG trap action, the trap was disabled.
+  DEBUG traps were also incorrectly inherited by subshells and ksh functions.
+  All this was caused by a bug introduced in ksh 93t 2008-07-25.
 
 2021-01-22:
 
@@ -18,6 +26,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed: executing a DEBUG trap in a command substitution had side effects
   on the exit status ($?) of non-trap commands.
+  This bug was introduced in ksh 93t 2008-11-04.
 
 - The typeset builtin command now gives an informative error message if an
   incompatible combination of options is given.

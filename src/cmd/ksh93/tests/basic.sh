@@ -745,8 +745,9 @@ got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
 || err_exit "case in a for loop inside a \`comsub\` caused syntax error (got $(printf %q "$got"))"
 
 # ======
+# Various DEBUG trap fixes: https://github.com/ksh93/ksh/issues/155
+
 # Redirecting disabled the DEBUG trap
-# https://github.com/ksh93/ksh/issues/155 (#1)
 exp=$'LINENO: 4\nfoo\nLINENO: 5\nLINENO: 6\nbar\nLINENO: 7\nbaz'
 got=$({ "$SHELL" -c '
 	PATH=/dev/null
@@ -760,7 +761,6 @@ got=$({ "$SHELL" -c '
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 
 # The DEBUG trap crashed when re-trapping inside a subshell
-# https://github.com/ksh93/ksh/issues/155 (#2)
 exp=$'trap -- \': main\' EXIT\ntrap -- \': main\' ERR\ntrap -- \': main\' KEYBD\ntrap -- \': main\' DEBUG'
 got=$({ "$SHELL" -c '
 	PATH=/dev/null
@@ -774,8 +774,20 @@ got=$({ "$SHELL" -c '
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Pseudosignal trap failed when re-trapping in subshell' \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 
+# Field splitting broke upon evaluating an unquoted expansion in a DEBUG trap
+exp=$'a\nb\nc'
+got=$({ "$SHELL" -c '
+	PATH=/dev/null
+	v=""
+	trap ": \$v" DEBUG
+	A="a b c"
+	set -- $A
+	printf "%s\n" "$@"
+'; } 2>&1)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Field splitting broke after executing DEBUG trap' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
 # The DEBUG trap had side effects on the exit status
-# https://github.com/ksh93/ksh/issues/155 (#4)
 trap ':' DEBUG
 (exit 123)
 (((e=$?)==123)) || err_exit "DEBUG trap run in subshell affects exit status (expected 123, got $e)"
@@ -784,6 +796,47 @@ r=$(exit 123)
 r=`exit 123`
 (((e=$?)==123)) || err_exit "DEBUG trap run in \`comsub\` affects exit status (expected 123, got $e)"
 trap - DEBUG
+
+# The DEBUG trap was incorrectly inherited by subshells
+exp=$'Subshell\nDebug 1\nParentshell'
+got=$(
+	trap 'echo Debug ${.sh.subshell}' DEBUG
+	(echo Subshell)
+	echo Parentshell
+)
+trap - DEBUG  # bug compat
+[[ $got == "$exp" ]] || err_exit "DEBUG trap inherited by subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The DEBUG trap was incorrectly inherited by ksh functions
+exp=$'Debug 0\nFunctionEnv\nDebug 0\nParentEnv'
+got=$(
+	function myfn
+	{
+		echo FunctionEnv
+	}
+	trap 'echo Debug ${.sh.level}' DEBUG
+	myfn
+	echo ParentEnv
+)
+trap - DEBUG  # bug compat
+[[ $got == "$exp" ]] || err_exit "DEBUG trap inherited by ksh function" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Make sure the DEBUG trap is still inherited by POSIX functions
+exp=$'Debug 0\nDebug 1\nFunction\nDebug 0\nNofunction'
+got=$(
+	myfn()
+	{
+		echo Function
+	}
+	trap 'echo Debug ${.sh.level}' DEBUG
+	myfn
+	echo Nofunction
+)
+trap - DEBUG  # bug compat
+[[ $got == "$exp" ]] || err_exit "DEBUG trap not inherited by POSIX function" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
