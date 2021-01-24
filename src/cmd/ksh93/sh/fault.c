@@ -344,7 +344,7 @@ void	sh_sigreset(register int mode)
 			sh.sigflag[sig] = flag;
 		}
 	}
-	for(sig=SH_DEBUGTRAP-1;sig>=0;sig--)
+	for(sig=SH_DEBUGTRAP; sig>=0; sig--)
 	{
 		if(trap=sh.st.trap[sig])
 		{

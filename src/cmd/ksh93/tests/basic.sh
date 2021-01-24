@@ -745,6 +745,22 @@ got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
 || err_exit "case in a for loop inside a \`comsub\` caused syntax error (got $(printf %q "$got"))"
 
 # ======
+# The DEBUG trap crashed when re-trapping inside a subshell
+# https://github.com/ksh93/ksh/issues/155 (#2)
+exp=$'trap -- \': main\' EXIT\ntrap -- \': main\' ERR\ntrap -- \': main\' KEYBD\ntrap -- \': main\' DEBUG'
+got=$({ "$SHELL" -c '
+	PATH=/dev/null
+	for sig in EXIT ERR KEYBD DEBUG
+	do	trap ": main" $sig
+		( trap ": LEAK : $sig" $sig )
+		trap
+		trap - "$sig"
+	done
+'; } 2>&1)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Pseudosignal trap failed when re-trapping in subshell' \
+	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 # The DEBUG trap had side effects on the exit status
 # https://github.com/ksh93/ksh/issues/155 (#4)
 trap ':' DEBUG
