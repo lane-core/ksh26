@@ -7,6 +7,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed: when the DEBUG trap was redefined in a subshell, the DEBUG trap in
   the parent environment was corrupted or the shell crashed.
+  When a redirection was used in a DEBUG trap action, the trap was disabled.
 
 2021-01-22:
 
