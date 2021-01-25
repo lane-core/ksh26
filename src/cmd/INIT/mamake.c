@@ -19,7 +19,6 @@
 ***********************************************************************/
 #pragma prototyped
 #pragma clang diagnostic ignored "-Wparentheses"
-#pragma clang diagnostic ignored "-Wunused-value"
 
 /*
  * mamake -- MAM make
