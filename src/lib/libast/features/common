@@ -353,7 +353,7 @@ tst	- output{
 		return 0;
 	}
 }end fail{
-	echo '#error Output block #2 in src/lib/libast/features/common failed to compile'
+	echo '#error Output block #2 in src/lib/libast/features/common failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	- -DN=1 - -DN=0 output{

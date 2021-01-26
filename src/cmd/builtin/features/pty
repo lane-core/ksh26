@@ -55,7 +55,7 @@ tst - output{
 		return 0;
 	}
 }end fail{
-	echo '#error The output block in src/cmd/builtin/features/pty failed to compile'
+	echo '#error The output block in src/cmd/builtin/features/pty failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 extern	_getpty		char*		(int*, int, mode_t, int)

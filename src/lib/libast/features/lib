@@ -700,7 +700,7 @@ tst	- output{
 	}
 
 }end fail{
-	echo '#error The output block in src/lib/libast/features/lib failed to compile'
+	echo '#error The output block in src/lib/libast/features/lib failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	no64 -D_LARGEFILE64_SOURCE note{ largefile 64 broken }end execute{

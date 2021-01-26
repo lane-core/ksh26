@@ -262,5 +262,5 @@ tst	- output{
 		return 0;
 	}
 }end fail{
-	echo '#error The output block in src/lib/libdll/features/dll failed to compile'
+	echo '#error The output block in src/lib/libdll/features/dll failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end

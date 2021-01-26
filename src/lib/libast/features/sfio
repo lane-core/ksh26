@@ -15,7 +15,7 @@ tst	- note{ number of bits in pointer }end output{
 		return 0;
 	}
 }end fail{
-	echo '#error The output block in src/lib/libast/features/sfio failed to compile'
+	echo '#error The output block in src/lib/libast/features/sfio failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	tmp_rmfail note{ open files cannot be removed }end execute{

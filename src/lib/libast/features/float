@@ -895,7 +895,7 @@ tst	- note{ missing floating point limits }end output{
 		return 0;
 	}
 }end fail{
-	echo '#error Output block #1 in src/lib/libast/features/float failed to compile'
+	echo '#error Output block #1 in src/lib/libast/features/float failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	- note{ double exponent bitfoolery }end output{
@@ -931,7 +931,7 @@ tst	- note{ double exponent bitfoolery }end output{
 		return 0;
 	}
 }end fail{
-	echo '#error Output block #2 in src/lib/libast/features/float failed to compile'
+	echo '#error Output block #2 in src/lib/libast/features/float failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	- note{ long double exponent bitfoolery }end output{
@@ -967,7 +967,7 @@ tst	- note{ long double exponent bitfoolery }end output{
 		return 0;
 	}
 }end fail{
-	echo '#error Output block #3 in src/lib/libast/features/float failed to compile'
+	echo '#error Output block #3 in src/lib/libast/features/float failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
 }end
 
 tst	- -DN=1 - -DN=2 note{ _ast_fltmax_t maximum integral type }end output{

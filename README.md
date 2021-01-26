@@ -10,10 +10,10 @@ The sources in this repository were forked from the
 Github [AST repository](https://github.com/att/ast)
 which is no longer under active development.
 
-To see what's fixed, see [NEWS](https://github.com/ksh93/ksh/blame/master/NEWS)
+For user-visible fixes, see [NEWS](https://github.com/ksh93/ksh/blame/master/NEWS)
 and click on commit messages for full details.
-
-To see what's left to fix, see [TODO](./TODO).
+For all fixes, see [the commit log](https://github.com/ksh93/ksh/commits/).
+To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/issues).
 
 ## Policy
 
@@ -28,6 +28,11 @@ To see what's left to fix, see [TODO](./TODO).
    send pull requests. Every interested party is invited to contribute.
 6. To help increase everyone's understanding of this code base, fixes and
    significant changes should be fully documented in commit messages.
+7. Code style varies somewhat in this historic code base.
+   Your changes should match the style of the code surrounding it.
+   Indent with tabs, assuming an 8-space tab width.
+   Comments always use `/*`...`*/`.
+8. Good judgment may override this policy.
 
 ## Why?
 
@@ -75,6 +80,7 @@ to run the build scripts this way. For example:
 ```sh
 bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" LDFLAGS="-L/opt/local/lib"
 ```
+
 For more information run
 ```sh
 bin/package help
@@ -82,13 +88,23 @@ bin/package help
 Many other commands in this repo self-document via the `--help`, `--man` and
 `--html` options; those that do have no separate manual page.
 
-## Test
+### Test
 
 After compiling, you can run the regression tests.
 Start by reading the information printed by:
 ```sh
 bin/shtests --man
 ```
+
+### Install
+
+Automated installation is not supported.
+To install manually:
+```sh
+cp arch/$(bin/package host type)/bin/ksh /usr/local/bin/
+cp src/cmd/ksh93/sh.1 /usr/local/share/man/man1/ksh.1
+```
+(adapting the destination directories as required).
 
 ## What is ksh93?
 

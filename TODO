@@ -1,18 +1,17 @@
 TODO for AT&T ksh93, 93u+m bugfix branch
 
+See the issue tracker:
+https://github.com/ksh93/ksh/issues
+
 ______
 Fix regression test failures:
 
-- On OpenBSD, there are 15 locale-related test failures in variables.sh.
 - There are many regression test failures on NetBSD.
 
 ______
 Fix build system:
 
 - ksh does not currently build on AIX or QNX.
-- Reimport the removed nmake. It is necessary for changes in Makefiles
-  to take effect. The machine-generated Mamfiles are now used as a fallback,
-  but they are not meant to be edited by hand.
 
 ______
 Fix currently known bugs affecting shell scripting. These are identified by
