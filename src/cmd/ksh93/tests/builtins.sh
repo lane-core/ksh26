@@ -996,11 +996,11 @@ done 3< <(builtin)
 if	(builtin alarm) 2>/dev/null
 then	got=$( { "$SHELL" -c '
 		builtin alarm
-		alarm -r alarm_handler +.001
+		alarm -r alarm_handler +.005
 		i=0
 		function alarm_handler.alarm
 		{
-			let "(++i) > 100" && exit
+			let "(++i) > 20" && exit
 		}
 		while :; do
 			echo cargo,odds and ends,jetsam,junk,wreckage,castoffs,sea-drift
