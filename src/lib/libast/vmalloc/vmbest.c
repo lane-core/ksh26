@@ -1265,10 +1265,13 @@ static Void_t* mmapmem(Void_t* caddr, size_t csize, size_t nsize, Mmdisc_t* mmdc
 		}
 	}
 	else if(nsize == 0)
-	{	Vmuchar_t	*addr = (Vmuchar_t*)sbrk(0);
+	{
+#if _mem_sbrk
+		Vmuchar_t	*addr = (Vmuchar_t*)sbrk(0);
 		if(addr < (Vmuchar_t*)caddr ) /* in sbrk space */
 			return NIL(Void_t*);
 		else
+#endif
 		{	(void)munmap(caddr, csize);
 			return caddr;
 		}
@@ -1385,7 +1388,9 @@ __DEFINE__(Vmalloc_t*, Vmheap, &_Vmheap);
 __DEFINE__(Vmalloc_t*, Vmregion, &_Vmheap);
 __DEFINE__(Vmethod_t*, Vmbest, &_Vmbest);
 __DEFINE__(Vmdisc_t*,  Vmdcsystem, (Vmdisc_t*)(&_Vmdcsystem) );
+#if _mem_sbrk
 __DEFINE__(Vmdisc_t*,  Vmdcsbrk, (Vmdisc_t*)(&_Vmdcsystem) );
+#endif
 
 #ifdef NoF
 NoF(vmbest)

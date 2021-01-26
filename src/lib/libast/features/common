@@ -352,6 +352,8 @@ tst	- output{
 		printf("\n");
 		return 0;
 	}
+}end fail{
+	echo '#error Output block #2 in src/lib/libast/features/common failed to compile'
 }end
 
 tst	- -DN=1 - -DN=0 output{

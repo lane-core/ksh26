@@ -54,7 +54,9 @@ tst - output{
 			}
 		return 0;
 	}
-}end  
+}end fail{
+	echo '#error The output block in src/cmd/builtin/features/pty failed to compile'
+}end
 
 extern	_getpty		char*		(int*, int, mode_t, int)
 extern	openpty		int		(int*, int*, char*, struct termios*, struct winsize*)

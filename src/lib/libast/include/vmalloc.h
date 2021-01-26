@@ -136,7 +136,9 @@ extern Vmethod_t*	Vmprofile;	/* profiling memory usage	*/
 
 extern Vmdisc_t*	Vmdcsystem;	/* get memory from the OS	*/
 extern Vmdisc_t*	Vmdcheap;	/* get memory from Vmheap	*/
+#if _mem_sbrk
 extern Vmdisc_t*	Vmdcsbrk;	/* like Vmdcsystem - legacy use	*/
+#endif
 
 extern Vmalloc_t	_Vmheap;	/* heap region - use with care! */
 extern Vmalloc_t*	Vmheap;		/* = &_Vmheap - safe to use	*/

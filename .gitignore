@@ -57,3 +57,4 @@ bin/execrate
 *.project
 *.core
 core
+**/#*#
