@@ -245,7 +245,6 @@ macro{
 
 tst	- note{ missing floating point limits }end output{
 	#include "FEATURE/common"
-	#include <stdio.h>
 	#if _hdr_float
 	#include <float.h>
 	#endif
@@ -900,7 +899,6 @@ tst	- note{ missing floating point limits }end output{
 
 tst	- note{ double exponent bitfoolery }end output{
 	#include "FEATURE/common"
-	#include <stdio.h>
 	typedef union _dbl_exp_u
 	{
 		unsigned _ast_int4_t	e[sizeof(double) / 4];
@@ -936,7 +934,6 @@ tst	- note{ double exponent bitfoolery }end output{
 
 tst	- note{ long double exponent bitfoolery }end output{
 	#include "FEATURE/common"
-	#include <stdio.h>
 	typedef union _ast_fltmax_exp_u
 	{
 		unsigned _ast_int4_t	e[sizeof(_ast_fltmax_t) / 4];
@@ -971,7 +968,6 @@ tst	- note{ long double exponent bitfoolery }end output{
 }end
 
 tst	- -DN=1 - -DN=2 note{ _ast_fltmax_t maximum integral type }end output{
-	#include <stdio.h>
 	int
 	main()
 	{
@@ -996,7 +992,6 @@ tst	- -DSCAN=1 - -lm -DSTRTO=1 - -DMAC=1 - -DDIV=1 - -DEXP=1 - -DADD=1 - -DMPY=1
 	#define _FP_MODE_VARIABLE	1
 	#endif
 	#include "FEATURE/common"
-	#include <stdio.h>
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <string.h>

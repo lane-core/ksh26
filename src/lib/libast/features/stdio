@@ -204,7 +204,6 @@ cat{
 	#endif
 }end
 output{
-	#include <stdio.h>
 	#ifndef FILENAME_MAX
 	#ifndef NAME_MAX
 	#ifndef _POSIX_NAME_MAX
