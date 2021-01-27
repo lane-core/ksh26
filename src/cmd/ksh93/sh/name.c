@@ -2646,6 +2646,13 @@ void nv_optimize(Namval_t *np)
 		}
 		if((xp= (struct optimize*)fp) && xp->ptr==shp->argaddr)
 			return;
+		if(xp && xp->next)
+		{
+			register struct optimize *xpn;
+			for(xpn = xp->next; xpn; xpn = xpn->next)
+				if(xpn->ptr == shp->argaddr && xpn->np == np)
+					return;
+		}
 		if(op = opt_free)
 			opt_free = op->next;
 		else
