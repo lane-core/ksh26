@@ -1327,7 +1327,6 @@ std='#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define _NIL_(x)	((x)0)'
 tst=
 ext="#include <stdio.h>"
-noext='*[<"][Ss][Tt][Dd][Ii][Oo].[Hh][">]*|*<ast.h>*|*<sfio.h>*|*/[*]<NOSTDIO>[*]/*'
 
 # loop on op [ arg [ ... ] ] [ : op [ arg [ ... ] ] ]
 
@@ -3376,7 +3375,9 @@ int x;
 				esac
 				case $src in
 				?*)	case $src in
-					$noext)	EXT= ;;
+					*[\<\"][Ss][Tt][Dd][Ii][Oo].[Hh][\"\>]* | *\<ast.h\>* | *\<sfio.h\>* | */[*]\<NOSTDIO\>[*]/*)
+						EXT=
+						;;
 					*)	EXT="$tst
 $ext"
 						;;
