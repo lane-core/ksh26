@@ -171,6 +171,7 @@ failures (crashes, and/or essential functionality does not work).
 *	DragonFly BSD 5.8 on x86_64
 	FreeBSD 12.2 on x86_64
 	FreeBSD 12.2 on arm64 (thanks to hyenias for donating access to a Pi)
+	GNU/Linux: Alpine 3.12.3 (musl C library) on x86_64
 	GNU/Linux: CentOS 8.2 on x86_64
 	GNU/Linux: Debian 10.7 on x86_64
 	GNU/Linux: Gentoo 2.7 on i386
