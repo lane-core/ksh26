@@ -621,8 +621,8 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	ep->hoff = 0;
 #endif /* SHOPT_EDPREDICT */
 #if KSHELL
-	ep->e_stkptr = stakptr(0);
 	ep->e_stkoff = staktell();
+	ep->e_stkptr = stakfreeze(0);
 	if(!(last = shp->prompt))
 		last = "";
 	shp->prompt = 0;
