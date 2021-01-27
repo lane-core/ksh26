@@ -463,7 +463,8 @@ r echo repeat-3
 !
 fi
 
-# err_exit #
+# This test freezes the 'less' pager on OpenBSD, which is not a ksh bug.
+: <<\disabled
 whence -q less &&
 TERM=vt100 tst $LINENO <<"!"
 L process/terminal group exercise
@@ -475,6 +476,7 @@ r Stopped
 w fg
 u yes-yes
 !
+disabled
 
 # err_exit #
 # Test file name completion in vi mode
