@@ -103,6 +103,7 @@ USAGE_LICENSE
 #include <cmd.h>
 #include <error.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <termios.h>
 #include <proc.h>
 #include <ctype.h>
@@ -123,7 +124,7 @@ USAGE_LICENSE
 #if !_lib_openpty && !_lib__getpty && !defined(_pty_clone)
 # if !_lib_grantpt || !_lib_unlock
 #   if !_lib_ptsname
-	static char *slavename(const char *name)
+	static char *minionname(const char *name)
 	{
 		static char sname[MAXNAME];
 		char *last;
@@ -175,14 +176,14 @@ USAGE_LICENSE
 #if !_lib_openpty
 	static char *ptymopen(int *master)
 	{
-		char *slave=0;
+		char *minion=0;
 #   if _lib__getpty
 		return(_getpty(master,O_RDWR,MODE_666,0));
 #   else
 #	if defined(_pty_clone)
 		*master = open(_pty_clone,O_RDWR|O_CREAT,MODE_666);
 		if(*master>=0)
-			slave = ptsname(*master);
+			minion = ptsname(*master);
 #	else
 		int fdm;
 		char *name=0;
@@ -193,22 +194,22 @@ USAGE_LICENSE
 			{
 				*master = fdm;
 #	   if _lib_ptsname
-				slave = ptsname(fdm);
+				minion = ptsname(fdm);
 #	   else
-				slave = slavename(name);
+				minion = minionname(name);
 #	   endif
 				break;
 			}
 		}
 # 	endif
 #   endif
-		return(slave);
+		return(minion);
 	}
 # endif
 #endif
 
 static int
-mkpty(int* master, int* slave)
+mkpty(int* master, int* minion)
 {
 	struct termios	tty;
 	struct termios	tst;
@@ -220,17 +221,12 @@ mkpty(int* master, int* slave)
 #if !_lib_openpty
 	char*		sname;
 #endif
-#ifdef __linux__
+#ifdef SIGTTOU
 	sigset_t blckttou, oldset;
 	(void)sigemptyset(&blckttou);
 	(void)sigaddset(&blckttou, SIGTTOU);
 	sigprocmask(SIG_BLOCK, &blckttou, &oldset);
 #endif
-	/*
-	 * some systems hang hard during the handshake
-	 * if you know why then please let us know
-	 */
-
 	alarm(6);
 	if (tcgetattr(sffileno(sfstderr), &tty) < 0)
 	{
@@ -246,12 +242,14 @@ mkpty(int* master, int* slave)
 #endif /* _lib_cfmakeraw */
 		ttyp = 0;
 	}
-	tty.c_lflag |= ICANON | IEXTEN | ISIG | ECHO|ECHOE|ECHOK|ECHOKE;
+	tty.c_lflag |= ICANON | IEXTEN | ISIG | ECHO | ECHOE | ECHOK;
+#ifdef ECHOKE
+	tty.c_lflag |= ECHOKE;
+#endif
 	tty.c_oflag |= (ONLCR | OPOST);
 	tty.c_oflag &= ~(OCRNL | ONLRET);
 	tty.c_iflag |= BRKINT;
 	tty.c_iflag &= ~IGNBRK;
-	tty.c_lflag |= ISIG;
 	tty.c_cc[VTIME] = 0;
 	tty.c_cc[VMIN] = CMIN;
 #ifdef B115200
@@ -287,7 +285,7 @@ mkpty(int* master, int* slave)
 # endif
 #endif
 #if _lib_openpty
-	if (openpty(master, slave, NULL, ttyp, winp) < 0)
+	if (openpty(master, minion, NULL, ttyp, winp) < 0)
 		return -1;
 #else
 #if _lib_grantpt && _lib_unlockpt
@@ -299,35 +297,35 @@ mkpty(int* master, int* slave)
 #endif
 	if ((*master = posix_openpt(O_RDWR)) < 0)
 		return -1;
-	if (grantpt(*master) || unlockpt(*master) || !(sname = ptsname(*master)) || (*slave = open(sname, O_RDWR|O_cloexec)) < 0)
+	if (grantpt(*master) || unlockpt(*master) || !(sname = ptsname(*master)) || (*minion = open(sname, O_RDWR|O_cloexec)) < 0)
 	{
 		close(*master);
 		return -1;
 	}
 #else
-	if (!(sname = ptymopen(master)) || (*slave = open(sname, O_RDWR|O_cloexec)) < 0)
+	if (!(sname = ptymopen(master)) || (*minion = open(sname, O_RDWR|O_cloexec)) < 0)
 		return -1;
 #endif
 #ifdef I_PUSH
-	if (tcgetattr(*slave, &tst) < 0 && (ioctl(*slave, I_PUSH, "ptem") < 0 || ioctl(*slave, I_PUSH, "ldterm") < 0))
+	if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 	{
-		close(*slave);
+		close(*minion);
 		close(*master);
 		return -1;
 	}
 #endif
 #endif
-	if (ttyp && tcsetattr(*slave, TCSANOW, ttyp) < 0)
+	if (ttyp && tcsetattr(*minion, TCSANOW, ttyp) < 0)
 		error(ERROR_warn(0), "unable to set pty terminal attributes");
 #ifdef TIOCSWINSZ
-	if (winp && ioctl(*slave, TIOCSWINSZ, winp) < 0)
+	if (winp && ioctl(*minion, TIOCSWINSZ, winp) < 0)
 		error(ERROR_warn(0), "unable to set pty window size");
 #endif
 	fcntl(*master, F_SETFD, FD_CLOEXEC);
 #if !O_cloexec
-	fcntl(*slave, F_SETFD, FD_CLOEXEC);
+	fcntl(*minion, F_SETFD, FD_CLOEXEC);
 #endif
-#ifdef __linux__
+#ifdef SIGTTOU
 	sigprocmask(SIG_SETMASK, &oldset, NULL);
 #endif
 	alarm(0);
@@ -335,20 +333,20 @@ mkpty(int* master, int* slave)
 }
 
 static Proc_t*
-runcmd(char** argv, int slave, int session)
+runcmd(char** argv, int minion, int session)
 {
 	long	ops[4];
 
 	if (session)
 	{
-		ops[0] = PROC_FD_CTTY(slave);
+		ops[0] = PROC_FD_CTTY(minion);
 		ops[1] = 0;
 	}
 	else
 	{
-		ops[0] = PROC_FD_DUP(slave, 0, PROC_FD_CHILD);
-		ops[1] = PROC_FD_DUP(slave, 1, PROC_FD_CHILD);
-		ops[2] = PROC_FD_DUP(slave, 2, PROC_FD_CHILD);
+		ops[0] = PROC_FD_DUP(minion, 0, PROC_FD_CHILD);
+		ops[1] = PROC_FD_DUP(minion, 1, PROC_FD_CHILD);
+		ops[2] = PROC_FD_DUP(minion, 2, PROC_FD_CHILD);
 		ops[3] = 0;
 	}
 	return procopen(argv[0], argv, NiL, ops, 0);
@@ -1006,7 +1004,7 @@ int
 b_pty(int argc, char** argv, Shbltin_t* context)
 {
 	int		master;
-	int		slave;
+	int		minion;
 	int		fd;
 	int		drop;
 	int		n;
@@ -1065,7 +1063,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	argv += opt_info.index;
 	if (!argv[0])
 		error(ERROR_exit(1), "command must be specified");
-	if (mkpty(&master, &slave) < 0)
+	if (mkpty(&master, &minion) < 0)
 		error(ERROR_system(1), "unable to create pty");
 	if (!(mp = sfnew(NiL, 0, SF_UNBOUND, master, SF_READ|SF_WRITE)))
 		error(ERROR_system(1), "cannot open master stream");
@@ -1082,7 +1080,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		ap->args = (char*)(ap->argv + n + 2);
 		strcpy(ap->args, stty);
 		ap->argv[0] = "stty";
-		sfsprintf(ap->argv[1] = buf, sizeof(buf), "--fd=%d", slave);
+		sfsprintf(ap->argv[1] = buf, sizeof(buf), "--fd=%d", minion);
 		ap->argv[2] = s = ap->args;
 		for (n = 2; *s; s++)
 			if (isspace(*s))
@@ -1097,9 +1095,9 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		lp = 0;
 	else if (!(lp = sfopen(NiL, log, "w")))
 		error(ERROR_system(1), "%s: cannot write", log);
-	if (!(proc = runcmd(argv, slave, session)))
+	if (!(proc = runcmd(argv, minion, session)))
 		error(ERROR_system(1), "unable run %s", argv[0]);
-	close(slave);
+	close(minion);
 	if (messages)
 	{
 		drop = 1;
@@ -1116,9 +1114,9 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		if (drop)
 			close(fd);
 	}
-	slave = (*fun)(mp, lp, delay, timeout);
+	minion = (*fun)(mp, lp, delay, timeout);
 	master = procclose(proc);
 	if (lp && sfclose(lp))
 		error(ERROR_system(1), "%s: write error", log);
-	return slave ? slave : master;
+	return minion ? minion : master;
 }
