@@ -1947,6 +1947,10 @@ void job_fork(pid_t parent)
 		job_lock();
 		jobfork++;
 		break;
+	case -2:
+		jobfork--;
+		job_unlock();
+		break;
 	case 0:
 		jobfork=0;
 		job_unlock();

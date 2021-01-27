@@ -3631,6 +3631,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 #   endif /* !_lib_fork */
 	sh_pushcontext(shp,buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
+	job_lock();		/* errormsg will unlock */
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
@@ -3732,7 +3733,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		}
 	fail:
 		if(jobfork && spawnpid<0) 
-			job_fork(0);
+			job_fork(-2);
 		if(spawnpid < 0) switch(errno=shp->path_err)
 		{
 		    case ENOENT:
@@ -3740,6 +3741,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		    default:
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
 		}
+		job_unlock();
 	}
 	else
 		exitset();
