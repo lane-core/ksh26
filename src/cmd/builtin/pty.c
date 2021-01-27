@@ -116,6 +116,10 @@ USAGE_LICENSE
 #define MODE_666	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #define MAXNAME		64
 
+#ifndef CMIN
+#define CMIN		1
+#endif
+
 #if !_lib_openpty && !_lib__getpty && !defined(_pty_clone)
 # if !_lib_grantpt || !_lib_unlock
 #   if !_lib_ptsname

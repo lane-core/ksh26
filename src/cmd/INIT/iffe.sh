@@ -26,6 +26,9 @@
 # NOTE: .exe a.out suffix and [\\/] in path patterns for dos/nt
 
 (command set -o posix) 2>/dev/null && set -o posix
+case `uname -s` in
+AIX)	unset LIBPATH ;;
+esac
 
 command=iffe
 version=2012-07-17 # update in USAGE too #

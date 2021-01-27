@@ -11,7 +11,7 @@ Fix regression test failures:
 ______
 Fix build system:
 
-- ksh does not currently build on AIX or QNX.
+- ksh does not currently build on QNX.
 
 ______
 Fix currently known bugs affecting shell scripting. These are identified by
