@@ -11,6 +11,7 @@ header	stropts.h
 
 lib	openpty,_getpty,ptsname -lutil
 lib	grantpt,unlockpt,posix_openpt stdlib.h
+lib	cfmakeraw termios.h
 
 tst - output{
 	#include	<sys/types.h>

@@ -236,7 +236,14 @@ mkpty(int* master, int* slave)
 	{
 		if (errno != ENOTTY)
 			error(-1, "unable to get standard error terminal attributes");
+#if _lib_cfmakeraw
 		cfmakeraw(&tty);
+#else
+		tty.c_iflag |= IGNPAR;
+		tty.c_iflag &= ~(ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
+		tty.c_oflag &= ~OPOST;
+		tty.c_lflag &= ~(ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHONL);
+#endif /* _lib_cfmakeraw */
 		ttyp = 0;
 	}
 	tty.c_lflag |= ICANON | IEXTEN | ISIG | ECHO|ECHOE|ECHOK|ECHOKE;
