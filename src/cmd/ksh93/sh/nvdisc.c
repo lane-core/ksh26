@@ -453,7 +453,7 @@ static Sfdouble_t lookupn(Namval_t *np, Namfun_t *handle)
 char *nv_setdisc(register Namval_t* np,register const char *event,Namval_t *action,register Namfun_t *fp)
 {
 	register struct vardisc *vp = (struct vardisc*)np->nvfun;
-	register int type;
+	register int type = -1;
 	char *empty = "";
 	while(vp)
 	{
@@ -509,6 +509,8 @@ char *nv_setdisc(register Namval_t* np,register const char *event,Namval_t *acti
 		}
 		return(NIL(char*));
 	}
+	if (type < 0)
+		return(NIL(char*));
 	/* Handle GET/SET/APPEND/UNSET disc */
 	if(vp && vp->fun.disc->putval!=assign)
 		vp = 0;

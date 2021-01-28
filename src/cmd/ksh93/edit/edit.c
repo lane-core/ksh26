@@ -1406,12 +1406,12 @@ int	ed_internal(const char *src, genchar *dest)
 int	ed_external(const genchar *src, char *dest)
 {
 	register genchar wc;
-	register int c,size;
 	register char *dp = dest;
 	char *dpmax = dp+sizeof(genchar)*MAXLINE-2;
 	if((char*)src == dp)
 	{
-		char buffer[MAXLINE*sizeof(genchar)];
+		int c;
+		char buffer[MAXLINE*sizeof(genchar)] = "";
 		c = ed_external(src,buffer);
 
 #ifdef _lib_wcscpy
@@ -1423,6 +1423,7 @@ int	ed_external(const genchar *src, char *dest)
 	}
 	while((wc = *src++) && dp<dpmax)
 	{
+		ssize_t size;
 		if((size = mbconv(dp, wc)) < 0)
 		{
 			/* copy the character as is */

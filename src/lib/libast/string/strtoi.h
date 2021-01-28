@@ -230,13 +230,13 @@ S2I_function(a, e, base) const char* a; char** e; int base;
 #endif
 	register S2I_unumber	n;
 	register S2I_unumber	x;
-	register int		c;
+	register int		c = 0;
 	register int		shift;
 	register unsigned char*	p;
 	register unsigned char*	cv;
 	unsigned char*		b;
 	unsigned char*		k;
-	S2I_unumber		v;
+	S2I_unumber		v = 0;
 #if S2I_multiplier
 	register int		base;
 #endif

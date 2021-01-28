@@ -1305,7 +1305,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	const char		*msg = e_varname;
 	char			*fname = 0;
 	int			offset = staktell();
-	Dt_t			*funroot;
+	Dt_t			*funroot = NIL(Dt_t*);
 #if NVCACHE
 	struct Cache_entry	*xp;
 #endif
@@ -1779,7 +1779,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	else
 	{
 		const char *tofree=0;
-		int offset,append;
+		int offset=0,append;
 #if _lib_pathnative
 		char buff[PATH_MAX];
 #endif /* _lib_pathnative */

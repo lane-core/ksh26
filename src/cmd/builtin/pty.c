@@ -512,7 +512,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	char*		t;
 	ssize_t		n;
 	ssize_t		a;
-	size_t		promptlen;
+	size_t		promptlen = 0;
 	ptrdiff_t	d;
 	char		promptbuf[64];
 
@@ -782,6 +782,8 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 	    !(master->buf = vmnewof(vm, 0, char, 2 * SF_BUFSIZE, 0)))
 	{
 		error(ERROR_SYSTEM|2, "out of space");
+		id = 0;
+		line = 0;
 		goto done;
 	}
 	master->vm = vm;

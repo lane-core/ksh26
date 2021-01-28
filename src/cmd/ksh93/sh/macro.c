@@ -1803,7 +1803,7 @@ retry2:
 		int ofs_size = 0;
 		regoff_t match[2*(MATCH_MAX+1)];
 		int nmatch, nmatch_prev, vsize_last;
-		char *vlast;
+		char *vlast = NIL(char*);
 		while(1)
 		{
 			if(!v)

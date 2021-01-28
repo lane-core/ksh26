@@ -1426,7 +1426,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					Namval_t node;
 #endif /* SHOPT_NAMESPACE */
 					struct Namref	nr;
-					long		mode;
+					long		mode = 0;
 					register struct slnod *slp;
 					if(!np->nvalue.ip)
 					{
@@ -1771,8 +1771,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 		     * don't create a new process, just
 		     * save and restore io-streams
 		     */
-			pid_t	pid;
-			int 	jmpval, waitall;
+			pid_t	pid = 0;
+			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 			if(shp->subshell)
@@ -2162,7 +2162,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			Shnode_t *tt = t->wh.whtre;
 #if SHOPT_FILESCAN
 			Sfio_t *iop=0;
-			int savein;
+			int savein=-1;
 #endif /*SHOPT_FILESCAN*/
 #if SHOPT_OPTIMIZE
 			int  jmpval = ((struct checkpt*)shp->jmplist)->mode;
@@ -2579,7 +2579,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			else
 			{
 				register int traceon=0;
-				register char *right;
+				register char *right = 0;
 				register char *trap;
 				char *argv[6];
 				n = type>>TSHIFT;
@@ -2613,7 +2613,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 				else if(type&TBINARY)
 				{
-					char *op;
+					char *op = 0;
 					int pattern = 0;
 					if(trap || traceon)
 						op = (char*)(shtab_testops+(n&037)-1)->sh_name;
@@ -3277,11 +3277,11 @@ static void sh_funct(Shell_t *shp,Namval_t *np,int argn, char *argv[],struct arg
 int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 {
 	Shell_t		*shp = sh_getinterp();
-	register int offset;
+	register int offset = 0;
 	register char *base;
 	Namval_t node;
 	struct Namref	nr;
-	long		mode;
+	long		mode = 0;
 	char		*prefix = shp->prefix;
 	int n=0;
 	char *av[3];

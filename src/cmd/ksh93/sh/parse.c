@@ -302,7 +302,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
  */
 static Shnode_t	*makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
 {
-	register Shnode_t	*t;
+	register Shnode_t	*t = NIL(Shnode_t*);
 	if(!l || !r)
 		sh_syntax(lexp);
 	else
@@ -808,7 +808,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		{
 			struct comnod	*ac;
 			char		*cp, **argv, **argv0;
-			int		c;
+			int		c=-1;
 			t->funct.functargs = ac = (struct comnod*)simple(lexp,SH_NOIO|SH_FUNDEF,NIL(struct ionod*));
 			if(ac->comset || (ac->comtyp&COMSCAN))
 				errormsg(SH_DICT,ERROR_exit(3),e_lexsyntax4,lexp->sh->inlineno);
