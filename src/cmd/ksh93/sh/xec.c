@@ -3120,7 +3120,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	shp->st.var_local = shp->var_tree;
 	if(!fun)
 	{
-		shp->st.filename = fp->node->nvalue.rp->fname;
+		if(fp->node->nvalue.rp)
+			shp->st.filename = fp->node->nvalue.rp->fname;
 		shp->st.funname = nv_name(fp->node);
 		shp->last_root = nv_dict(DOTSHNOD);
 		nv_putval(SH_PATHNAMENOD,shp->st.filename,NV_NOFREE);
