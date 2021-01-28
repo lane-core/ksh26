@@ -14,7 +14,6 @@ lib	grantpt,unlockpt,posix_openpt stdlib.h
 lib	cfmakeraw termios.h
 
 tst - output{
-	#include	<sfio.h>
 	#include	<fcntl.h>
 	#if _lib_ptsname
 	#include	<stdlib.h>
@@ -22,6 +21,7 @@ tst - output{
 	#include	<unistd.h>
 	#include	<sys/types.h>
 	#include	<sys/stat.h>
+	#include	<sfio.h>
 	int main()
 	{
 		int		i;
