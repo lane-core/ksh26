@@ -2113,7 +2113,7 @@ static void attstore(register Namval_t *np, void *data)
 	if((flag&(NV_UTOL|NV_LTOU|NV_INTEGER)) == (NV_UTOL|NV_LTOU))
 	{
 		data = (void*)nv_mapchar(np,0);
-		if(strcmp(data,e_tolower) && strcmp(data,e_toupper))
+		if(data && strcmp(data,e_tolower) && strcmp(data,e_toupper))
 			return;
 	}
 	flag &= (NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER);
