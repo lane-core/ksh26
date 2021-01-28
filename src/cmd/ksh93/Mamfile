@@ -1046,6 +1046,7 @@ make install
 					prev include/fcin.h implicit
 					prev include/shell.h implicit
 					prev include/defs.h implicit
+					prev include/version.h implicit
 				done sh/parse.c
 				meta parse.o %.c>%.o sh/parse.c parse
 				prev sh/parse.c
@@ -1405,6 +1406,7 @@ make install
 				prev include/shnodes.h implicit
 				prev include/defs.h implicit
 				prev include/shell.h implicit
+				prev include/version.h implicit
 			done sh/shcomp.c
 			meta shcomp.o %.c>%.o sh/shcomp.c shcomp
 			prev sh/shcomp.c
