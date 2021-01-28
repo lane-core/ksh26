@@ -2429,6 +2429,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else
 				{
 					root = dtopen(&_Nvdisc,Dtoset);
+					dtuserdata(root,shp,1);
 					nv_mount(np, (char*)0, root);
 					np->nvalue.cp = Empty;
 					dtview(root,shp->var_base);
@@ -2484,11 +2485,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				slp = (struct slnod*)np->nvenv;
 				sh_funstaks(slp->slchild,-1);
 				stakdelete(slp->slptr);
-				if(shp->funload)
-				{
-					free((void*)np->nvalue.rp);
-					np->nvalue.rp = 0;
-				}
 				if(rp->sdict)
 				{
 					Namval_t *mp, *nq;
@@ -2501,6 +2497,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					dtclose(rp->sdict);
 					rp->sdict = 0;
+				}
+				if(shp->funload)
+				{
+					if(!shp->fpathdict)
+						free((void*)np->nvalue.rp);
+					np->nvalue.rp = 0;
 				}
 			}
 			if(!np->nvalue.rp)
@@ -2540,7 +2542,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(!shp->fpathdict)
 						shp->fpathdict = dtopen(&_Rpdisc,Dtobag);
 					if(shp->fpathdict)
+					{
+						dtuserdata(shp->fpathdict,shp,1);
 						dtinsert(shp->fpathdict,rp);
+					}
 				}
 			}
 			else

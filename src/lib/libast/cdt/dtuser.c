@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -21,39 +21,39 @@
 ***********************************************************************/
 #include	"dthdr.h"
 
-/* Hashing a string into an unsigned integer.
-** This is the FNV (Fowler-Noll-Vo) hash function.
-** Written by Kiem-Phong Vo (01/10/2012)
+/* Perform various functions on the user's behalf.
+**
+** Written by Kiem-Phong Vo (01/05/2012)
 */
 
-#if __STD_C
-uint dtstrhash(uint h, Void_t* args, ssize_t n)
-#else
-uint dtstrhash(h,args,n)
-uint	h;
-Void_t*		args;
-ssize_t		n;
-#endif
+/* managing the lock dt->data->user.lock */
+int dtuserlock(Dt_t* dt, unsigned int key, int type)
 {
-	unsigned char	*s = (unsigned char*)args;
+	if(key == 0)
+		return -1;
+	else if(type > 0)
+		return asolock(&dt->data->user.lock, key, ASO_LOCK);
+	else if(type < 0)
+		return asolock(&dt->data->user.lock, key, ASO_UNLOCK);
+	else	return asolock(&dt->data->user.lock, key, ASO_TRYLOCK);
+}
 
-#if _ast_sizeof_int == 8 /* 64-bit hash */
-#define	FNV_PRIME	((1<<40) + (1<<8) + 0xb3)
-#define FNV_OFFSET	14695981039346656037
-#else /* 32-bit hash */
-#define	FNV_PRIME	((1<<24) + (1<<8) + 0x93)
-#define FNV_OFFSET	2166136261
-#endif
-	h = (h == 0 || h == ~0) ? FNV_OFFSET : h;
-	if(n <= 0) /* see discipline key definition for == 0 */
-	{	for(; *s != 0; ++s )
-			h = (h ^ s[0]) * FNV_PRIME;
+/* managing the user data slot dt->data->user.data */
+Void_t* dtuserdata(Dt_t* dt, Void_t* data, int set)
+{
+	if(set == 0) /* just return current value */
+		return asogetptr(&dt->data->user.data);
+	else while(1)
+	{	Void_t	*current = dt->data->user.data;
+		if(asocasptr(&dt->data->user.data, current, data) == current)
+			return	current;
 	}
-	else
-	{	unsigned char*	ends;
-		for(ends = s+n; s < ends; ++s)
-			h = (h ^ s[0]) * FNV_PRIME;
-	}
+}
 
-	return h;
+/* announcing an event on the user's behalf */
+int dtuserevent(Dt_t* dt, int flags, Void_t* data)
+{
+	if(!dt->disc->eventf)
+		return 0;
+	else	return (*dt->disc->eventf)(dt, DT_ANNOUNCE|DT_USER|flags, data, dt->disc);
 }

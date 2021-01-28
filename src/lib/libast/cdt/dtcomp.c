@@ -52,9 +52,3 @@ extern ssize_t dtsize(Dt_t* d)
 {
 	return (ssize_t)(*(_DT(d)->searchf))((d),(Void_t*)(0),DT_STAT);
 }
-
-#undef dtstat
-extern ssize_t dtstat(Dt_t* d)
-{
-	return (ssize_t)(*(_DT(d)->searchf))((d),(Void_t*)(0),DT_STAT);
-}

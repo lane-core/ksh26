@@ -184,7 +184,10 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			{
 				ap = nv_arrayptr(np);
 				if(ap && !ap->table)
+				{
 					ap->table = dtopen(&_Nvdisc,Dtoset);
+					dtuserdata(ap->table,shp,1);
+				}
 				if(ap && ap->table && (nq=nv_search(nv_getsub(np),ap->table,NV_ADD)))
 					nq->nvenv = (char*)np;
 				if(nq && nv_isnull(nq))

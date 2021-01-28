@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -21,39 +21,34 @@
 ***********************************************************************/
 #include	"dthdr.h"
 
-/* Hashing a string into an unsigned integer.
-** This is the FNV (Fowler-Noll-Vo) hash function.
-** Written by Kiem-Phong Vo (01/10/2012)
+/* Get statistics for a dictionary
+**
+** Written by Kiem-Phong Vo
 */
 
-#if __STD_C
-uint dtstrhash(uint h, Void_t* args, ssize_t n)
-#else
-uint dtstrhash(h,args,n)
-uint	h;
-Void_t*		args;
-ssize_t		n;
-#endif
+ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
 {
-	unsigned char	*s = (unsigned char*)args;
+	ssize_t	sz, k, maxk;
+	char	*str;
+	char	*end;
 
-#if _ast_sizeof_int == 8 /* 64-bit hash */
-#define	FNV_PRIME	((1<<40) + (1<<8) + 0xb3)
-#define FNV_OFFSET	14695981039346656037
-#else /* 32-bit hash */
-#define	FNV_PRIME	((1<<24) + (1<<8) + 0x93)
-#define FNV_OFFSET	2166136261
-#endif
-	h = (h == 0 || h == ~0) ? FNV_OFFSET : h;
-	if(n <= 0) /* see discipline key definition for == 0 */
-	{	for(; *s != 0; ++s )
-			h = (h ^ s[0]) * FNV_PRIME;
-	}
-	else
-	{	unsigned char*	ends;
-		for(ends = s+n; s < ends; ++s)
-			h = (h ^ s[0]) * FNV_PRIME;
-	}
+	sz = (ssize_t)(*dt->meth->searchf)(dt, (Void_t*)dtst, DT_STAT);
 
-	return h;
+	str = dtst->mesg;
+	end = &dtst->mesg[sizeof(dtst->mesg)] - 1;
+	str += sfsprintf(str, end - str, "Objects=%d Levels=%d(Largest:", dtst->size, dtst->mlev+1);
+
+	/* print top 3 levels */
+	for(k = maxk = 0; k <= dtst->mlev; ++k)
+		if(dtst->lsize[k] > dtst->lsize[maxk])
+			maxk = k;
+	if(maxk > 0)
+		maxk -= 1;
+	for(k = 0; k < 3 && maxk <= dtst->mlev; ++k, ++maxk)
+		str += sfsprintf(str, end - str, " lev[%d]=%d", maxk, dtst->lsize[maxk] );
+	if (str < end)
+		*str++ = ')';
+	*str = 0;
+
+	return sz;
 }

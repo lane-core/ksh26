@@ -1812,9 +1812,13 @@ static Init_t *nv_init(Shell_t *shp)
 	(OPTINDNOD)->nvalue.lp = (&shp->st.optindex);
 	/* set up the seconds clock */
 	shp->alias_tree = dtopen(&_Nvdisc,Dtoset);
+	dtuserdata(shp->alias_tree,shp,1);
 	shp->track_tree = dtopen(&_Nvdisc,Dtset);
+	dtuserdata(shp->track_tree,shp,1);
 	shp->bltin_tree = sh_inittree(shp,(const struct shtable2*)shtab_builtins);
+	dtuserdata(shp->bltin_tree,shp,1);
 	shp->fun_tree = dtopen(&_Nvdisc,Dtoset);
+	dtuserdata(shp->fun_tree,shp,1);
 	dtview(shp->fun_tree,shp->bltin_tree);
 	nv_mount(DOTSHNOD, "type", shp->typedict=dtopen(&_Nvdisc,Dtoset));
 	nv_adddisc(DOTSHNOD, shdiscnames, (Namval_t**)0);
@@ -1857,6 +1861,7 @@ Dt_t *sh_inittree(Shell_t *shp,const struct shtable2 *name_vals)
 		nbltins = n;
 	}
 	base_treep = treep = dtopen(&_Nvdisc,Dtoset);
+	dtuserdata(treep,shp,1);
 	treep->user = (void*)shp;
 	for(tp=name_vals;*tp->sh_name;tp++,np++)
 	{

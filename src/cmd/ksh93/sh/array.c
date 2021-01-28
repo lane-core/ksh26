@@ -95,6 +95,7 @@ static Namarr_t *array_scope(Namval_t *np, Namarr_t *ap, int flags)
 	if(is_associative(aq))
 	{
 		aq->scope = (void*)dtopen(&_Nvdisc,Dtoset);
+		dtuserdata(aq->scope,&sh,1);
 		dtview((Dt_t*)aq->scope,aq->table);
 		aq->table = (Dt_t*)aq->scope;
 		return(aq);
@@ -373,7 +374,10 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
 		{
 			char *cp;
 			if(!ap->header.table)
+			{
 				ap->header.table = dtopen(&_Nvdisc,Dtoset);
+				dtuserdata(ap->header.table,&sh,1);
+			}
 			sfprintf(sh.strbuf,"%d",ap->cur);
 			cp = sfstruse(sh.strbuf);
 			mp = nv_search(cp, ap->header.table, NV_ADD);
@@ -410,7 +414,10 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 	av[1] = 0;
 	sh.last_table = 0;
 	if(!ap->table)
+	{
 		ap->table = dtopen(&_Nvdisc,Dtoset);
+		dtuserdata(ap->table,&sh,1);
+	}
 	if(nq = nv_search(sub, ap->table, NV_ADD))
 	{
 		if(!nq->nvfun && nq->nvalue.cp && *nq->nvalue.cp==0)
@@ -452,7 +459,6 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp
 	int			nelem, skipped=0;
 	Dt_t			*otable=ap->table;
 	struct index_array	*aq = (struct index_array*)ap, *ar;
-	Shell_t			*shp = sh_getinterp();
 	if(flags&NV_MOVE)
 	{
 		if((flags&NV_COMVAR) && nv_putsub(np,NIL(char*),ARRAY_SCAN))
@@ -485,6 +491,7 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp
 	if(ap->table)
 	{
 		ap->table = dtopen(&_Nvdisc,Dtoset);
+		dtuserdata(ap->table,&sh,1);
 		if(ap->scope && !(flags&NV_COMVAR))
 		{
 			ap->scope = ap->table;
@@ -855,6 +862,7 @@ static struct index_array *array_grow(Namval_t *np, register struct index_array 
 		if(nv_hasdisc(np,&array_disc) || (nv_type(np) && nv_isvtree(np)))
 		{
 			ap->header.table = dtopen(&_Nvdisc,Dtoset);
+			dtuserdata(ap->header.table,&sh,1);
 			mp = nv_search("0", ap->header.table,NV_ADD);
 			if(mp && nv_isnull(mp))
 			{
@@ -1180,7 +1188,6 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 	{
 		if(sp)
 		{
-			Shell_t	*shp = sh_getinterp();
 			if(ap && ap->xp && !strmatch(sp,"+([0-9])"))
 			{
 				Namval_t *mp = nv_namptr(ap->xp,0);
@@ -1188,7 +1195,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 				size = nv_getnum(mp);
 			}
 			else
-				size = (int)sh_arith(shp,(char*)sp);
+				size = (int)sh_arith(&sh,(char*)sp);
 		}
 		if(size <0 && ap)
 			size += array_maxindex(np);
@@ -1242,7 +1249,10 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 					char *cp;
 					Namval_t *mp;
 					if(!ap->header.table)
+					{
 						ap->header.table = dtopen(&_Nvdisc,Dtoset);
+						dtuserdata(ap->header.table,&sh,1);
+					}
 					sfprintf(sh.strbuf,"%d",ap->cur);
 					cp = sfstruse(sh.strbuf);
 					mp = nv_search(cp, ap->header.table, NV_ADD);
@@ -1379,7 +1389,6 @@ static void array_fixed_setdata(Namval_t *np,Namarr_t* ap,struct fixed_array* fp
 
 static int array_fixed_init(Namval_t *np, char *sub, char *cp)
 {
-	Shell_t			*shp=sh_getinterp();
 	Namarr_t		*ap;
 	struct fixed_array	*fp;
 	int			n=1,sz;
@@ -1403,12 +1412,12 @@ static int array_fixed_init(Namval_t *np, char *sub, char *cp)
 	fp->max = (int*)(fp+1);
 	fp->incr = fp->max+n;
 	fp->cur = fp->incr+n;
-	fp->max[0] = (int)sh_arith(shp,(char*)sub);
+	fp->max[0] = (int)sh_arith(&sh,(char*)sub);
 	for(n=1,ep=cp;*ep=='['; ep=cp)
 	{
 		cp = nv_endsubscript(np,ep,0);
 		cp[-1]=0;
-		fp->max[n++] = sz = (int)sh_arith(shp,(char*)ep+1);
+		fp->max[n++] = sz = (int)sh_arith(&sh,(char*)ep+1);
 		if(sz<0)
 		{
 			free((void*)ap);
@@ -1429,7 +1438,6 @@ static int array_fixed_init(Namval_t *np, char *sub, char *cp)
 
 static char *array_fixed(Namval_t *np, char *sub, char *cp,int mode)
 {
-	Shell_t			*shp=sh_getinterp();
 	Namarr_t		*ap = nv_arrayptr(np);
 	struct fixed_array	*fp = (struct fixed_array*)ap->fixed;
 	char			*ep;
@@ -1447,7 +1455,7 @@ static char *array_fixed(Namval_t *np, char *sub, char *cp,int mode)
 	}
 	else
 		fp->curi = 0;
-	size = (int)sh_arith(shp,(char*)sub);
+	size = (int)sh_arith(&sh,(char*)sub);
 	fp->cur[n] = size;
 	if(size >= fp->max[n] || (size < 0))
 		errormsg(SH_DICT,ERROR_exit(1),e_subscript, nv_name(np));
@@ -1459,7 +1467,7 @@ static char *array_fixed(Namval_t *np, char *sub, char *cp,int mode)
 			errormsg(SH_DICT,ERROR_exit(1),e_subscript, nv_name(np));
 		cp = nv_endsubscript(np,ep,0);
 		cp[-1]=0;
-		size = (int)sh_arith(shp,(char*)ep+1);
+		size = (int)sh_arith(&sh,(char*)ep+1);
 		if(size >= fp->max[n] || (size < 0))
 			errormsg(SH_DICT,ERROR_exit(1),e_subscript, nv_name(np));
 		fp->cur[n] = size;
@@ -1658,6 +1666,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 		if(ap = (struct assoc_array*)calloc(1,sizeof(struct assoc_array)))
 		{
 			ap->header.table = dtopen(&_Nvdisc,Dtoset);
+			dtuserdata(ap->header.table,&sh,1);
 			ap->cur = 0;
 			ap->pos = 0;
 			ap->header.hdr.disc = &array_disc;
@@ -1730,8 +1739,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 	    case NV_ANAME:
 		if(ap->cur)
 		{
-			Shell_t *shp = sh_getinterp();
-			if(!shp->instance && nv_isnull(ap->cur))
+			if(!sh.instance && nv_isnull(ap->cur))
 				return(NIL(void*));
 			return((void*)ap->cur->nvname);
 		}

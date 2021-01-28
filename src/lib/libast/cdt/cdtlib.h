@@ -58,9 +58,9 @@
 /* This struct holds private method data created on DT_OPEN */
 struct _dtdata_s
 {	unsigned int	lock;	/* general dictionary lock	*/
-	Dtuser_t	user;	/* application's data		*/
 	unsigned int	type;	/* method type, control flags	*/
 	ssize_t		size;	/* number of objects		*/
+	Dtuser_t	user;	/* application's data		*/
 	Dt_t		dict;	/* when DT_INDATA is requested	*/
 };
 
@@ -123,7 +123,7 @@ typedef struct _dtlib_s
 #endif /* _BLD_cdt */
 
 /* these macros lock/unlock dictionaries. DTRETURN substitutes for "return" */
-#define DTSETLOCK(dt)		(((dt)->data->type&DT_SHARE) ? asolock(&(dt)->data->lock,1,ASO_SPINLOCK) : 0 )
+#define DTSETLOCK(dt)		(((dt)->data->type&DT_SHARE) ? asolock(&(dt)->data->lock,1,ASO_LOCK) : 0 )
 #define DTCLRLOCK(dt)		(((dt)->data->type&DT_SHARE) ? asolock(&(dt)->data->lock,1,ASO_UNLOCK) : 0 )
 #define DTRETURN(ob,rv)		do { (ob) = (rv); goto dt_return; } while(0)
 #define DTERROR(dt, mesg) 	(!((dt)->disc && (dt)->disc->eventf) ? 0 : \

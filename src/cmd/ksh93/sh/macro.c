@@ -2738,7 +2738,10 @@ static char *sh_tilde(Shell_t *shp,register const char *string)
 skip:
 #endif /* _WINIX */
 	if(!logins_tree)
+	{
 		logins_tree = dtopen(&_Nvdisc,Dtbag);
+		dtuserdata(logins_tree,shp,1);
+	}
 	if(np=nv_search(string,logins_tree,NV_ADD))
 	{
 		save = shp->subshell;
