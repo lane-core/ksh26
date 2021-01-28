@@ -385,6 +385,8 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 
 	if(!yankbuf)
 		yankbuf = (genchar*)malloc(MAXLINE*CHARSIZE);
+	if(!vp->lastline)
+		vp->lastline = (genchar*)malloc(MAXLINE*CHARSIZE);
 	if( vp->last_cmd == '\0' )
 	{
 		/*** first time for this shell ***/
@@ -394,6 +396,8 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		vp->lastmotion = '\0';
 		vp->lastrepeat = 1;
 		vp->repeat = 1;
+		if(!yankbuf)
+			return(-1);
 		*yankbuf = 0;
 	}
 
@@ -1117,7 +1121,7 @@ static void cdelete(Vi_t *vp,register int nchars, int mode)
 
 		/*** save characters to be deleted ***/
 
-		if( mode != 'c' )
+		if( mode != 'c' && yankbuf )
 		{
 			i = cp[nchars];
 			cp[nchars] = 0;
@@ -2172,6 +2176,8 @@ static void save_last(register Vi_t* vp)
 {
 	register int i;
 
+	if(vp->lastline == NULL)
+		return;
 	if( (i = cur_virt - first_virt + 1) > 0 )
 	{
 		/*** save last thing user typed ***/
@@ -2420,6 +2426,8 @@ static int textmod(register Vi_t *vp,register int c, int mode)
 		/*** change p from lastline to yankbuf ***/
 		p = yankbuf;
 	}
+	if(!p)
+		return(BAD);
 
 addin:
 	switch( c )
@@ -2693,6 +2701,8 @@ yankeol:
 		vp->lastmotion = c;
 		if( c == 'y' )
 		{
+			if(!yankbuf)
+				return(BAD);
 			gencpy(yankbuf, virtual);
 		}
 		else if(!delmotion(vp, c, 'y'))
