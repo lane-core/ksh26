@@ -47,12 +47,12 @@
 #ifdef S_ISSOCK
 #   if _pipe_socketpair
 #       if _socketpair_shutdown_mode
-#           define isapipe(f,p) (test_stat(f,p)>=0&&S_ISFIFO((p)->st_mode)||S_ISSOCK((p)->st_mode)&&(p)->st_ino&&((p)->st_mode&(S_IRUSR|S_IWUSR))!=(S_IRUSR|S_IWUSR))
+#           define isapipe(f,p) (test_stat(f,p)>=0&&(S_ISFIFO((p)->st_mode)||(S_ISSOCK((p)->st_mode)&&(p)->st_ino&&((p)->st_mode&(S_IRUSR|S_IWUSR))!=(S_IRUSR|S_IWUSR))))
 #       else
-#           define isapipe(f,p) (test_stat(f,p)>=0&&S_ISFIFO((p)->st_mode)||S_ISSOCK((p)->st_mode)&&(p)->st_ino)
+#           define isapipe(f,p) (test_stat(f,p)>=0&&(S_ISFIFO((p)->st_mode)||S_ISSOCK((p)->st_mode)&&(p)->st_ino))
 #       endif
 #   else
-#       define isapipe(f,p) (test_stat(f,p)>=0&&S_ISFIFO((p)->st_mode)||S_ISSOCK((p)->st_mode)&&(p)->st_ino)
+#       define isapipe(f,p) (test_stat(f,p)>=0&&(S_ISFIFO((p)->st_mode)||S_ISSOCK((p)->st_mode)&&(p)->st_ino))
 #   endif
 #   define isasock(f,p) (test_stat(f,p)>=0&&S_ISSOCK((p)->st_mode))
 #else
@@ -498,7 +498,7 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 
 int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 {
-	register double lnum,rnum;
+	register double lnum = 0, rnum = 0;
 	if(op&TEST_ARITH)
 	{
 		while(*left=='0')
