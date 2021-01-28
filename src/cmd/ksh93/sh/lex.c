@@ -1891,6 +1891,8 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 					sfputc(sp,'\\');
 				}
 			}
+			if(LEN < 1)
+				LEN = 1;
 			bufp = fcseek(-LEN);
 		}
 		else
