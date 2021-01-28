@@ -110,8 +110,9 @@ the given \fIaddress\fP, and sets the current object to the given
 \fIaddress\fP.
 The top of the current object is set to \fIoffset\fP bytes from
 current object.
-If \fIaddress\fP is not the address of an object on the
-stack the result is undefined.
+If \fIaddress\fP is null, the stack is reset to the beginning.
+If it is non-null, but is not the address of an object on the
+stack, the program aborts and dumps core.
 .PP
 The \f5sfio\fP(3) output functions can be used to build
 current object incrementally.
