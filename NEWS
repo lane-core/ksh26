@@ -3,6 +3,18 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-01-30:
+
+- The -x option to the 'command' built-in now causes it to bypass built-ins
+  so that it always runs/queries an external command. See 'command --man'.
+
+- Fixed a bug in 'command -x' that caused the minimum exit status to be 1 if
+  a command with many arguments was divided into several command invocations.
+
+- The 2020-08-16 fix is improved with a compile-time feature test that
+  detects if and how the OS uses data alignment in the arguments list,
+  maximising the efficiency of 'command -x' for the system it runs on.
+
 2021-01-24:
 
 - Fixed a bug in 'typeset': combining the -u option with -F or -E caused the

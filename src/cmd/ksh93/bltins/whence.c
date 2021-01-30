@@ -68,7 +68,7 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 		flags |= V_FLAG;
 		break;
 	    case 'x':
-		shp->xargexit = 1;
+		flags |= P_FLAG;
 		break;
 	    case ':':
 		if(argc==0)
@@ -82,7 +82,13 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 		break;
 	}
 	if(argc==0)
-		return(flags?0:opt_info.index);
+	{
+		if(flags & (X_FLAG|V_FLAG))
+			return(0);	/* return no offset now; sh_exec() will treat command -v/-V as normal builtin */
+		if(flags & P_FLAG)
+			sh_onstate(SH_XARG);
+		return(opt_info.index); /* offset for sh_exec() to remove 'command' prefix + options */
+	}
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));

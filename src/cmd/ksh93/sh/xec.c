@@ -1024,7 +1024,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #endif /* SHOPT_NAMESPACE */
 			com0 = com[0];
-			shp->xargexit = 0;
+			sh_offstate(SH_XARG);
 			while(np==SYSCOMMAND || !np && com0 && nv_search(com0,shp->fun_tree,0)==SYSCOMMAND)
 			{
 				register int n = b_command(0,com,&shp->bltindata);
@@ -1036,13 +1036,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 					break;
 				np = nv_bfsearch(com0, shp->bltin_tree, &nq, &cp); 
 			}
-			if(shp->xargexit)
+			if(sh_isstate(SH_XARG))
 			{
 				shp->xargmin -= command;
 				shp->xargmax -= command;
+				shp->xargexit = 0;
 			}
-			else
-				shp->xargmin = 0;
 			argn -= command;
 			if(np && is_abuiltin(np))
 			{
@@ -1233,7 +1232,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					pipejob = 1;
 				}
 				/* check for builtins */
-				if(np && is_abuiltin(np))
+				if(np && is_abuiltin(np) && !sh_isstate(SH_XARG))
 				{
 					volatile int scope=0, share=0;
 					volatile void *save_ptr;

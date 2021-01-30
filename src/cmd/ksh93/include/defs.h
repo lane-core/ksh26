@@ -314,6 +314,7 @@ struct shared
 #define	SH_PREINIT	18	/* set with SH_INIT before parsing options */
 #define SH_COMPLETE	19	/* set for command completion */
 #define SH_INTESTCMD	20	/* set while test/[ command is being run */
+#define SH_XARG		21	/* set while in xarg (command -x) mode */
 
 #define SH_BRACEEXPAND		42
 #define SH_POSIX		46

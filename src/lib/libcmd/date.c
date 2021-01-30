@@ -218,37 +218,38 @@ typedef struct Fmt
 static int
 settime(Shbltin_t* context, const char* cmd, Time_t now, int adjust, int network)
 {
-	char*		s;
 	char**		argv;
-	char*		args[5];
+	char*		args[7];
 	char		buf[1024];
 
 	if (!adjust && !network)
 		return tmxsettime(now);
 	argv = args;
-	s = "/usr/bin/date";
-	if (!streq(cmd, s) && (!eaccess(s, X_OK) || !eaccess(s+=4, X_OK)))
+	*argv++ = "command";
+	*argv++ = "-px";
+	*argv++ = "date";
+	if (streq(astconf("UNIVERSE", NiL, NiL), "att"))
 	{
-		*argv++ = s;
-		if (streq(astconf("UNIVERSE", NiL, NiL), "att"))
-		{
-			tmxfmt(buf, sizeof(buf), "%m%d%H" "%M%Y.%S", now);
-			if (adjust)
-				*argv++ = "-a";
-		}
-		else
-		{
-			tmxfmt(buf, sizeof(buf), "%Y%m%d%H" "%M.%S", now);
-			if (network)
-				*argv++ = "-n";
-			if (tm_info.flags & TM_UTC)
-				*argv++ = "-u";
-		}
-		*argv++ = buf;
-		*argv = 0;
-		if (!sh_run(context, argv - args, args))
-			return 0;
+		tmxfmt(buf, sizeof(buf), "%m%d%H" "%M%Y.%S", now);
+		if (adjust)
+			*argv++ = "-a";
 	}
+	else
+	{
+#if __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __bsdi__ || __DragonFly__
+		tmxfmt(buf, sizeof(buf), "%Y%m%d%H" "%M.%S", now);
+#else
+		tmxfmt(buf, sizeof(buf), "%m%d%H" "%M%Y.%S", now);
+#endif
+		if (network)
+			*argv++ = "-n";
+		if (tm_info.flags & TM_UTC)
+			*argv++ = "-u";
+	}
+	*argv++ = buf;
+	*argv = 0;
+	if (!sh_run(context, argv - args, args))
+		return 0;
 	return -1;
 }
 

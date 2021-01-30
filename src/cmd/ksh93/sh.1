@@ -5844,19 +5844,33 @@ rather than the one defined by the value of
 .IP
 The
 .B \-x
-option allows executing non-built-in commands with argument lists exceeding
-limitations imposed by the operating system. This functionality is similar to
+option runs
+.I name\^
+as an external command, bypassing built-ins.
+If the arguments contain a word that expands to multiple arguments, such as
+\f3"$@"\fP or \f3"${array[@]}"\fP, then the
+.B \-x
+option also allows executing external commands with argument lists that are
+longer than the operating system allows. This functionality is similar to
 .BR xargs (1)
-but is easier to use.
-If a command cannot ordinarily be executed because there are too many
-arguments, the shell will invoke the indicated command multiple times
-with a subset of the arguments on each invocation.
-Any arguments (such as command options) that come before the first word
-that expands to multiple arguments, as well as any that follow the last
-word that expands to multiple arguments, are considered static arguments
-and are repeated for each invocation. When all invocations are completed,
+but is easier to use. The shell does this by invoking the external command
+multiple times if needed, dividing the expanded argument list over the
+invocations. Any arguments that come before the first \f3"$@"\fP or similar
+expansion, as well as any that follow the last \f3"$@"\fP or similar, are
+considered static arguments and are repeated for each invocation. This allows
+each invocation to use the same command options, as well as the same trailing
+destination arguments for commands like
+.BR cp (1)
+or
+.BR mv (1).
+When all invocations are completed,
 .B "command \-x"
 exits with the status of the invocation that had the highest exit status.
+(Note that
+.B "command \-x"
+may still fail with an "argument list too long" error if a single argument
+exceeds the maximum length of the argument list, or if no \f3"$@"\fP or
+similar expansion was used.)
 .TP
 \(dd \f3compound\fP \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK .\|.\|.
 Causes each
@@ -6838,7 +6852,7 @@ Any file descriptor numbers greater than
 .B 2
 that are opened with this mechanism are closed when invoking another program,
 unless they are explicitly redirected to themselves as part of that invocation
-(e.g. \fb4>&4\fR) or the \fBposix\fR shell option is active.
+(e.g. \fB4>&4\fR) or the \fBposix\fR shell option is active.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
 Causes a shell

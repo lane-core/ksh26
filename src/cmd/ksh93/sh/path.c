@@ -162,24 +162,24 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 	pid_t pid;
 	if(shp->xargmin < 0)
 		return((pid_t)-1);
-	size = shp->gd->lim.arg_max-1024;
+	size = shp->gd->lim.arg_max-2048;
 	for(ev=envp; cp= *ev; ev++)
-		size -= strlen(cp)-1;
+		size -= strlen(cp)+1;
 	for(av=argv; (cp= *av) && av< &argv[shp->xargmin]; av++)  
-		size -= strlen(cp)-1;
+		size -= strlen(cp)+1;
 	for(av=avlast; cp= *av; av++,nlast++)  
-		size -= strlen(cp)-1;
+		size -= strlen(cp)+1;
 	av =  &argv[shp->xargmin];
 	if(!spawn)
 		job_clear();
 	shp->exitval = 0;
 	while(av<avlast)
 	{
-		/* for each argument, account for terminating zero and 16-byte alignment */
+		/* for each argument, account for terminating zero and possible alignment */
 		for(xv=av,left=size; left>0 && av<avlast;)
 		{
-			n = strlen(*av++) + 1 + 16;
-			left -= n + n % 16;
+			n = strlen(*av++) + 1 + ARG_ALIGN_BYTES;
+			left -= n + (ARG_ALIGN_BYTES ? n % ARG_ALIGN_BYTES : 0);
 		}
 		/* leave at least two for last */
 		if(left<0 && (avlast-av)<2)
@@ -1244,11 +1244,11 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 #endif /* EMLINK */
 		return(-1);
 	    case E2BIG:
-		if(shp->xargmin)
+		if(sh_isstate(SH_XARG))
 		{
 			pid = path_xargs(shp,opath, &argv[0] ,envp,spawn);
 			if(pid<0)
-				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),"%s: 'command -x' failed",path);
+				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),"command -x: could not execute %s",path);
 			return(pid);
 		}
 	    default:

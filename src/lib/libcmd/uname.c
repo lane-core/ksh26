@@ -37,7 +37,7 @@ USAGE_LICENSE
 "	separated, on a single line. When more than one option is specified"
 "	the output is in the order specified by the \b-A\b option below."
 "	Unsupported option values are listed as \a[option]]\a. If any unknown"
-"	options are specified then the local \b/usr/bin/uname\b is called.]"
+"	options are specified, the OS default \buname\b(1) is called.]"
 "[+?If any \aname\a operands are specified then the \bsysinfo\b(2) values"
 "	for each \aname\a are listed, separated by space, on one line."
 "	\bgetconf\b(1), a pre-existing \astandard\a interface, provides"
@@ -325,14 +325,14 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			sethost = opt_info.arg;
 			continue;
 		case ':':
-			s = "/usr/bin/uname";
-			if (!streq(argv[0], s) && (!eaccess(s, X_OK) || !eaccess(s+=4, X_OK)))
 			{
-				argv[0] = s;
-				return sh_run(context, argc, argv);
+				char **new_argv = (char **)stakalloc((argc + 3) * sizeof(char*));
+				new_argv[0] = "command";
+				new_argv[1] = "-px";
+				for (n = 0; n <= argc; n++)
+					new_argv[n + 2] = argv[n];
+				return sh_run(context, argc + 2, new_argv);
 			}
-			error(2, "%s", opt_info.arg);
-			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
 			break;
