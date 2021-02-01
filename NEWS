@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-02-01:
+
+- Fixed: scalar arrays (-a) and associative arrays (-A) of a type created by
+  'enum' allowed values not specified by the enum type, corrupting results.
+
+- Fixed: the "${array[@]}" expansion for associative arrays of a type created
+  by 'enum' expanded to random numbers instead of the array's values.
+
 2021-01-30:
 
 - The -x option to the 'command' built-in now causes it to bypass built-ins
@@ -12,7 +20,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   a command with many arguments was divided into several command invocations.
 
 - The 2020-08-16 fix is improved with a compile-time feature test that
-  detects if and how the OS uses data alignment in the arguments list,
+  detects if the OS requires extra bytes per argument in the arguments list,
   maximising the efficiency of 'command -x' for the system it runs on.
 
 2021-01-24:
