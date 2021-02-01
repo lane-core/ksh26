@@ -5,6 +5,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-02-01:
 
+- Fixed a bug in 'typeset': the '-s' modifier option for short integer will
+  now only be applied if the integer option '-i' is also present, avoiding
+  inconsistent results and a crash.
+  
 - Fixed: scalar arrays (-a) and associative arrays (-A) of a type created by
   'enum' allowed values not specified by the enum type, corrupting results.
 
