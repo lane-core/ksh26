@@ -526,16 +526,16 @@ typeset -A expect=(
 	[F12]='typeset -x -r -F 12 foo'
 	[H]='typeset -x -r -H foo'
 	[L]='typeset -x -r -L 0 foo'
-#	[L17]='typeset -x -r -L 17 foo'		# TODO: outputs '-L 0'
+	[L17]='typeset -x -r -L 17 foo'
 	[Mtolower]='typeset -x -r -l foo'
 	[Mtoupper]='typeset -x -r -u foo'
 	[R]='typeset -x -r -R 0 foo'
-#	[R17]='typeset -x -r -R 17 foo'		# TODO: outputs '-L 0'
+	[R17]='typeset -x -r -R 17 foo'
 	[X17]='typeset -x -r -X 17 foo'
 	[S]='typeset -x -r foo'
 	[T]='typeset -x -r foo'
 	[Z]='typeset -x -r -Z 0 -R 0 foo'
-#	[Z13]='typeset -x -r -Z 13 -R 13 foo'	# TODO: outputs 'typeset -x -r -Z 0 -R 0 foo'
+	[Z13]='typeset -x -r -Z 13 -R 13 foo'
 )
 for flag in "${!expect[@]}"
 do	unset foo
