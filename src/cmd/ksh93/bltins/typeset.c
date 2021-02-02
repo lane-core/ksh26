@@ -500,6 +500,7 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 {
 	char	 *name;
 	int	aflag=tp->aflag;
+	Namval_t	*table;
 	if(nv_isnull(np))
 	{
 		if(!np->nvflag)
@@ -543,7 +544,9 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 		sfwrite(iop,"}\n",2);
 		return;
 	}
+	table = tp->sh->last_table;
 	sfputr(iop,nv_name(np),aflag=='+'?'\n':'=');
+	tp->sh->last_table = table;
 	if(aflag=='+')
 		return;
 	if(nv_isarray(np) && nv_arrayptr(np))
