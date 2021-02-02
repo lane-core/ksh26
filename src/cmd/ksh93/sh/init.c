@@ -161,7 +161,7 @@ struct match
 	char		*val;
 	char		*rval[2];
 	regoff_t	*match;
-	char		node[NV_MINSZ+sizeof(char*)];
+	char		node[NV_MINSZ+sizeof(char*)+sizeof(Dtlink_t)];
 	regoff_t	first;
 	int		vsize;
 	int		nmatch;
@@ -721,7 +721,7 @@ static int hasgetdisc(register Namfun_t *fp)
 void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t match[],int index)
 {
 	struct match	*mp = &ip->SH_MATCH_init;
-	Namval_t	*np = nv_namptr(mp->node,0); 
+	Namval_t	*np = (Namval_t*)(&(mp->node[0]));
 	register int	i,n,x;
 	unsigned int	savesub = shp->subshell;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
