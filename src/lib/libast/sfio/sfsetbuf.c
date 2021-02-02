@@ -254,6 +254,15 @@ size_t	size;	/* buffer size, -1 for default size */
 #endif
 		}
 
+		/* set page size, this is also the desired default buffer size */
+		if(_Sfpage <= 0)
+		{
+#if _lib_getpagesize
+			if((_Sfpage = (size_t)getpagesize()) <= 0)
+#endif
+				_Sfpage = SF_PAGE;
+		}
+
 #if SFSETLINEMODE
 		if(init)
 			f->flags |= sfsetlinemode();
@@ -307,15 +316,6 @@ size_t	size;	/* buffer size, -1 for default size */
 				if(!f->proc && (f->bits&SF_BOTH) )
 					(void)_sfpopen(f,-1,-1,1);
 			}
-		}
-
-		/* set page size, this is also the desired default buffer size */
-		if(_Sfpage <= 0)
-		{
-#if _lib_getpagesize
-			if((_Sfpage = (size_t)getpagesize()) <= 0)
-#endif
-				_Sfpage = SF_PAGE;
 		}
 	}
 

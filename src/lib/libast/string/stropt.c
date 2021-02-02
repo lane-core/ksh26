@@ -90,7 +90,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 			{
 				for (p = (char**)tab; t = *p; p = (char**)((char*)p + siz))
 				{
-					for (v = s; *t && *t++ == *v; v++);
+					for (v = s; *t && *t == *v; t++, v++);
 					if (!*t || isspace(*v) || *v == ',' || *v == '=')
 						break;
 					if (*v == ':' && *(v + 1) == '=')

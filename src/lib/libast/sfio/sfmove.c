@@ -113,7 +113,11 @@ reg int		rc;	/* record separator */
 
 		/* try reading a block of data */
 		direct = 0;
-		if((r = fr->endb - (next = fr->next)) <= 0)
+		if(fr->rsrv && (r = -fr->rsrv->slen) > 0)
+		{	fr->rsrv->slen = 0;
+			next = fr->rsrv->data;
+		}
+		else if((r = fr->endb - (next = fr->next)) <= 0)
 		{	/* amount of data remained to be read */
 			if((w = n > MAX_SSIZE ? MAX_SSIZE : (ssize_t)n) < 0)
 			{	if(fr->extent < 0)

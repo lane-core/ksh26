@@ -34,7 +34,7 @@
 #define _SFIO_PRIVATE \
 	Sfoff_t			extent;	/* current file	size		*/ \
 	Sfoff_t			here;	/* current physical location	*/ \
-	unsigned char		unused_1;/* unused #1			*/ \
+	unsigned char		ngetr;	/* sfgetr count			*/ \
 	unsigned char		tiny[1];/* for unbuffered read stream	*/ \
 	unsigned short		bits;	/* private flags		*/ \
 	unsigned int		mode;	/* current io mode		*/ \
@@ -82,7 +82,7 @@
 	  (ssize_t)(-1),				/* val		*/ \
 	  (Sfoff_t)0,					/* extent	*/ \
 	  (Sfoff_t)0,					/* here		*/ \
-	  0,						/* getr		*/ \
+	  0,						/* ngetr	*/ \
 	  {0},						/* tiny		*/ \
 	  0,						/* bits		*/ \
 	  (unsigned int)(((type)&(SF_RDWR))|SF_INIT),	/* mode		*/ \
@@ -93,7 +93,8 @@
 	  (mutex),					/* mutex	*/ \
 	  (Void_t*)0,					/* stdio	*/ \
 	  (Sfoff_t)0,					/* lpos		*/ \
-	  (size_t)0					/* iosz		*/ \
+	  (size_t)0,					/* iosz		*/ \
+	  0						/* getr		*/ \
 	}
 
 /* function to clear an Sfio_t structure */
@@ -110,7 +111,7 @@
 	  (f)->val = (ssize_t)(-1),			/* val		*/ \
 	  (f)->extent = (Sfoff_t)(-1),			/* extent	*/ \
 	  (f)->here = (Sfoff_t)0,			/* here		*/ \
-	  (f)->getr = 0,				/* getr		*/ \
+	  (f)->ngetr = 0,				/* ngetr	*/ \
 	  (f)->tiny[0] = 0,				/* tiny		*/ \
 	  (f)->bits = 0,				/* bits		*/ \
 	  (f)->mode = 0,				/* mode		*/ \
@@ -121,7 +122,8 @@
 	  (f)->mutex = (mtx),				/* mutex	*/ \
 	  (f)->stdio = (Void_t*)0,			/* stdio	*/ \
 	  (f)->lpos = (Sfoff_t)0,			/* lpos		*/ \
-	  (f)->iosz = (size_t)0				/* iosz		*/ \
+	  (f)->iosz = (size_t)0,			/* iosz		*/ \
+	  (f)->getr = 0					/* getr		*/ \
 	)
 
 /* expose next stream inside discipline function; state saved in int f */

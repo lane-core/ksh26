@@ -258,7 +258,7 @@ reg Sfio_t*	f;	/* stream to close */
 #endif
 {
 	Sfproc_t*	p;
-	int		pid, status;
+	int		status;
 
 	if(!(p = f->proc))
 		return -1;
@@ -279,7 +279,7 @@ reg Sfio_t*	f;	/* stream to close */
 		sigcritical(SIG_REG_EXEC|SIG_REG_PROC);
 #endif
 		status = -1;
-		while ((pid = waitpid(p->pid,&status,0)) == -1 && errno == EINTR)
+		while (waitpid(p->pid,&status,0) == -1 && errno == EINTR)
 			;
 #if _PACKAGE_ast
 		status = status == -1 ?
@@ -404,13 +404,17 @@ reg int		local;	/* a local call */
 
 	if(f->mode&SF_GETR)
 	{	f->mode &= ~SF_GETR;
-#if defined(MAP_TYPE) && (_ptr_bits < 64)
-		if((f->bits&SF_MMAP) && (f->tiny[0] += 1) >= (4*SF_NMAP) )
-		{	/* turn off mmap to avoid page faulting */
-			sfsetbuf(f,(Void_t*)f->tiny,(size_t)SF_UNBOUND);
-			f->tiny[0] = 0;
+#ifdef MAP_TYPE
+		if(f->bits&SF_MMAP)
+		{
+			if (!++f->ngetr)
+				f->tiny[0]++;
+			if(((f->tiny[0]<<8)|f->ngetr) >= (4*SF_NMAP) )
+			{	/* turn off mmap to avoid page faulting */
+				sfsetbuf(f,(Void_t*)f->tiny,(size_t)SF_UNBOUND);
+				f->ngetr = f->tiny[0] = 0;
+			}
 		}
-		else
 #endif
 		if(f->getr)
 		{	f->next[-1] = f->getr;

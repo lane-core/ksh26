@@ -68,19 +68,22 @@ int		mode;	/* type of region		*/
 	Block_t		*bp, *np;
 	Seg_t		*seg;
 	Vmuchar_t	*addr;
-	int		rv;
+	int		rv, mt;
 
 	if(!meth || !disc || !disc->memoryf )
 		return NIL(Vmalloc_t*);
 
 	GETPAGESIZE(_Vmpagesize);
 
+	mode = (mode&VM_FLAGS) | meth->meth; /* start with user-settable flags */
+
 	vmp = &vmproto; /* avoid memory allocation here! */
 	memset(vmp, 0, sizeof(Vmalloc_t));
 	memcpy(&vmp->meth, meth, sizeof(Vmethod_t));
+	mt = vmp->meth.meth;
+	vmp->meth.meth = 0;
 	vmp->disc = disc;
 
-	mode &= VM_FLAGS; /* start with user-settable flags */
 	size = 0;
 
 	if(disc->exceptf)
@@ -154,6 +157,8 @@ int		mode;	/* type of region		*/
 	if(vd->mode&(VM_MTLAST|VM_MTPOOL))
 		seg->free = bp;
 	else	vd->wild = bp;
+
+	vmp->meth.meth = mt;
 
 done:	/* now make the region handle */
 	if(vd->mode&VM_MEMORYF)
