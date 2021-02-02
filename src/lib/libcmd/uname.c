@@ -79,6 +79,7 @@ __STDPP__directive pragma pp:hide getdomainname gethostid gethostname sethostnam
 
 #include <cmd.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <proc.h>
 
 #include "FEATURE/utsname"
@@ -86,9 +87,7 @@ __STDPP__directive pragma pp:hide getdomainname gethostid gethostname sethostnam
 #define MAXHOSTNAME	64
 
 #if _lib_uname && _sys_utsname
-
-#include <sys/utsname.h>
-
+# include <sys/utsname.h>
 #endif
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
@@ -269,6 +268,9 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 		{
 		case 'a':
 			flags |= OPT_all|((1L<<OPT_ALL)-1);
+#ifdef __linux__
+			flags |= OPT_implementation;
+#endif
 			continue;
 		case 'b':
 			flags |= OPT_base;
@@ -394,13 +396,56 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 		output(OPT_machine, ut.machine, "machine");
 		if (flags & OPT_processor)
 		{
-			if (!*(s = astconf("ARCHITECTURE", NiL, NiL)))
+			s = NULL;
+#ifdef __linux__
+# ifdef UNAME_PROCESSOR
+			if (!s)
+			{
+				size_t len = sizeof(buf) - 1;
+				int ctl[] = {CTL_HW, UNAME_PROCESSOR};
+				if (sysctl(ctl, 2, buf, &len, 0, 0) == 0)
+					s = buf;
+			}
+# endif
+			if (!s)
+			{
+				strcpy((s = buf), ut.machine);
+				if (strcmp(s, "i686") == 0)
+				{
+					char line[1024];
+					Sfio_t *io = sfopen((Sfio_t*)0, "/proc/cpuinfo", "r");
+					if (io)
+					{
+						while (fgets(line, sizeof(line), io) > 0)
+						{
+							if (strncmp(line, "vendor_id", 9) == 0)
+							{
+								if (strstr(line, "AuthenticAMD"))
+									s = "athlon";
+								break;
+							}
+						}
+						sfclose(io);
+					}
+				}
+			}
+#endif
+			if (!s && !*(s = astconf("ARCHITECTURE", NiL, NiL)))
 				s = ut.machine;
 			output(OPT_processor, s, "processor");
 		}
 		if (flags & OPT_implementation)
 		{
-			if (!*(s = astconf("PLATFORM", NiL, NiL)) && !*(s = astconf("HW_NAME", NiL, NiL)))
+			s = NULL;
+#ifdef __linux__
+			if (!s)
+			{
+				strcpy((s = buf), ut.machine);
+				if (s[0] == 'i' && s[2] == '8' && s[3] == '6' && s[4] == '\0')
+					s[1] = '3';
+			}
+#endif
+			if (!s && !*(s = astconf("PLATFORM", NiL, NiL)) && !*(s = astconf("HW_NAME", NiL, NiL)))
 			{
 				if (t = strchr(hosttype, '.'))
 					t++;
