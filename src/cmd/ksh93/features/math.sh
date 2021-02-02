@@ -135,6 +135,18 @@ echo "#include <math.h>"
 case $_hdr_ieeefp in
 1)	echo "#include <ieeefp.h>" ;;
 esac
+cat <<!
+#if defined(__ia64__) && defined(signbit)
+# if defined __GNUC__ && __GNUC__ >= 4
+#  define __signbitl(f)		__builtin_signbitl(f)
+# else
+#  include <ast_float.h>
+#  if _lib_copysignl
+#   define __signbitl(f)	(int)(copysignl(1.0,(f))<0.0)
+#  endif
+# endif
+#endif
+!
 echo
 
 : generate the intercept functions and table entries

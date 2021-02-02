@@ -55,6 +55,16 @@ static char		*Zero = "0";
 #endif
 #endif
 
+#if defined(__ia64__) && defined(signbit)
+# if defined __GNUC__ && __GNUC__ >= 4
+#  define __signbitl(f)			__builtin_signbitl(f)
+# else
+#  if _lib_copysignl
+#    define __signbitl(f)	(int)(copysignl(1.0,(f))<0.0)
+#  endif
+# endif
+#endif
+
 #if !_lib_signbit
 #if !_ast_fltmax_double
 static int neg0ld(Sfdouble_t f)
