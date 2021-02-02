@@ -738,7 +738,9 @@ static void job_reset(register struct process *pw)
 {
 	/* save the terminal state for current job */
 #ifdef SIGTSTP
-	job_fgrp(pw,tcgetpgrp(job.fd));
+	pid_t tgrp;
+	if((tgrp=tcgetpgrp(job.fd))!=job.mypid)
+		job_fgrp(pw,tgrp);
 	if(sh_isoption(SH_INTERACTIVE) && tcsetpgrp(job.fd,job.mypid) !=0)
 		return;
 #endif	/* SIGTSTP */
