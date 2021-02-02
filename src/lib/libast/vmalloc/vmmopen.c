@@ -63,8 +63,10 @@ void _STUB_vmmapopen(){}
 /* magic word signaling file/segment is ready */
 #define	MM_MAGIC	((unsigned int)(('P'<<24) | ('&'<<16) | ('N'<<8) | ('8')) )
 
+#ifndef __linux__
 /* default minimum region size */
 #define MM_MINSIZE	(64*_Vmpagesize)
+#endif
 
 /* macros to get the data section and size */
 #define MMHEAD(file)	ROUND(sizeof(Mmvm_t)+strlen(file), ALIGN)
@@ -167,9 +169,18 @@ static int mminit(Mmdisc_t* mmdc)
 	if(mmdc->mmvm) /* already done this */
 		return 0;
 
+#ifndef __linux__
 	/* fixed size region so make it reasonably large */
 	if((size = mmdc->size) < MM_MINSIZE )
 		size =  MM_MINSIZE;
+#else /* on Linux */
+	if (sizeof(void*) > 32)
+		extent = ROUND(0x80000,_Vmpagesize);
+	else
+		extent = ROUND(0x40000,_Vmpagesize);
+	if((size = mmdc->size) < extent)
+		size = extent;
+#endif
 	size += MMHEAD(mmdc->file) + ALIGN;
 	size  = ROUND(size, _Vmpagesize);
 

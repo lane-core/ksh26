@@ -152,6 +152,9 @@ extern void		_vmmessage _ARG_((const char*, long, const char*, long));
 #endif /*DEBUG*/
 
 #define VMPAGESIZE	8192
+#if defined(__linux__) && !defined(_lib_getpagesize)
+#define _lib_getpagesize	1
+#endif
 #if _lib_getpagesize
 #define GETPAGESIZE(x)	((x) ? (x) : ((x)=getpagesize()) )
 #else
