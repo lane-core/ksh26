@@ -3573,6 +3573,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 				{
 					signal(SIGTTIN,SIG_DFL);
 					signal(SIGTTOU,SIG_DFL);
+					signal(SIGTSTP,SIG_DFL);
 				}
 #endif /* SIGTSTP */
 #ifdef JOBS
@@ -3610,6 +3611,10 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 			{
 				signal(SIGTTIN,SIG_IGN);
 				signal(SIGTTOU,SIG_IGN);
+				if(sh_isstate(SH_INTERACTIVE))
+					signal(SIGTSTP,SIG_IGN);
+				else
+					signal(SIGTSTP,SIG_DFL);
 			}
 #endif /* SIGTSTP */
 			if(spawnpid>0)
@@ -3695,6 +3700,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		{
 			signal(SIGTTIN,SIG_DFL);
 			signal(SIGTTOU,SIG_DFL);
+			signal(SIGTSTP,SIG_DFL);
 			jobwasset++;
 		}
 #endif /* SIGTSTP */
@@ -3758,6 +3764,10 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 	{
 		signal(SIGTTIN,SIG_IGN);
 		signal(SIGTTOU,SIG_IGN);
+		if(sh_isstate(SH_INTERACTIVE))
+			signal(SIGTSTP,SIG_IGN);
+		else
+			signal(SIGTSTP,SIG_DFL);
 	}
 #endif /* SIGTSTP */
 	if(sigwasset)
