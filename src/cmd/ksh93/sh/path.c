@@ -162,7 +162,7 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 	pid_t pid;
 	if(shp->xargmin < 0)
 		return((pid_t)-1);
-	size = shp->gd->lim.arg_max-2048;
+	size = shp->gd->lim.arg_max - (ARG_EXTRA_BYTES > 2 ? 1024*ARG_EXTRA_BYTES : 2048);
 	for(ev=envp; cp= *ev; ev++)
 		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
 	for(av=argv; (cp= *av) && av< &argv[shp->xargmin]; av++)  
