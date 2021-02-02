@@ -67,10 +67,14 @@ main()
 #define _map_malloc	1
 	printf("\n");
 	printf("#define	_map_libc	1\n");
+#endif
+#if _map_libc || defined(__linux__)
 	printf("#undef	basename\n");
 	printf("#define basename	_ast_basename\n");
 	printf("#undef	dirname\n");
 	printf("#define dirname		_ast_dirname\n");
+#endif
+#if _map_libc
 #if !_lib_eaccess
 	printf("#undef	eaccess\n");
 	printf("#define eaccess		_ast_eaccess\n");

@@ -93,6 +93,12 @@ typedef struct
 #define pointerof(x)	((void*)((char*)0+(x)))
 #define roundof(x,y)	(((x)+(y)-1)&~((y)-1))
 
+#ifdef __GNUC__
+#if (__GNUC__ >= 4) && !defined(offsetof)
+#define offsetof(type,member)	__builtin_offsetof(type,member)
+#endif
+#endif
+
 #ifndef offsetof
 #define offsetof(type,member) ((unsigned long)&(((type*)0)->member))
 #endif

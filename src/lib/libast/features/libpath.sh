@@ -27,7 +27,7 @@ esac
 
 ok=0
 for i in \
-	-x /lib/ld.so /lib/ld-*.so /usr/lib/ld.so /lib/rld \
+	-x /lib64/ld.so /lib/ld.so /lib64/ld-*.so /lib/ld-*.so /usr/lib/ld.so /lib/rld \
 	-f /usr/shlib/libc.so /shlib/libc.so /usr/lib/libc.so \
 	-r /usr/shlib/libc.so /shlib/libc.so
 do	case $i in
