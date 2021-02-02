@@ -4388,9 +4388,9 @@ optget(register char** argv, const char* oopts)
 	 */
 
 	opt_info.assignment = 0;
-	num = 1;
-	w = v = 0;
-	x = 0;
+	nov = no = num = 1;
+	e = w = v = 0;
+	n = x = 0;
 	for (;;)
 	{
 		if (!opt_info.offset)
