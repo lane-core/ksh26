@@ -144,7 +144,7 @@ main()
 	return 1;
 #else
 	_ast_intmax_t		s = 0x7fffffffffffffffLL;
-	unsigned _ast_intmax_t	u = 0xffffffffffffffffULL;
+	unsigned _ast_intmax_t	u = 0xffffffffffffffffLL;
 
 	return 0;
 #endif
@@ -817,11 +817,7 @@ defined() # list-file
 			cat <<!
 ${head}
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 #undef conf
@@ -849,11 +845,7 @@ unsigned int conf[] = {
 		cat <<!
 ${head}
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 #undef conf
@@ -894,11 +886,7 @@ done
 	cat <<!
 ${head}
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 #undef conf
@@ -1076,7 +1064,7 @@ do	eval name=\"'$'CONF_name_$key\"
 	case $flags in
 	*[Ll]*)	d=
 		case ${conf_name} in
-		LONG_MAX|UINT_MAX|INT_MAX|SHRT_MAX|SSIZE_MAX|WORD_BIT|LONG_BIT|PTHREAD_*)
+		LONG_MAX|SSIZE_MAX)
 			x=
 			;;
 		*)	eval x='$'CONF_const_${conf_name}
@@ -1136,11 +1124,7 @@ do	eval name=\"'$'CONF_name_$key\"
 ${head}
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 int
@@ -1155,11 +1139,7 @@ main()
 ${head}
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 ${script}
@@ -1306,11 +1286,7 @@ printf("#endif\n");
 				*)	cat > $tmp.c <<!
 ${head}
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 ${script}
@@ -1389,7 +1365,7 @@ ${script}
 		*[lLuU])
 			case $LL_suffix in
 			??)	case $conf_limit in
-				*[0-9a-fA-F][lL]|*[0-9a-fA-F][uU][lL])
+				*[!lL][lL]|*[!lL][lL][uU])
 					conf_limit=${conf_limit}L
 					;;
 				esac
@@ -1424,7 +1400,7 @@ ${script}
 		*[lLuU])
 			case $LL_suffix in
 			??)	case $conf_minmax in
-				*[0-9a-fA-F][lL]|*[0-9a-fA-F][uU][lL])
+				*[!lL][lL]|*[!lL][lL][uU])
 					conf_minmax=${conf_minmax}L
 					;;
 				esac
@@ -1601,11 +1577,7 @@ esac
 cat <<!
 ${head}
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <limits.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
 #include <unistd.h>$systeminfo$headers
 ${tail}
 #include "${base}.h"
