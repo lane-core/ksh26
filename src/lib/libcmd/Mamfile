@@ -116,7 +116,7 @@ make install
 									done features/symlink
 									bind -lutil
 									bind -last
-									exec - iffe ${IFFEFLAGS} -v -c '${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/symlink
+									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/symlink
 								done FEATURE/symlink generated
 								make fts_fix.h implicit
 									make ${PACKAGE_ast_INCLUDE}/fts.h implicit
@@ -304,7 +304,7 @@ make install
 									meta FEATURE/sockets features/%>FEATURE/% features/sockets sockets
 									make features/sockets
 									done features/sockets
-									exec - iffe ${IFFEFLAGS} -v -c '${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/sockets
+									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/sockets
 								done FEATURE/sockets generated
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
@@ -332,7 +332,7 @@ make install
 									meta FEATURE/ids features/%>FEATURE/% features/ids ids
 									make features/ids
 									done features/ids
-									exec - iffe ${IFFEFLAGS} -v -c '${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/ids
+									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/ids
 								done FEATURE/ids generated
 								prev cmd.h implicit
 							done id.c
@@ -427,7 +427,7 @@ make install
 									meta FEATURE/utsname features/%>FEATURE/% features/utsname utsname
 									make features/utsname
 									done features/utsname
-									exec - iffe ${IFFEFLAGS} -v -c '${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ' ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/utsname
+									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/utsname
 								done FEATURE/utsname generated
 								prev ${PACKAGE_ast_INCLUDE}/proc.h implicit
 								prev cmd.h implicit
