@@ -43,11 +43,31 @@ case $0 in
 	*)	echo "this script must live in bin/" >&2
 		exit 1 ;;
 	esac
-	cd .. || exit
+	case $mydir in
+	*/arch/*/*/bin)
+		cd .. ;;
+	*/arch/*/bin)
+		cd ../../.. ;;
+	*)	cd .. ;;
+	esac || exit
 	unset mydir ;;
 package)
-	echo "this script must be invoked with a direct path, e.g. bin/package" >&2
-	exit 1 ;;
+	me=`command -v package` || me=`which package` || exit
+	mydir=`echo "$me" | sed 's,/package$,,'`
+	cd "$mydir" || exit
+	case $PWD in
+	*/bin)	;;
+	*)	echo "this script must live in bin/" >&2
+		exit 1 ;;
+	esac
+	case $mydir in
+	*/arch/*/*/bin)
+		cd .. ;;
+	*/arch/*/bin)
+		cd ../../.. ;;
+	*)	cd .. ;;
+	esac || exit
+	unset me mydir ;;
 *)
 	echo "this script must be named 'package'" >&2
 	exit 1 ;;
