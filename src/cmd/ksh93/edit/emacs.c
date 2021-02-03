@@ -1001,7 +1001,9 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
-			if(ed_expand(ep->ed,(char*)out,&cur,&eol,i,count) < 0)
+			if(cur<1)
+				beep();
+			else if(ed_expand(ep->ed,(char*)out,&cur,&eol,i,count) < 0)
 			{
 				if(ep->ed->e_tabcount==1)
 				{
@@ -1063,10 +1065,9 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			cur = i;
 			draw(ep,UPDATE);
 			return(-1);
-
-#ifdef _cmd_tput
+#ifdef _pth_tput
 		case cntl('L'): /* clear screen */
-			sh_trap("tput clear", 0);
+			system(_pth_tput " clear");
 			draw(ep,REFRESH);
 			return(-1);
 #endif
