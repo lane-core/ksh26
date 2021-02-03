@@ -178,6 +178,7 @@ failures (crashes, and/or essential functionality does not work).
 	GNU/Linux: NixOS 19.09 on x86_64
 	GNU/Linux: Slackware 14.2 on x86_64
 	GNU/Linux: Ubuntu 16.04 on x86_64
+	GNU/Linux: Void Linux (musl C library) on x86_64
 ***	HP-UX B.11.11 on pa-risc
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
