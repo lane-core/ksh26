@@ -577,7 +577,8 @@ char *path_fullname(Shell_t *shp,const char *name)
 static void funload(Shell_t *shp,int fno, const char *name)
 {
 	char		*pname,*oldname=shp->st.filename, buff[IOBSIZE+1];
-	Namval_t	*np;
+	Namval_t	*np, *np_loopdetect;
+	static Dt_t	*loopdetect_tree;
 	struct Ufunction *rp,*rpfirst;
 	int		savestates = sh_getstate(), oldload=shp->funload, savelineno = shp->inlineno;
 	pname = path_fullname(shp,stakptr(PATH_OFFSET));
@@ -607,6 +608,11 @@ static void funload(Shell_t *shp,int fno, const char *name)
 		free((void*)pname);
 		return;
 	}
+	if(!loopdetect_tree)
+		loopdetect_tree = dtopen(&_Nvdisc,Dtoset);
+	else if(nv_search(pname,loopdetect_tree,0))
+		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),"autoload loop: %s in %s",name,pname);
+	np_loopdetect = nv_search(pname,loopdetect_tree,NV_ADD);
 	sh_onstate(SH_NOALIAS);
 	shp->readscript = (char*)name;
 	shp->st.filename = pname;
@@ -631,6 +637,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	shp->inlineno = savelineno;
 	shp->st.filename = oldname;
 	sh_setstate(savestates);
+	nv_delete(np_loopdetect,loopdetect_tree,0);
 	if(pname)
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),e_funload,name,pname);
 }

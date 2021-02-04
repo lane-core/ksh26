@@ -476,6 +476,7 @@ actual=$(PATH=/dev/null "$SHELL" -c 'command -p ls /dev/null' 2>&1)
 [[ $actual == "$expect" ]] || err_exit 'command -p fails to find standard utility' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# ======
 # ksh segfaults if $PATH contains a .paths directory
 mkdir -p $tmp/paths-dir-crash/
 cat > $tmp/paths-dir-crash/run.sh <<- EOF
@@ -483,8 +484,21 @@ mkdir -p $tmp/paths-dir-crash/.paths
 export PATH=$tmp/paths-dir-crash:$PATH
 print ok
 EOF
-[[ $($SHELL $tmp/paths-dir-crash/run.sh 2>/dev/null) == ok ]] || err_exit "ksh crashes if PATH contains a .paths directory"
+ofile=$tmp/dotpaths.out
+trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "PATH containing .paths directory: shell hung"' TERM
+trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT $$"' INT
+{ sleep 5; kill $$; } &
+sleep_pid=$!
+"$SHELL" "$tmp/paths-dir-crash/run.sh" >$ofile 2>&1 &
+pid=$!
+{ wait $pid; } 2>>$ofile
+e=$?
+trap - TERM INT
+[[ $sleep_pid ]] && kill $sleep_pid
+((!e)) && [[ $(<$ofile) == ok ]] || err_exit "PATH containing .paths directory:" \
+	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$(<$ofile)")"
 
+# ======
 # Check that 'command -p' and 'command -p -v' do not use the hash table (a.k.a. tracked aliases).
 print 'echo "wrong path used"' > $tmp/ls
 chmod +x $tmp/ls
@@ -523,6 +537,7 @@ then
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# ======
 # 'command -x' used to hang in an endless E2BIG loop on Linux and macOS
 ofile=$tmp/command_x_chunks.sh
 trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "'\''command -x'\'' hung"' TERM
@@ -681,9 +696,37 @@ fi
 # ======
 # Very long nonexistent command names used to crash
 # https://github.com/ksh93/ksh/issues/144
-{ PATH=/dev/null FPATH=/dev/null "$SHELL" -c "$(awk -v ORS= 'BEGIN { for(i=0;i<10000;i++) print "xxxxxxxxxx"; }')"; } 2>/dev/null
-(((e = $?) == 127)) || err_exit "Long nonexistent command name crashes shell" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+ofile=$tmp/longname.err
+trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "Long nonexistent command name: shell hung"' TERM
+trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT $$"' INT
+{ sleep 5; kill $$; } &
+sleep_pid=$!
+PATH=/dev/null FPATH=/dev/null "$SHELL" -c "$(awk -v ORS= 'BEGIN { for(i=0;i<10000;i++) print "xxxxxxxxxx"; }')" 2>/dev/null &
+pid=$!
+{ wait $pid; } 2>$ofile
+e=$?
+trap - TERM INT
+[[ $sleep_pid ]] && kill $sleep_pid
+((e == 127)) || err_exit "Long nonexistent command name:" \
+	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$(<$ofile)")"
+
+# ======
+# A function autoload recursion loop used to crash
+# https://github.com/ksh93/ksh/issues/136
+mkdir "$tmp/fun.$$" && cd "$tmp/fun.$$" || exit
+echo 'self2' >self
+echo 'self3' >self2
+echo 'self4' >self3
+echo 'self' >self4
+cd ~- || exit
+exp="$SHELL: line 2: autoload loop: self in $tmp/fun.$$/self
+$SHELL: function, built-in or type definition for self4 not found in $tmp/fun.$$/self4
+$SHELL: function, built-in or type definition for self3 not found in $tmp/fun.$$/self3
+$SHELL: function, built-in or type definition for self2 not found in $tmp/fun.$$/self2
+$SHELL: function, built-in or type definition for self not found in $tmp/fun.$$/self"
+got=$({ FPATH=$tmp/fun.$$ "$SHELL" -c self; } 2>&1)
+(((e = $?) == 126)) || err_exit 'Function autoload recursion loop:' \
+	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got")"
 
 # ======
 exit $((Errors<125?Errors:125))
