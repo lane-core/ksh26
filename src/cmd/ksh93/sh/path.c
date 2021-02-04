@@ -720,7 +720,7 @@ int	path_search(Shell_t *shp,register const char *name,Pathcomp_t **oldpp, int f
 	{
 		if(!pp)
 			pp=sh_isstate(SH_DEFPATH)?shp->defpathlist:shp->pathlist;
-		if(pp && strmatch(name,e_alphanum)  && (fno=path_opentype(shp,name,pp,1))>=0)
+		if(pp && strlen(name)<256 && strmatch(name,e_alphanum) && (fno=path_opentype(shp,name,pp,1))>=0)
 		{
 			if(flag >= 2)
 			{

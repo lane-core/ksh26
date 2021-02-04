@@ -526,6 +526,7 @@ fi
 # 'command -x' used to hang in an endless E2BIG loop on Linux and macOS
 ofile=$tmp/command_x_chunks.sh
 trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "'\''command -x'\'' hung"' TERM
+trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT $$"' INT
 { sleep 15; kill $$; } &
 sleep_pid=$!
 (
@@ -554,7 +555,7 @@ sleep_pid=$!
 pid=$!
 wait $pid
 e=$?
-trap - TERM
+trap - TERM INT
 [[ $sleep_pid ]] && kill $sleep_pid
 if	let "e > 0"
 then	err_exit "'command -x' test yielded exit status $e$( let "e>128" && print -n / && kill -l "$e")"
@@ -676,6 +677,13 @@ then	fundir=$tmp/whencefun
 	[[ $actual == "$expect" ]] || err_exit "failure in reporting or running autoloadable functions" \
 		$'-- diff follows:\n'"$(diff -u <(print -r -- "$expect") <(print -r -- "$actual") | sed $'s/^/\t| /')"
 fi
+
+# ======
+# Very long nonexistent command names used to crash
+# https://github.com/ksh93/ksh/issues/144
+{ PATH=/dev/null FPATH=/dev/null "$SHELL" -c "$(awk -v ORS= 'BEGIN { for(i=0;i<10000;i++) print "xxxxxxxxxx"; }')"; } 2>/dev/null
+(((e = $?) == 127)) || err_exit "Long nonexistent command name crashes shell" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
 # ======
 exit $((Errors<125?Errors:125))
