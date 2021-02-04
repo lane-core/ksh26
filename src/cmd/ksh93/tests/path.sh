@@ -341,7 +341,7 @@ scr=$tmp/script
 exp=126
 
 if [[ $(id -u) == '0' ]]; then
-	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping tests involving unreadable scripts"
+	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping tests involving unreadable scripts"
 else
 
 : > $scr

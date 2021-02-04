@@ -209,7 +209,7 @@ u ^hello\r?\n$
 !
 
 if	[[ $(id -u) == 0 ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 096(C)"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 096(C)"
 else
 # err_exit #
 tst $LINENO <<"!"
@@ -254,7 +254,7 @@ u ^ok\r?\n$
 !
 
 if	[[ $(id -u) == 0 ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 099(C)"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 099(C)"
 else
 # err_exit #
 tst $LINENO <<"!"
@@ -365,7 +365,7 @@ u ^done\r?\n$
 !
 
 if	[[ $(id -u) == 0 ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 111(C)"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 111(C)"
 else
 # err_exit #
 tst $LINENO <<"!"
@@ -417,7 +417,7 @@ u ^hello world\r?\n$
 end_disabled
 
 if	[[ $(id -u) == 0 ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 251(C)"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 251(C)"
 else
 # err_exit #
 tst $LINENO <<"!"

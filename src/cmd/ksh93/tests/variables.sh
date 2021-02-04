@@ -741,7 +741,7 @@ Errors=$?  # ensure error count survives subshell
 (
 	errmsg=$({ LANG=bad_LOCALE; } 2>&1)
 	if	[[ -z $errmsg ]]
-	then	print -u2 -r "${Command}[$LINENO]: warning: C library does not seem to verify locales: skipping LC_* tests"
+	then	print -u2 "\t${Command}[$LINENO]: warning: C library does not seem to verify locales: skipping LC_* tests"
 		exit $Errors
 	fi
 	x=x

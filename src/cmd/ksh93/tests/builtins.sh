@@ -812,7 +812,7 @@ e=$?
 
 # https://bugzilla.redhat.com/1102627
 if	[[ $(id -u) == '0' ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping tests involving directory search (x) permission"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping tests involving directory search (x) permission"
 else
 mkdir -m 600 "$tmp/no_x_dir"
 expect=": cd: $tmp/no_x_dir: [Permission denied]"

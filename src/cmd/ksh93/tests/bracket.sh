@@ -83,7 +83,7 @@ fi
 chmod 000 $file
 
 if	[[ $(id -u) == '0' ]]
-then	print -u2 -r "${Command}[$LINENO]: warning: running as root: skipping tests involving r/w permissions"
+then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping tests involving r/w permissions"
 else	if	[[ -r $file ]]
 	then	err_exit "-r: $file should not be readable"
 	fi
