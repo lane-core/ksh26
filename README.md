@@ -44,10 +44,19 @@ While that ksh2020 branch is now abandoned and still has many critical bugs,
 it also had a lot of bugs fixed. More importantly, the AST issue tracker
 now contains a lot of documentation on how to fix those bugs, which made
 it possible to backport many of them to the last stable release instead.
-This ksh 93u+m reboot now incorporates many of these bugfixes, as well as
-many patches from Red Hat, Solaris, as well as new fixes from the community.
-Though there are many bugs left to fix, we are confident at this point that
-93u+m is already the least buggy branch of ksh93 ever released.
+This ksh 93u+m reboot now incorporates many of these bugfixes,
+plus patches from
+[OpenSUSE](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-OpenSUSE),
+[Red Hat](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-Red-Hat),
+and
+[Solaris](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-Solaris),
+as well as many new fixes from the community
+([1](https://github.com/ksh93/ksh/pulls?q=is%3Apr+is%3Amerged),
+[2](https://github.com/ksh93/ksh/issues?q=is%3Aissue+is%3Aclosed+label%3Abug)).
+Though there are many
+[bugs left to fix](https://github.com/ksh93/ksh/issues),
+we are confident at this point that 93u+m is already the least buggy branch
+of ksh93 ever released.
 
 ## Build
 
