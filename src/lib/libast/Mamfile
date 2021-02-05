@@ -11,38 +11,14 @@ note *
 setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv ARFLAGS rc
-setv AS as
-setv ASFLAGS
 setv CC cc
 setv mam_cc_FLAGS ${mam_cc_DLL} -D_BLD_ast
 setv KSH_RELFLAGS
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv COTEMP $$
-setv CPIO cpio
-setv CPIOFLAGS
-setv CPP "${CC} -E"
-setv F77 f77
-setv HOSTCC ${CC}
 setv IFFEFLAGS
-setv IGNORE
-setv LD ld
 setv LDFLAGS
-setv LEX lex
-setv LEXFLAGS
-setv LPR lpr
-setv LPRFLAGS
-setv M4FLAGS
-setv NMAKE nmake
-setv NMAKEFLAGS
-setv PR pr
-setv PRFLAGS
-setv SHELL /bin/sh
-setv SILENT
-setv TAR tar
-setv YACC yacc
-setv YACCFLAGS -d
 make ${PACKAGEROOT}/lib/package/ast.lic
 done ${PACKAGEROOT}/lib/package/ast.lic
 make install

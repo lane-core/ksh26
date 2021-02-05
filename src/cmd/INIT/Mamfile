@@ -10,38 +10,13 @@ note * http://web.archive.org/web/20041227143022/http://www2.research.att.com/~g
 note *
 setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
-setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv ARFLAGS rc
-setv AS as
-setv ASFLAGS
 setv CC cc
 setv mam_cc_FLAGS
 setv KSH_RELFLAGS
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv COTEMP $$
-setv CPIO cpio
-setv CPIOFLAGS
-setv CPP "${CC} -E"
-setv F77 f77
-setv HOSTCC ${CC}
-setv IGNORE
-setv LD ld
 setv LDFLAGS
-setv LEX lex
-setv LEXFLAGS
-setv LPR lpr
-setv LPRFLAGS
-setv M4FLAGS
-setv NMAKE nmake
-setv NMAKEFLAGS
-setv PR pr
-setv PRFLAGS
-setv SHELL /bin/sh
-setv SILENT
-setv TAR tar
-setv YACC yacc
-setv YACCFLAGS -d
 make ${PACKAGEROOT}/lib/package/ast.lic
 done ${PACKAGEROOT}/lib/package/ast.lic
 make install
@@ -50,7 +25,6 @@ make install
 		done hurl.sh
 		meta hurl %.sh>% hurl.sh hurl
 		prev hurl.sh
-		setv LICENSE -DLICENSE="since=2003,author=gsf"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -88,7 +62,6 @@ make install
 		done iffe.sh
 		meta iffe %.sh>% iffe.sh iffe
 		prev iffe.sh
-		setv LICENSE -DLICENSE="since=1994,author=gsf+kpv"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -126,7 +99,6 @@ make install
 		done mktest.sh
 		meta mktest %.sh>% mktest.sh mktest
 		prev mktest.sh
-		setv LICENSE -DLICENSE="since=2005,author=gsf"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -201,7 +173,6 @@ make install
 		done regress.sh
 		meta regress %.sh>% regress.sh regress
 		prev regress.sh
-		setv LICENSE -DLICENSE="since=1995,author=gsf"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -239,7 +210,6 @@ make install
 		done rt.sh
 		meta rt %.sh>% rt.sh rt
 		prev rt.sh
-		setv LICENSE -DLICENSE="since=2005,author=gsf"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -314,7 +284,6 @@ make install
 		done ditto.sh
 		meta ditto %.sh>% ditto.sh ditto
 		prev ditto.sh
-		setv LICENSE -DLICENSE="since=2001,author=gsf+ek"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -352,7 +321,6 @@ make install
 		done execrate.sh
 		meta execrate %.sh>% execrate.sh execrate
 		prev execrate.sh
-		setv LICENSE -DLICENSE="since=2002,author=gsf"
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
