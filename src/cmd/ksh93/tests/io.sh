@@ -696,6 +696,10 @@ got=$(export tmp; "$SHELL" -ec \
 [[ $(< $tmp/ast36_b.test.log) == "$exp2" ]] || err_exit 'stdout not correctly redirected to file with EXIT/ERR trap defined (2)' \
 	"(expected $(printf %q "$exp2"), wrote $(printf %q "$(< $tmp/ast36_b.test.log)"))"
 
+# ======
+# Redirections of the form {varname}>file stopped working if brace expansion was turned off
+redirect {v}>$tmp/v.out; echo ok >&$v
+[[ $(<$tmp/v.out) == ok ]] || err_exit '{varname}>file not working with brace expansion turned off'
 
 # ======
 exit $((Errors<125?Errors:125))

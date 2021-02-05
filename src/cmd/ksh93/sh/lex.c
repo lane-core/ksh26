@@ -1347,10 +1347,11 @@ breakloop:
 			c = (wordflags&ARG_EXP);
 		n = 1;
 	}
-	else if(n>2 && state[0]=='{' && state[n-1]=='}' && !lp->lex.intest && !lp->lex.incase && (c=='<' || c== '>') && sh_isoption(SH_BRACEEXPAND))
+	else if(n>2 && state[0]=='{' && state[n-1]=='}' && !lp->lex.intest && !lp->lex.incase && (c=='<' || c== '>'))
 	{
 		if(!strchr(state,','))
 		{
+			/* Redirection of the form {varname}>file, etc. */
 			stkseek(stkp,stktell(stkp)-1);
 			lp->arg = (struct argnod*)stkfreeze(stkp,1);
 			return(lp->token=IOVNAME);

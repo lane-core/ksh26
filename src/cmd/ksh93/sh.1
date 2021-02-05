@@ -3557,10 +3557,16 @@ forms,
 is preceded by
 .BI { varname }
 with no intervening space,
-then a file descriptor number > 10
+then a file descriptor number > 9
 will be selected by
 the shell and stored in the variable
-.IR varname .
+.IR varname ,
+so it can be read from or written to with redirections like
+.B <&
+.I $varname
+or
+.B >&
+.IR $varname .
 If
 .B >&\-
 or the any of the
