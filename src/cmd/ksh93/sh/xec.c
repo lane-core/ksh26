@@ -1401,8 +1401,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_unscope(shp);
 					bp->ptr = (void*)save_ptr;
 					bp->data = (void*)save_data;
-					/* don't restore for subshell exec */
-					if((shp->topfd>topfd) && !(shp->subshell && np==SYSEXEC))
+					/* don't restore for 'exec' or 'redirect' in subshell */
+					if((shp->topfd>topfd) && !(shp->subshell && (np==SYSEXEC || np==SYSREDIR)))
 						sh_iorestore(shp,topfd,jmpval);
 			
 					shp->redir0 = 0;
