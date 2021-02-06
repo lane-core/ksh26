@@ -3403,7 +3403,9 @@ otherwise, delete the temporary file.
 .BI >; word
 cannot be used with the
 .IR exec
-built-in.
+and
+.IR redirect
+built-ins.
 .TP
 .BI >> word
 Use file
@@ -3428,7 +3430,9 @@ is truncated to the offset at command completion.
 .BI <>; word
 cannot be used with the
 .IR exec
-built-in.
+and
+.IR redirect
+built-ins.
 .TP
 \f3<<\fP\*(OK\f3\-\fP\*(CK\f2word\fP
 The shell input is read up to a line that is the same as
@@ -6854,11 +6858,11 @@ section above),
 with the difference that the effect persists past the execution of the
 .B redirect
 command.
-Any file descriptor numbers greater than
+When invoking another program, file descriptors greater than
 .B 2
-that are opened with this mechanism are closed when invoking another program,
-unless they are explicitly redirected to themselves as part of that invocation
-(e.g. \fB4>&4\fR) or the \fBposix\fR shell option is active.
+that were opened with this mechanism are only passed on if they are explicitly
+redirected to themselves as part of the invocation (e.g. \fB4>&4\fR)
+or if the \fBposix\fR option is set.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
 Causes a shell

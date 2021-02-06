@@ -1277,7 +1277,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 								if(!com[1])
 									type = 2;
 								else
-									errormsg(SH_DICT,ERROR_exit(2),"redirect: %s",e_badsyntax);
+									errormsg(SH_DICT, ERROR_exit(2), "%s: %s: %s",
+										 SYSREDIR->nvname, e_badsyntax, com[1]);
 							else
 								type = (execflg && !shp->subshell && !shp->st.trapcom[0]);
 							shp->redir0 = 1;

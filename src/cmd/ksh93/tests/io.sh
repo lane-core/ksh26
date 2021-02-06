@@ -528,7 +528,7 @@ actual=$(redirect 2>&- 3>&2; echo ok)
 [[ $actual == ok ]] || err_exit "redirection error in 'redirect' causes exit"
 
 # Test that 'redirect' does not accept non-redir args
-expect=$'*: redirect: incorrect syntax\n status = 2'
+expect=$'*: redirect: incorrect syntax: /dev/null/foo\n status = 2'
 actual=$( (redirect /dev/null/foo) 2>&1; echo " status = $?" );
 [[ $actual == $expect ]] || err_exit 'redirect command accepts non-redirection argument' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"

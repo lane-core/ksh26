@@ -110,7 +110,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	if(error_info.errors)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 	if(*argv[0]=='r' && argv[opt_info.index])  /* 'redirect' supports no args */
-		errormsg(SH_DICT,ERROR_exit(2),e_badsyntax);
+		errormsg(SH_DICT,ERROR_exit(2),"%s: %s",e_badsyntax,argv[opt_info.index]);
 	argv += opt_info.index;
 	if(!*argv)
 		return(0);

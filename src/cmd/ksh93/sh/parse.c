@@ -1459,7 +1459,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 					}
 					else if(np==SYSCOMMAND && !sh_isoption(SH_POSIX))
 						cmdarg++;
-					else if(np==SYSEXEC)
+					else if(np==SYSEXEC || np==SYSREDIR)
 						lexp->inexec = 1;
 					else if(np->nvalue.bfp==(Nambfp_f)b_getopts)
 						opt_get |= FOPTGET;

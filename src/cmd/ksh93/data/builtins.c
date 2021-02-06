@@ -598,7 +598,7 @@ const char sh_optexec[] =
 "[+?Because \bexec\b is a special built-in command, any failure will cause the "
 	"script or command line that invokes it to be aborted. This can be "
 	"prevented by invoking \bexec\b from the \bcommand\b utility.]"
-"[+SEE ALSO?\bcommand\b(1), \beval\b(1), \bredirect(1)\b]"
+"[+SEE ALSO?\bcommand\b(1), \beval\b(1), \bredirect\b(1)]"
 ;
 
 const char sh_optexit[] =
@@ -1447,7 +1447,7 @@ const char sh_optreadonly[] =
 ;
 
 const char sh_optredirect[] =
-"[-1c?\n@(#)$Id: redirect (ksh 93u+m) 2020-08-08 $\n]"
+"[-1c?\n@(#)$Id: redirect (ksh 93u+m) 2021-02-06 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?redirect - open/close and duplicate file descriptors]"
 "[+DESCRIPTION?This command only accepts input/output redirections. "
@@ -1455,9 +1455,10 @@ const char sh_optredirect[] =
 	"to \b9\b using the standard redirection mechanism available to all "
 	"commands, with the difference that the effect persists past the "
 	"execution of the \bredirect\b command.]"
-"[+?Any file descriptor numbers greater than \b2\b that are opened with this "
-	"mechanism are closed when invoking another program, unless "
-	"explicitly redirected to themselves as part of that invocation.]"
+"[+?When invoking another program, file descriptors greater than \b2\b that "
+	"were opened with this mechanism are only passed on if they are "
+	"explicitly redirected to themselves as part of the invocation "
+	"(e.g. \b4>&4\b) or if the \bposix\b option is set.]"
 "[+?\bredirect\b cannot be invoked from a restricted shell to create "
 	"files or to open a file for writing or appending.]"
 "\n"
