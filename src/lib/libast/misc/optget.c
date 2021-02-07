@@ -2535,21 +2535,19 @@ opthelp(const char* oopts, const char* what)
 		sfputc(mp, '\f');
 		break;
 	default:
-		if (!state.emphasis)
+		state.emphasis = 0;
+		if (x = getenv("ERROR_OPTIONS"))
 		{
-			if (x = getenv("ERROR_OPTIONS"))
+			if (strmatch(x, "*noemphasi*"))
+				break;
+			if (strmatch(x, "*emphasi*"))
 			{
-				if (strmatch(x, "*noemphasi*"))
-					break;
-				if (strmatch(x, "*emphasi*"))
-				{
-					state.emphasis = 1;
-					break;
-				}
-			}
-			if ((x = getenv("TERM")) && strmatch(x, "(ansi|vt100|xterm)*") && isatty(sffileno(sfstderr)))
 				state.emphasis = 1;
+				break;
+			}
 		}
+		if ((x = getenv("TERM")) && strmatch(x, "(ansi|vt???|xterm|linux|cons|wsvt|sun)*") && isatty(sffileno(sfstderr)))
+			state.emphasis = 1;
 		break;
 	}
 	x = "";
