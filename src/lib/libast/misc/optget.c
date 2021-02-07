@@ -2546,7 +2546,9 @@ opthelp(const char* oopts, const char* what)
 				break;
 			}
 		}
-		if ((x = getenv("TERM")) && strmatch(x, "(ansi|vt???|xterm|linux|cons|wsvt|sun)*") && isatty(sffileno(sfstderr)))
+		if (isatty(sffileno(sfstderr))
+		&& (x = getenv("TERM"))
+		&& strmatch(x, "(ansi|cons|dtterm|linux|screen|sun|vt???|wsvt|xterm)*"))
 			state.emphasis = 1;
 		break;
 	}

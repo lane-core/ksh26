@@ -166,7 +166,7 @@ The command name is passed as argument 0
 .IR exec (2)).
 The
 .I value\^
-of a simple-command is its exit status; 0-255
+of a \fIsimple-command\fR is its exit status; 0-255
 if it terminates normally; 256+\f2signum\^\fP if
 it terminates abnormally (the name of the signal corresponding
 to the exit status can be
@@ -296,11 +296,11 @@ built-in below.
 .PP
 A
 .I command\^
-is either a simple-command
+is either a \fIsimple-command\fR
 or one of the following.
 Unless otherwise stated,
 the value returned by a command is that of the
-last simple-command executed in the command.
+last \fIsimple-command\fR executed in the command.
 .TP
 \f3for\fP \f2vname\^\fP \*(OK \f3in\fP \f2word\^\fP .\|.\|. \*(CK \f3;do\fP \f2list\^\fP \f3;done\fP
 Each time a
@@ -3336,7 +3336,7 @@ is true.
 .SS Input/Output.
 Before a command is executed, its input and output
 may be redirected using a special notation interpreted by the shell.
-The following may appear anywhere in a simple-command
+The following may appear anywhere in a \fIsimple-command\fR
 or may precede or follow a
 .I command\^
 and are
@@ -5469,10 +5469,12 @@ Display version of the shell.
 .RE
 .PD
 .SS Built-in Commands.
-The following simple-commands are executed in the shell process.
-Input/Output redirection is permitted.
-Unless otherwise indicated, the output is written on file descriptor 1
-and the exit status, when there is no syntax error, is zero.
+The \fIsimple-command\fRs listed below are built in to the shell
+and are executed in the same process as the shell.
+The effects of any added Input/Output redirections are local to the command,
+except for the \fBexec\fR and \fBredirect\fR commands.
+Unless otherwise indicated, the output is written on standard output (file
+descriptor 1) and the exit status, when there is no syntax error, is zero.
 Except for
 .BR : ,
 .BR true ,
@@ -5481,8 +5483,9 @@ and
 .BR echo ,
 all built-in commands accept
 .B \-\-
-to indicate end of options.
-They also interpret the option
+to indicate end of options, and are self-documenting.
+.PP
+The self-documenting commands interpret the option
 .B \-\-man
 as a request to display that command's own manual page,
 .B \-\-help
@@ -5491,7 +5494,18 @@ as a request to display the
 section from their manual page, and
 .B \-?
 as a request to print a brief usage message.
-All these are printed on standard error.
+All these are processed as error messages, so they are written on standard
+error (file descriptor 2) and to pipe them into a pager such as \fBmore\fR(1)
+you need to add a \fB2>&1\fR redirection before the \fB|\fR. The display of
+boldface text depends on whether standard error is on a terminal, so is
+disabled when using a pager. Exporting the \fBERROR_OPTIONS\fR environment
+variable with a value containing \fIemphasis\fR will force this on; a value
+containing \fInoemphasis\fR forces it off.
+The \fBtest\fR/\fB[\fR command needs an additional \fB\-\-\fR argument to
+recognize self-documentation options, e.g. \fBtest \-\-man \-\-\fR.
+The \fBexec\fR and \fBredirect\fR commands, as they make redirections
+permanent, should use self-documentation options in a subshell when
+redirecting, for example: \fB(redirect \-\-man) 2>&1\fR.
 There are advanced output options as well; see
 .B getopts \-\-man
 for more information.
@@ -7327,11 +7341,11 @@ compatibility with other shells that lack \f3[[\fP.
 .RS
 .PP
 The \f3test\fP/\f3[\fP command does not parse options except if there are
-two arguments and the second is \f3--\fP. To access the inline documentation
-with an option such as \f3--man\fP, you need one of the forms
-.B test\ --man\ --
+two arguments and the second is \f3\-\-\fP. To access the inline documentation
+with an option such as \f3\-\-man\fP, you need one of the forms
+.B test\ \-\-man\ \-\-
 or
-.BR [\ --man\ --\ ] .
+.BR [\ \-\-man\ \-\-\ ] .
 .RE
 .TP
 \f3times\fP
