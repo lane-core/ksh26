@@ -1252,12 +1252,14 @@ int sh_lex(Lex_t* lp)
 				/* check for reserved word { or } */
 				if(lp->lex.reservok && state[n]==S_BREAK && isfirst)
 					break;
+#if SHOPT_BRACEPAT
 				if(sh_isoption(SH_BRACEEXPAND) && c==LBRACE && !assignment && state[n]!=S_BREAK
 					&& !lp->lex.incase && !lp->lex.intest
 					&& !lp->lex.skipword)
 				{
 					wordflags |= ARG_EXP;
 				}
+#endif
 				if(c==RBRACE && n==LPAREN)
 					goto epat;
 				break;
@@ -1892,8 +1894,10 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 					sfputc(sp,'\\');
 				}
 			}
+#if SHOPT_MULTIBYTE
 			if(LEN < 1)
 				LEN = 1;
+#endif
 			bufp = fcseek(-LEN);
 		}
 		else

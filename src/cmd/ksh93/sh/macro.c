@@ -508,8 +508,10 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 					sfputc(stkp,ESCAPE);
 				break;
 			}
+#if SHOPT_BRACEPAT
 			else if(sh_isoption(SH_BRACEEXPAND) && mp->pattern==4 && (*cp==',' || *cp==LBRACE || *cp==RBRACE || *cp=='.'))
 				break;
+#endif
 			else if(mp->split && endch && !mp->quote && !mp->lit)
 			{
 				if(c)
@@ -763,15 +765,21 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 		    case S_BRACE:
 			if(!(mp->quote || mp->lit))
 			{
+#if SHOPT_BRACEPAT
 				mp->patfound = mp->split && sh_isoption(SH_BRACEEXPAND);
+#else
+				mp->patfound = 0;
+#endif
 				brace++;
 			}
 		    pattern:
 			if(!mp->pattern || !(mp->quote || mp->lit))
 			{
 				/* mark beginning of {a,b} */
+#if SHOPT_BRACEPAT
 				if(n==S_BRACE && endch==0 && mp->pattern)
 					mp->pattern=4;
+#endif
 				if(n==S_SLASH && mp->pattern==2)
 					mp->pattern=3;
 				break;
@@ -1102,7 +1110,7 @@ retry1:
 			{
 				if(c=='#')
 					type = M_SIZE;
-#ifdef SHOPT_TYPEDEF
+#if SHOPT_TYPEDEF
 				else if(c=='@')
 				{
 					type = M_TYPE;
@@ -1410,7 +1418,7 @@ retry1:
 				if(ap && !mp->dotdot && !(ap->nelem&ARRAY_UNDEF))
 					addsub = 1;
 			}
-#ifdef SHOPT_TYPEDEF
+#if SHOPT_TYPEDEF
 			else if(type==M_TYPE)
 			{
 				Namval_t *nq = nv_type(np);

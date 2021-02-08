@@ -31,9 +31,6 @@
 
 #include	"FEATURE/options"
 #include        "FEATURE/locale"
-#if !SHOPT_VSH && !SHOPT_ESH
-#   define ed_winsize()	(SEARCHSIZE)
-#else
 
 #if !KSHELL
 #   include	<setjmp.h>
@@ -231,11 +228,12 @@ extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
 	extern void ed_gencpy(genchar*,const genchar*);
 	extern void ed_genncpy(genchar*,const genchar*,int);
 	extern int ed_genlen(const genchar*);
-	extern int ed_setwidth(const char*);
 #  endif /* SHOPT_MULTIBYTE */
 #if SHOPT_EDPREDICT
-   extern int	ed_histgen(Edit_t*, const char*);
-   extern void	ed_histlist(Edit_t*, int);
+    extern int	ed_histgen(Edit_t*, const char*);
+#   if SHOPT_ESH || SHOPT_VSH
+        extern void	ed_histlist(Edit_t*, int);
+#   endif /* SHOPT_ESH || SHOPT_VSH */
 #endif /* SHOPT_EDPREDICT */
 
 extern const char	e_runvi[];
@@ -269,7 +267,7 @@ extern const char	e_runvi[];
 #define	HIST_FLAG_RETURN_MASK	(HIST_EVENT|HIST_PRINT|HIST_ERROR)
 
 extern int hist_expand(const char *, char **);
-#endif
 
-#endif
-#endif
+#endif /* SHOPT_HISTEXPAND */
+
+#endif /* !SEARCHSIZE */

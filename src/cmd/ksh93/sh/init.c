@@ -178,8 +178,10 @@ typedef struct _init_
 	Namfun_t	CDPATH_init;
 	Namfun_t	SHELL_init;
 	Namfun_t	ENV_init;
+#if SHOPT_VSH || SHOPT_ESH
 	Namfun_t	VISUAL_init;
 	Namfun_t	EDITOR_init;
+#endif
 	Namfun_t	HISTFILE_init;
 	Namfun_t	HISTSIZE_init;
 	Namfun_t	OPTINDEX_init;
@@ -227,6 +229,7 @@ static char *nospace(int unused)
 	return(NIL(char*));
 }
 
+#if SHOPT_VSH || SHOPT_ESH
 /* Trap for VISUAL and EDITOR variables */
 static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
@@ -239,22 +242,34 @@ static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		goto done;
 	/* turn on vi or emacs option if editor name is either*/
 	cp = path_basename(cp);
+#if SHOPT_VSH
 	if(strmatch(cp,"*[Vv][Ii]*"))
 		newopt=SH_VI;
-	else if(strmatch(cp,"*gmacs*"))
+#endif
+#if SHOPT_VSH && SHOPT_ESH
+	else
+#endif
+#if SHOPT_ESH
+	     if(strmatch(cp,"*gmacs*"))
 		newopt=SH_GMACS;
 	else if(strmatch(cp,"*macs*"))
 		newopt=SH_EMACS;
+#endif
 	if(newopt)
 	{
+#if SHOPT_VSH
 		sh_offoption(SH_VI);
+#endif
+#if SHOPT_ESH
 		sh_offoption(SH_EMACS);
 		sh_offoption(SH_GMACS);
+#endif
 		sh_onoption(newopt);
 	}
 done:
 	nv_putv(np, val, flags, fp);
 }
+#endif /* SHOPT_VSH || SHOPT_ESH */
 
 /* Trap for HISTFILE and HISTSIZE variables */
 static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -727,11 +742,11 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namarr_t	*ap_save = ap;
 	shp->subshell = 0;
-#ifndef SHOPT_2DMATCH
+#if !SHOPT_2DMATCH
 	index = 0;
 #else
 	if(index==0)
-#endif /* SHOPT_2DMATCH */
+#endif /* !SHOPT_2DMATCH */
 	{
 		if(ap->hdr.next != &mp->hdr)
 		{
@@ -759,7 +774,7 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 		mp->v = v;
 		mp->first = match[0];
 	}
-#ifdef SHOPT_2DMATCH
+#if SHOPT_2DMATCH
 	else
 	{
 		if(index==1)
@@ -882,7 +897,9 @@ static const Namdisc_t SH_VERSION_disc	= {  0, 0, get_version, nget_version };
 static const Namdisc_t IFS_disc		= {  sizeof(struct ifs), put_ifs, get_ifs };
 const Namdisc_t RESTRICTED_disc	= {  sizeof(Namfun_t), put_restricted };
 static const Namdisc_t CDPATH_disc	= {  sizeof(Namfun_t), put_cdpath }; 
+#if SHOPT_VSH || SHOPT_ESH
 static const Namdisc_t EDITOR_disc	= {  sizeof(Namfun_t), put_ed };
+#endif
 static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
 static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(struct seconds), put_seconds, get_seconds, nget_seconds };
@@ -1416,7 +1433,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	/* set[ug]id scripts require the -p flag */
 	if(shp->gd->userid!=shp->gd->euserid || shp->gd->groupid!=shp->gd->egroupid)
 	{
-#ifdef SHOPT_P_SUID
+#if SHOPT_P_SUID
 		/* require sh -p to run setuid and/or setgid */
 		if(!sh_isoption(SH_PRIVILEGED) && shp->gd->userid >= SHOPT_P_SUID)
 		{
@@ -1548,14 +1565,18 @@ int sh_reinit(char *argv[])
 #endif /* SHOPT_NAMESPACE */
 	if(sh_isoption(SH_TRACKALL))
 		on_option(&opt,SH_TRACKALL);
+#if SHOPT_ESH
 	if(sh_isoption(SH_EMACS))
 		on_option(&opt,SH_EMACS);
 	if(sh_isoption(SH_GMACS))
 		on_option(&opt,SH_GMACS);
+#endif
+#if SHOPT_VSH
 	if(sh_isoption(SH_VI))
 		on_option(&opt,SH_VI);
 	if(sh_isoption(SH_VIRAW))
 		on_option(&opt,SH_VIRAW);
+#endif
 	shp->options = opt;
 	/* set up new args */
 	if(argv)
@@ -1607,7 +1628,7 @@ Namfun_t *nv_cover(register Namval_t *np)
 
 static const char *shdiscnames[] = { "tilde", 0};
 
-#ifdef SHOPT_STATS
+#if SHOPT_STATS
 struct Stats
 {
 	Namfun_t	hdr;
@@ -1735,10 +1756,12 @@ static Init_t *nv_init(Shell_t *shp)
 	ip->SHELL_init.nofree = 1;
 	ip->ENV_init.disc = &RESTRICTED_disc;
 	ip->ENV_init.nofree = 1;
+#if SHOPT_VSH || SHOPT_ESH
 	ip->VISUAL_init.disc = &EDITOR_disc;
 	ip->VISUAL_init.nofree = 1;
 	ip->EDITOR_init.disc = &EDITOR_disc;
 	ip->EDITOR_init.nofree = 1;
+#endif
 	ip->HISTFILE_init.disc = &HISTFILE_disc;
 	ip->HISTFILE_init.nofree = 1;
 	ip->HISTSIZE_init.disc = &HISTFILE_disc;
@@ -1781,8 +1804,10 @@ static Init_t *nv_init(Shell_t *shp)
 	nv_stack(CDPNOD, &ip->CDPATH_init);
 	nv_stack(SHELLNOD, &ip->SHELL_init);
 	nv_stack(ENVNOD, &ip->ENV_init);
+#if SHOPT_VSH || SHOPT_ESH
 	nv_stack(VISINOD, &ip->VISUAL_init);
 	nv_stack(EDITNOD, &ip->EDITOR_init);
+#endif
 	nv_stack(HISTFILE, &ip->HISTFILE_init);
 	nv_stack(HISTSIZE, &ip->HISTSIZE_init);
 	nv_stack(OPTINDNOD, &ip->OPTINDEX_init);

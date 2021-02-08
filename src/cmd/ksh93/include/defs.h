@@ -316,7 +316,9 @@ struct shared
 #define SH_INTESTCMD	20	/* set while test/[ command is being run */
 #define SH_XARG		21	/* set while in xarg (command -x) mode */
 
+#if SHOPT_BRACEPAT
 #define SH_BRACEEXPAND		42
+#endif
 #define SH_POSIX		46
 #define SH_MULTILINE    	47
 
@@ -451,7 +453,7 @@ extern const char	e_dict[];
 #define PRINT_NO_HEADER	0x04	/* omit listing header		*/
 #define PRINT_TABLE	0x10	/* table of all options		*/
 
-#ifdef SHOPT_STATS
+#if SHOPT_STATS
     /* performance statistics */
 #   define	STAT_ARGHITS	0
 #   define	STAT_ARGEXPAND	1

@@ -32,6 +32,8 @@
 /*
  * This is the list of built-in shell variables and default values
  * and default attributes.
+ *
+ * The order must be kept synchronous with the defines in include/variables.h.
  */
 
 const struct shtable2 shtab_variables[] =
@@ -109,7 +111,7 @@ const struct shtable2 shtab_variables[] =
 
 const char *nv_discnames[] = { "get", "set", "append", "unset", "getn", 0 };
 
-#ifdef SHOPT_STATS
+#if SHOPT_STATS
 const Shtable_t shtab_stats[] =
 {
 	"arg_cachehits",	STAT_ARGHITS,

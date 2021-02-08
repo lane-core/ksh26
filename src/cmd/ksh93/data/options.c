@@ -32,14 +32,20 @@ const Shtable_t shtab_options[] =
 {
 	"allexport",			SH_ALLEXPORT,
 	"bgnice",			SH_BGNICE,
+#if SHOPT_BRACEPAT
 	"braceexpand",			SH_BRACEEXPAND,
+#endif
 	"noclobber",			SH_NOCLOBBER,
+#if SHOPT_ESH
 	"emacs",			SH_EMACS,
+#endif
 	"errexit",			SH_ERREXIT,
 	"noexec",			SH_NOEXEC,
 	"noglob",			SH_NOGLOB,
 	"globstar",			SH_GLOBSTARS,
+#if SHOPT_ESH
 	"gmacs",			SH_GMACS,
+#endif
 #if SHOPT_HISTEXPAND
 	"histexpand",			SH_HISTEXPAND,
 #endif
@@ -65,8 +71,10 @@ const Shtable_t shtab_options[] =
 	"trackall",			SH_TRACKALL,
 	"nounset",			SH_NOUNSET,
 	"verbose",			SH_VERBOSE,
+#if SHOPT_VSH
 	"vi",				SH_VI,
 	"viraw",			SH_VIRAW,
+#endif
 	"xtrace",			SH_XTRACE,
 	"",				0
 };

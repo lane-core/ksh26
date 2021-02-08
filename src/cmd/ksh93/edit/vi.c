@@ -28,6 +28,7 @@
  *		cbosgd!pds
 -*/
 
+#if SHOPT_VSH
 
 #if KSHELL
 #   include	"defs.h"
@@ -252,7 +253,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		/*** Change the eol characters to '\r' and eof  ***/
 		/* in addition to '\n' and make eof an ESC	*/
 		if(tty_alt(ERRIO) < 0)
-			return(reexit?reedit:ed_read(context, fd, shbuf, nchar,0));
+			return(reedit?reedit:ed_read(context, fd, shbuf, nchar,0));
 
 #ifdef FIORDCHK
 		ioctl(fd,FIORDCHK,&vp->typeahead);
@@ -2783,3 +2784,5 @@ static int getrchar(register Vi_t *vp)
 		c = ed_getchar(vp->ed,2);
 	return(c);
 }
+
+#endif /* SHOPT_VSH */

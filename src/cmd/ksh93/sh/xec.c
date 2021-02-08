@@ -1240,7 +1240,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 					int jmpval, save_prompt;
 					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
 					struct checkpt *buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
-					volatile unsigned long was_vi=0, was_emacs=0, was_gmacs=0;
+#if SHOPT_VSH
+					volatile unsigned long was_vi=0;
+#endif
+#if SHOPT_ESH
+					volatile unsigned long was_emacs=0, was_gmacs=0;
+#endif
 					struct stat statb;
 					bp = &shp->bltindata;
 					save_ptr = bp->ptr;
@@ -1252,12 +1257,16 @@ int sh_exec(register const Shnode_t *t, int flags)
 						 * disable editors for built-in
 						 * versions of commands on PATH
 						 */
+#if SHOPT_VSH
 						was_vi = sh_isoption(SH_VI);
+						sh_offoption(SH_VI);
+#endif
+#if SHOPT_ESH
 						was_emacs = sh_isoption(SH_EMACS);
 						was_gmacs = sh_isoption(SH_GMACS);
-						sh_offoption(SH_VI);
 						sh_offoption(SH_EMACS);
 						sh_offoption(SH_GMACS);
+#endif
 					}
 					if(execflg)
 						sh_onstate(SH_NOFORK);
@@ -1392,12 +1401,17 @@ int sh_exec(register const Shnode_t *t, int flags)
 					shp->bltinfun = 0;
 					if(buffp->olist)
 						free_list(buffp->olist);
+#if SHOPT_VSH
 					if(was_vi)
 						sh_onoption(SH_VI);
-					else if(was_emacs)
+					else
+#endif
+#if SHOPT_ESH
+					     if(was_emacs)
 						sh_onoption(SH_EMACS);
 					else if(was_gmacs)
 						sh_onoption(SH_GMACS);
+#endif
 					if(scope)
 						sh_unscope(shp);
 					bp->ptr = (void*)save_ptr;
@@ -1555,7 +1569,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				job.parent=parent=0;
 			else
 			{
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 				int maxjob;
 				if(((type&(FAMP|FINT)) == (FAMP|FINT)) && (maxjob=nv_getnum(JOBMAXNOD))>0)
 				{
@@ -2856,7 +2870,7 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 			shp->cpid = parent;
 		if(!postid && job.curjobid && (flags&FPOU))
 			postid = job.curpgid;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 		if(!postid && (flags&(FAMP|FINT)) == (FAMP|FINT))
 			postid = 1;
 		myjob = job_post(shp,parent,postid);

@@ -413,7 +413,7 @@ void	sh_chktrap(Shell_t* shp)
 	}
 	if(shp->sigflag[SIGALRM]&SH_SIGALRM)
 		sh_timetraps(shp);
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	if((shp->sigflag[SIGCHLD]&SH_SIGTRAP) && shp->st.trapcom[SIGCHLD])
 		job_chldtrap(shp,shp->st.trapcom[SIGCHLD],1);
 #endif /* SHOPT_BGX */
@@ -421,7 +421,7 @@ void	sh_chktrap(Shell_t* shp)
 	{
 		if(sig==cursig)
 			continue;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 		if(sig==SIGCHLD)
 			continue;
 #endif /* SHOPT_BGX */
@@ -626,9 +626,17 @@ void sh_done(void *ptr, register int sig)
 	sh_accend();
 #endif	/* SHOPT_ACCT */
 #if SHOPT_VSH || SHOPT_ESH
-	if(mbwide()||sh_isoption(SH_EMACS)||sh_isoption(SH_VI)||sh_isoption(SH_GMACS))
-		tty_cooked(-1);
+	if(mbwide()
+#if SHOPT_ESH
+	|| sh_isoption(SH_EMACS)
+	|| sh_isoption(SH_GMACS)
 #endif
+#if SHOPT_VSH
+	|| sh_isoption(SH_VI)
+#endif
+	)
+		tty_cooked(-1);
+#endif /* SHOPT_VSH || SHOPT_ESH */
 #ifdef JOBS
 	if((sh_isoption(SH_INTERACTIVE) && shp->login_sh) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))
 		job_walk(sfstderr, job_hup, SIGHUP, NIL(char**));

@@ -285,7 +285,7 @@ word=$(print $'foo\nbar' | ( read line; "$bincat") )
 if	[[ $word != bar ]]
 then	err_exit "pipe to ( read line; $bincat) not working"
 fi
-if	[[ $(print x{a,b}y) != 'xay xby' ]]
+if	((SHOPT_BRACEPAT)) && [[ $(print x{a,b}y) != 'xay xby' ]]
 then	err_exit 'brace expansion not working'
 fi
 if	[[ $(for i in foo bar

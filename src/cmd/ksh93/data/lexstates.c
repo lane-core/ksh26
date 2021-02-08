@@ -24,8 +24,10 @@
 #include	"FEATURE/options"
 #include	"lexstates.h"
 
+/* The ST_* state table names are defined in include/lexstates.h */
 
 /*
+ * ST_BEGIN (0)
  * This is the initial state for tokens
  */
 static const char sh_lexstate0[256] =
@@ -77,6 +79,7 @@ static const char sh_lexstate0[256] =
 };
 
 /*
+ * ST_NAME
  * This state is for identifiers
  */
 static const char sh_lexstate1[256] =
@@ -123,6 +126,9 @@ static const char sh_lexstate1[256] =
 	S_REG,	S_REG,	S_REG,	S_REG,	S_REG,	S_REG,	S_REG,	S_REG,
 };
 
+/*
+ * ST_NORM
+ */
 static const char sh_lexstate2[256] =
 {
 	S_EOF,	0,	0,	0,	0,	0,	0,	0,
@@ -151,6 +157,7 @@ static const char sh_lexstate2[256] =
 };
 
 /*
+ * ST_LIT
  * for skipping over  '...'
  */
 static const char sh_lexstate3[256] =
@@ -172,6 +179,7 @@ static const char sh_lexstate3[256] =
 };
 
 /*
+ * ST_QUOTE
  * for skipping over  "..." and `...`
  */
 static const char sh_lexstate4[256] =
@@ -195,6 +203,7 @@ static const char sh_lexstate4[256] =
 };
 
 /*
+ * ST_NESTED, ST_QNEST
  * for skipping over ?(...), [...]
  */
 static const char sh_lexstate5[256] =
@@ -218,6 +227,7 @@ static const char sh_lexstate5[256] =
 };
 
 /*
+ * ST_DOL
  * Defines valid expansion characters
  */
 static const char sh_lexstate6[256] =
@@ -265,6 +275,7 @@ static const char sh_lexstate6[256] =
 };
 
 /*
+ * ST_BRACE
  * for skipping over ${...} until modifier
  */
 static const char sh_lexstate7[256] =
@@ -308,6 +319,7 @@ static const char sh_lexstate7[256] =
 };
 
 /*
+ * ST_DOLNAME
  * This state is for $name
  */
 static const char sh_lexstate8[256] =
@@ -351,6 +363,7 @@ static const char sh_lexstate8[256] =
 };
 
 /*
+ * ST_MACRO
  * This is used for macro expansion
  */
 static const char sh_lexstate9[256] =
@@ -370,13 +383,12 @@ static const char sh_lexstate9[256] =
 	S_GRAVE,0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,
-#if SHOPT_BRACEPAT
 	0,	0,	0,	S_BRACE,S_PAT,	S_ENDCH,0,	0
-#else
-	0,	0,	0,	0,	S_PAT,	S_ENDCH,0,	0
-#endif /* SHOPT_BRACEPAT */
 };
 
+/*
+ * This must be kept synchronous with all the above and the ST_* definitions in lexstates.h
+ */
 const char *sh_lexrstates[ST_NONE] =
 {
 	sh_lexstate0, sh_lexstate1, sh_lexstate2, sh_lexstate3,

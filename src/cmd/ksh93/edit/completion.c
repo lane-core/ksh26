@@ -240,10 +240,18 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		*eol = ed_external((genchar*)outbuff,outbuff);
 	}
 #endif /* SHOPT_MULTIBYTE */
+#if SHOPT_VSH
 	out = outbuff + *cur + (sh_isoption(SH_VI)!=0);
+#else
+	out = outbuff + *cur;
+#endif
 	if(out[-1]=='"' || out[-1]=='\'')
 	{
+#if SHOPT_VSH
 		rval = -(sh_isoption(SH_VI)!=0);
+#else
+		rval = 0;
+#endif
 		goto done;
 	}
 	comptr->comtyp = COMSCAN;
@@ -565,6 +573,10 @@ int ed_fulledit(Edit_t *ep)
 	}
 	cp = strcopy((char*)ep->e_inbuf,e_runvi);
 	cp = strcopy(cp, fmtbase((long)ep->e_hline,10,0));
+#if SHOPT_VSH
 	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0);
+#else
+	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf);
+#endif
 	return(0);
 }

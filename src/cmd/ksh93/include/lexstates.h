@@ -66,6 +66,7 @@
 #define S_ESC2	41	/* escape character inside '...' */
 
 /* These are the lexical state table names */
+/* See lexstates.c  (ST_NONE must be last) */
 #define ST_BEGIN	0
 #define ST_NAME		1
 #define ST_NORM		2

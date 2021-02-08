@@ -38,11 +38,12 @@ b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s,
 b=$($SHELL -c '(LC_ALL=debug; / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
 [[ "$b" == "$a" ]] || err_exit "locale not restored after subshell -- expected '$a', got '$b'"
 
+if((SHOPT_MULTIBYTE)); then
 # test shift-jis \x81\x40 ... \x81\x7E encodings
 # (shift char followed by 7 bit ascii)
 
 typeset -i16 chr
-for locale in $(PATH=/bin:/usr/bin locale -a 2>/dev/null | grep -i jis)
+for locale in $(command -p locale -a 2>/dev/null | grep -i jis)
 do	export LC_ALL=$locale
 	for ((chr=0x40; chr<=0x7E; chr++))
 	do	c=${chr#16#}
@@ -56,11 +57,16 @@ do	export LC_ALL=$locale
 		done
 	done
 done
+fi # SHOPT_MULTIBYTE
 
 # this locale is supported by ast on all platforms
 # EU for { decimal_point="," thousands_sep="." }
 
+if((SHOPT_MULTIBYTE)); then
 locale=C_EU.UTF-8
+else
+locale=C_EU
+fi
 
 export LC_ALL=C
 
@@ -104,7 +110,11 @@ fi
 
 #$SHELL -c 'export LANG='$locale'; printf "\u[20ac]\u[20ac]" > $tmp/two_euro_chars.txt'
 printf $'\342\202\254\342\202\254' > $tmp/two_euro_chars.txt
+if((SHOPT_MULTIBYTE)); then
 exp="6 2 6"
+else
+exp="6 6 6"
+fi # SHOPT_MULTIBYTE
 set -- $($SHELL -c "
 	if	builtin wc 2>/dev/null || builtin -f cmd wc 2>/dev/null
 	then	unset LC_CTYPE
@@ -191,6 +201,7 @@ got="$(<out)"
 
 # multibyte identifiers
 
+if((SHOPT_MULTIBYTE)); then
 exp=OK
 got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]=OK; print ${\u[5929]}' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte variable definition/expansion failed -- expected '$exp', got '$got'"
@@ -198,6 +209,7 @@ got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'function \u[5929]\n{\nprint OK;\n}; \u[
 [[ $got == "$exp" ]] || err_exit "multibyte ksh function definition/execution failed -- expected '$exp', got '$got'"
 got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte posix function definition/execution failed -- expected '$exp', got '$got'"
+fi # SHOPT_MULTIBYTE
 
 # this locale is supported by ast on all platforms
 # mainly used to debug multibyte and message translation code
@@ -205,6 +217,7 @@ got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 
 
 locale=debug
 
+if((SHOPT_MULTIBYTE)); then
 if	[[ "$(LC_ALL=$locale $SHELL <<- \+EOF+
 		x=a<1z>b<2yx>c
 		print ${#x}
@@ -212,6 +225,7 @@ if	[[ "$(LC_ALL=$locale $SHELL <<- \+EOF+
 	]]
 then	err_exit '${#x} not working with multibyte locales'
 fi
+fi # SHOPT_MULTIBYTE
 
 dir=_not_found_
 exp=2
@@ -243,9 +257,11 @@ do	for cmd in "($lc=$locale;cd $dir)" "$lc=$locale;cd $dir;unset $lc" "function 
 	done
 done
 
+if((SHOPT_MULTIBYTE)); then
 exp=123
 got=$(LC_ALL=debug $SHELL -c "a<2A@>z=$exp; print \$a<2A@>z")
 [[ $got == $exp ]] || err_exit "multibyte debug locale \$a<2A@>z failed -- expected '$exp', got '$got'"
+fi # SHOPT_MULTIBYTE
 
 unset LC_ALL LC_MESSAGES
 export LANG=debug
@@ -297,7 +313,11 @@ x=$(  LC_ALL=debug $SHELL ./script$$.1)
 
 
 x=$(LC_ALL=debug $SHELL -c 'x="a<2b|>c";print -r -- ${#x}')
+if((SHOPT_MULTIBYTE)); then
 (( x == 3  )) || err_exit 'character length of multibyte character should be 3'
+else
+(( x == 7  )) || err_exit 'character length of multibyte character should be 7 with SHOPT_MULTIBYTE disabled'
+fi # SHOPT_MULTIBYTE
 x=$(LC_ALL=debug $SHELL -c 'typeset -R10 x="a<2b|>c";print -r -- "${x}"')
 [[ $x == '   a<2b|>c' ]] || err_exit 'typeset -R10 should begin with three spaces'
 x=$(LC_ALL=debug $SHELL -c 'typeset -L10 x="a<2b|>c";print -r -- "${x}"')

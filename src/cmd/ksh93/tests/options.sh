@@ -202,20 +202,21 @@ rm .profile
 
 # { exec interactive login_shell restricted xtrace } in the following test
 
-for opt in \
+set -- \
 	allexport all-export all_export \
 	bgnice bg-nice bg_nice \
-	clobber emacs \
+	clobber \
 	errexit err-exit err_exit \
 	glob \
 	globstar glob-star glob_star \
-	gmacs \
 	ignoreeof ignore-eof ignore_eof \
 	keyword log markdirs monitor notify \
 	pipefail pipe-fail pipe_fail \
 	trackall track-all track_all \
-	unset verbose vi \
-	viraw vi-raw vi_raw
+	unset verbose
+((SHOPT_ESH)) && set -- "$@" emacs gmacs
+((SHOPT_VSH)) && set -- "$@" vi viraw vi-raw vi_raw
+for opt
 do	old=$opt
 	if [[ ! -o $opt ]]
 	then	old=no$opt
@@ -394,15 +395,16 @@ got=$(
 [[ $got == @((12|21)(12|21)) ]] || err_exit "& job delayed by --pipefail, expected '$exp', got '$got'"
 $SHELL -c '[[ $- == *c* ]]' || err_exit 'option c not in $-'
 > $tmp/.profile
-for i in i l r s D E a b e f h k n t u v x B C G H
+for i in i l r s D E a b e f h k n t u v x $(let SHOPT_BRACEPAT && echo B) C G $(let SHOPT_HISTEXPAND && echo H)
 do	HOME=$tmp ENV=/./dev/null $SHELL -$i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not in \$-"
 	[[ \$- == *$i* ]] || exit 1
 	++EOF++
 done
-letters=ilrabefhknuvxBCGE
+letters=ilrabefhknuvx$(let SHOPT_BRACEPAT && echo B)CGE
 integer j=0
 for i in interactive login restricted allexport notify errexit \
-	noglob trackall keyword noexec nounset verbose xtrace braceexpand \
+	noglob trackall keyword noexec nounset verbose xtrace \
+	$(let SHOPT_BRACEPAT && echo braceexpand) \
 	noclobber globstar rc
 do	HOME=$tmp ENV=/./dev/null $SHELL -o $i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not equivalent to ${letters:j:1}"
 	[[ \$- == *${letters:j:1}* ]] || exit 1
@@ -551,6 +553,7 @@ fi
 
 # ======
 # Brace expansion could not be turned off in command substitutions (rhbz#1078698)
+if((SHOPT_BRACEPAT)); then
 set -B
 expect='test{1,2}'
 actual=$(set +B; echo `echo test{1,2}`)
@@ -562,6 +565,7 @@ actual=$(set +B; echo $(echo test{1,2}))
 actual=$(set +B; echo ${ echo test{1,2}; })
 [[ $actual == "$expect" ]] || err_exit 'Brace expansion not turned off in ${ comsub; }' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+fi # SHOPT_BRACEPAT
 
 # ======
 # ksh 93u+ did not correctly handle the combination of pipefail and (errexit or the ERR trap).

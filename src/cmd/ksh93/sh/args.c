@@ -40,16 +40,6 @@
 #if SHOPT_KIA || SHOPT_DEVFD
 #   include	"io.h"
 #endif
-#if SHOPT_PFSH
-#   define PFSHOPT	"P"
-#else
-#   define PFSHOPT
-#endif
-#if SHOPT_HISTEXPAND
-#   define HFLAG        "H"
-#else
-#   define HFLAG        ""
-#endif
 
 #define SORT		1
 #define PRINT		2
@@ -57,7 +47,19 @@
 static	char		*null;
 
 /* The following order is determined by sh_optset */
-static  const char optksh[] =  PFSHOPT "DircabefhkmnpstuvxBCGEl" HFLAG;
+static  const char optksh[] =
+#if SHOPT_PFSH
+	"P"
+#endif
+	"Dircabefhkmnpstuvx"
+#if SHOPT_BRACEPAT
+	"B"
+#endif
+	"CGEl"
+#if SHOPT_HISTEXPAND
+	"H"
+#endif
+	;
 static const int flagval[]  =
 {
 #if SHOPT_PFSH
@@ -66,8 +68,11 @@ static const int flagval[]  =
 	SH_DICTIONARY, SH_INTERACTIVE, SH_RESTRICTED, SH_CFLAG,
 	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB, SH_TRACKALL,
 	SH_KEYWORD, SH_MONITOR, SH_NOEXEC, SH_PRIVILEGED, SH_SFLAG, SH_TFLAG,
-	SH_NOUNSET, SH_VERBOSE,  SH_XTRACE, SH_BRACEEXPAND, SH_NOCLOBBER,
-	SH_GLOBSTARS, SH_RC, SH_LOGIN_SHELL,
+	SH_NOUNSET, SH_VERBOSE,  SH_XTRACE,
+#if SHOPT_BRACEPAT
+	SH_BRACEEXPAND,
+#endif
+	SH_NOCLOBBER, SH_GLOBSTARS, SH_RC, SH_LOGIN_SHELL,
 #if SHOPT_HISTEXPAND
         SH_HISTEXPAND,
 #endif
@@ -231,12 +236,21 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		}
 		if(f)
 		{
+#if SHOPT_ESH && SHOPT_VSH
 			if(o==SH_VI || o==SH_EMACS || o==SH_GMACS)
 			{
 				off_option(&newflags,SH_VI);
 				off_option(&newflags,SH_EMACS);
 				off_option(&newflags,SH_GMACS);
 			}
+#elif SHOPT_ESH
+			if(o==SH_EMACS || o==SH_GMACS)
+			{
+				off_option(&newflags,SH_EMACS);
+				off_option(&newflags,SH_GMACS);
+			}
+
+#endif /* SHOPT_ESH && SHOPT_VSH */
 			on_option(&newflags,o);
 			off_option(&ap->sh->offoptions,o);
 		}
@@ -567,7 +581,7 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 			sfputc(sfstdout,'\n');
 		return;
 	}
-#if SHOPT_RAWONLY
+#if SHOPT_VSH && SHOPT_RAWONLY
 	on_option(&oflags,SH_VIRAW);
 #endif
 	if(!(mode&(PRINT_ALL|PRINT_VERBOSE))) /* only print set options */

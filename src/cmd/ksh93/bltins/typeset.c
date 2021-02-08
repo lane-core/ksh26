@@ -346,7 +346,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 			case 'r':
 				flag |= NV_RDONLY;
 				break;
-#ifdef SHOPT_TYPEDEF
+#if SHOPT_TYPEDEF
 			case 'S':
 				sflag=1;
 				break;

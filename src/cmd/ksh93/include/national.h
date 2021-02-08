@@ -34,4 +34,6 @@
 
     extern int sh_strchr(const char*,const char*);
 
+#else
+#   define sh_strchr(s,c)	strchr(s,*(c))
 #endif /* SHOPT_MULTIBYTE */

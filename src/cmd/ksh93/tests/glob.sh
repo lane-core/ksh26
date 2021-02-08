@@ -316,7 +316,8 @@ function test_sub
 }
 alias test_sub='test_sub $LINENO'
 
-set --noglob --nobraceexpand
+set --noglob
+((SHOPT_BRACEPAT)) && set --nobraceexpand
 
 subject='A regular expressions test'
 

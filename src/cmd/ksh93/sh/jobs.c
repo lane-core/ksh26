@@ -129,7 +129,7 @@ struct back_save
 #define P_COREDUMP	0100
 #define P_DISOWN	0200
 #define P_FG		0400
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 #define P_BG		01000
 #endif /* SHOPT_BGX */
 
@@ -194,7 +194,7 @@ static struct back_save	bck;
 
 typedef int (*Waitevent_f)(int,long,int);
 
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 void job_chldtrap(Shell_t *shp, const char *trap, int unpost)
 {
 	register struct process *pw,*pwnext;
@@ -404,7 +404,7 @@ int job_reap(register int sig)
 				if(WEXITSTATUS(wstat) > pw->p_exitmin)
 					pw->p_exit = WEXITSTATUS(wstat);
 			}
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 			if((pw->p_flag&P_DONE) && (pw->p_flag&P_BG))
 			{
 				job.numbjob--;
@@ -443,7 +443,7 @@ int job_reap(register int sig)
 			if(!px && sh_isoption(SH_INTERACTIVE))
 				tcsetpgrp(JOBTTY,job.mypid);
 		}
-#ifndef SHOPT_BGX
+#if !SHOPT_BGX
 		if(!shp->intrap && shp->st.trapcom[SIGCHLD] && pid>0 && (pwfg!=job_bypid(pid)))
 		{
 			shp->sigflag[SIGCHLD] |= SH_SIGTRAP;
@@ -454,7 +454,7 @@ int job_reap(register int sig)
 	if(errno==ECHILD)
 	{
 		errno = oerrno;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 		job.numbjob = 0;
 #endif /* SHOPT_BGX */
 		nochild = 1;
@@ -1188,7 +1188,7 @@ void	job_clear(void)
 		init_savelist();
 	job.pwlist = NIL(struct process*);
 	job.numpost=0;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	job.numbjob = 0;
 #endif /* SHOPT_BGX */
 	job.waitall = 0;
@@ -1210,7 +1210,7 @@ int job_post(Shell_t *shp,pid_t pid, pid_t join)
 {
 	register struct process *pw;
 	register History_t *hp = shp->gd->hist_ptr;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	int val,bg=0;
 #else
 	int val;
@@ -1222,7 +1222,7 @@ int job_post(Shell_t *shp,pid_t pid, pid_t join)
 		return(0);
 	}
 	job_lock();
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	if(join==1)
 	{
 		join = 0;
@@ -1314,7 +1314,7 @@ int job_post(Shell_t *shp,pid_t pid, pid_t join)
 		else
 			pw->p_flag |= (P_DONE|P_NOTIFY);
 	}
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	if(bg)
 	{
 		if(pw->p_flag&P_DONE)
@@ -1610,7 +1610,7 @@ int job_switch(register struct process *pw,int bgflag)
 	{
 		sfprintf(outfile,"[%d]\t",(int)pw->p_job);
 		sh.bckpid = pw->p_pid;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 		pw->p_flag |= P_BG;
 #endif
 		msg = "&";
@@ -1634,7 +1634,7 @@ int job_switch(register struct process *pw,int bgflag)
 		}
 		job.waitall = 1;
 		pw->p_flag |= P_FG;
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 		pw->p_flag &= ~P_BG;
 #endif
 		job_wait(pw->p_pid);
@@ -1703,7 +1703,7 @@ static struct process *job_unpost(register struct process *pwtop,int notify)
 	pwtop = pw = job_byjid((int)pwtop->p_job);
 	if(!pw)
 		return(0);
-#ifdef SHOPT_BGX
+#if SHOPT_BGX
 	if(pw->p_flag&P_BG) 
 		return(pw);
 #endif /* SHOPT_BGX */

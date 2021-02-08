@@ -649,7 +649,7 @@ static int varname(const char *str, int n)
 	}
 	for(;n > 0; n-=len)
 	{
-#ifdef SHOPT_MULTIBYTE
+#if SHOPT_MULTIBYTE
 		len = mbsize(str);
 		c = mbchar(str);
 #else

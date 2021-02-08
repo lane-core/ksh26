@@ -207,13 +207,19 @@ const char sh_set[] =
 	"The value of \aoption\a must be one of the following:]{"
 		"[+allexport?Equivalent to \b-a\b.]"
 		"[+bgnice?Runs background jobs at lower priorities.]"
+#if SHOPT_BRACEPAT
 		"[+braceexpand?Equivalent to \b-B\b.] "
+#endif
+#if SHOPT_ESH
 		"[+emacs?Enables/disables \bemacs\b editing mode.]"
+#endif
 		"[+errexit?Equivalent to \b-e\b.]"
 		"[+globstar?Equivalent to \b-G\b.]"
+#if SHOPT_ESH
 		"[+gmacs?Enables/disables \bgmacs\b editing mode.  \bgmacs\b "
 			"editing mode is the same as \bemacs\b editing mode "
 			"except for the handling of \b^T\b.]"
+#endif
 #if SHOPT_HISTEXPAND
 		"[+histexpand?Equivalent to \b-H\b.]"
 #endif
@@ -245,9 +251,11 @@ const char sh_set[] =
 			"as if \b-x\b were enabled but not executed.]"
 		"[+trackall?Equivalent to \b-h\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
+#if SHOPT_VSH
 		"[+vi?Enables/disables \bvi\b editing mode.]"
 		"[+viraw?Does not use canonical input mode when using \bvi\b "
 			"edit mode.]"
+#endif
 		"[+xtrace?Equivalent to \b-x\b.]"
 "}"
 "[p?Privileged mode.  Disabling \b-p\b sets the effective user id to the "
@@ -1831,7 +1839,7 @@ const char sh_opttypeset[] =
 	"notation.  \an\a specifies the number of significant figures when the "
 	"value is expanded.]"
 
-#ifdef SHOPT_TYPEDEF
+#if SHOPT_TYPEDEF
 "[h]:[string?Used within a type definition to provide a help string  "
 	"for variable \aname\a.  Otherwise, it is ignored.]"
 "[S?Used with a type definition to indicate that the variable is shared by "

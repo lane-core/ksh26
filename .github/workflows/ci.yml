@@ -16,4 +16,11 @@ jobs:
       run: |
         export TZ=UTC
         ulimit -n 1024
+        script -q -e -c "bin/shtests" &&
+        LANG=nl_NL.UTF-8 script -q -e -c "bin/shtests --locale --nocompile" &&
+        LANG=ja_JP.UTF-8 script -q -e -c "bin/shtests --locale --nocompile" &&
+        sed --regexp-extended --in-place=.orig \
+          '/^SHOPT (2DMATCH|AUDIT|BGX|BRACEPAT|DYNAMIC|EDPREDICT|ESH|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SUID_EXEC|STATS|VSH)=/ s/=1/=0/' \
+          src/cmd/ksh93/SHOPT.sh &&
+        bin/package make &&
         script -q -e -c "bin/shtests"

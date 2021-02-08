@@ -42,10 +42,6 @@
 #include	"io.h"
 #include	"path.h"
 
-#if !SHOPT_BRACEPAT
-#   define SHOPT_BRACEPAT	0
-#endif
-
 #if KSHELL
 #   define argbegin	argnxt.cp
     static	const char	*sufstr;

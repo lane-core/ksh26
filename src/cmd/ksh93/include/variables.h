@@ -25,7 +25,7 @@
 #include        "FEATURE/options"
 #include        "FEATURE/dynamic"
 
-/* The following defines are coordinated with data in data/variables.c */
+/* The following defines must be kept synchronous with shtab_variables[] in data/variables.c */
 
 #define	PATHNOD		(shgd->bltin_nodes)
 #define PS1NOD		(shgd->bltin_nodes+1)

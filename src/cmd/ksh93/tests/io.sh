@@ -698,10 +698,11 @@ got=$(export tmp; "$SHELL" -ec \
 
 # ======
 # Redirections of the form {varname}>file stopped working if brace expansion was turned off
-set +B
-{ redirect {v}>$tmp/v.out && echo ok >&$v; } 2>/dev/null
-set -B
+((SHOPT_BRACEPAT)) && set +B
+{ redirect {v}>$tmp/v.out && echo ok >&$v; } 2>/dev/null && redirect {v}>&-
+((SHOPT_BRACEPAT)) && set -B
 [[ -r $tmp/v.out && $(<$tmp/v.out) == ok ]] || err_exit '{varname}>file not working with brace expansion turned off'
+
 # ...and they didn't work in subshells: https://github.com/ksh93/ksh/issues/167
 (redirect {v}>$tmp/v.out; echo ok2 >&$v) 2>/dev/null
 [[ -r $tmp/v.out && $(<$tmp/v.out) == ok2 ]] || err_exit 'redirect {varname}>file not working in a subshell'

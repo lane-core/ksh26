@@ -23,7 +23,9 @@
 # called 'pty', which allows for scripting interactive sessions and which is
 # installed in arch/*/bin while building. To understand these tests, first
 # read the pty manual by running: arch/*/bin/pty --man
-
+#
+# Do not globally set the locale; these tests must pass for all locales.
+#
 # The # err_exit # comments are to enable shtests to count the tests.
 
 # the trickiest part of the tests is avoiding typeahead
@@ -52,19 +54,18 @@ stty erase ^H kill ^X
 
 bintrue=$(whence -p true)
 
-x=$( $SHELL <<- \EOF
+x=$( "$SHELL" 2>&1 <<- \EOF
 		trap 'exit 0' EXIT
 		bintrue=$(whence -p true)
 		set -o monitor
 		{
-			eval $'set -o vi\npty $bintrue'
+			eval $'command set -o vi 2>/dev/null\npty $bintrue'
 		} < /dev/null & pid=$!
-		#sleep 1
 		jobs
 		kill $$
 	EOF
 )
-[[ $x == *Stop* ]] && err_exit 'monitor mode enabled incorrectly causes job to stop'
+[[ $x == *Stop* ]] && err_exit "monitor mode enabled incorrectly causes job to stop (got $(printf %q "$x"))"
 
 if	[[ -o xtrace ]]
 then	debug=--debug=1
@@ -86,7 +87,10 @@ function tst
 	done
 }
 
-export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb VISUAL=vi LC_ALL=C
+# VISUAL, or if that is not set, EDITOR, automatically sets vi, gmacs or emacs mode if
+# its value matches *[Vv][Ii]*, *gmacs* or *macs*, respectively. See put_ed() in init.c.
+unset EDITOR
+export VISUAL=vi PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb
 
 if	! pty $bintrue < /dev/null
 then	err_exit pty command hangs on $bintrue -- tests skipped
@@ -163,7 +167,7 @@ u (Killed|Done)
 !
 
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 091(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -179,7 +183,7 @@ u ^hello\r?\n$
 !
 
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 093(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -195,7 +199,7 @@ u ^goodbye\r?\n$
 !
 
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 094(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -242,7 +246,7 @@ r history
 fi
 
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 097(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -303,7 +307,7 @@ u ^ok\r?\n$
 !
 
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 101(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -368,7 +372,7 @@ if	[[ $(id -u) == 0 ]]
 then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 111(C)"
 else
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 111(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -395,7 +399,7 @@ fi
 # It is left here for re-enabling temporarily if related changes in ksh need testing.
 : <<\end_disabled
 # err_(don't count me)_exit #
-TMPDIR=/tmp tst $LINENO <<"!"
+((SHOPT_VSH)) && TMPDIR=/tmp tst $LINENO <<"!"
 L POSIX sh 137(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -420,7 +424,7 @@ if	[[ $(id -u) == 0 ]]
 then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 251(C)"
 else
 # err_exit #
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 251(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -480,6 +484,7 @@ disabled
 
 # err_exit #
 # Test file name completion in vi mode
+if((SHOPT_VSH)); then
 mkdir "/tmp/fakehome_$$" && tst $LINENO <<!
 L vi mode file name completion
 
@@ -492,49 +497,33 @@ w echo ~/tes\t
 u ^/tmp/fakehome_$$/testfile_$$\r?\n$
 !
 rm -r "/tmp/fakehome_$$"
+fi # SHOPT_VSH
 
 # err_exit #
-LC_ALL=C tst $LINENO <<"!"
-L raw Bourne mode literal tab characters with wide characters disabled
+VISUAL='' tst $LINENO <<"!"
+L raw Bourne mode literal tab characters
 
-# This gets handled by ed_read() in edit.c; it does not expand tab
-# characters on the command line.
+# With wide characters (e.g. UTF-8) disabled, raw mode is handled by ed_read()
+# in edit.c; it does not expand tab characters on the command line.
+# With wide characters enabled, and if vi mode is compiled in, raw mode is
+# handled by ed_viread() in vi.c (even though vi mode is off); it expands tab
+# characters to spaces on the command line. See slowread() in io.c.
 
-d 20
 p :test-1:
-w set +o vi +o emacs
-p :test-2:
 w true /de\tv/nu\tl\tl
-r ^:test-2: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
-p :test-3:
+r ^:test-1: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
+p :test-2:
 !
 
 # err_exit #
-LC_ALL=C.UTF-8 tst $LINENO <<"!"
-L raw Bourne mode literal tab characters with wide characters enabled
-
-# This gets handled by ed_viread() in vi.c (even though vi mode is off);
-# it expands tab characters to spaces on the command line.
-
-d 20
-p :test-1:
-w set +o vi +o emacs
-p :test-2:
-w true /de\tv/nu\tl\tl
-r ^:test-2: true /de       v/nu    l       l\r\n$
-p :test-3:
-!
-
-# err_exit #
-LC_ALL=C.UTF-8 tst $LINENO <<"!"
+VISUAL='' tst $LINENO <<"!"
 L raw Bourne mode backslash handling
 
 # The escaping backslash feature should be disabled in the raw Bourne mode.
 # This is tested with both erase and kill characters.
 
-d 20
 p :test-1:
-w set +o vi +o emacs; stty erase ^H kill ^X
+w stty erase ^H kill ^X
 p :test-2:
 w true string\\\\\cH\cH
 r ^:test-2: true string\r\n$
@@ -545,16 +534,19 @@ r ^:test-3: true correct\r\n$
 
 # err_exit #
 # err_exit #
-for mode in emacs vi; do
-tst $LINENO << !
+set --
+((SHOPT_VSH)) && set -- "$@" vi
+((SHOPT_ESH)) && set -- "$@" emacs gmacs
+for mode do
+VISUAL=$mode tst $LINENO << !
 L escaping backslashes in $mode mode
 
 # Backslashes should only be escaped if the previous input was a backslash.
 # Other backslashes stored in the input buffer should be erased normally.
 
-d 20
+d 10
 p :test-1:
-w set -o $mode; stty erase ^H
+w stty erase ^H
 p :test-2:
 w true string\\\\\\\\\\cH\\cH\\cH
 r ^:test-2: true string\\r\\n$

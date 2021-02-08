@@ -30,6 +30,11 @@ integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
+if((!SHOPT_NAMESPACE))
+then	err\_exit "$LINENO" 'warning: shell compiled without SHOPT_NAMESPACE; skipping tests'
+	exit 0
+fi
+
 foo=abc
 typeset -C bar=(x=3 y=4 t=7)
 typeset -A z=([abc]=qqq)

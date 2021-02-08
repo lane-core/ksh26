@@ -61,6 +61,8 @@ One line screen editor for any program
  *  but you can use them to separate features.
  */
 
+#if SHOPT_ESH
+
 #include	<ast.h>
 #include	"FEATURE/cmds"
 #if KSHELL
@@ -1600,3 +1602,5 @@ static int _isword(register int c)
 	return((c&~STRIP) || isalnum(c) || c=='_');
 }
 #endif /* SHOPT_MULTIBYTE */
+
+#endif /* SHOPT_ESH */

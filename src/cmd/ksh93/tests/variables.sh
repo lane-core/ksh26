@@ -717,7 +717,11 @@ actual=$(
 expect=$'4\n3\n3\n2\n1'
 [[ $actual == "$expect" ]] || err_exit "\${.sh.subshell} failure (expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
-set -- {1..32768}
+unset IFS
+if	((SHOPT_BRACEPAT)) && command set -o braceexpand
+then	set -- {1..32768}
+else	set -- $(awk 'BEGIN { for(i=1;i<=32768;i++) print i; }')
+fi
 (( $# == 32768 )) || err_exit "\$# failed -- expected 32768, got $#"
 set --
 

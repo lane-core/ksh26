@@ -752,12 +752,14 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 		{
 			Namarr_t *ap;
 			nv_attribute(np,wp->out,"typeset",'=');
+#if SHOPT_FIXEDARRAY
 			if((ap=nv_arrayptr(np)) && ap->fixed)
 			{
 				sfprintf(wp->out,"%s",name);
 				nv_arrfixed(np,wp->out,0,(char*)0);
 				sfputc(wp->out,';');
 			}
+#endif
 		}
 		nv_outname(wp->out,name,-1);
 		if((np->nvalue.cp && np->nvalue.cp!=Empty) || nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)) || nv_isvtree(np))  

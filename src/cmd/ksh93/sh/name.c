@@ -1053,8 +1053,15 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 					}
 					else
 						cp = sp;
-					if((c = *cp)=='.' || (c=='[' && nv_isarray(np)) || (n&ARRAY_FILL) || ((ap || (flags&NV_ASSIGN)) &&  (flags&NV_ARRAY)))
 
+					if((c = *cp)=='.'
+					|| (c=='[' && nv_isarray(np))
+					|| (n&ARRAY_FILL)
+					|| ((
+#if SHOPT_FIXEDARRAY
+					     ap || 
+#endif
+					           (flags&NV_ASSIGN)) && (flags&NV_ARRAY)))
 					{
 						int m = cp-sp;
 						sub = m?nv_getsub(np):0;
@@ -1839,6 +1846,18 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 #if SHOPT_MULTIBYTE
 			if(size)
 				size = ja_size((char*)sp,size,nv_isattr(np,NV_RJUST|NV_ZFILL));
+#else
+			/* fallback: consider control characters to have zero width */
+			if(size)
+			{
+				char	*c = (char*)sp;
+				int	s = size;
+				for( ; *c && s; c++)
+					if(iscntrl(*c))
+						size++;
+					else
+						s--;
+			}
 #endif /* SHOPT_MULTIBYTE */
 		}
 		if(!up->cp || *up->cp==0)
