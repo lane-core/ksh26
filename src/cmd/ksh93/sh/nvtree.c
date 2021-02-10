@@ -524,11 +524,11 @@ void nv_attribute(register Namval_t *np,Sfio_t *out,char *prefix,int noname)
 				break;
 			}
 		}
-#if SHOPT_FIXEDARRAY
 		if(fp)
 			outtype(np,fp,out,prefix);
 		if(noname)
 			return;
+#if SHOPT_FIXEDARRAY
 		if(fixed)
 		{
 			sfprintf(out,"%s",nv_name(np));

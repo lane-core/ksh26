@@ -222,7 +222,7 @@ compound cx
 typeset -a cx.ar[4][4]
 print -v cx > /dev/null
 print -v cx | read -C l 2> /dev/null || err_exit 'read -C fails from output of print -v'
-[[ ${cx%cx=} ==  "${l%l=}" ]] || err_exit 'print -v for compound variable with fixed 2d array not working'
+((SHOPT_FIXEDARRAY)) && [[ ${cx%cx=} != "${l%l=}" ]] && err_exit 'print -v for compound variable with fixed 2d array not working'
 
 # ======
 # Multidimensional arrays with an unset method shouldn't cause a crash.

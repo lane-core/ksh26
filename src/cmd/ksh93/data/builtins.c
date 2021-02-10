@@ -1743,7 +1743,7 @@ const char sh_opttrap[] =
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-01-20 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-02-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1782,11 +1782,23 @@ const char sh_opttypeset[] =
 "[+?\btypeset\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.]"
-"[a]:?[type?Indexed array.  This is the default. If \b[\b\atype\a\b]]\b is "
-    "specified, each subscript is interpreted as a value of type \atype\a.]"
-"[b?Each \aname\a may contain binary data.  Its value is the mime "
-	"base64 encoding of the data. It can be used with \b-Z\b, "
-	"to specify fixed sized fields.]"
+"[a]:?[[type]]?Indexed array. This is the default. Subscripts start at 0. "
+#if SHOPT_FIXEDARRAY
+	"Each simple \aname\a creates a dynamic-size array with arbitrary "
+	"dimensions. A \aname\a in the format \aname\a\b[\b\an\a\b]]\b creates "
+	"a fixed-size array and any attempt to access a subscript \an\a or "
+	"higher is an error. Multidimensional fixed-size arrays "
+	"\aname\a\b[\b\an1\a\b]][\b\an2\a\b]]\b... are also supported. "
+#else
+	"Each \aname\a creates a dynamic-size array with arbitrary dimensions. "
+#endif
+	"An option value in the format \b[\b\atype\a\b]]\b (including the "
+	"square brackets), where \atype\a must be the name of an enumeration "
+	"type created with \benum\b(1), allows enumeration constants to be "
+	"used as subscripts.]"
+"[b?Each \aname\a may contain binary data. Its value is the MIME base64 "
+	"encoding of the data. This option can be used with \b-Z\b to "
+	"specify fixed-size fields.]"
 "[f?Each of the options and \aname\as refers to a function.]"
 "[i]#?[base:=10?An integer. \abase\a represents the arithmetic base "
 	"from 2 to 64.]"
@@ -1810,7 +1822,7 @@ const char sh_opttypeset[] =
 	"value will be displayed as an unsigned integer.]"
 "[x?Puts each \aname\a on the export list.  See \bexport\b(1).  \aname\a "
 	"cannot contain a \b.\b.]"
-"[A?Associative array.  Each \aname\a will converted to an associate "
+"[A?Associative array.  Each \aname\a will converted to an associative "
 	"array.  If a variable already exists, the current value will "
 	"become index \b0\b.]"
 "[C?Compound variable.  Each \aname\a will be a compound variable.  If "

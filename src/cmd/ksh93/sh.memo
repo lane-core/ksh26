@@ -1460,7 +1460,7 @@ an associative array with the given arguments as subscripts.
 For example,
 .ce
 \f5bar=( [color]=red [shape]=box )\fP
-creates an associate array named \f5bar\fP whose
+creates an associative array named \f5bar\fP whose
 subscripts are \f5color\fP and \f5shape\fP.
 .P
 The third form for \fIassignment-list\fP is a list of
