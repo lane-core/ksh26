@@ -45,22 +45,22 @@ static const char enum_type[] =
 "[-1c?\n@(#)$Id: type (AT&T Labs Research) 2008-01-08 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?\f?\f - create an instance of type \b\f?\f\b]"
-"[+DESCRIPTION?\b\f?\f\b creates a variable for each \aname\a with "
-    "enumeration type \b\f?\f\b where \b\f?\f\b is a type that has been "
+"[+DESCRIPTION?The \b\f?\f\b declaration command creates a variable for "
+    "each \aname\a with enumeration type \b\f?\f\b, a type that has been "
     "created with the \benum\b(1) command.]"
-"[+?The variable can have one of the following values\fvalues\f.  "
-    "The the values are \fcase\fcase sensitive.]"
+"[+?The variable can have one of the following values: \fvalues\f. "
+    "The values are \fcase\fcase sensitive.]"
 "[+?If \b=\b\avalue\a is omitted, the default is \fdefault\f.]"
 "[+?If no \aname\as are specified then the names and values of all "
         "variables of this type are written to standard output.]"
-"[+?\b\f?\f\b is built-in to the shell as a declaration command so that "
+"[+?\b\f?\f\b is built in to the shell as a declaration command so that "
         "field splitting and pathname expansion are not performed on "
         "the arguments.  Tilde expansion occurs on \avalue\a.]"
 "[r?Enables readonly.  Once enabled, the value cannot be changed or unset.]"
-"[a?index array.  Each \aname\a will converted to an index "
+"[a?Indexed array. Each \aname\a will converted to an indexed "
         "array of type \b\f?\f\b.  If a variable already exists, the current "
         "value will become index \b0\b.]"
-"[A?Associative array.  Each \aname\a will converted to an associate "
+"[A?Associative array. Each \aname\a will converted to an associative "
         "array of type \b\f?\f\b.  If a variable already exists, the current "
         "value will become subscript \b0\b.]"
 "[h]:[string?Used within a type definition to provide a help string  "
@@ -104,10 +104,8 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		if(ep->iflag)
 			sfprintf(out,"not ");
 	}
-	else while(v=ep->values[n++])
-	{
-		sfprintf(out,", \b%s\b",v);
-	}
+	else while(v=ep->values[n])
+		sfprintf(out, n++ ? ", \b%s\b" : "\b%s\b", v);
 	return(0);
 }
 
