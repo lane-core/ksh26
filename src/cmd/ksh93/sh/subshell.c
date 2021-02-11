@@ -752,7 +752,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	path_delete((Pathcomp_t*)shp->pathlist);
 	shp->pathlist = (void*)sp->pathlist;
 	job_subrestore(sp->jobs);
-	shp->jobenv = savecurenv;
+	shp->curenv = shp->jobenv = savecurenv;
 	job.curpgid = savejobpgid;
 	job.exitval = saveexitval;
 	shp->bckpid = sp->bckpid;
@@ -794,7 +794,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(n>0)
 			memset(&shp->st.trapcom[savst.trapmax],0,n*sizeof(char*));
 		shp->st = savst;
-		shp->curenv = savecurenv;
 		shp->st.otrap = 0;
 		if(nsig)
 		{
