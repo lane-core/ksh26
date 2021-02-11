@@ -8,6 +8,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug that caused ksh to lose track of all running background jobs if
   a shared-state command substitution of the form v=${ cmd; } was used twice.
 
+- Job control (the -m/-o monitor option) has been fixed for scripts. Background
+  jobs are now correctly assigned their own process group when run from
+  subshells (except command substitutions). The 'fg' command now also works for
+  scripts as it does on other shells, though 'wait' should be preferred.
+
 2021-02-05:
 
 - Fixed a longstanding bug that caused redirections that store a file

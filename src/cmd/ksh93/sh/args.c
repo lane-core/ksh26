@@ -360,6 +360,11 @@ void sh_applyopts(Shell_t* shp,Shopt_t newflags)
 			(shp->gd->userid==shp->gd->euserid && shp->gd->groupid==shp->gd->egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
 	}
+	/* sync monitor (part of job control) state with -o monitor option change */
+	if(!sh_isoption(SH_MONITOR) && is_option(&newflags,SH_MONITOR))
+		sh_onstate(SH_MONITOR);
+	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
+		sh_offstate(SH_MONITOR);
 	/* -o posix also switches -o braceexpand and -o letoctal */
 	if(!sh_isoption(SH_POSIX) && is_option(&newflags,SH_POSIX))
 	{

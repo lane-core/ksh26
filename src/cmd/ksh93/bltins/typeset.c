@@ -1144,7 +1144,6 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 int    b_set(int argc,register char *argv[],Shbltin_t *context)
 {
 	struct tdata tdata;
-	int was_monitor = sh_isoption(SH_MONITOR);
 	memset(&tdata,0,sizeof(tdata));
 	tdata.sh = context->shp;
 	tdata.prefix=0;
@@ -1156,10 +1155,6 @@ int    b_set(int argc,register char *argv[],Shbltin_t *context)
 			sh_onstate(SH_VERBOSE);
 		else
 			sh_offstate(SH_VERBOSE);
-		if(sh_isoption(SH_MONITOR) && !was_monitor)
-			sh_onstate(SH_MONITOR);
-		else if(!sh_isoption(SH_MONITOR)  && was_monitor)
-			sh_offstate(SH_MONITOR);
 	}
 	else
 		/*scan name chain and print*/

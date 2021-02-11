@@ -207,8 +207,6 @@ void sh_subfork(void)
 		/* this is the child part of the fork */
 		/* setting subpid to 1 causes subshell to exit when reached */
 		sh_onstate(SH_FORKED);
-		sh_offoption(SH_MONITOR);
-		sh_offstate(SH_MONITOR);
 		subshell_data = 0;
 		shp->subshell = 0;
 		shp->comsub = 0;

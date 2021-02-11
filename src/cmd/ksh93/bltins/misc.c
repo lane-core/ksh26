@@ -416,7 +416,7 @@ int    b_bg(register int n,register char *argv[],Shbltin_t *context)
 	if(error_info.errors)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 	argv += opt_info.index;
-	if(!sh_isoption(SH_MONITOR) || !job.jobcontrol)
+	if(!sh_isstate(SH_MONITOR))
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_no_jctl);
 		return(1);

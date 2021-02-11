@@ -1627,7 +1627,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					shp->bckpid = parent;
 				else if(!(type&(FAMP|FPOU)))
 				{
-					if(!sh_isoption(SH_MONITOR))
+					if(!sh_isstate(SH_MONITOR))
 					{
 						if(!(shp->sigflag[SIGINT]&(SH_SIGFAULT|SH_SIGOFF)))
 							sh_sigtrap(SIGINT);
@@ -1645,7 +1645,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_iorestore(shp,topfd,0);
 					if(usepipe && tsetio &&  subdup && unpipe)
 						sh_iounpipe(shp);
-					if(!sh_isoption(SH_MONITOR))
+					if(!sh_isstate(SH_MONITOR))
 					{
 						shp->trapnote &= ~SH_SIGIGNORE;
 						if(shp->exitval == (SH_EXITSIG|SIGINT))
@@ -1692,7 +1692,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 							sh_chkopen(e_devnull);
 					}
 				}
-				sh_offstate(SH_MONITOR);
+				sh_offstate(SH_INTERACTIVE);
 				/* pipe in or out */
 #ifdef _lib_nice
 				if((type&FAMP) && sh_isoption(SH_BGNICE))
@@ -1881,7 +1881,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_done(shp,0);
 			}
 			else if(((type=t->par.partre->tre.tretyp)&FAMP) && ((type&COMMSK)==TFORK)
-			&& !sh_isoption(SH_INTERACTIVE) && !job.jobcontrol)
+			&& !sh_isoption(SH_INTERACTIVE))
 			{
 				/* Optimize '( simple_command & )' */
 				pid_t	pid;
@@ -2005,7 +2005,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			shp->exitval = n;
 #ifdef SIGTSTP
-			if(!pipejob && sh_isstate(SH_MONITOR) && sh_isoption(SH_INTERACTIVE))
+			if(!pipejob && sh_isstate(SH_MONITOR) && job.jobcontrol)
 				tcsetpgrp(JOBTTY,shp->gd->pid);
 #endif /*SIGTSTP */
 			job.curpgid = savepgid;
@@ -2912,8 +2912,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	shp->gd->nforks=0;
 	timerdel(NIL(void*));
 #ifdef JOBS
-	if(!job.jobcontrol && !(flags&FAMP))
-		sh_offstate(SH_MONITOR);
 	if(sh_isstate(SH_MONITOR))
 	{
 		parent = shgd->current_pid;
@@ -2922,7 +2920,7 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 		while(setpgid(0,job.curpgid)<0 && job.curpgid!=parent)
 			job.curpgid = parent;
 #   ifdef SIGTSTP
-		if(job.curpgid==parent &&  !(flags&FAMP))
+		if(job.jobcontrol && job.curpgid==parent && !(flags&FAMP))
 			tcsetpgrp(job.fd,job.curpgid);
 #   endif /* SIGTSTP */
 	}
@@ -3634,7 +3632,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 #endif /* SIGTSTP */
 			if(spawnpid>0)
 				_sh_fork(shp,spawnpid,otype,jobid);
-			if(grp>0 && !(otype&FAMP))
+			if(job.jobcontrol && grp>0 && !(otype&FAMP))
 			{
 				while(tcsetpgrp(job.fd,job.curpgid)<0 && job.curpgid!=spawnpid)
 					job.curpgid = spawnpid;
@@ -3805,7 +3803,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(grp==1)
 			job.curpgid = spawnpid;
 #   ifdef SIGTSTP
-		if(grp>0 && !(otype&FAMP))
+		if(job.jobcontrol && grp>0 && !(otype&FAMP))
 		{
 			while(tcsetpgrp(job.fd,job.curpgid)<0 && job.curpgid!=spawnpid)
 				job.curpgid = spawnpid;
