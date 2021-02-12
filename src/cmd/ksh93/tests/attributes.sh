@@ -248,8 +248,8 @@ function fun
 	[[ $foo == hello ]] || err_exit 'export scoping problem in function'
 }
 fun
-[[ $(export | grep foo) == 'foo=hello' ]] || err_exit 'export not working in functions'
-[[ $(export | grep bar) ]] && err_exit 'typeset -x not local'
+[[ $'\n'$(export)$'\n' == *$'\nfoo=hello\n'* ]] || err_exit 'export not working in functions'
+[[ $'\n'$(export) == *$'\nbar='* ]] && err_exit 'typeset -x not local'
 [[ $($SHELL -c 'typeset -r IFS=;print -r $(pwd)' 2> /dev/null) == "$(pwd)" ]] || err_exit 'readonly IFS causes command substitution to fail'
 fred[66]=88
 [[ $(typeset -pa) == *fred* ]] || err_exit 'typeset -pa not working'
