@@ -30,7 +30,7 @@ Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2
 	exit 1 ;;
 esac
 
-unset CDPATH
+unset CDPATH PWD
 case $0 in
 -*)
 	echo "dodgy \$0: $0" >&2
@@ -38,7 +38,7 @@ case $0 in
 */package)
 	mydir=`echo "$0" | sed 's,/package$,,'`
 	cd "$mydir" || exit
-	case $PWD in
+	case ${PWD:-`pwd`} in
 	*/bin)	;;
 	*)	echo "this script must live in bin/" >&2
 		exit 1 ;;
@@ -55,7 +55,7 @@ package)
 	me=`command -v package` || me=`which package` || exit
 	mydir=`echo "$me" | sed 's,/package$,,'`
 	cd "$mydir" || exit
-	case $PWD in
+	case ${PWD:-`pwd`} in
 	*/bin)	;;
 	*)	echo "this script must live in bin/" >&2
 		exit 1 ;;
