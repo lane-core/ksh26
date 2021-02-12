@@ -542,7 +542,7 @@ fi
 ofile=$tmp/command_x_chunks.sh
 trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "'\''command -x'\'' hung"' TERM
 trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT $$"' INT
-{ sleep 15; kill $$; } &
+{ sleep 60; kill $$; } &
 sleep_pid=$!
 (
 	export LC_ALL=C
@@ -558,14 +558,17 @@ sleep_pid=$!
 	done
 	print "chunks=0 expargs=$# args=0 expsize=$((${#args}+1)) size=0"
 	unset args
-	command -px awk 'BEGIN {
-		ARGC -= 2;  # final static args
-		for (i=1; i<ARGC; i++)
-			size += length(ARGV[i]) + 1;
-		print ("let chunks++ args+=")(ARGC - 1)(" size+=")(size);
-		if(ARGV[ARGC] != "static_arg_1" || ARGV[ARGC+1] != "final_static_arg_2")
-			print "err_exit \"'\''command -x'\'': static final arguments for chunk $chunks incorrect\"";
-	}' "$@" static_arg_1 final_static_arg_2
+	command -x "$SHELL" -c '
+		integer i size=0 numargs=${#}-2
+		for ((i=numargs; i; i--))
+		do	let "size += ${#1} + 1"
+			shift
+		done
+		print "let chunks++ args+=$numargs size+=$size"
+		if	[[ $0 != static_argzero || $1 != final_static_arg_1 || $2 != final_static_arg_2 ]]
+		then	print "err_exit \"'\''command -x'\'': static arguments for chunk \$chunks incorrect\""
+		fi
+	' static_argzero "$@" final_static_arg_1 final_static_arg_2
 ) >$ofile &
 pid=$!
 wait $pid

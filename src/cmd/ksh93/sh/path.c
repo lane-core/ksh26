@@ -164,11 +164,12 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 		return((pid_t)-1);
 	size = shp->gd->lim.arg_max - (ARG_EXTRA_BYTES > 2 ? 1024*ARG_EXTRA_BYTES : 2048);
 	for(ev=envp; cp= *ev; ev++)
-		size -= 2 * (strlen(cp) + 1 + ARG_EXTRA_BYTES);
+		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
 	for(av=argv; (cp= *av) && av< &argv[shp->xargmin]; av++)  
 		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
 	for(av=avlast; cp= *av; av++,nlast++)  
 		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
+	size -= 2 + 2 * ARG_EXTRA_BYTES;  /* final null env and arg elements */
 	av =  &argv[shp->xargmin];
 	if(!spawn)
 		job_clear();

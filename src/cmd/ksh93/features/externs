@@ -17,8 +17,8 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 	 * Figure out if this OS requires extra bytes per argument
 	 * in the arguments list of a process.
 	 * Outputs an appropriate #define ARG_EXTRA_BYTES.
-	 * Without this, 'command -x' failed with E2BIG on macOS and Linux even
-	 * if all the arguments should fit in ARG_MAX based on their length.
+	 * Without this, 'command -x' failed with E2BIG on macOS, Linux and Solaris
+	 * even if all the arguments should fit in ARG_MAX based on their length.
 	 */
 
 	/* AST includes */
@@ -43,20 +43,25 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 
 	int main(int argc,char *argv[])
 	{
-		int extra_bytes = 0, envlen = 0, argmax, i;
+		int extra_bytes = 0, envlen, argmax, i;
 		pid_t childpid;
 
 		error_info.id="ARG_EXTRA_BYTES test (parent)";
-		for(i=0; environ[i]; i++)
-			envlen += strlen(environ[i]) + 1;
-		argmax = strtoimax(astconf("ARG_MAX",NiL,NiL),NiL,0) - 2 * envlen;
-		if (argmax < 2048)
-		{
-			error(ERROR_ERROR|2, "argmax too small");
-			return 1;
-		}
 		while(1)
 		{
+			envlen = 0;
+			for(i=0; argv[i]; i++)
+				envlen += strlen(argv[i]) + 1 + extra_bytes;
+			envlen += 1 + extra_bytes;	/* final null element */
+			for(i=0; environ[i]; i++)
+				envlen += strlen(environ[i]) + 1 + extra_bytes;
+			envlen += 1 + extra_bytes;	/* final null element */
+			argmax = strtoimax(astconf("ARG_MAX",NiL,NiL),NiL,0) - envlen;
+			if (argmax < 2048)
+			{
+				error(ERROR_ERROR|2, "argmax too small");
+				return 1;
+			}
 			if(!(childpid = fork()))
 			{
 				/* child */
@@ -122,5 +127,5 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 		return 0;
 	}
 }end fail{
-	echo "#define ARG_EXTRA_BYTES	8	/* BUG: test failed; assuming 8 */"
+	echo "#define ARG_EXTRA_BYTES	16	/* BUG: test failed; assuming 16 */"
 }end
