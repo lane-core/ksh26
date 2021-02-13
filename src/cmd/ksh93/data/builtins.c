@@ -153,6 +153,10 @@ const struct shtable3 shtab_builtins[] =
 #if !_std_malloc && !_AST_std_malloc
 	CMDLIST(vmstate)
 #endif
+#if !_AST_ksh_release
+	/* The pty.sh regression tests need the stty builtin */
+	CMDLIST(stty)
+#endif
 #endif
 #if SHOPT_REGRESS
 	"__regress__",		NV_BLTIN|BLT_ENV,	bltin(__regress__),

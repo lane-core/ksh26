@@ -39,20 +39,23 @@ function err_exit
 }
 
 alias err_exit='err_exit $lineno'
+alias warning='err\_exit $((Errors--,LINENO)) warning:'
 
 Command=${0##*/}
 integer Errors=0 lineno=1
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
-whence -q pty || { err\_exit "$LINENO" "pty command not found -- tests skipped"; exit 0; }
+whence -q pty || { warning "pty command not found -- tests skipped"; exit 0; }
 
-# On FreeBSD, the OS-provided stty command does not appear to work correctly on a pty pseudoterminal.
-# To avoid a couple of false regressions, we have to set 'erase' and 'kill' on the real terminal.
+# On FreeBSD, or if there is no tty, the OS-provided stty command does not appear to work correctly on a pty pseudoterminal.
+# To avoid false regressions, we have to either use the stty builtin, or set 'erase' and 'kill' on the real terminal.
 if	builtin stty 2>/dev/null
-then	PATH=/opt/ast/bin:$PATH
+then	PATH=/opt/ast/bin:$PATH  # virtual path for ksh path-bound builtins, so child shells use the stty builtin
 elif	test -t 1 2>/dev/null 1>/dev/tty && stty_restore=$(stty -g)
 then	trap 'stty "$stty_restore"' EXIT  # note: on ksh, the EXIT trap is also triggered for termination due to a signal
 	stty erase ^H kill ^X
+else	warning "cannot set tty state -- tests skipped"
+	exit 0
 fi
 
 bintrue=$(whence -p true)
