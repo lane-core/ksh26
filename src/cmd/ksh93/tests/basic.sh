@@ -670,19 +670,17 @@ eu=$(
 # ======
 # Test for bug in ksh binaries that use posix_spawn() while job control is active.
 # See discussion at: https://github.com/ksh93/ksh/issues/79
-if	test -t 1 2>/dev/null 1>/dev/tty	# this test only works if we have a tty
-then	actual=$(
-		"$SHELL" -i <<-\EOF 2>/dev/tty
-		printf '%s\n' 1 2 3 4 5 | while read
-		do	ls /dev/null
-		done 2>&1
-		exit  # suppress extra newline
-		EOF
-	)
-	expect=$'/dev/null\n/dev/null\n/dev/null\n/dev/null\n/dev/null'
-	[[ $actual == "$expect" ]] || err_exit 'Race condition while launching external commands' \
-		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-fi
+actual=$(
+	"$SHELL" -i <<-\EOF 2>/dev/tty
+	printf '%s\n' 1 2 3 4 5 | while read
+	do	ls /dev/null
+	done 2>&1
+	exit  # suppress extra newline
+	EOF
+)
+expect=$'/dev/null\n/dev/null\n/dev/null\n/dev/null\n/dev/null'
+[[ $actual == "$expect" ]] || err_exit 'Race condition while launching external commands' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
 # Expansion of multibyte characters after expansion of single-character names $1..$9, $?, $!, $-, etc.

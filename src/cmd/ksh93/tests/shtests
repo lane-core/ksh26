@@ -168,7 +168,7 @@ function valxml
 	return $errors
 }
 
-if	[[ ! -c /dev/tty || ! -w /dev/tty ]]
+if	! test -t 1 2>/dev/null 1>/dev/tty
 then	print "The regression tests require a functioning /dev/tty." >&2
 	print "If not available, try script(1) to simulate a tty." >&2
 	exit 128
