@@ -577,6 +577,14 @@ if	[[ -s "$tmp/fdleak.txt" ]]
 then	exec 3>&-
 	err_exit "Open file descriptor leaks out of subshell"
 fi
+# However, it should still survive a shared-state command sustitution if it's not 1 (stdout).
+redirect 3>&-  # close FD 3 just in case
+: ${ redirect 3>"$tmp/fdshared.txt"; }
+{ echo good >&3; } 2>/dev/null
+if	[[ ! -s "$tmp/fdshared.txt" ]]
+then	err_exit "Open file descriptor does not survive shared-state command substitution"
+fi
+redirect 3>&-
 
 # ======
 # On unpatched ksh on macOS, 'read' used to block when reading from a FIFO and there was no final newline.
