@@ -606,9 +606,9 @@ EOF
 tst $LINENO <<"!"
 L test -t 1 inside command substitution
 p :test-1:
+d 10
 w . ./test_t.sh
 r ^:test-1: \. \./test_t\.sh\r\n$
-r ^\. \./test_t\.sh\r\n$
 r ^OK0\r\n$
 r ^OK1\r\n$
 r ^OK2\r\n$
@@ -629,9 +629,9 @@ L race condition while launching external commands
 # See discussion at: https://github.com/ksh93/ksh/issues/79
 
 p :test-1:
+d 10
 w printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done
 r ^:test-1: printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
-r ^printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
 r ^/dev/null\r\n$
 r ^/dev/null\r\n$
 r ^/dev/null\r\n$
