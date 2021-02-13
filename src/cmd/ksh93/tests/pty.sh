@@ -564,5 +564,77 @@ w set -b; sleep .01 &
 u Done
 !
 
+# err_exit #
+# Tests for 'test -t'. These were moved here from bracket.sh because they require a tty.
+cat >test_t.sh <<"EOF"
+integer n
+redirect {n}< /dev/tty
+[[ -t $n ]] && echo OK0 || echo "[[ -t n ]] fails when n > 9"
+# _____ Verify that [ -t 1 ] behaves sensibly inside a command substitution.
+#	This is the simple case that doesn't do any redirection of stdout within
+#	the command substitution. Thus the [ -t 1 ] test should be false.
+expect=$'begin\nend'
+actual=$(echo begin; [ -t 1 ] || test -t 1 || [[ -t 1 ]] && echo -t 1 is true; echo end)
+[[ $actual == "$expect" ]] && echo OK1 || echo 'test -t 1 in comsub fails' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(echo begin; [ -n X -a -t 1 ] || test -n X -a -t 1 || [[ -n X && -t 1 ]] && echo -t 1 is true; echo end)
+[[ $actual == "$expect" ]] && echo OK2 || echo 'test -t 1 in comsub fails (compound expression)' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+# Same for the ancient compatibility hack for 'test -t' with no arguments.
+actual=$(echo begin; [ -t ] || test -t && echo -t is true; echo end)
+[[ $actual == "$expect" ]] && echo OK3 || echo 'test -t in comsub fails' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+actual=$(echo begin; [ -n X -a -t ] || test -n X -a -t && echo -t is true; echo end)
+[[ $actual == "$expect" ]] && echo OK4 || echo 'test -t in comsub fails (compound expression)' \
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+#	This is the more complex case that does redirect stdout within the command
+#	substitution to the actual tty. Thus the [ -t 1 ] test should be true.
+actual=$(echo begin; exec >/dev/tty; [ -t 1 ] && test -t 1 && [[ -t 1 ]]) \
+&& echo OK5 || echo 'test -t 1 in comsub with exec >/dev/tty fails'
+actual=$(echo begin; exec >/dev/tty; [ -n X -a -t 1 ] && test -n X -a -t 1 && [[ -n X && -t 1 ]]) \
+&& echo OK6 || echo 'test -t 1 in comsub with exec >/dev/tty fails (compound expression)'
+# Same for the ancient compatibility hack for 'test -t' with no arguments.
+actual=$(echo begin; exec >/dev/tty; [ -t ] && test -t) \
+&& echo OK7 || echo 'test -t in comsub with exec >/dev/tty fails'
+actual=$(echo begin; exec >/dev/tty; [ -n X -a -t ] && test -n X -a -t) \
+&& echo OK8 || echo 'test -t in comsub with exec >/dev/tty fails (compound expression)'
+EOF
+tst $LINENO <<"!"
+L test -t 1 inside command substitution
+p :test-1:
+w . ./test_t.sh
+r ^:test-1: \. \./test_t\.sh\r\n$
+r ^\. \./test_t\.sh\r\n$
+r ^OK0\r\n$
+r ^OK1\r\n$
+r ^OK2\r\n$
+r ^OK3\r\n$
+r ^OK4\r\n$
+r ^OK5\r\n$
+r ^OK6\r\n$
+r ^OK7\r\n$
+r ^OK8\r\n$
+r ^:test-2:
+!
+
+# err_exit #
+tst $LINENO <<"!"
+L race condition while launching external commands
+
+# Test for bug in ksh binaries that use posix_spawn() while job control is active.
+# See discussion at: https://github.com/ksh93/ksh/issues/79
+
+p :test-1:
+w printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done
+r ^:test-1: printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
+r ^printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
+r ^/dev/null\r\n$
+r ^/dev/null\r\n$
+r ^/dev/null\r\n$
+r ^/dev/null\r\n$
+r ^/dev/null\r\n$
+r ^:test-2:
+!
+
 # ======
 exit $((Errors<125?Errors:125))

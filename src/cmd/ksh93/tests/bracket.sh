@@ -309,10 +309,6 @@ do	if	[[ ! $locales == *$'\n'"${l}"$'\n'* ]] ||
 		done
 	done
 done
-integer n
-if	( : < /dev/tty ) 2>/dev/null && exec {n}< /dev/tty
-then	[[ -t  $n ]] || err_exit "[[ -t  n ]] fails when n > 9"
-fi
 foo=([1]=a [2]=b [3]=c)
 [[ -v foo[1] ]] ||  err_exit 'foo[1] should be set'
 [[ ${foo[1]+x} ]] ||  err_exit '${foo[1]+x} should be x'
@@ -369,37 +365,6 @@ test ! ! x 2> /dev/null || err_exit 'test ! ! x should return 0'
 test ! ! '' 2> /dev/null && err_exit 'test ! ! "" should return non-zero'
 
 # ======
-# Verify that [ -t 1 ] behaves sensibly inside a command substitution.
-
-# This is the simple case that doesn't do any redirection of stdout within the command
-# substitution. Thus the [ -t 1 ] test should be false.
-expect=$'begin\nend'
-actual=$(echo begin; [ -t 1 ] || test -t 1 || [[ -t 1 ]] && echo -t 1 is true; echo end)
-[[ $actual == "$expect" ]] || err_exit 'test -t 1 in comsub fails' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-actual=$(echo begin; [ -n X -a -t 1 ] || test -n X -a -t 1 || [[ -n X && -t 1 ]] && echo -t 1 is true; echo end)
-[[ $actual == "$expect" ]] || err_exit 'test -t 1 in comsub fails (compound expression)' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-# Same for the ancient compatibility hack for 'test -t' with no arguments.
-actual=$(echo begin; [ -t ] || test -t && echo -t is true; echo end)
-[[ $actual == "$expect" ]] || err_exit 'test -t in comsub fails' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-actual=$(echo begin; [ -n X -a -t ] || test -n X -a -t && echo -t is true; echo end)
-[[ $actual == "$expect" ]] || err_exit 'test -t in comsub fails (compound expression)' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-
-# This is the more complex case that does redirect stdout within the command substitution to the
-# actual tty. Thus the [ -t 1 ] test should be true.
-actual=$(echo begin; exec >/dev/tty; [ -t 1 ] && test -t 1 && [[ -t 1 ]]) \
-|| err_exit 'test -t 1 in comsub with exec >/dev/tty fails'
-actual=$(echo begin; exec >/dev/tty; [ -n X -a -t 1 ] && test -n X -a -t 1 && [[ -n X && -t 1 ]]) \
-|| err_exit 'test -t 1 in comsub with exec >/dev/tty fails (compound expression)'
-# Same for the ancient compatibility hack for 'test -t' with no arguments.
-actual=$(echo begin; exec >/dev/tty; [ -t ] && test -t) \
-|| err_exit 'test -t in comsub with exec >/dev/tty fails'
-actual=$(echo begin; exec >/dev/tty; [ -n X -a -t ] && test -n X -a -t) \
-|| err_exit 'test -t in comsub with exec >/dev/tty fails (compound expression)'
-
 # The POSIX mode should disable the ancient 'test -t' compatibility hack.
 if	[[ -o ?posix ]]
 then	# need 'eval' in first test, as it's a parser hack, and ksh normally parses ahead of execution
