@@ -265,11 +265,9 @@ test '(' = ')' && err_exit '"test ( = )" should not be true'
 [[ $($SHELL -c "case  Q in ~(Fi)q |  \$'\E') print ok;;esac" 2> /dev/null) == ok ]] || err_exit '~(Fi)q | \E  not working in case command'
 
 locales=$'\n'$(command -p locale -a 2>/dev/null)$'\n'
-for l in C en_US.ISO8859-1 en_US.ISO8859-15 en_US.UTF-8
-do	if	[[ ! $locales == *$'\n'"${l}"$'\n'* ]] ||
-		[[ $("$SHELL" -c "LC_COLLATE=${l}" 2>&1) ]]
-	then	print -u2 "\t${Command}[$LINENO]: warning: cannot test unavailable locale: ${l}"
-		continue
+for l in C C.UTF-8 en_US.ISO8859-1 en_US.ISO8859-15 en_US.UTF-8
+do	if	[[ $l != C* && ( $locales != *$'\n'"${l}"$'\n'* || -n $("$SHELL" -c "LC_COLLATE=${l}" 2>&1) ) ]]
+	then	continue
 	fi
 	export LC_COLLATE=$l
 	set -- \
