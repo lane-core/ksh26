@@ -805,7 +805,7 @@ actual=$( mkdir "$tmp/java" "$tmp/.java" 2>&1 &&
 # check that we cannot cd into a regular file and get misbehaviour
 : > "$tmp/regular_file"
 expect=": cd: $tmp/regular_file: [Not a directory]"
-actual=$(cd "$tmp/regular_file" 2>&1)
+actual=$(LC_ALL=C cd "$tmp/regular_file" 2>&1)
 e=$?
 [[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a regular file' \
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
@@ -816,12 +816,12 @@ then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping tests 
 else
 mkdir -m 600 "$tmp/no_x_dir"
 expect=": cd: $tmp/no_x_dir: [Permission denied]"
-actual=$(cd "$tmp/no_x_dir" 2>&1)
+actual=$(LC_ALL=C cd "$tmp/no_x_dir" 2>&1)
 e=$?
 [[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (absolute path arg)' \
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
 expect=": cd: no_x_dir: [Permission denied]"
-actual=$(cd "$tmp" 2>&1 && cd "no_x_dir" 2>&1)
+actual=$(cd "$tmp" 2>&1 && LC_ALL=C cd "no_x_dir" 2>&1)
 e=$?
 [[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
 	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
@@ -839,7 +839,7 @@ actual=$({ a=$(cd; pwd); } >&-; print -r -- "$a")
 
 # CDPATH was not ignored by 'cd ./dir': https://github.com/ksh93/ksh/issues/151
 expect=': cd: ./dev: [No such file or directory]'
-actual=$( (CDPATH=/ cd -P ./dev && pwd) 2>&1 )
+actual=$( (CDPATH=/ LC_ALL=C cd -P ./dev && pwd) 2>&1 )
 let "(e=$?)==1" && [[ $actual == *"$expect" ]] || err_exit "CDPATH not ignored by cd ./dir" \
 	"(expected *$(printf %q "$expect") with status 1, got $(printf %q "$actual") with status $e)"
 
