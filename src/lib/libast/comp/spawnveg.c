@@ -94,14 +94,18 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 #ifndef P_NOWAIT
 #define P_NOWAIT	_P_NOWAIT
 #endif
-#ifndef P_DETACH
+#if !defined(P_DETACH) && defined(_P_DETACH)
 #define P_DETACH	_P_DETACH
 #endif
 
 pid_t
 spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 {
+#if defined(P_DETACH)
 	return spawnve(pgid ? P_DETACH : P_NOWAIT, path, argv, envv ? envv : environ);
+#else
+	return spawnve(P_NOWAIT, path, argv, envv ? envv : environ);
+#endif
 }
 
 #else

@@ -68,9 +68,6 @@ CHILD_MAX			POSIX	SC 1 CDLMUX	6	cc{
 	#if _lib_fork
 	#define child()		fork()
 	#else
-	#ifdef	_map_spawnve
-	#define spawnve		_map_spawnve
-	#endif
 	extern int		spawnve(const char*, char* const[], char* const[]);
 	static char*		cmd[] = { "/bin/echo", 0 };
 	#define child()		spawnve(cmd[0],cmd,(char**)0)

@@ -9,11 +9,6 @@ Fix regression test failures:
 - There are many regression test failures on NetBSD.
 
 ______
-Fix build system:
-
-- ksh does not currently build on QNX.
-
-______
 Fix currently known bugs affecting shell scripting. These are identified by
 their modernish IDs. For exact details, see code/comments in:
 https://github.com/modernish/modernish/tree/0.16/lib/modernish/cap/

@@ -19,7 +19,8 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if defined(_UWIN) && defined(_BLD_ast)
+#include "FEATURE/vmalloc"
+#if !_hdr_sys_shm || (defined(_UWIN) && defined(_BLD_ast))
 
 void _STUB_vmmapopen(){}
 

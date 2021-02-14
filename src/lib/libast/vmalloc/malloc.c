@@ -998,36 +998,6 @@ extern Mstats_t mstats()
 
 #define setregmax(n)
 
-#undef	calloc
-extern Void_t*	calloc _ARG_((size_t, size_t));
-
-#undef	cfree
-extern void	cfree _ARG_((Void_t*));
-
-#undef	free
-extern void	free _ARG_((Void_t*));
-
-#undef	malloc
-extern Void_t*	malloc _ARG_((size_t));
-
-#if _lib_memalign
-#undef	memalign
-extern Void_t*	memalign _ARG_((size_t, size_t));
-#endif
-
-#if _lib_pvalloc
-#undef	pvalloc
-extern Void_t*	pvalloc _ARG_((size_t));
-#endif
-
-#undef	realloc
-extern Void_t*	realloc _ARG_((Void_t*, size_t));
-
-#if _lib_valloc
-#undef	valloc
-extern Void_t*	valloc _ARG_((size_t));
-#endif
-
 #if defined(__EXPORT__)
 #define extern		__EXPORT__
 #endif
