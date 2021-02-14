@@ -128,7 +128,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 	Lex_t		*lp = (Lex_t*)(shp->lex_context);
 #endif
 	Shopt_t		newflags;
-	int setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
+	int		defaultflag=0, setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
 	Namval_t *np = NIL(Namval_t*);
 	const char *cp;
 	int verbose,f;
@@ -173,6 +173,12 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			if(sh_isoption(SH_RESTRICTED) && !f && o==SH_RESTRICTED)
 				errormsg(SH_DICT,ERROR_exit(1), e_restricted, opt_info.arg);
 			break;
+		    case -5:	/* --posix must be handled explicitly to stop AST optget(3) overriding it */
+			if(opt_info.num)
+				on_option(&newflags,SH_POSIX);
+			else
+				off_option(&newflags,SH_POSIX);
+			break;
 		    case -6:	/* --default */
 			{
 				register const Shtable_t *tp;
@@ -180,8 +186,9 @@ int sh_argopts(int argc,register char *argv[], void *context)
 					if(!(o&SH_COMMANDLINE) && is_option(&newflags,o&0xff))
 						off_option(&newflags,o&0xff);
 			}
+			defaultflag++;
 		    	continue;
-	 	    case -7:
+		    case -7:	/* --state */
 			f = 0;
 		    	goto byname;
 	 	    case 'D':
@@ -249,8 +256,14 @@ int sh_argopts(int argc,register char *argv[], void *context)
 				off_option(&newflags,SH_EMACS);
 				off_option(&newflags,SH_GMACS);
 			}
-
 #endif /* SHOPT_ESH && SHOPT_VSH */
+			if(o==SH_POSIX && !defaultflag)
+			{
+#if SHOPT_BRACEPAT
+				off_option(&newflags,SH_BRACEEXPAND);
+#endif
+				on_option(&newflags,SH_LETOCTAL);
+			}
 			on_option(&newflags,o);
 			off_option(&ap->sh->offoptions,o);
 		}
@@ -258,6 +271,13 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		{
 			if ((o == SH_RESTRICTED) && sh_isoption(SH_RESTRICTED))
 				errormsg(SH_DICT,ERROR_exit(1),e_restricted,"r"); /* set -r cannot be unset */
+			if(o==SH_POSIX && !defaultflag)
+			{
+#if SHOPT_BRACEPAT
+				on_option(&newflags,SH_BRACEEXPAND);
+#endif
+				off_option(&newflags,SH_LETOCTAL);
+			}
 			if(o==SH_XTRACE)
 				trace = 0;
 			off_option(&newflags,o);
@@ -365,21 +385,6 @@ void sh_applyopts(Shell_t* shp,Shopt_t newflags)
 		sh_onstate(SH_MONITOR);
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
 		sh_offstate(SH_MONITOR);
-	/* -o posix also switches -o braceexpand and -o letoctal */
-	if(!sh_isoption(SH_POSIX) && is_option(&newflags,SH_POSIX))
-	{
-#if SHOPT_BRACEPAT
-		off_option(&newflags,SH_BRACEEXPAND);
-#endif
-		on_option(&newflags,SH_LETOCTAL);
-	}
-	else if(sh_isoption(SH_POSIX) && !is_option(&newflags,SH_POSIX))
-	{
-#if SHOPT_BRACEPAT
-		on_option(&newflags,SH_BRACEEXPAND);
-#endif
-		off_option(&newflags,SH_LETOCTAL);
-	}
 	shp->options = newflags;
 }
 
@@ -606,7 +611,7 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 		{
 			sfputr(sfstdout,name,' ');
 			sfnputc(sfstdout,' ',24-strlen(name));
-			sfputr(sfstdout,on ? sh_translate(e_on) : sh_translate(e_off),'\n');
+			sfputr(sfstdout,on ? "on" : "off",'\n');
 		}
 		else if(mode&PRINT_ALL) /* print unset options also */
 			sfprintf(sfstdout, "set %co %s\n", on?'-':'+', name);

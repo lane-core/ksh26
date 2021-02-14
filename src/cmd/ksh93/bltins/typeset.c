@@ -1055,8 +1055,10 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	{
 		if(sh_isoption(SH_RESTRICTED))
 			errormsg(SH_DICT,ERROR_exit(1),e_restricted,argv[-opt_info.index]);
+#if SHOPT_PFSH
 		if(sh_isoption(SH_PFSH))
 			errormsg(SH_DICT,ERROR_exit(1),e_pfsh,argv[-opt_info.index]);
+#endif
 		if(tdata.sh->subshell && !tdata.sh->subshare)
 			sh_subfork();
 	}

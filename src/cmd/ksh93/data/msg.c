@@ -67,7 +67,9 @@ const char e_subst[]		= "%s: bad substitution";
 const char e_create[]		= "%s: cannot create";
 const char e_tmpcreate[]	= "cannot create temporary file";
 const char e_restricted[]	= "%s: restricted";
+#if SHOPT_PFSH
 const char e_pfsh[]		= "%s: disabled in profile shell";
+#endif
 const char e_pexists[]		= "process already exists";
 const char e_exists[]		= "%s: file already exists";
 const char e_pipe[]		= "cannot create pipe";
@@ -133,8 +135,6 @@ const char e_overlimit[]	= "%s: limit exceeded";
 const char e_badsyntax[]	= "incorrect syntax";
 const char e_badwrite[]		= "write to %d failed";
 const char e_staticfun[]	= "%s: defined as a static function in type %s and cannot be redefined";
-const char e_on	[]		= "on";
-const char e_off[]		= "off";
 const char is_reserved[]	= " is a keyword";
 const char is_builtin[]		= " is a shell builtin";
 const char is_spcbuiltin[]	= " is a special shell builtin";

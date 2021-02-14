@@ -53,6 +53,7 @@ struct shtable3
 #define sh_lookup(name,value)	(sh_locate(name,(Shtable_t*)(value),sizeof(*(value)))->sh_number)
 extern const Shtable_t		shtab_testops[];
 extern const Shtable_t		shtab_options[];
+extern const Shtable_t		shtab_options_posix[];
 extern const Shtable_t		shtab_attributes[];
 extern const struct shtable2	shtab_variables[];
 extern const struct shtable2	shtab_aliases[];

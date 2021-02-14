@@ -212,7 +212,11 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 				saveargs = 0;
 			}
 		}
+#if SHOPT_PFSH
 		else if(spawn && !sh_isoption(SH_PFSH))
+#else
+		else if(spawn)
+#endif
 		{
 			shp->xargexit = exitval;
 			if(saveargs)
@@ -1179,7 +1183,11 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 		path = sp;
 	}
 #endif /* SHELLMAGIC */
+#if SHOPT_PFSH
 	if(spawn && !sh_isoption(SH_PFSH))
+#else
+	if(spawn)
+#endif
 		pid = _spawnveg(shp,opath, &argv[0],envp, spawn>>1);
 	else
 		pid = path_pfexecve(shp,opath, &argv[0] ,envp,spawn);

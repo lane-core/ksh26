@@ -196,14 +196,12 @@ const char sh_set[] =
 	"control.]"
 "[n?The shell reads commands and checks for syntax errors, but does "
 	"not execute the command.  Usually specified on command invocation.]"
-"[o]:?[option?If \aoption\a is not specified, the list of options and "
-	"their current settings will be written to standard output.  When "
-	"invoked with a \b+\b the options will be written in a format "
-	"that can be reinput to the shell to restore the settings. "
-	"Options \b-o\b \aname\a can also be specified with \b--\b\aname\a "
-	"and \b+o \aname\a can be specified with \b--no\b\aname\a  except that "
-	"options names beginning with \bno\b are turned on by omitting \bno\b."
-	"This option can be repeated to enable/disable multiple options. "
+"[o]:?[option?A \b-o\b with no \aoption\a will write the list of options and "
+	"their current settings to standard output. "
+	"A \b+o\b with no \aoption\a writes a command that the shell can run "
+	"to restore the current options state. "
+	"\b-o\b \aoption\a turns on \aoption\a and \b+o\b \aoption\a turns it "
+	"off. This can be repeated to enable/disable multiple options. "
 	"The value of \aoption\a must be one of the following:]{"
 		"[+allexport?Equivalent to \b-a\b.]"
 		"[+bgnice?Runs background jobs at lower priorities.]"
@@ -258,6 +256,15 @@ const char sh_set[] =
 #endif
 		"[+xtrace?Equivalent to \b-x\b.]"
 "}"
+/*
+ * --posix is an AST optget(3) default option, so for ksh to use it, it must be listed
+ * explicitly (and handled by sh_argopts() in sh/args.c) to stop optget(3) overriding it.
+ * Since it must appear here, use it as an example to document how --option == -o option.
+ */
+"[05:posix?For any \b-o\b option (such as \bposix\b), \b--posix\b is equivalent "
+	"to \b-o posix\b and \b--noposix\b is equivalent to \b+o posix\b. "
+	"However, option names with a \bno\b prefix "
+	"are turned on by omitting \bno\b.]"
 "[p?Privileged mode.  Disabling \b-p\b sets the effective user id to the "
 	"real user id, and the effective group id to the real group id.  "
 	"Enabling \b-p\b restores the effective user and group ids to their "

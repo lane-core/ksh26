@@ -534,16 +534,13 @@ print $'alias print=:\nprint foobar' > dotfile
 [[ $(ENV=/.$PWD/envfile $SHELL -i -c : 2>/dev/null) == foobar ]] && err_exit 'files source from profile does not process aliases correctly'
 
 # ======
-# test that '-o posix' option (not having a letter) does not affect "$-" expansion
-# other than B = braceexpand
 if [[ -o ?posix ]]; then
-(
-	command set +o posix 2>/dev/null
-	opt1=${-/B/}
-	command set -o posix 2>/dev/null
-	opt2=$-
-	[[ $opt1 == "$opt2" ]]
-) || err_exit '-o posix option affects $- expansion'
+	(set +o posix; o1=${-/B/}; set -o posix; o2=${-/B/}; [[ $o1 == "$o2" ]]) || err_exit 'set -o posix affects $- expansion'
+	(set +o posix; set --posix >/dev/null; [[ -o posix ]]) || err_exit "set --posix != set -o posix"
+	(set -o posix; set --noposix; [[ -o posix ]]) && err_exit "set --noposix != set +o posix"
+	(set -o posix +o letoctal; [[ -o letoctal ]]) && err_exit "failed to stop posix option from turning on letoctal"
+	(set +B; set -o posix -B; [[ -o braceexpand ]]) || err_exit "failed to stop posix option from turning off bracceexpand"
+	(set --default -o posix; [[ -o letoctal ]]) && err_exit "set --default failed to stop posix option from changing others"
 fi
 
 # ======

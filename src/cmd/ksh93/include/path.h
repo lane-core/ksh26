@@ -109,7 +109,9 @@ extern const char e_timeformat[];
 extern const char e_badtformat[];
 extern const char e_dot[];
 extern const char e_funload[];
+#if SHOPT_PFSH
 extern const char e_pfsh[];
+#endif
 extern const char e_pwd[];
 extern const char e_logout[];
 extern const char e_alphanum[];

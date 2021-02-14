@@ -1307,7 +1307,10 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		if(type&SH_TYPE_LOGIN)
 			shp->login_sh = 2;
 		if(type&SH_TYPE_POSIX)
+		{
 			sh_onoption(SH_POSIX);
+			sh_onoption(SH_LETOCTAL);
+		}
 	}
 	/* read the environment; don't import attributes yet, but save pointer to them */
 	save_envmarker = env_init(shp);

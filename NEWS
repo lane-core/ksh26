@@ -10,6 +10,17 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   an additional check against the system clock to make sure it sleeps at least
   the given amount of time. Thanks to Lev Kujawski for adding this feature.
 
+- A few bugs were fixed that 93u+m introduced along with the new '-o posix'
+  shell option on 2020-09-01:
+  1. 'set --posix' now works as the expected equivalent of 'set -o posix'.
+  2. As of 2020-09-18, the posix option turns off braceexpand and turns on
+     letoctal. Any attempt to override that in a single command such as
+     'set -o posix +o letoctal' was quietly ignored. This now works as long
+     as the overriding option follows the posix option on the command line.
+  3. The --default option to 'set' now stops the 'posix' option, if set or
+     unset in the same 'set' command, from changing other options. This allows
+     the command output by 'set +o' to correctly restore the current options.
+
 2021-02-11:
 
 - Fixed a bug that caused ksh to lose track of all running background jobs if

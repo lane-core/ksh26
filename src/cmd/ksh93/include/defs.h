@@ -297,36 +297,6 @@ struct shared
 #define SH_CMDLIB_DIR	"/opt/ast/bin"
 #endif
 
-/* states */
-/* low numbered states are same as options */
-#define SH_NOFORK	0	/* set when fork not necessary */
-#define	SH_FORKED	7	/* set when process has been forked */
-#define	SH_PROFILE	8	/* set when processing profiles */
-#define SH_NOALIAS	9	/* do not expand non-exported aliases */
-#define SH_NOTRACK	10	/* set to disable sftrack() function */
-#define SH_STOPOK	11	/* set for stopable builtins */
-#define SH_GRACE	12	/* set for timeout grace period */
-#define SH_TIMING	13	/* set while timing pipelines */
-#define SH_DEFPATH	14	/* set when using default path */
-#define SH_INIT		15	/* set when initializing the shell */
-#define SH_TTYWAIT	16	/* waiting for keyboard input */ 
-#define	SH_FCOMPLETE	17	/* set for filename completion */
-#define	SH_PREINIT	18	/* set with SH_INIT before parsing options */
-#define SH_COMPLETE	19	/* set for command completion */
-#define SH_INTESTCMD	20	/* set while test/[ command is being run */
-#define SH_XARG		21	/* set while in xarg (command -x) mode */
-
-#if SHOPT_BRACEPAT
-#define SH_BRACEEXPAND		42
-#endif
-#define SH_POSIX		46
-#define SH_MULTILINE    	47
-
-#define SH_NOPROFILE		78
-#define SH_NOUSRPROFILE		79
-#define SH_LOGIN_SHELL		67
-#define SH_COMMANDLINE		0x100	/* flag for invocation-only options ('set -o' cannot change them) */
-
 #define SH_ID			"ksh"	/* ksh id */
 #define SH_STD			"sh"	/* standard sh id */
 
