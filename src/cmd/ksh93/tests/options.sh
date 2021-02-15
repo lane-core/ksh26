@@ -539,7 +539,9 @@ if [[ -o ?posix ]]; then
 	(set +o posix; set --posix >/dev/null; [[ -o posix ]]) || err_exit "set --posix != set -o posix"
 	(set -o posix; set --noposix; [[ -o posix ]]) && err_exit "set --noposix != set +o posix"
 	(set -o posix +o letoctal; [[ -o letoctal ]]) && err_exit "failed to stop posix option from turning on letoctal"
+if((SHOPT_BRACEPAT)); then
 	(set +B; set -o posix -B; [[ -o braceexpand ]]) || err_exit "failed to stop posix option from turning off bracceexpand"
+fi # SHOPT_BRACEPAT
 	(set --default -o posix; [[ -o letoctal ]]) && err_exit "set --default failed to stop posix option from changing others"
 fi
 
