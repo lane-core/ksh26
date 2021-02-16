@@ -5,6 +5,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-02-15:
 
+- Fixed a regression introduced by ksh93 (was not in ksh88): an empty 'case'
+  list on a single line ('case x in esac') was a syntax error.
+
 - Fixed a bug in the emacs built-in editor, introduced on 2020-09-17, that
   made the Meta-D and Meta-H keys delete single characters instead of words.
 

@@ -84,4 +84,15 @@ esac') != b ]] && err_exit 'bug in ;& at end of script'
 x=$($SHELL -ec 'case a in a) echo 1; false; echo 2 ;& b) echo 3;; esac')
 [[ $x == 1 ]] || err_exit 'set -e ignored on case fail through'
 
+# ======
+# An empty 'case' list was a syntax error: https://github.com/ksh93/ksh/issues/177
+got=$(eval 'case x in esac' 2>&1) || err_exit "empty case list fails: got $(printf %q "$got")"
+got=$(eval ': || for i in esac; do :; done' 2>&1) || err_exit "'for i in esac' fails: got $(printf %q "$got")"
+got=$(eval ': || select i in esac; do :; done' 2>&1) || err_exit "'select i in esac' fails: got $(printf %q "$got")"
+(eval 'case x in esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' keyword as first selector fails to fail"
+(eval 'case x in y) bar;; esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' kwyword as nth selector fails to fail"
+got=$(eval 'case x in e\sac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (1) fails: got $(printf %q "$got")"
+got=$(eval 'case x in y) bar;; es\ac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (2) fails: got $(printf %q "$got")"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -1503,7 +1503,7 @@ breakloop:
 			}
 			else
 				lp->lex.skipword = 0;
-			if(c==INSYM)
+			if(c==INSYM && !lp->lex.incase)
 				lp->lex.reservok = 0;
 			else if(c==TIMESYM)
 			{
