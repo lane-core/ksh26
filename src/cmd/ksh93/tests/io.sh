@@ -577,7 +577,7 @@ if	[[ -s "$tmp/fdleak.txt" ]]
 then	exec 3>&-
 	err_exit "Open file descriptor leaks out of subshell"
 fi
-# However, it should still survive a shared-state command sustitution if it's not 1 (stdout).
+# However, it should still survive a shared-state command substitution if it's not 1 (stdout).
 redirect 3>&-  # close FD 3 just in case
 : ${ redirect 3>"$tmp/fdshared.txt"; }
 { echo good >&3; } 2>/dev/null

@@ -1222,7 +1222,7 @@ The third type of parameter is a variable.
 As mentioned earlier,
 \f5ksh\fP uses variables whose names
 consist of one or more
-alpha-numeric strings separated by a \fB\s+2.\s-2\fP.
+alphanumeric strings separated by a \fB\s+2.\s-2\fP.
 There is no need to specify the
 .I type
 of a variable in the shell because, by default,
@@ -1872,7 +1872,7 @@ Similarly, \f5[:\fP\fIclass\fP\f5:]\fP matches
 each of the characters in the given \fIclass\fP
 for all the ANSI-C character classes.
 For example, \f5[[:alnum:]_]\fP
-matches any alpha-numeric character or the character
+matches any alphanumeric character or the character
 .BR _ .
 .P
 \f5ksh\fP

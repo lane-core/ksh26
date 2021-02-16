@@ -682,7 +682,7 @@ const char sh_optgetopts[] =
   "argument, \bgetopts\b places the option argument in the shell "
   "variable \bOPTARG\b. Otherwise \bOPTARG\b is set to \b1\b when the "
   "option is set and \b0\b when the option is unset.]"
-"[+?The \aoptstring\a string consists of alpha-numeric characters, "
+"[+?The \aoptstring\a string consists of alphanumeric characters, "
   "the special characters +, -, ?, :, and <space>, or character groups "
   "enclosed in [...]].  Character groups may be nested in {...}. "
   "Outside of a [...]] group, a single new-line followed by zero or "

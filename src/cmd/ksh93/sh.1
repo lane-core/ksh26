@@ -2615,7 +2615,7 @@ represents the beginning and ending characters of a nested group that
 will be skipped over when counting starting and ending character matches.
 The behavior is unspecified when the first character of a
 .I pattern-pair\^
-is alpha-numeric
+is alphanumeric
 except for the following:
 .PD 0
 .RS
@@ -5111,7 +5111,7 @@ Cursor forward (right) one character.
 (Right arrow) Same as \f3l\fP.
 .TP 10
 [\f2count\fP]\f3w\fP
-Cursor forward one alpha-numeric word.
+Cursor forward one alphanumeric word.
 .TP 10
 [\f2count\fP]\f3W\fP
 Cursor to the beginning of the next word that follows a blank.
@@ -7121,7 +7121,7 @@ shells. At the moment that the \fBposix\fR option is turned on, it also turns
 on \fBletoctal\fR and turns off \fB\-B\fR/\fBbraceexpand\fR; the reverse is
 done when \fBposix\fR is turned back off. (These options can still be
 controlled independently in between.) Furthermore, the \fBposix\fR option
-is automaticaly turned on upon invocation if ksh is invoked as \fBsh\fR
+is automatically turned on upon invocation if ksh is invoked as \fBsh\fR
 or \fBrsh\fR. In that case, or if the option is turned on by
 specifying \fB-o posix\fR on the invocation command line, the invoked shell
 will not set the preset aliases even if interactive, and will not import type
