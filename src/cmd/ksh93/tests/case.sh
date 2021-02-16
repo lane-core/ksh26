@@ -89,10 +89,18 @@ x=$($SHELL -ec 'case a in a) echo 1; false; echo 2 ;& b) echo 3;; esac')
 got=$(eval 'case x in esac' 2>&1) || err_exit "empty case list fails: got $(printf %q "$got")"
 got=$(eval ': || for i in esac; do :; done' 2>&1) || err_exit "'for i in esac' fails: got $(printf %q "$got")"
 got=$(eval ': || select i in esac; do :; done' 2>&1) || err_exit "'select i in esac' fails: got $(printf %q "$got")"
-(eval 'case x in esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' keyword as first selector fails to fail"
-(eval 'case x in y) bar;; esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' kwyword as nth selector fails to fail"
-got=$(eval 'case x in e\sac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (1) fails: got $(printf %q "$got")"
-got=$(eval 'case x in y) bar;; es\ac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (2) fails: got $(printf %q "$got")"
+(eval 'case x in esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' keyword as first pattern fails to fail"
+got=$(eval 'case x in (esac) foo;; esac' 2>&1) || err_exit "'(' + unquoted 'esac' keyword as first pattern fails: got $(printf %q "$got")"
+(eval 'case x in y) bar;; esac) foo;; esac') 2>/dev/null && err_exit "unquoted 'esac' keyword as nth pattern fails to fail"
+got=$(eval 'case x in (y) bar;; (esac) foo;; esac' 2>&1) || err_exit "'(' + unquoted 'esac' keyword as nth pattern fails: got $(printf %q "$got")"
+got=$(eval 'case x in e\sac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (1st) fails: got $(printf %q "$got")"
+got=$(eval 'case x in (e\sac) foo;; esac' 2>&1) || err_exit "'(' + quoted 'esac' pattern (1st) fails: got $(printf %q "$got")"
+got=$(eval 'case x in y) bar;; es\ac) foo;; esac' 2>&1) || err_exit "quoted 'esac' pattern (nth) fails: got $(printf %q "$got")"
+got=$(eval 'case x in (y) bar;; (es\ac) foo;; esac' 2>&1) || err_exit "'(' + quoted 'esac' pattern (nth) fails: got $(printf %q "$got")"
+got=$(eval 'case x in if);; esac' 2>&1) || err_exit "'if' as first pattern fails: got $(printf %q "$got")"
+got=$(eval 'case x in (if);; esac' 2>&1) || err_exit "'(' + 'if' as first pattern fails: got $(printf %q "$got")"
+got=$(eval 'case x in foo);; if);; esac' 2>&1) || err_exit "'if' as nth pattern fails: got $(printf %q "$got")"
+got=$(eval 'case x in (foo);; (if);; esac' 2>&1) || err_exit "'(' + 'if' as nth pattern fails: got $(printf %q "$got")"
 
 # ======
 exit $((Errors<125?Errors:125))
