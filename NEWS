@@ -5,6 +5,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-02-15:
 
+- Fixed a bug in the emacs built-in editor, introduced on 2020-09-17, that
+  made the Meta-D and Meta-H keys delete single characters instead of words.
+
 - A new 'backslashctrl' shell option has been added. It is on by default.
   Turning it off (set +o backslashctrl or set --nobackslashctrl) disables the
   special escaping behaviour of the backslash character in the emacs and vi
