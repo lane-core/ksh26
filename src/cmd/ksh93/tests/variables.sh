@@ -886,8 +886,8 @@ actual=$(env SHLVL="2#11+x[\$(env echo Exploited vuln CVE-2019-14868 >&2)0]" "$S
 # Check unset, attribute and cleanup/restore behavior of special variables.
 
 # Keep the list in sync (minus ".sh") with shtab_variables[] in src/cmd/ksh93/data/variables.c
-# Note: as long as changing $PATH forks a virtual subshell, "PATH" should also be excluded below.
 set -- \
+	"PATH" \
 	"PS1" \
 	"PS2" \
 	"IFS" \
@@ -1075,7 +1075,7 @@ $SHELL -c '
 		fi
 	done
 	exit $((errors + 1))
-' changecase_test "$@" PATH	# do include PATH here as well
+' changecase_test "$@"
 (((e = $?) == 1)) || err_exit "typeset -l/-u doesn't work on special variables" \
 	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
