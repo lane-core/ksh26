@@ -281,11 +281,12 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 #endif /* ESH_NFIRST */
 	}
 	ep->CntrlO = 0;
-	while ((c = ed_getchar(ep->ed,0)) != (-1))
+	while ((c = ed_getchar(ep->ed,backslash)) != (-1))
 	{
 		if (backslash)
 		{
-			backslash = 0;
+			if(c!='\\')
+				backslash = 0;
 			if (c==usrerase||c==usrkill||(!print(c) &&
 				(c!='\r'&&c!='\n')))
 			{
@@ -1298,20 +1299,35 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 			beep();
 			goto restore;
 		}
-		if (i == '\\')
+		if (!sh_isoption(SH_NOBACKSLCTRL))
 		{
-			string[sl++] = '\\';
-			string[sl] = '\0';
-			cur = sl;
-			draw(ep,APPEND);
-			i = ed_getchar(ep->ed,1);
-			string[--sl] = '\0';
+			while (i == '\\')
+			{
+				/*
+				 * Append the backslash to the command line, then escape
+				 * the next control character. Repeat the loop if the
+				 * next input is another backslash (otherwise every
+				 * second backslash is skipped).
+				 */
+				string[sl++] = '\\';
+				string[sl] = '\0';
+				cur = sl;
+				draw(ep,APPEND);
+				i = ed_getchar(ep->ed,1);
+
+				/* Backslashes don't affect newlines */
+				if (i == '\n' || i == '\r')
+					goto skip;
+				else if (i == usrerase || !print(i))
+					string[--sl] = '\0';
+			}
 		}
 		string[sl++] = i;
 		string[sl] = '\0';
 		cur = sl;
 		draw(ep,APPEND);
 	}
+	skip:
 	i = genlen(string);
 	
 	if(ep->prevdirection == -2 && i!=2 || direction!=1)

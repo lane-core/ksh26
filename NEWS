@@ -3,6 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-02-17:
+
+- Emacs mode fixes:
+  1. Erasing a backslash while doing a reverse search (^R) no longer deletes
+     extra characters.
+  2. The backslash now escapes a subsequent interrupt (^C) as documented.
+
 2021-02-15:
 
 - Fixed a regression introduced by ksh93 (was not in ksh88): an empty 'case'
