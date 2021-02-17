@@ -10,6 +10,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
      extra characters.
   2. The backslash now escapes a subsequent interrupt (^C) as documented.
 
+- Fixed a longstanding bug with shared-state command substitutions of the form
+  ${ command; }. If these were executed in a subshell, changes made within
+  could survive not only the command substitution but also the parent subshell.
+
 2021-02-15:
 
 - Fixed a regression introduced by ksh93 (was not in ksh88): an empty 'case'

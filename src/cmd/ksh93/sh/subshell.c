@@ -106,6 +106,8 @@ static struct subshell
 #endif /* _lib_fchdir */
 } *subshell_data;
 
+static char subshell_noscope;	/* for temporarily disabling all virtual subshell scope creation */
+
 static unsigned int subenv;
 
 
@@ -259,18 +261,39 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 {
 	register Namval_t	*mp;
 	register struct Link	*lp;
-	register struct subshell *sp = (struct subshell*)subshell_data;
+	struct subshell		*sp = subshell_data;
 	Shell_t			*shp = sp->shp;
 	Dt_t			*dp= shp->var_tree;
 	Namval_t		*mpnext;
 	Namarr_t		*ap;
 	unsigned int		save;
 	/*
-	 * Don't save if told not to (see nv_restore()) or if we're in a ${ subshare; }.
+	 * Don't create a scope if told not to (see nv_restore()).
 	 * Also, moving/copying ${.sh.level} (SH_LEVELNOD) may crash the shell.
 	 */
-	if(!sp->shpwd || shp->subshare || add<2 && np==SH_LEVELNOD)
+	if(subshell_noscope || add<2 && np==SH_LEVELNOD)
 		return(np);
+	/*
+	 * Don't create a scope for a ${ shared-state command substitution; } (a.k.a. subshare).
+	 * However, if the subshare is in a virtual subshell, we need to create a scope in that.
+	 * If so, temporarily make that the current subshell and call this function recursively.
+	 */
+	if(shp->subshare)
+	{
+		while(subshell_data->subshare)		/* move up as long as parent is also a subshare */
+			subshell_data = subshell_data->prev;
+		subshell_data = subshell_data->prev;	/* move to first non-subshare parent */
+		if(!subshell_data)			/* if that's not a virtual subshell, don't create a scope */
+		{
+			subshell_data = sp;
+			return(np);
+		}
+		shp->subshare = 0;
+		np = sh_assignok(np,add);
+		shp->subshare = 1;
+		subshell_data = sp;
+		return(np);
+	}
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
 		shp->last_root = ap->table;
@@ -329,10 +352,9 @@ static void nv_restore(struct subshell *sp)
 {
 	register struct Link *lp, *lq;
 	register Namval_t *mp, *np;
-	const char *save = sp->shpwd;
 	Namval_t	*mpnext;
 	int		flags,nofree;
-	sp->shpwd = 0;	/* make sure sh_assignok doesn't save with nv_unset() */
+	subshell_noscope = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
 		np = (Namval_t*)&lp->dict;
@@ -389,7 +411,7 @@ static void nv_restore(struct subshell *sp)
 		free((void*)lp);
 		sp->svar = lq;
 	}
-	sp->shpwd=save;
+	subshell_noscope = 0;
 }
 
 /*

@@ -915,4 +915,40 @@ got=$( { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1 )
 cd "$tmp"
 
 # ======
+# Before 93u+m 2021-02-17, the state of ${ shared-state command substitutions; } leaked out of parent virtual subshells.
+# https://github.com/ksh93/ksh/issues/143
+
+v=main
+d=${ v=shared; }
+[[ $v == shared ]] || err_exit "shared comsub in main shell wrongly scoped"
+
+v=main
+(d=${ v=shared; }; [[ $v == shared ]]) || err_exit "shared comsub in subshell wrongly scoped (1)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (1)"
+
+v=main
+(v=sub; d=${ v=shared; }; [[ $v == shared ]]) || err_exit "shared comsub in subshell wrongly scoped (2)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (2)"
+
+v=main
+(v=sub; (d=${ v=shared; }); [[ $v == sub ]]) || err_exit "shared comsub leaks out of nested subshell"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (3)"
+
+v=main
+(d=${ d=${ v=shared; }; }; [[ $v == shared ]]) || err_exit "nested shared comsub in subshell wrongly scoped (1)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (4)"
+
+v=main
+(v=sub; d=${ d=${ v=shared; }; }; [[ $v == shared ]]) || err_exit "nested shared comsub in subshell wrongly scoped (2)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (5)"
+
+v=main
+( (d=${ v=shared; }; [[ $v == shared ]]) ) || err_exit "shared comsub in nested subshell wrongly scoped (1)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (6)"
+
+v=main
+(v=sub; (d=${ v=shared; }; [[ $v == shared ]]) ) || err_exit "shared comsub in nested subshell wrongly scoped (2)"
+[[ $v == main ]] || err_exit "shared comsub leaks out of subshell (7)"
+
+# ======
 exit $((Errors<125?Errors:125))
