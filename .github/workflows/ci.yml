@@ -20,9 +20,9 @@ jobs:
         ulimit -n 1024
         : default regression tests &&
         script -q -e -c "bin/shtests" &&
-        : regression tests with OS-provided UTF-8 locales &&
+        : regression tests with OS-provided multibyte locales &&
         LANG=nl_NL.UTF-8 script -q -e -c "bin/shtests --locale --nocompile" &&
-        LANG=ja_JP.UTF-8 script -q -e -c "bin/shtests --locale --nocompile" &&
+        LANG=ja_JP.SJIS  script -q -e -c "bin/shtests --locale --nocompile" &&
         : disable most SHOPTs, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
           '/^SHOPT (2DMATCH|AUDIT|BGX|BRACEPAT|DYNAMIC|EDPREDICT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SUID_EXEC|STATS|VSH)=/ s/=1/=0/' \

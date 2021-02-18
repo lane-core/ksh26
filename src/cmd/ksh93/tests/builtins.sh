@@ -295,8 +295,9 @@ actual=$(printf 'foo://ab_c%(url)q\n' $'<>"& \'\tabc')
 case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 ( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
 	# HTML encoding UTF-8 characters
-	expect='正常終了 正常終了'
-	actual=$(printf %H '正常終了 正常終了')
+	# (UTF-8 literal characters wrapped in 'eval' to avoid syntax error on ja_JP.SJIS)
+	eval 'expect='\''正常終了 正常終了'\'
+	eval 'actual=$(printf %H '\''正常終了 正常終了'\'')'
 	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect='w?h?á?t??'
@@ -313,7 +314,7 @@ case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 	[[ $actual == "$expect" ]] || err_exit 'printf %H: Arabic UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect='%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86%20%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86'
-	actual=$(printf %#H '正常終了 正常終了')
+	eval 'actual=$(printf %#H '\''正常終了 正常終了'\'')'
 	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect='%C2%AB%20l%E2%80%99ab%C3%AEme%20de%20mon%C2%A0m%C3%A9tier%E2%80%A6%20%C2%BB'

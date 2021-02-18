@@ -603,16 +603,15 @@ eu=$(
 
 # ======
 # Expansion of multibyte characters after expansion of single-character names $1..$9, $?, $!, $-, etc.
-function exptest
-{
-	print -r "$1テスト"
-	print -r "$?テスト"
-	print -r "$#テスト"
-}
-expect=$'fooテスト\n0テスト\n1テスト'
-actual=$(exptest foo)
-[[ $actual == "$expect" ]] || err_exit 'Corruption of multibyte char following expansion of single-char name' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
+	eval 'function exptest { print -r "$1テスト"; print -r "$?テスト" ; print -r "$#テスト"; }'
+	eval 'expect=$'\''fooテスト\n0テスト\n1テスト'\'
+	actual=$(exptest foo)
+	[[ $actual == "$expect" ]] || err_exit 'Corruption of multibyte char following expansion of single-char name' \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	;;
+esac
 
 # ======
 # ksh didn't rewrite argv correctly (rhbz#1047506)

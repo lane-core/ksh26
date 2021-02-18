@@ -30,7 +30,11 @@ integer Errors=0
 
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
-unset LANG ${!LC_*}
+unset LANG LANGUAGE "${!LC_@}"
+
+IFS=$'\n'; set -o noglob
+typeset -a locales=( $(command -p locale -a 2>/dev/null) )
+IFS=$' \t\n'
 
 a=$($SHELL -c '/' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
 b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
@@ -38,13 +42,13 @@ b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s,
 b=$($SHELL -c '(LC_ALL=debug; / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
 [[ "$b" == "$a" ]] || err_exit "locale not restored after subshell -- expected '$a', got '$b'"
 
-if((SHOPT_MULTIBYTE)); then
 # test shift-jis \x81\x40 ... \x81\x7E encodings
 # (shift char followed by 7 bit ascii)
 
 typeset -i16 chr
-for locale in $(command -p locale -a 2>/dev/null | grep -i jis)
-do	export LC_ALL=$locale
+((SHOPT_MULTIBYTE)) && for locale in "${locales[@]}"
+do	[[ $locale == *[Jj][Ii][Ss] ]] || continue
+	export LC_ALL=$locale
 	for ((chr=0x40; chr<=0x7E; chr++))
 	do	c=${chr#16#}
 		for s in \\x81\\x$c \\x$c
@@ -55,9 +59,18 @@ do	export LC_ALL=$locale
 			q=$(print -- "$b")
 			[[ $u == "$q" ]] || err_exit "LC_ALL=$locale quoted print difference for \"$s\" -- $b => '$u' vs \"$b\" => '$q'"
 		done
+
+		# https://www.mail-archive.com/ast-developers@lists.research.att.com/msg01848.html
+		# In Shift_JIS (unlike in UTF-8), the trailing bytes of a multibyte character may
+		# contain a byte without the high-order bit set. If the final byte happened to
+		# correspond to an ASCII backslash (\x5C), 'read' would incorrectly treat this as a
+		# dangling final backslash (which is invalid) and return a nonzero exit status.
+		# Note that the byte sequence '\x95\x5c' represents a multibyte character U+8868,
+		# whereas '\x5c' is a backslash when interpreted as a single-byte character.
+		printf "\x95\x$c\n" | read x || err_exit "'read' doesn't skip multibyte input correctly ($LC_ALL, \x95\x$c)"
 	done
 done
-fi # SHOPT_MULTIBYTE
+unset LC_ALL
 
 # this locale is supported by ast on all platforms
 # EU for { decimal_point="," thousands_sep="." }
@@ -352,5 +365,6 @@ then	LC_ALL=en_US.UTF-8
 	
 fi
 
+# ======
 exit $((Errors<125?Errors:125))
 

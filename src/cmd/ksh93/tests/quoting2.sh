@@ -233,16 +233,17 @@ LC_CTYPE=POSIX true	    # on buggy ksh, a locale re-init via temp assignment res
 # shell-quoting UTF-8 characters: check for unnecessary encoding
 case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 ( *[Uu][Tt][Ff]8* | *[Uu][Tt][Ff]-8* )
-	expect=$'$\'عندما يريد العالم أن \\u[202a]يتكلّم \\u[202c] ، فهو يتحدّث بلغة يونيكود.\''
-	actual=$(printf %q 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
+	# must wrap literal UTF-8 characters in 'eval' to avoid syntax error in ja_JP.SJIS
+	eval 'expect=$'\''$\'\''عندما يريد العالم أن \\u[202a]يتكلّم \\u[202c] ، فهو يتحدّث بلغة يونيكود.\'\'''\'
+	eval 'actual=$(printf %q '\''عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.'\'')'
 	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Arabic UTF-8 characters' \
 				"(expected $expect; got $actual)"
-	expect="'正常終了 正常終了'"
-	actual=$(printf %q '正常終了 正常終了')
+	eval 'expect="'\''正常終了 正常終了'\''"'
+	eval 'actual=$(printf %q '\''正常終了 正常終了'\'')'
 	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Japanese UTF-8 characters' \
 				"(expected $expect; got $actual)"
-	expect="'aeu aéu'"
-	actual=$(printf %q 'aeu aéu')
+	eval 'expect="'\''aeu aéu'\''"'
+	eval 'actual=$(printf %q '\''aeu aéu'\'')'
 	[[ $actual == "$expect" ]] || err_exit 'shell-quoting: Latin UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect=$'$\'\\x86\\u[86]\\xf0\\x96v\\xa7\\xb5\''

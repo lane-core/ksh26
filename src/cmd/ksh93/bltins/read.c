@@ -538,11 +538,13 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 		c = S_NL;
 	shp->nextprompt = 2;
 	rel= staktell();
+	mbinit();
 	/* val==0 at the start of a field */
 	val = 0;
 	del = 0;
 	while(1)
 	{
+		ssize_t mbsz;
 		switch(c)
 		{
 #if SHOPT_MULTIBYTE
@@ -679,11 +681,18 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 			}
 			/* skip over word characters */
 			wrd = -1;
+			/* skip a preceding multibyte character, if any */
+			if(c == 0 && (mbsz = mbsize(cp-1)) > 1)
+				cp += mbsz - 1;
 			while(1)
 			{
-				while((c=shp->ifstable[*cp++])==0)
+				while((c = shp->ifstable[*cp]) == 0)
+				{
+					cp += (mbsz = mbsize(cp)) > 1 ? mbsz : 1;	/* treat invalid char as 1 byte */
 					if(!wrd)
 						wrd = 1;
+				}
+				cp++;
 				if(inquote)
 				{
 					if(c==S_QUOTE)

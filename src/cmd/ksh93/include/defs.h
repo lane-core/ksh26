@@ -33,9 +33,14 @@
 #error libast version 20111111 or later is required
 #endif
 #if !SHOPT_MULTIBYTE
-    /* disable multibyte without need for further '#if SHOPT_MULTIBYTE' */
-#   undef mbwide
-#   define mbwide()	0
+    /*
+     * Disable multibyte without need for excessive '#if SHOPT_MULTIBYTE' peprocessor conditionals.
+     * If we redefine the maximum character size mbmax() as 1 byte, the mbwide() macro will always
+     * evaluate to 0. All the other multibyte macros have multibtye code conditional upon mbwide(),
+     * so the compiler should optimize all of that code away. See src/lib/libast/include/ast.h
+     */
+#   undef mbmax
+#   define mbmax()	1
 #endif
 
 /*
