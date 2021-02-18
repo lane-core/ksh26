@@ -2985,10 +2985,11 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 			nv_onattr(np,NV_EXPORT);
 			sh_envput(shp->env,np);
 		}
+		if((n^newatts)==NV_EXPORT && !trans)
+			/* Only EXPORT attribute has changed and thus all work has been done. */
+			return;
 	}
 	oldsize = nv_size(np);
-	if(((n^newatts) & ~(NV_EXPORT|NV_RDONLY))==0)
-		size = oldsize;
 	if((size==oldsize|| (n&NV_INTEGER)) && !trans && ((n^newatts)&~NV_NOCHANGE)==0)
 	{
 		if(size>0)
