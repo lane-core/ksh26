@@ -2118,7 +2118,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			}
 			sfputc(stkp,c);
 		}
-		sfputc(stkp,' '); /* rhbz#982142: a=`some_alias` leaked memory, a=`some_alias ` did not! TODO: non-hack fix */
+		sfputc(stkp,'\n');  /* a=`some_alias` leaked memory, a=`some_alias<LF>` did not! TODO: non-hack fix */
 		c = stktell(stkp);
 		str=stkfreeze(stkp,1);
 		/* disable verbose and don't save in history file */

@@ -951,4 +951,14 @@ v=main
 [[ $v == main ]] || err_exit "shared comsub leaks out of subshell (7)"
 
 # ======
+# After the memory leak patch for rhbz#982142, this minor regression was introduced:
+# if a backtick command substitution expanded an alias, an extra space was inserted.
+exp='word'
+alias a='print -n wo\'
+got=$(eval 'echo "`a`rd"')
+unalias a
+[[ $got == "$exp" ]] || err_exit 'backtick comsub with alias:' \
+	"expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+# ======
 exit $((Errors<125?Errors:125))
