@@ -1079,7 +1079,7 @@ static int varsub(Mac_t *mp)
 {
 	register int	c;
 	register int	type=0; /* M_xxx */
-	register char	*v, *new_v=0, *argp=0;
+	register char	*v,*argp=0;
 	register Namval_t	*np = NIL(Namval_t*);
 	register int 	dolg=0, mode=0;
 	Lex_t		*lp = (Lex_t*)mp->shp->lex_context;
@@ -1458,7 +1458,6 @@ retry1:
 				if((mp->let || (mp->arith&&nv_isattr(np,(NV_LJUST|NV_RJUST|NV_ZFILL)))) && !nv_isattr(np,NV_INTEGER) && (offset==0 || isspace(c) || strchr(",.+-*/=%&|^?!<>",c)))
 					mp->zeros = 1;
 			}
-			new_v = v = strdup(v);
 			if(savptr==stakptr(0))
 				stkseek(stkp,offset);
 			else
@@ -2027,8 +2026,6 @@ retry2:
 	}
 	if(np)
 		nv_close(np);
-	if(new_v)
-		free(new_v);
 	if(pattern)
 		free(pattern);
 	if(repstr)
@@ -2037,8 +2034,6 @@ retry2:
 		free(idx);
 	return(1);
 nosub:
-	if(new_v)
-		free(new_v);
 	if(type==M_BRACE && sh_lexstates[ST_NORM][c]==S_BREAK)
 	{
 		fcseek(-1);
