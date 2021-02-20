@@ -262,7 +262,7 @@ int job_reap(register int sig)
 {
 	Shell_t *shp = sh_getinterp();
 	register pid_t pid;
-	register struct process *pw;
+	register struct process *pw = NIL(struct process*);
 	struct process *px;
 	register int flags;
 	struct jobsave *jp;
@@ -461,7 +461,7 @@ int job_reap(register int sig)
 		nochild = 1;
 	}
 	shp->gd->waitevent = waitevent;
-	if(sh_isoption(SH_NOTIFY) && sh_isstate(SH_TTYWAIT))
+	if(pw && sh_isoption(SH_NOTIFY) && sh_isstate(SH_TTYWAIT))
 	{
 		outfile = sfstderr;
 		job_list(pw,JOB_NFLAG|JOB_NLFLAG);
