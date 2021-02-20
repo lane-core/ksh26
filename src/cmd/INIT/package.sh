@@ -29,49 +29,44 @@ case $PATH in
 Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2
 	exit 1 ;;
 esac
+unset path
 
-unset CDPATH PWD
+# Sanitize 'cd'
+unset CDPATH
+case `cd / && v=$PWD && cd /dev && v=$v,$PWD && echo "$v"` in
+/,/dev)	;;
+*)	# old Bourne shell does not have $PWD; avoid inheriting it from
+	# the environment, which would kill our ${PWD:-`pwd`} fallback
+	unset PWD ;;
+esac
+
+# Make the package root the current working directory
 case $0 in
 -*)
 	echo "dodgy \$0: $0" >&2
 	exit 1 ;;
 */package)
-	mydir=`echo "$0" | sed 's,/package$,,'`
-	cd "$mydir" || exit
-	case ${PWD:-`pwd`} in
-	*/bin)	;;
-	*)	echo "this script must live in bin/" >&2
-		exit 1 ;;
-	esac
-	case $mydir in
-	*/arch/*/*/bin)
-		cd .. ;;
-	*/arch/*/bin)
-		cd ../../.. ;;
-	*)	cd .. ;;
-	esac || exit
-	unset mydir ;;
+	pwd=$0 ;;
 package)
-	me=`command -v package` || me=`which package` || exit
-	mydir=`echo "$me" | sed 's,/package$,,'`
-	cd "$mydir" || exit
-	case ${PWD:-`pwd`} in
-	*/bin)	;;
-	*)	echo "this script must live in bin/" >&2
-		exit 1 ;;
-	esac
-	case $mydir in
-	*/arch/*/*/bin)
-		cd .. ;;
-	*/arch/*/bin)
-		cd ../../.. ;;
-	*)	cd .. ;;
-	esac || exit
-	unset me mydir ;;
+	pwd=`command -v package || which package` || exit ;;
 *)
 	echo "this script must be named 'package'" >&2
 	exit 1 ;;
 esac
+pwd=`dirname "$pwd"`
+cd "$pwd" || exit
+case ${PWD:-`pwd`} in
+*/arch/*/*/bin)
+	cd .. ;;
+*/arch/*/bin)
+	cd ../../.. ;;
+*/bin)
+	cd .. ;;
+*)
+	echo "this script must live in bin/" >&2
+	exit 1 ;;
+esac || exit
+unset pwd
 
 # shell checks
 checksh()
