@@ -1445,7 +1445,10 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	*****************************************/
 	
 
-	i = *(logcursor-1);	/* last character inserted */
+	if(logcursor > sptr)
+		i = *(logcursor-1);	/* last character inserted */
+	else
+		i = 0;
 #if SHOPT_EDPREDICT
 	if(option==FINAL)
 	{
