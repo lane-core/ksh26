@@ -1126,8 +1126,13 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 	{
 		iof=iop->iofile;
 		fn = (iof&IOUFD);
-		if(fn==1 && shp->subshell && !shp->subshare && (flag==2 || isstring))
-			sh_subfork();
+		if(fn==1)
+		{
+			if(shp->subshare && flag==2)
+				errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout inside shared-state comsub");
+			if(shp->subshell && (flag==2 || isstring))
+				sh_subfork();
+		}
 		if(shp->redir0 && fn==0 && !(iof&IOMOV))
 			shp->redir0 = 2;
 		io_op[0] = '0'+(iof&IOUFD);
