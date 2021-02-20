@@ -1445,7 +1445,7 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	*****************************************/
 	
 
-	if(logcursor > sptr)
+	if(logcursor > drawbuff)
 		i = *(logcursor-1);	/* last character inserted */
 	else
 		i = 0;
