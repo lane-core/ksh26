@@ -1192,7 +1192,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 						argp = 0;
 					}
 					else if(n==2)
+					{
+						/* Do not execute next command; keep exit status from trap handler */
+						shp->exitval = n;
 						break;
+					}
 				}
 				if(io)
 					sfsync(shp->outpool);

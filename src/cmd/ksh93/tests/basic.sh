@@ -662,6 +662,7 @@ got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
 
 # ======
 # Various DEBUG trap fixes: https://github.com/ksh93/ksh/issues/155
+#			    https://github.com/ksh93/ksh/issues/187
 
 # Redirecting disabled the DEBUG trap
 exp=$'LINENO: 4\nfoo\nLINENO: 5\nLINENO: 6\nbar\nLINENO: 7\nbaz'
@@ -713,6 +714,19 @@ r=`exit 123`
 (((e=$?)==123)) || err_exit "DEBUG trap run in \`comsub\` affects exit status (expected 123, got $e)"
 trap - DEBUG
 
+# After fixing the previous, the DEBUG trap stopped honouring exit status 2 to skip command execution -- whoops
+got=$(
+	myfn()
+	{
+		[[ ${.sh.command} == echo* ]] && return 2
+	}
+	trap 'myfn' DEBUG
+	print end
+	echo "Hi, I'm a bug"
+)
+(((e=$?)==2)) && [[ $got == end ]] || err_exit 'DEBUG trap: next command not skipped upon status 2' \
+	"(got status $e, $(printf %q "$got"))"
+
 # The DEBUG trap was incorrectly inherited by subshells
 exp=$'Subshell\nDebug 1\nParentshell'
 got=$(
@@ -752,6 +766,28 @@ got=$(
 )
 trap - DEBUG  # bug compat
 [[ $got == "$exp" ]] || err_exit "DEBUG trap not inherited by POSIX function" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Make sure the DEBUG trap still exits a POSIX function on exit status 255
+# TODO: same test for ksh function with -o functrace, once we add that option
+exp=$'one\ntwo'
+got=$(
+	myfn()
+	{
+		echo one
+		echo two
+		echo three
+		echo four
+	}
+	set255()
+	{
+		return 255
+	}
+	trap '[[ ${.sh.command} == *three ]] && set255' DEBUG
+	myfn
+)
+trap - DEBUG  # bug compat
+[[ $got == "$exp" ]] || err_exit "DEBUG trap did not trigger return from POSIX function on status 255" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

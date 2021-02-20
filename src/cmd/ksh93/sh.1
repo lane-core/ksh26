@@ -1561,6 +1561,8 @@ When processing a
 .B DEBUG
 trap, this variable contains the current command line
 that is about to run.
+Each argument is shell-quoted as necessary
+so that the value is safe for being evaluated by the shell.
 .TP
 .B .sh.edchar
 This variable contains the value of the keyboard character
@@ -7429,7 +7431,7 @@ then
 will be executed before each command.
 The variable
 .B .sh.command
-will contain the contents of the current command line
+will contain the shell-quoted arguments of the current command line
 when
 .I action\^
 is running.

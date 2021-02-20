@@ -273,6 +273,10 @@ The complete file associated with the string or file
 is compiled and then executed so that aliases defined
 within the string or file will not take effect until
 the next command is executed.
+The shell's \f5$?\fP special parameter is made local to the string
+or file executed so that it is not affected for subsequent commands.
+The return value of \f5sh_trap()\fP is the exit status of
+the last command executed by the string or file.
 .PP
 The \f5sh_run()\fP function will run the command given by
 by the argument list \fIargv\fP containing \fIargc\fP elements. 
