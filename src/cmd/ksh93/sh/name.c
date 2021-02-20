@@ -1573,9 +1573,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	Shell_t	*shp = sh_getinterp();
 	register const char *sp=string;
 	register union Value *up;
-	register char *cp;
 	register int size = 0;
-	register int dot;
 	int	was_local = nv_local;
 	union Value u;
 #if SHOPT_FIXEDARRAY
@@ -1788,7 +1786,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	else
 	{
 		const char *tofree=0;
-		int offset=0,append;
+		int offset = 0;
 #if _lib_pathnative
 		char buff[PATH_MAX];
 #endif /* _lib_pathnative */
@@ -1871,9 +1869,13 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			tofree = 0;
 		if(nv_isattr(np,NV_LJUST|NV_RJUST) && nv_isattr(np,NV_LJUST|NV_RJUST)!=(NV_LJUST|NV_RJUST))
 			tofree = 0;
-       	 	if (sp)
+		if(!sp)
+			up->cp = NIL(char*);
+		else
 		{
-			append=0;
+			char	*cp = NIL(char*);	/* pointer to new string */
+			int	dot;			/* attribute or type length; defaults to string length */
+			int	append = 0;		/* offset for appending */
 			if(sp==up->cp && !(flags&NV_APPEND))
 				return;
 			dot = strlen(sp);
@@ -1953,25 +1955,22 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				{
 					if(tofree && tofree!=Empty && tofree!=Null)
 					{
-						cp = (char*)realloc((void*)tofree,((unsigned)dot+append+8));
+						cp = (char*)realloc((void*)tofree,((unsigned)dot+append+1));
 						tofree = 0;
 					}
 					else
-						cp = (char*)malloc(((unsigned)dot+8));
+						cp = (char*)malloc(((unsigned)dot+append+1));
 					cp[dot+append] = 0;
 					nv_offattr(np,NV_NOFREE);
 				}
 			}
-			
-		}
-		else
-			cp = 0;
-		up->cp = cp;
-		if(sp)
-		{
-			int c = cp[dot+append];
-			memmove(cp+append,sp,dot);
-			cp[dot+append] = c;
+			if(dot)
+			{
+				char c = cp[dot+append];
+				strncpy(cp+append, sp, dot+1);
+				cp[dot+append] = c;
+			}
+			up->cp = cp;
 			if(nv_isattr(np, NV_RJUST) && nv_isattr(np, NV_ZFILL))
 				rightjust(cp,size,'0');
 			else if(nv_isattr(np, NV_LJUST|NV_RJUST)==NV_RJUST)
@@ -3029,9 +3028,41 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 		if (sp = nv_getval(np))
  		{
 			if(nv_isattr(np,NV_ZFILL))
-				while(*sp=='0') sp++;
-			cp = (char*)malloc((n=strlen (sp)) + 8);
-			strcpy(cp, sp);
+			{
+				while(*sp=='0') sp++;	/* skip initial zeros */
+				if(!*sp) sp--;		/* if number was 0, leave one zero */
+			}
+			n = strlen(sp);
+			if(size==0 || (newatts&(NV_INTEGER|NV_BINARY)))
+			{
+				/* allocate to match existing value for numerics and auto length assignment for -L/R/Z */
+				cp = (char*)malloc((size_t)n + 1);
+				strcpy(cp, sp);
+			}
+			else if(size>=n)
+			{
+				/* growing string */
+				cp = (char*)malloc((size_t)size + 1);
+				strcpy(cp, sp);
+			}
+			else
+			{
+				/* shrinking string */
+				cp = (char*)malloc((size_t)size + 1);
+				if(newatts&NV_RJUST)
+					strncpy(cp, n - size + sp, size);
+				else
+				{
+					/* NV_LJUST and the rest */
+					if(newatts&NV_ZFILL)
+					{
+						while(*sp=='0') sp++;	/* skip initial zeros */
+						if(!*sp) sp--;		/* if number was 0, leave one zero */
+					}
+					strncpy(cp, sp, size);
+				}
+				cp[size] = '\0';
+			}
 			if(sp && (mp=nv_opensub(np)))
 			{
 				if(trans)

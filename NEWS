@@ -8,6 +8,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug introduced on 2021-01-20: if a DEBUG trap action yielded exit
   status 2, the execution of the next command was not skipped as documented.
 
+- Fixed multiple buffer overflows causing crashes in typeset -L/-R-/-Z.
+
+- Fixed typeset -Z zero-filling: if the number was zero, all zeros
+  were skipped when changing the initial size value of the -Z attribute,
+  leaving an empty string.
+
 2021-02-18:
 
 - A bug was fixed in the 'read' builtin that caused it to fail to process
