@@ -253,6 +253,8 @@ void sh_siginit(void *ptr)
 	shp->st.trapcom = (char**)calloc(n,sizeof(char*));
 	shp->sigflag = (unsigned char*)calloc(n,1);
 	shp->gd->sigmsg = (char**)calloc(n,sizeof(char*));
+	if(!shp->st.trapcom || !shp->sigflag || !shp->gd->sigmsg)
+		sh_outofmemory();
 	for(tp=shtab_signals; sig=tp->sh_number; tp++)
 	{
 		n = (sig>>SH_SIGBITS);

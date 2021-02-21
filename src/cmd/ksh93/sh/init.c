@@ -219,13 +219,18 @@ static int		shlvl;
 static int		rand_shift;
 
 
+void sh_outofmemory(void)
+{
+	errormsg(SH_DICT,ERROR_PANIC,"out of memory");
+}
+
 /*
  * out of memory routine for stak routines
  */
 static char *nospace(int unused)
 {
 	NOT_USED(unused);
-	errormsg(SH_DICT,ERROR_exit(3),e_nospace);
+	sh_outofmemory();
 	return(NIL(char*));
 }
 
@@ -313,6 +318,8 @@ static Sfdouble_t nget_optindex(register Namval_t* np, Namfun_t *fp)
 static Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 {
 	Namfun_t *dp = (Namfun_t*)malloc(sizeof(Namfun_t));
+	if(!dp)
+		sh_outofmemory();
 	memcpy((void*)dp,(void*)fp,sizeof(Namfun_t));
 	mp->nvalue.lp = np->nvalue.lp;
 	dp->nofree = 0;
@@ -440,6 +447,8 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 			register int c;
 			char *state[4];
 			sh_lexstates[ST_BEGIN] = state[0] = (char*)malloc(4*(1<<CHAR_BIT));
+			if(!state[0])
+				sh_outofmemory();
 			memcpy(state[0],sh_lexrstates[ST_BEGIN],(1<<CHAR_BIT));
 			sh_lexstates[ST_NAME] = state[1] = state[0] + (1<<CHAR_BIT);
 			memcpy(state[1],sh_lexrstates[ST_NAME],(1<<CHAR_BIT));
@@ -810,6 +819,8 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 				mp->match = (int*)realloc(mp->match,i+vsize+1);
 			else
 				mp->match = (int*)malloc(i+vsize+1);
+			if(!mp->match)
+				sh_outofmemory();
 			mp->vsize = i+vsize+1;
 		}
 		mp->val =  ((char*)mp->match)+i; 
@@ -862,6 +873,8 @@ static char* get_match(register Namval_t* np, Namfun_t *fp)
 		mp->rval[i] = 0;
 	}
 	mp->rval[i] = (char*)malloc(n+1);
+	if(!mp->rval[i])
+		sh_outofmemory();
 	mp->lastsub[i] = sub;
 	memcpy(mp->rval[i],val,n);
 	mp->rval[i][n] = 0;
@@ -934,6 +947,8 @@ static void math_init(Shell_t *shp)
 	char		*name;
 	int		i;
 	shp->mathnodes = (char*)calloc(1,MAX_MATH_ARGS*(NV_MINSZ+5));
+	if(!shp->mathnodes)
+		sh_outofmemory();
 	name = shp->mathnodes+MAX_MATH_ARGS*NV_MINSZ;
 	for(i=0; i < MAX_MATH_ARGS; i++)
 	{
@@ -1064,6 +1079,8 @@ static int newconf(const char *name, const char *path, const char *value)
     {
 	int i;
 	char *cp = (char*)malloc(ST_NONE*(1<<CHAR_BIT));
+	if(!cp)
+		sh_outofmemory();
 	for(i=0; i < ST_NONE; i++)
 	{
 		a2e(cp,sh_lexrstates[i]);
@@ -1714,6 +1731,8 @@ static void stat_init(Shell_t *shp)
 	sp->numnodes = nstat;
 	sp->nodes = (char*)(sp+1);
 	shgd->stats = (int*)calloc(sizeof(int),nstat);
+	if(!shgd->stats)
+		sh_outofmemory();
 	sp->sh = shp;
 	for(i=0; i < nstat; i++)
 	{
@@ -1878,6 +1897,8 @@ Dt_t *sh_inittree(Shell_t *shp,const struct shtable2 *name_vals)
 	for(tp=name_vals;*tp->sh_name;tp++)
 		n++;
 	np = (Namval_t*)calloc(n,sizeof(Namval_t));
+	if(!np)
+		sh_outofmemory();
 	if(!shgd->bltin_nodes)
 	{
 		shgd->bltin_nodes = np;

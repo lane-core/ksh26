@@ -1206,7 +1206,11 @@ void	job_clear(void)
 	job.curpgid = 0;
 	job.toclear = 0;
 	if(!job.freejobs)
+	{
 		job.freejobs = (unsigned char*)malloc((unsigned)(j+1));
+		if(!job.freejobs)
+			sh_outofmemory();
+	}
 	while(j >=0)
 		job.freejobs[j--]  = 0;
 	job_unlock();

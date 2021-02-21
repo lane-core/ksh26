@@ -972,6 +972,8 @@ static char *prefix(Shell_t *shp, char *id)
 					nv_putsub(np,sub,0L);
 			}
 			id = (char*)malloc(strlen(cp)+1+(n=strlen(sp=nv_name(np)))+ (sub?strlen(sub)+3:1));
+			if(!id)
+				sh_outofmemory();
 			memcpy(id,sp,n);
 			if(sub)
 			{
@@ -2162,7 +2164,12 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 				goto out_offset;
 			}
 			if(!(sp=mp->shp->sftable[fd]))
-				sp = sfnew(NIL(Sfio_t*),(char*)malloc(IOBSIZE+1),IOBSIZE,fd,SF_READ|SF_MALLOC);
+			{
+				char *cp = (char*)malloc(IOBSIZE+1);
+				if(!cp)
+					sh_outofmemory();
+				sp = sfnew(NIL(Sfio_t*),cp,IOBSIZE,fd,SF_READ|SF_MALLOC);
+			}
 			type = 3;
 		}
 		else

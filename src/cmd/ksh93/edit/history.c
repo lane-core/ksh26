@@ -472,6 +472,8 @@ static History_t* hist_trim(History_t *hp, int n)
 		char *last, *name=hist_old->histname;
 		close(sffileno(hist_old->histfp));
 		tmpname = (char*)malloc(strlen(name)+14);
+		if(!tmpname)
+			sh_outofmemory();
 		if(last = strrchr(name,'/'))
 		{
 			*last = 0;

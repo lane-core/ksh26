@@ -735,7 +735,7 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 		break;
 	}
 	if(!shp->fifo)
-		errormsg(SH_DICT,ERROR_system(128),"process substitution: FIFO creation failed");
+		errormsg(SH_DICT,ERROR_PANIC,"process substitution: FIFO creation failed");
 	chmod(shp->fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
 	sfputr(shp->stk,shp->fifo,0);
 #endif /* SHOPT_DEVFD */

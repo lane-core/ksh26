@@ -186,6 +186,8 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 		{
 			n = nlast*sizeof(char*);
 			saveargs = (char**)malloc(n);
+			if(!saveargs)
+				sh_outofmemory();
 			memcpy((void*)saveargs, (void*)av, n);
 			memcpy((void*)av,(void*)avlast,n);
 		}
@@ -566,6 +568,8 @@ char *path_fullname(Shell_t *shp,const char *name)
 		dirlen = strlen(pwd)+1;
 	}
 	path = (char*)malloc(len+dirlen);
+	if(!path)
+		sh_outofmemory();
 	if(dirlen)
 	{
 		memcpy((void*)path,(void*)pwd,dirlen);
@@ -1177,6 +1181,8 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 		 * may not yield the same results
 		 */
 		char *sp = (char*)malloc(strlen(path)+3);
+		if(!sp)
+			sh_outofmemory();
 		sp[0] = '.';
 		sp[1] = '/';
 		strcpy(sp+2,path);
@@ -1505,6 +1511,8 @@ static Pathcomp_t *path_addcomp(Shell_t *shp,Pathcomp_t *first, Pathcomp_t *old,
 		pp->dev = 1;
 		pp->flags |= PATH_BUILTIN_LIB;
 		pp->blib = pp->bbuf = malloc(sizeof(LIBCMD));
+		if(!pp->blib)
+			sh_outofmemory();
 		strcpy(pp->blib,LIBCMD);
 		return(first);
 	}
@@ -1575,6 +1583,8 @@ static int path_chkpaths(Shell_t *shp,Pathcomp_t *first, Pathcomp_t* old,Pathcom
 			else if(m)
 			{
 				pp->lib = (char*)malloc(cp-sp+pp->len+2);
+				if(!pp->lib)
+					sh_outofmemory();
 				memcpy((void*)pp->lib,(void*)sp,m);
 				memcpy((void*)&pp->lib[m],stakptr(offset),pp->len);
 				pp->lib[k=m+pp->len] = '/';

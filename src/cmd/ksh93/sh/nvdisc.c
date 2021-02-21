@@ -878,7 +878,7 @@ static void *num_clone(register Namval_t *np, void *val)
 			size = sizeof(int32_t);
 	}
 	if(!(nval = malloc(size)))
-		return(0);
+		sh_outofmemory();
 	memcpy(nval,val,size);
 	return(nval);
 }

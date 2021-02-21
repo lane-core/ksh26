@@ -347,6 +347,8 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
 			if(data)
 			{
 				fp->data = (char*)malloc(fp->nelem*fp->size);
+				if(!fp->data)
+					sh_outofmemory();
 				memcpy(fp->data,data,fp->nelem*fp->size);
 			}
 			else
@@ -900,6 +902,8 @@ int nv_atypeindex(Namval_t *np, const char *tname)
 		if(!ap)
 			ap = array_grow(np,ap,1);
 		ap->xp = calloc(NV_MINSZ,1);
+		if(!ap->xp)
+			sh_outofmemory();
 		np = nv_namptr(ap->xp,0);
 		np->nvname = tp->nvname;
 		nv_onattr(np,NV_MINIMAL);
@@ -1365,6 +1369,8 @@ static void array_fixed_setdata(Namval_t *np,Namarr_t* ap,struct fixed_array* fp
 	fp->size = fp->ptr?sizeof(void*):nv_datasize(np,0);
 	ap->nelem = n;
 	fp->data = (char*)calloc(fp->nelem,fp->size);
+	if(!fp->data)
+		sh_outofmemory();
 	if(fp->ptr)
 	{
 		char **cp = (char**)fp->data;
@@ -1660,6 +1666,8 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 			ap->header.hdr.dsize = sizeof(struct assoc_array);
 			ap->header.hdr.nofree &= ~1;
 		}
+		else
+			sh_outofmemory();
 		return((void*)ap);
 	    case NV_ADELETE:
 		if(ap->cur)

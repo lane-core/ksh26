@@ -147,7 +147,6 @@ typedef union Shnode_u Shnode_t;
 
 /* error messages */
 extern const char	e_found[];
-extern const char	e_nospace[];
 extern const char	e_format[];
 extern const char 	e_number[];
 extern const char	e_restricted[];

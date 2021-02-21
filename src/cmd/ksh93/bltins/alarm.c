@@ -274,7 +274,7 @@ int	b_alarm(int argc,char *argv[],Shbltin_t *context)
 		nv_unset(np);
 	nv_setattr(np, NV_DOUBLE);
 	if(!(tp = newof(NIL(struct tevent*),struct tevent,1,0)))
-		errormsg(SH_DICT,ERROR_exit(1),e_nospace);
+		sh_outofmemory();
 	tp->fun.disc = &alarmdisc;
 	tp->flags = rflag;
 	tp->node = np;

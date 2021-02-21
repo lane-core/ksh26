@@ -327,6 +327,8 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 				{
 					const char *cp = nq->nvalue.cp;
 					nq->nvalue.cp = (char*)malloc(i);
+					if(!nq->nvalue.cp)
+						sh_outofmemory();
 					memcpy((char*)nq->nvalue.cp,cp,i);
 				}
 				else
@@ -366,6 +368,8 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 	if(size==0 && (!fp->disc || (size=fp->disc->dsize)==0)) 
 		size = sizeof(Namfun_t);
 	dp = (Namtype_t*)malloc(size+pp->nref*sizeof(struct Namref));
+	if(!dp)
+		sh_outofmemory();
 	if(pp->nref)
 	{
 		nrp = (struct Namref*)((char*)dp + size);
@@ -576,6 +580,8 @@ static Namval_t *next_type(register Namval_t* np, Dt_t *root,Namfun_t *fp)
 static Namfun_t *clone_inttype(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 {
 	Namfun_t	*pp=  (Namfun_t*)malloc(fp->dsize);
+	if(!pp)
+		sh_outofmemory();
 	memcpy((void*)pp, (void*)fp, fp->dsize);
 	fp->nofree &= ~1;
 	if(nv_isattr(mp,NV_NOFREE) && mp->nvalue.cp)

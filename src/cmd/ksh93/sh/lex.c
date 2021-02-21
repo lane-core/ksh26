@@ -2486,6 +2486,8 @@ static void setupalias(Lex_t *lp, const char *string,Namval_t *np)
 {
 	register Sfio_t *iop, *base;
 	struct alias *ap = (struct alias*)malloc(sizeof(struct alias));
+	if(!ap)
+		sh_outofmemory();
 	ap->disc = alias_disc;
 	ap->lp = lp;
 	ap->buf[1] = 0;
@@ -2525,6 +2527,8 @@ static int stack_grow(Lex_t *lp)
 		lp->lexd.lex_match = (int*)realloc((char*)lp->lexd.lex_match,sizeof(int)*lp->lexd.lex_max);
 	else
 		lp->lexd.lex_match = (int*)malloc(sizeof(int)*STACK_ARRAY);
-	return(lp->lexd.lex_match!=0);
+	if(!lp->lexd.lex_match)
+		sh_outofmemory();
+	return(1);
 }
 

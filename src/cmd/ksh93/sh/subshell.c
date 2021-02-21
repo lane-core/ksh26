@@ -308,6 +308,8 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	}
 	/* first two pointers use linkage from np */
 	lp = (struct Link*)malloc(sizeof(*np)+2*sizeof(void*));
+	if(!lp)
+		sh_outofmemory();
 	memset(lp,0, sizeof(*mp)+2*sizeof(void*));
 	lp->node = np;
 	if(!add &&  nv_isvtree(np))
@@ -614,6 +616,8 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if((nsig=shp->st.trapmax)>0 || shp->st.trapcom[0])
 		{
 			savsig = malloc(nsig * sizeof(char*));
+			if(!savsig)
+				sh_outofmemory();
 			/*
 			 * the data is, usually, modified in code like:
 			 *	tmp = buf[i]; buf[i] = strdup(tmp); free(tmp);

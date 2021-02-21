@@ -330,6 +330,8 @@ int eaccess(register const char *name, register int mode)
 				}
 			}
 			groups = (gid_t*)malloc((maxgroups+1)*sizeof(gid_t));
+			if(!groups)
+				error(ERROR_PANIC,"out of memory");
 			n = getgroups(maxgroups,groups);
 			while(--n >= 0)
 			{

@@ -127,7 +127,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	struct stat	statb;
 	int i, rshflag;		/* set for restricted shell */
 	char *command;
-	free(malloc(64*1024));
 #ifdef _lib_sigvec
 	/* This is to clear mask that may be left on by rlogin */
 	clearsigmask(SIGALRM);
@@ -322,6 +321,8 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 						/* try sh -c 'name "$@"' */
 						sh_onoption(SH_CFLAG);
 						shp->comdiv = (char*)malloc(strlen(name)+7);
+						if(!shp->comdiv)
+							sh_outofmemory();
 						name = strcopy(shp->comdiv,name);
 						if(shp->st.dolc)
 							strcopy(name," \"$@\"");

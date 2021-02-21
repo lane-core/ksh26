@@ -127,6 +127,8 @@ static char *getbuf(size_t len)
 			buf = (char*)malloc(len);
 		else
 			buf = (char*)realloc(buf,len);
+		if(!buf)
+			sh_outofmemory();
 		buflen = len;
 	}
 	return(buf);
@@ -229,6 +231,8 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	{
 		sp->maxnodes += 20;
 		sp->nodes = (Namval_t**)realloc(sp->nodes,sizeof(Namval_t*)*sp->maxnodes);
+		if(!sp->nodes)
+			sh_outofmemory();
 	}
 	sp->nodes[sp->numnodes++] = np;
 	return(np);
@@ -282,6 +286,8 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		shtp.maxnodes = 20;
 		shtp.rp = 0;
 		shtp.nodes =(Namval_t**)malloc(shtp.maxnodes*sizeof(Namval_t*));
+		if(!shtp.nodes)
+			sh_outofmemory();
 	}
 #endif /* SHOPT_TYPEDEF*/
 #if SHOPT_NAMESPACE
@@ -1428,6 +1434,8 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 				xp->name = malloc(c);
 			else
 				xp->name = realloc(xp->name,c);
+			if(!xp->name)
+				sh_outofmemory();
 			xp->size = c;
 		}
 		memcpy(xp->name,name,xp->len);
@@ -1897,7 +1905,10 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 					size = nv_size(np);
 				if(size==0)
 					size = oldsize + (3*dot/4);
-				*(cp = (char*)malloc(size+1)) = 0;
+				cp = (char*)malloc(size+1);
+				if(!cp)
+					sh_outofmemory();
+				*cp = 0;
 				nv_offattr(np,NV_NOFREE);
 				if(oldsize)
 					memcpy((void*)cp,(void*)up->cp,oldsize);
@@ -1960,6 +1971,8 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 					}
 					else
 						cp = (char*)malloc(dot+append+1);
+					if(!cp)
+						sh_outofmemory();
 					cp[dot+append] = 0;
 					nv_offattr(np,NV_NOFREE);
 				}
@@ -3037,18 +3050,24 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 			{
 				/* allocate to match existing value for numerics and auto length assignment for -L/R/Z */
 				cp = (char*)malloc((size_t)n + 1);
+				if(!cp)
+					sh_outofmemory();
 				strcpy(cp, sp);
 			}
 			else if(size>=n)
 			{
 				/* growing string */
 				cp = (char*)malloc((size_t)size + 1);
+				if(!cp)
+					sh_outofmemory();
 				strcpy(cp, sp);
 			}
 			else
 			{
 				/* shrinking string */
 				cp = (char*)malloc((size_t)size + 1);
+				if(!cp)
+					sh_outofmemory();
 				if(newatts&NV_RJUST)
 					strncpy(cp, n - size + sp, size);
 				else

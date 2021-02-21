@@ -367,6 +367,7 @@ extern Sfdouble_t	sh_mathfun(Shell_t*, void*, int, Sfdouble_t*);
 extern int		sh_outtype(Shell_t*, Sfio_t*);
 extern char 		*sh_mactry(Shell_t*,char*);
 extern int		sh_mathstd(const char*);
+extern void		sh_outofmemory(void);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
 extern int 		sh_readline(Shell_t*,char**,volatile int,int,ssize_t,long);
 extern Sfio_t		*sh_sfeval(char*[]);

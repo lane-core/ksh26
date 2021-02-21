@@ -422,6 +422,8 @@ int  sh_iovalidfd(Shell_t *shp, int fd)
 		n = max;
 	max = shp->gd->lim.open_max;
 	shp->sftable = (Sfio_t**)calloc((n+1)*(sizeof(int*)+sizeof(Sfio_t*)+1),1);
+	if(!shp->sftable)
+		sh_outofmemory();
 	if(max)
 		memcpy(shp->sftable,sftable,max*sizeof(Sfio_t*));
 	shp->fdptrs = (int**)(&shp->sftable[n]);
@@ -469,6 +471,8 @@ void sh_ioinit(Shell_t *shp)
 {
 	filemapsize = 8;
 	filemap = (struct fdsave*)malloc(filemapsize*sizeof(struct fdsave));
+	if(!filemap)
+		sh_outofmemory();
 	sh_iovalidfd(shp,16);
 	shp->sftable[0] = sfstdin;
 	shp->sftable[1] = sfstdout;
@@ -480,6 +484,8 @@ void sh_ioinit(Shell_t *shp)
 	shp->outpool = sfopen(NIL(Sfio_t*),NIL(char*),"sw");  /* pool identifier */
 	shp->outbuff = (char*)malloc(IOBSIZE+4);
 	shp->errbuff = (char*)malloc(IOBSIZE/4);
+	if(!shp->outbuff || !shp->errbuff)
+		sh_outofmemory();
 	sfsetbuf(sfstderr,shp->errbuff,IOBSIZE/4);
 	sfsetbuf(sfstdout,shp->outbuff,IOBSIZE);
 	sfpool(sfstdout,shp->outpool,SF_WRITE);
@@ -1576,6 +1582,8 @@ static int io_heredoc(Shell_t *shp,register struct ionod *iop, const char *name,
 			if(sffileno(tmp)>0)
 			{
 				sfsetbuf(tmp,malloc(IOBSIZE+1),IOBSIZE);
+				if(!tmp)
+					sh_outofmemory();
 				sfset(tmp,SF_MALLOC,1);
 			}
 			sfseek(shp->heredocs,off,SEEK_SET);
@@ -1640,7 +1648,7 @@ void sh_iosave(Shell_t *shp, register int origfd, int oldtop, char *name)
 		long	moved;
 		filemapsize += 8;
 		if(!(filemap = (struct fdsave*)realloc(filemap,filemapsize*sizeof(struct fdsave))))
-			errormsg(SH_DICT,ERROR_exit(4),e_nospace);
+			sh_outofmemory();
 		if(moved = (char*)filemap - oldptr)
 		{
 			for(savefd=shp->gd->lim.open_max; --savefd>=0; )

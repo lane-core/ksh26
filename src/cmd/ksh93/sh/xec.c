@@ -1869,7 +1869,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if((nsig=shp->st.trapmax*sizeof(char*))>0 || shp->st.trapcom[0])
 				{
 					nsig += sizeof(char*);
-					memcpy(savsig=malloc(nsig),(char*)&shp->st.trapcom[0],nsig);
+					savsig = malloc(nsig);
+					if(!savsig)
+						sh_outofmemory();
+					memcpy(savsig,(char*)&shp->st.trapcom[0],nsig);
 					shp->st.otrapcom = (char**)savsig;
 				}
 				sh_sigreset(0);
@@ -3113,6 +3116,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	if((nsig=shp->st.trapmax)>0 || shp->st.trapcom[0])
 	{
 		savsig = malloc(nsig * sizeof(char*));
+		if(!savsig)
+			sh_outofmemory();
 		/*
 		 * the data is, usually, modified in code like:
 		 *	tmp = buf[i]; buf[i] = strdup(tmp); free(tmp);

@@ -221,6 +221,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	if(!kstack)
 	{
 		kstack = (genchar*)malloc(CHARSIZE*MAXLINE);
+		if(!kstack)
+			sh_outofmemory();
 		kstack[0] = '\0';
 	}
 	drawbuff = out;

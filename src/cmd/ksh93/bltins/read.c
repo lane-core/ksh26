@@ -349,7 +349,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 		if((c=size)>=sizeof(buf))
 		{
 			if(!(var = (char*)malloc(c+1)))
-				sh_exit(1);
+				sh_outofmemory();
 			end = var + c;
 		}
 		else
@@ -412,6 +412,8 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 						if (var == buf)
 						{
 							v = (char*)malloc(m+1);
+							if(!v)
+								sh_outofmemory();
 							var = memcpy(v, var, cur - var);
 						}
 						else
