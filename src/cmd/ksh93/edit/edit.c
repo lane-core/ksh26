@@ -829,11 +829,14 @@ static void ed_nputchar(register Edit_t *ep, int n, int c)
 /*
  * Do read, restart on interrupt unless SH_SIGSET or SH_SIGTRAP is set
  * Use sfpkrd() to poll() or select() to wait for input if possible
+ *
+ * The return value is the number of bytes read, or < 0 for EOF.
+ *
  * Unfortunately, systems that get interrupted from slow reads update
  * this access time for the terminal (in violation of POSIX).
- * The fixtime() macro, resets the time to the time at entry in
+ * The fixtime() macro resets the time to the time at entry in
  * this case.  This is not necessary for systems that can handle
- * sfpkrd() correctly (i,e., those that support poll() or select()
+ * sfpkrd() correctly (i.e., those that support poll() or select()).
  */
 int ed_read(void *context, int fd, char *buff, int size, int reedit)
 {
@@ -858,11 +861,11 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		if(shp->trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
 #if SHOPT_ESH && SHOPT_VSH
-		if(ep->sh->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
+		if(shp->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
 #elif SHOPT_ESH
-		if(ep->sh->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
+		if(shp->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
 #elif SHOPT_VSH
-		if(ep->sh->winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
+		if(shp->winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
 #else
 		if(0)
 #endif
@@ -889,7 +892,6 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 				while(n--)
 					ed_putstring(ep,CURSOR_UP);
 			}
-	                ep->sh->winch = 0;
 			ed_flush(ep);
 			sh_delay(.05,0);
 			astwinsize(2,&rows,&newsize);
@@ -898,19 +900,18 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 				ep->e_winsz = MINWINDOW;
 			if(!ep->e_multiline && ep->e_wsize < MAXLINE)
 				ep->e_wsize = ep->e_winsz-2;
-			ep->e_nocrnl=1;
-			if(*ep->e_vi_insert)
-			{
-				buff[0] = ESC;
-				buff[1] = cntl('L');
-				buff[2] = 'a';
-				return(3);
-			}
-			buff[0] = cntl('L');
-			return(1);
+#if SHOPT_ESH && SHOPT_VSH
+			if(sh_isoption(SH_VI))
+				vi_redraw(ep->e_vi);
+			else
+				emacs_redraw(ep->e_emacs);
+#elif SHOPT_VSH
+			vi_redraw(ep->e_vi);
+#elif SHOPT_ESH
+			emacs_redraw(ep->e_emacs);
+#endif
 		}
-		else
-			ep->sh->winch = 0;
+		shp->winch = 0;
 		/* an interrupt that should be ignored */
 		errno = 0;
 		if(!waitevent || (rv=(*waitevent)(fd,-1L,0))>=0)
@@ -1072,7 +1073,6 @@ int ed_getchar(register Edit_t *ep,int mode)
 	{
 		ed_flush(ep);
 		ep->e_inmacro = 0;
-		/* The while is necessary for reads of partial multibyte chars */
 		*ep->e_vi_insert = (mode==-2);
 		if((n=ed_read(ep,ep->e_fd,readin,-LOOKAHEAD,0)) > 0)
 			n = putstack(ep,readin,n,1);

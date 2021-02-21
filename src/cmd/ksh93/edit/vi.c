@@ -104,7 +104,6 @@ typedef struct _vi_
 	char last_find;		/* last find command */
 	char last_cmd;		/* last command */
 	char repeat_set;
-	char nonewline;
 	int findchar;		/* last find char */
 	genchar *lastline;
 	int first_wind;		/* first column of window */
@@ -545,7 +544,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 			/*** start over since there may be ***/
 			/*** a control char, or cursor might not ***/
 			/*** be at left margin (this lets us know ***/
-			/*** where we are ***/
+			/*** where we are) ***/
 			cur_phys = 0;
 			window[0] = '\0';
 			pr_string(vp,Prompt);
@@ -819,14 +818,8 @@ static int cntlmode(Vi_t *vp)
 		case cntl('L'):		/** Redraw line **/
 			/*** print the prompt and ***/
 			/* force a total refresh */
-			if(vp->nonewline==0 && !vp->ed->e_nocrnl)
-				putchar('\n');
-			vp->nonewline = 0;
-			pr_string(vp,Prompt);
-			window[0] = '\0';
-			cur_phys = vp->first_wind;
-			vp->ofirst_wind = INVALID;
-			vp->long_line = ' ';
+			putchar('\n');
+			vi_redraw((void*)vp);
 			break;
 
 		case cntl('V'):
@@ -907,8 +900,7 @@ static int cntlmode(Vi_t *vp)
 				vp->ed->hoff--;
 			 hupdate:
 				ed_histlist(vp->ed,*vp->ed->hlist!=0);
-				vp->nonewline++;
-				ed_ungetchar(vp->ed,cntl('L'));
+				vi_redraw((void*)vp);
 				continue;
 			}
 #endif /* SHOPT_EDPREDICT */
@@ -951,9 +943,8 @@ static int cntlmode(Vi_t *vp)
 				ed_histlist(vp->ed,0);
 				if(c=='\n')
 					ed_ungetchar(vp->ed,c);
-				ed_ungetchar(vp->ed,cntl('L'));
-				vp->nonewline = 1;
 				cur_virt = 0;
+				vi_redraw((void*)vp);
 			}
 #endif /*SHOPT_EDPREDICT */
 			break;
@@ -1873,6 +1864,26 @@ static void putstring(register Vi_t *vp,register int col, register int nchars)
 	return;
 }
 
+/*{	VI_REDRAW( )
+ *
+ *	Print the prompt and force a total refresh.
+ *
+ * This is invoked from edit.c for redrawing the command line
+ * upon SIGWINCH. It is also used by the Ctrl+L routine.
+ *
+}*/
+
+void vi_redraw(void *ep)
+{
+	Vi_t	*vp = (Vi_t*)ep;
+	pr_string(vp,Prompt);
+	window[0] = '\0';
+	cur_phys = vp->first_wind;
+	vp->ofirst_wind = INVALID;
+	vp->long_line = ' ';
+	refresh(vp, *vp->ed->e_vi_insert ? INPUT : CONTROL);
+}
+
 /*{	REFRESH( mode )
  *
  *	This routine will refresh the crt so the physical image matches
@@ -2075,9 +2086,8 @@ static void refresh(register Vi_t* vp, int mode)
 		vp->long_line = vp->long_char;
 	}
 
-	if(vp->ed->e_multiline &&  vp->ofirst_wind==INVALID && !vp->ed->e_nocrnl)
+	if(vp->ed->e_multiline && vp->ofirst_wind==INVALID)
 		ed_setcursor(vp->ed, physical, last_phys+1, last_phys+1, -1);
-	vp->ed->e_nocrnl = 0;
 	vp->ocur_phys = ncur_phys;
 	vp->ocur_virt = cur_virt;
 	vp->ofirst_wind = first_w;
@@ -2477,8 +2487,7 @@ addin:
 		}
 		else if((c=='=' || (c=='\\'&&virtual[last_virt]=='/')) && !vp->repeat_set)
 		{
-			vp->nonewline++;
-			ed_ungetchar(vp->ed,cntl('L'));
+			vi_redraw((void*)vp);
 			return(GOOD);
 		}
 		else

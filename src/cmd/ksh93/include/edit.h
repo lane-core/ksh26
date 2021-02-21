@@ -89,7 +89,6 @@ typedef struct edit
 	int	e_lnext;
 	int	e_plen;		/* length of prompt string */
 	char	e_crlf;		/* zero if cannot return to beginning of line */
-	char	e_nocrnl;	/* don't put a new-line with ^L */
 	char	e_keytrap;	/* set when in keytrap */
 	int	e_llimit;	/* line length limit */
 	int	e_hline;	/* current history line number */
@@ -269,5 +268,13 @@ extern const char	e_runvi[];
 extern int hist_expand(const char *, char **);
 
 #endif /* SHOPT_HISTEXPAND */
+
+#if SHOPT_ESH
+extern void	emacs_redraw(Void_t*);
+#endif /* SHOPT_ESH */
+
+#if SHOPT_VSH
+extern void	vi_redraw(Void_t*);
+#endif /* SHOPT_VSH */
 
 #endif /* !SEARCHSIZE */

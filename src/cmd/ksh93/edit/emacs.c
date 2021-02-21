@@ -614,10 +614,8 @@ update:
 			}
 			continue;
 		case cntl('L'):
-			if(!ep->ed->e_nocrnl)
-				ed_crlf(ep->ed);
+			ed_crlf(ep->ed);
 			draw(ep,REFRESH);
-			ep->ed->e_nocrnl = 0;
 			continue;
 		case cntl('[') :
 			vt220_save_repeat = oadjust;
@@ -1442,8 +1440,8 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	/***************************************
 	If in append mode, cursor at end of line, screen up to date,
 	the previous character was a 'normal' character,
-	and the window has room for another character.
-	Then output the character and adjust the screen only.
+	and the window has room for another character,
+	then output the character and adjust the screen only.
 	*****************************************/
 	
 
@@ -1555,7 +1553,7 @@ static void draw(register Emacs_t *ep,Draw_t option)
 		}
 #endif /* SHOPT_MULTIBYTE */
 	}
-	if(ep->ed->e_multiline && option == REFRESH && ep->ed->e_nocrnl==0)
+	if(ep->ed->e_multiline && option == REFRESH)
 		ed_setcursor(ep->ed, ep->screen, ep->cursor-ep->screen, ep->ed->e_peol, -1);
 
 	
@@ -1591,6 +1589,18 @@ static void draw(register Emacs_t *ep,Draw_t option)
 		setcursor(ep,nscend+1-nscreen,0);
 	ep->scvalid = 1;
 	return;
+}
+
+/*
+ * Print the prompt and force a total refresh.
+ * This is used from edit.c for redrawing the command line upon SIGWINCH.
+ */
+
+void emacs_redraw(void *vp)
+{
+	Emacs_t	*ep = (Emacs_t*)vp;
+	draw(ep, REFRESH);
+	ed_flush(ep->ed);
 }
 
 /*
