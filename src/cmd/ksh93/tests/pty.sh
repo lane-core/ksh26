@@ -47,6 +47,13 @@ integer Errors=0 lineno=1
 [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 whence -q pty || { warning "pty command not found -- tests skipped"; exit 0; }
 
+case $(uname -s) in
+Darwin | FreeBSD | Linux )
+	;;
+* )	warning "pty not confirmed to work correctly on this system -- tests skipped"
+	exit 0 ;;
+esac
+
 # On some systems, the stty command does not appear to work correctly on a pty pseudoterminal.
 # To avoid false regressions, we have to set 'erase' and 'kill' on the real terminal.
 if	test -t 0 2>/dev/null </dev/tty && stty_restore=$(stty -g </dev/tty)
