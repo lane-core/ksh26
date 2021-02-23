@@ -732,5 +732,14 @@ got=$({ FPATH=$tmp/fun.$$ "$SHELL" -c self; } 2>&1)
 	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got")"
 
 # ======
+# If a shared-state ${ command substitution; } changed the value of $PATH, the variable
+# would change but the internal pathlist would not, making path searches inconsistent.
+savePATH=$PATH
+got=${ PATH=/dev/null; }
+got=$(whence ls)
+PATH=$savePATH
+[[ -z $got ]] || err_exit "PATH search inconsistent after changing PATH in subshare (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
 

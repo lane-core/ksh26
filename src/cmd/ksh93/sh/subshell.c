@@ -549,14 +549,14 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->options = shp->options;
 	sp->jobs = job_subsave();
 	sp->subdup = shp->subdup;
+	shp->subdup = 0;
 	/* make sure initialization has occurred */ 
 	if(!shp->pathlist)
 	{
 		shp->pathinit = 1;
-		path_get(shp,".");
+		path_get(shp,e_dot);
 		shp->pathinit = 0;
 	}
-	sp->pathlist = path_dup((Pathcomp_t*)shp->pathlist);
 #if _lib_fchdir
 	sp->pwdfd = -1;
 #endif /* _lib_fchdir */
@@ -570,6 +570,8 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->subshare = shp->subshare;
 	sp->comsub = shp->comsub;
 	shp->subshare = comsub==2;
+	if(!shp->subshare)
+		sp->pathlist = path_dup((Pathcomp_t*)shp->pathlist);
 	if(comsub)
 	{
 		shp->comsub = comsub;
@@ -590,7 +592,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		if(sp->pwdfd<0)
 		{
-			int n = open(".",O_SEARCH);
+			int n = open(e_dot,O_SEARCH);
 			if(n>=0)
 			{
 				sp->pwdfd = n;
@@ -759,11 +761,16 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			}
 			sfset(iop,SF_READ,1);
 		}
-		sfswap(sp->saveout,sfstdout);
+		if(sp->saveout)
+			sfswap(sp->saveout,sfstdout);
+		else
+			sfstdout = &_Sfstdout;
 		/*  check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
-			close(1);
+			int err=errno;
+			while(close(1)<0 && errno==EINTR)
+				errno = err;
 			if (fcntl(sp->tmpfd,F_DUPFD,1) != 1)
 			{
 				saveerrno = errno;
@@ -773,8 +780,11 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		shp->fdstatus[1] = sp->fdstatus;
 	}
-	path_delete((Pathcomp_t*)shp->pathlist);
-	shp->pathlist = (void*)sp->pathlist;
+	if(!shp->subshare)
+	{
+		path_delete((Pathcomp_t*)shp->pathlist);
+		shp->pathlist = (void*)sp->pathlist;
+	}
 	job_subrestore(sp->jobs);
 	shp->curenv = shp->jobenv = savecurenv;
 	job.curpgid = savejobpgid;
