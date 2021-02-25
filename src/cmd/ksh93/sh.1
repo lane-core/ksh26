@@ -8250,37 +8250,48 @@ when the locale is not C or POSIX.
 No commands will be executed.
 .PD
 .TP 8
-.B \-E
-Reads the file named by the
+.BR \-E \ or\  \-o\ rc \ or\  \-\-rc
+Read the file named by the
 .B ENV
 variable or by
 .B \s-1$HOME\s+1/\f3.\fPkshrc
 if not defined after the profiles.
+On by default for interactive shells. Use
+.BR +E ,
+.B +o\ rc
+or
+.B \-\-norc
+to turn off.
 .TP 8
 .BI \-c
-If the
+Read and execute a script from the first
+.I arg
+instead of a file.
+The second
+.IR arg ,
+if present, becomes that script's command name
+.RB ( $0 ).
+Any third and further
+.IR arg s
+become positional parameters starting at
+.BR $1 .
+.TP
+.B \-s
+Read and execute a script from standard input instead of a file.
+The command name
+.RB ( $0 )
+cannot be set.
+Any
+.IR arg s
+become the positional parameters starting at
+.BR $1 .
+This option is forced on if no
+.I arg
+is given and is ignored if
 .B \-c
-option is present, then
-commands are read from the first
-.IR arg .
-Any remaining arguments become
-positional parameters starting at
-.BR 0 .
+is also specified.
 .TP
-.B \-s
-If the
-.B \-s
-option is present or if no
-arguments remain,
-then commands are read from the standard input.
-Shell output,
-except for the output of the
-.I Special Commands\^
-listed above,
-is written to
-file descriptor 2.
-.TP
-.B \-i
+.BR \-i \ or\  \-o\ interactive \ or\  \-\-interactive
 If the
 .B \-i
 option is present or
@@ -8295,7 +8306,7 @@ does not kill an interactive shell) and \s-1INTR\s+1 is caught and ignored
 is interruptible).
 In all cases, \s-1QUIT\s+1 is ignored by the shell.
 .TP
-.B \-r
+.BR \-r \ or\  \-o\ restricted \ or\  \-\-restricted
 If the
 .B \-r
 option is present, the shell is a restricted shell.
