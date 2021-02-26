@@ -30,6 +30,7 @@
 #include	<ast.h>
 #include	<errno.h>
 #include	<ccode.h>
+#include	<fault.h>
 #include	"FEATURE/options"
 #include	"FEATURE/time"
 #include	"FEATURE/cmds"
@@ -785,6 +786,9 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			ep->e_term = nv_search("TERM",shp->var_tree,0);
 		if(ep->e_term && (term=nv_getval(ep->e_term)) && strlen(term)<sizeof(ep->e_termname) && strcmp(term,ep->e_termname))
 		{
+			char was_restricted = (sh_isoption(SH_RESTRICTED)!=0);
+			sigblock(SIGINT);
+			sh_offoption(SH_RESTRICTED);
 #if _tput_terminfo
 			sh_trap(".sh.subscript=$(" _pth_tput " cuu1 2>/dev/null)",0);
 #elif _tput_termcap
@@ -792,10 +796,15 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #else
 #error no tput method
 #endif
-			if(pp=nv_getval(SH_SUBSCRNOD))
-				strncpy(CURSOR_UP,pp,sizeof(CURSOR_UP)-1);
+			if((pp = nv_getval(SH_SUBSCRNOD)) && strlen(pp) < sizeof(CURSOR_UP))
+				strcpy(CURSOR_UP,pp);
+			else
+				CURSOR_UP[0] = '\0';  /* no escape sequence is better than a faulty one */
 			nv_unset(SH_SUBSCRNOD);
 			strcpy(ep->e_termname,term);
+			if(was_restricted)
+				sh_onoption(SH_RESTRICTED);
+			sigrelease(SIGINT);
 		}
 #endif
 		ep->e_wsize = MAXLINE - (ep->e_plen+1);

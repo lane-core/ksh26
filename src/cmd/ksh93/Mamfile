@@ -767,6 +767,7 @@ make install
 					done FEATURE/cmds generated
 					prev FEATURE/time implicit
 					prev FEATURE/options implicit
+					prev include/fault.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
 				done edit/edit.c

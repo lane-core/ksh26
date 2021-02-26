@@ -27,14 +27,14 @@
  */
 
 /*
- * Each command in the history file starts on an even byte is null terminated.
+ * Each command in the history file starts on an even byte and is null-terminated.
  * The first byte must contain the special character HIST_UNDO and the second
  * byte is the version number.  The sequence HIST_UNDO 0, following a command,
- * nullifies the previous command. A six byte sequence starting with
+ * nullifies the previous command.  A six-byte sequence starting with
  * HIST_CMDNO is used to store the command number so that it is not necessary
  * to read the file from beginning to end to get to the last block of
  * commands.  This format of this sequence is different in version 1
- * then in version 0.  Version 1 allows commands to use the full 8 bit
+ * than in version 0.  Version 1 allows commands to use the full 8-bit
  * character set.  It can understand version 0 format files.
  */
 
