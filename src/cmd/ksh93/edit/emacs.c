@@ -371,6 +371,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 				}
 				ep->ed->e_tabcount = 0;
 			}
+			beep();
+			continue;
 		do_default_processing:
 		default:
 
@@ -617,7 +619,7 @@ update:
 			ed_crlf(ep->ed);
 			draw(ep,REFRESH);
 			continue;
-		case cntl('[') :
+		case ESC :
 			vt220_save_repeat = oadjust;
 		do_escape:
 			adjust = escape(ep,out,oadjust);
@@ -984,7 +986,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				ed_ungetchar(ep->ed,'\n');
 #endif /* SHOPT_EDPREDICT */
 		/* file name expansion */
-		case cntl('[') :	/* filename completion */
+		case ESC :
 #if SHOPT_EDPREDICT
 			if(ep->ed->hlist)
 			{
@@ -1000,7 +1002,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				}
 			}
 #endif /* SHOPT_EDPREDICT */
-			i = '\\';
+			i = '\\';	/* filename completion */
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
@@ -1554,7 +1556,7 @@ static void draw(register Emacs_t *ep,Draw_t option)
 #endif /* SHOPT_MULTIBYTE */
 	}
 	if(ep->ed->e_multiline && option == REFRESH)
-		ed_setcursor(ep->ed, ep->screen, ep->cursor-ep->screen, ep->ed->e_peol, -1);
+		ed_setcursor(ep->ed, ep->screen, ep->ed->e_peol, ep->ed->e_peol, -1);
 
 	
 	/******************

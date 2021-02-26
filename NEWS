@@ -3,6 +3,26 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-02-26:
+
+- Fixed three long-standing bugs with tab completion in the emacs editor:
+
+  1. The editor accepted literal tabs without escaping in certain cases,
+     causing buggy and inconsistent completion behaviour. Details:
+     https://github.com/ksh93/ksh/issues/71#issuecomment-656970959
+     https://github.com/ksh93/ksh/issues/71#issuecomment-657216472
+     To enter a literal tab in emacs, you need to escape it with ^V or \.
+
+  2. After completing a filename by choosing from a file completion menu,
+     the terminal cursor was placed one position too far to the right,
+     corrupting command line display. This happened with multiline active.
+     Details: https://github.com/ksh93/ksh/issues/71#issue-655093805
+
+  3. A completion menu was displayed if the file name to be completed was
+     at the point where the rest of it started with a number, even if that
+     part uniquely identified it so the menu only showed one item. Details:
+     https://www.mail-archive.com/ast-users@lists.research.att.com/msg00436.html
+
 2021-02-21:
 
 - Fixed: The way that SIGWINCH was handled (i.e. the signal emitted when the

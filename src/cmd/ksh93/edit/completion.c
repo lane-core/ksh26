@@ -343,6 +343,8 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		}
 		if(mode=='\\' && out[-1]=='/'  && narg>1)
 			mode = '=';
+		else if(mode=='=' && narg<2)
+			mode = '\\';  /* no filename menu if there is only one choice */
 		if(mode=='=')
 		{
 			if (strip && !cmd_completion)
