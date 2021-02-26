@@ -2485,6 +2485,7 @@ addin:
 		}
 		else if((c=='=' || (c=='\\'&&virtual[last_virt]=='/')) && !vp->repeat_set)
 		{
+			last_virt = i;
 			vi_redraw((void*)vp);
 			return(GOOD);
 		}

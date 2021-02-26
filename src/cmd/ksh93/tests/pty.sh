@@ -677,5 +677,40 @@ w true \\\cC
 r true \^C
 !
 
+# err_exit #
+((SHOPT_VSH)) && touch vi_completion_A_file vi_completion_B_file && tst $LINENO <<"!"
+L vi filename completion menu
+
+d 10
+c ls vi_co\t\t
+r ls vi_completion\r\n$
+r ^1) vi_completion_A_file\r\n$
+r ^2) vi_completion_B_file\r\n$
+w 2\t
+r ^:test-1: ls vi_completion_B_file \r\n$
+r ^vi_completion_B_file\r\n$
+
+# 93v- bug: tab completion writes past input buffer
+# https://github.com/ksh93/ksh/issues/195
+
+# ...reproducer 1
+c ls vi_compl\t\t
+r ls vi_completion\r\n$
+r ^1) vi_completion_A_file\r\n$
+r ^2) vi_completion_B_file\r\n$
+w aB_file
+r ^:test-2: ls vi_completion_B_file\r\n$
+r ^vi_completion_B_file\r\n$
+
+# ...reproducer 2
+c \rls vi_comple\t\t
+u ls vi_completion\r\n$
+r ^1) vi_completion_A_file\r\n$
+r ^2) vi_completion_B_file\r\n$
+w 0$aA_file
+r ^:test-3: ls vi_completion_A_file\r\n$
+r ^vi_completion_A_file\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
