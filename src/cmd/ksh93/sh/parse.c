@@ -172,9 +172,7 @@ static void typeset_order(const char *str,int line)
 		return;
 	if(!table)
 	{
-		table = calloc(1,256);
-		if(!table)
-			sh_outofmemory();
+		table = sh_calloc(1,256);
 		for(cp=(unsigned char*)"bflmnprstuxACHS";c = *cp; cp++)
 			table[c] = 1;
 		for(cp=(unsigned char*)"aiEFLRXhTZ";c = *cp; cp++)

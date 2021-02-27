@@ -100,7 +100,7 @@ static void 		sh_argset(Arg_t*, char *[]);
 
 void *sh_argopen(Shell_t *shp)
 {
-	void *addr = newof(0,Arg_t,1,0);
+	void *addr = sh_newof(0,Arg_t,1,0);
 	Arg_t *ap = (Arg_t*)addr;
 	ap->sh = shp;
 	return(addr);
@@ -342,7 +342,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		sfputr(lp->kiafile,";vdb;CIAO/ksh",'\n');
 		lp->kiabegin = sftell(lp->kiafile);
 		lp->entity_tree = dtopen(&_Nvdisc,Dtbag);
-		lp->scriptname = strdup(sh_fmtq(argv[0]));
+		lp->scriptname = sh_strdup(sh_fmtq(argv[0]));
 		lp->script=kiaentity(lp,lp->scriptname,-1,'p',-1,0,0,'s',0,"");
 		lp->fscript=kiaentity(lp,lp->scriptname,-1,'f',-1,0,0,'s',0,"");
 		lp->unknown=kiaentity(lp,"<unknown>",-1,'p',-1,0,0,'0',0,"");
@@ -735,7 +735,7 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 		break;
 	}
 	if(!shp->fifo)
-		errormsg(SH_DICT,ERROR_PANIC,"process substitution: FIFO creation failed");
+		errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
 	chmod(shp->fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
 	sfputr(shp->stk,shp->fifo,0);
 #endif /* SHOPT_DEVFD */

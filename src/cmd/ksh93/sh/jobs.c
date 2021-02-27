@@ -85,7 +85,7 @@ static void init_savelist(void)
 	register struct jobsave *jp;
 	while(njob_savelist < NJOB_SAVELIST)
 	{
-		jp = newof(0,struct jobsave,1,0);
+		jp = sh_newof(0,struct jobsave,1,0);
 		jp->next = job_savelist;
 		job_savelist = jp;
 		njob_savelist++;
@@ -243,7 +243,7 @@ static struct jobsave *jobsave_create(pid_t pid)
 		job_savelist = jp->next;
 	}
 	else
-		jp = newof(0,struct jobsave,1,0);
+		jp = sh_newof(0,struct jobsave,1,0);
 	if(jp)
 	{
 		jp->pid = pid;
@@ -1204,11 +1204,7 @@ void	job_clear(void)
 	job.curpgid = 0;
 	job.toclear = 0;
 	if(!job.freejobs)
-	{
-		job.freejobs = (unsigned char*)malloc((unsigned)(j+1));
-		if(!job.freejobs)
-			sh_outofmemory();
-	}
+		job.freejobs = (unsigned char*)sh_malloc((unsigned)(j+1));
 	while(j >=0)
 		job.freejobs[j--]  = 0;
 	job_unlock();

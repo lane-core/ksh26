@@ -258,9 +258,9 @@ static int waitnotify(int fd, long timeout, int rw)
 
 static int service_init(void)
 {
-	file_list =  newof(NULL,short,n,0);
-	poll_list =  newof(NULL,Sfio_t*,n,0);
-	service_list =  newof(NULL,Service_t*,n,0);
+	file_list = sh_newof(NULL,short,n,0);
+	poll_list = sh_newof(NULL,Sfio_t*,n,0);
+	service_list = sh_newof(NULL,Service_t*,n,0);
 	covered_fdnotify = sh_fdnotify(fdnotify);
 	sh_waitnotify(waitnotify);
 	return(1);
@@ -428,8 +428,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 	argv += opt_info.index;
 	if (error_info.errors || !(var = *argv++) || !(path = *argv++) || *argv)
 		error(ERROR_usage(2), optusage(NiL));
-	if (!(sp = newof(0, Service_t, 1, 0)))
-		error(ERROR_exit(1), "out of space");
+	sp = sh_newof(0, Service_t, 1, 0);
 	sp->acceptf = Accept;
 	sp->actionf = Action;
 	sp->errorf = Error;

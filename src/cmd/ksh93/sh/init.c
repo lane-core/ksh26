@@ -218,20 +218,58 @@ static int		shlvl;
 
 static int		rand_shift;
 
-
-void sh_outofmemory(void)
-{
-	errormsg(SH_DICT,ERROR_PANIC,"out of memory");
-}
-
 /*
  * out of memory routine for stak routines
  */
 static char *nospace(int unused)
 {
 	NOT_USED(unused);
-	sh_outofmemory();
+	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 	return(NIL(char*));
+}
+
+/*
+ * The following are wrapper functions for memory allocation.
+ * These functions will error out if the allocation fails.
+ */
+void *sh_malloc(size_t size)
+{
+	void *cp = malloc(size);
+	if(!cp)
+		nospace(0);
+	return(cp);
+}
+
+void *sh_realloc(void *ptr, size_t size)
+{
+	void *cp = realloc(ptr, size);
+	if(!cp)
+		nospace(0);
+	return(cp);
+}
+
+void *sh_calloc(size_t nmemb, size_t size)
+{
+	void *cp = calloc(nmemb, size);
+	if(!cp)
+		nospace(0);
+	return(cp);
+}
+
+char *sh_strdup(const char *s)
+{
+	char *dup = strdup(s);
+	if(!dup)
+		nospace(0);
+	return(dup);
+}
+
+void *sh_memdup(const void *s, size_t n)
+{
+	void *dup = memdup(s, n);
+	if(!dup)
+		nospace(0);
+	return(dup);
 }
 
 #if SHOPT_VSH || SHOPT_ESH
@@ -317,9 +355,7 @@ static Sfdouble_t nget_optindex(register Namval_t* np, Namfun_t *fp)
 
 static Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 {
-	Namfun_t *dp = (Namfun_t*)malloc(sizeof(Namfun_t));
-	if(!dp)
-		sh_outofmemory();
+	Namfun_t *dp = (Namfun_t*)sh_malloc(sizeof(Namfun_t));
 	memcpy((void*)dp,(void*)fp,sizeof(Namfun_t));
 	mp->nvalue.lp = np->nvalue.lp;
 	dp->nofree = 0;
@@ -436,9 +472,7 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 		{
 			register int c;
 			char *state[4];
-			sh_lexstates[ST_BEGIN] = state[0] = (char*)malloc(4*(1<<CHAR_BIT));
-			if(!state[0])
-				sh_outofmemory();
+			sh_lexstates[ST_BEGIN] = state[0] = (char*)sh_malloc(4*(1<<CHAR_BIT));
 			memcpy(state[0],sh_lexrstates[ST_BEGIN],(1<<CHAR_BIT));
 			sh_lexstates[ST_NAME] = state[1] = state[0] + (1<<CHAR_BIT);
 			memcpy(state[1],sh_lexrstates[ST_NAME],(1<<CHAR_BIT));
@@ -711,7 +745,7 @@ static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		val = sfstruse(shp->strbuf);
 	}
 	if(val)
-		val = strdup(val);
+		val = sh_strdup(val);
 	if(shp->lastarg && !nv_isattr(np,NV_NOFREE))
 		free((void*)shp->lastarg);
 	else
@@ -799,11 +833,9 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 		if((i+vsize) >= mp->vsize)
 		{
 			if(mp->vsize)
-				mp->match = (int*)realloc(mp->match,i+vsize+1);
+				mp->match = (int*)sh_realloc(mp->match,i+vsize+1);
 			else
-				mp->match = (int*)malloc(i+vsize+1);
-			if(!mp->match)
-				sh_outofmemory();
+				mp->match = (int*)sh_malloc(i+vsize+1);
 			mp->vsize = i+vsize+1;
 		}
 		mp->val =  ((char*)mp->match)+i; 
@@ -855,9 +887,7 @@ static char* get_match(register Namval_t* np, Namfun_t *fp)
 		free((void*)mp->rval[i]);
 		mp->rval[i] = 0;
 	}
-	mp->rval[i] = (char*)malloc(n+1);
-	if(!mp->rval[i])
-		sh_outofmemory();
+	mp->rval[i] = (char*)sh_malloc(n+1);
 	mp->lastsub[i] = sub;
 	memcpy(mp->rval[i],val,n);
 	mp->rval[i][n] = 0;
@@ -929,9 +959,7 @@ static void math_init(Shell_t *shp)
 	Namval_t	*np;
 	char		*name;
 	int		i;
-	shp->mathnodes = (char*)calloc(1,MAX_MATH_ARGS*(NV_MINSZ+5));
-	if(!shp->mathnodes)
-		sh_outofmemory();
+	shp->mathnodes = (char*)sh_calloc(1,MAX_MATH_ARGS*(NV_MINSZ+5));
 	name = shp->mathnodes+MAX_MATH_ARGS*NV_MINSZ;
 	for(i=0; i < MAX_MATH_ARGS; i++)
 	{
@@ -1060,9 +1088,7 @@ static int newconf(const char *name, const char *path, const char *value)
     static void init_ebcdic(void)
     {
 	int i;
-	char *cp = (char*)malloc(ST_NONE*(1<<CHAR_BIT));
-	if(!cp)
-		sh_outofmemory();
+	char *cp = (char*)sh_malloc(ST_NONE*(1<<CHAR_BIT));
 	for(i=0; i < ST_NONE; i++)
 	{
 		a2e(cp,sh_lexrstates[i]);
@@ -1211,7 +1237,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #if SHOPT_REGRESS
 		sh_regress_init(shp);
 #endif
-		shgd = newof(0,struct shared,1,0);
+		shgd = sh_newof(0,struct shared,1,0);
 		shgd->current_pid = shgd->pid = getpid();
 		shgd->ppid = getppid();
 		shgd->userid=getuid();
@@ -1235,7 +1261,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		error_info.id = path_basename(argv[0]);
 	}
 	else
-		shp = newof(0,Shell_t,1,0);
+		shp = sh_newof(0,Shell_t,1,0);
 	umask(shp->mask=umask(0));
 	shp->gd = shgd;
 	shp->mac_context = sh_macopen(shp);
@@ -1330,11 +1356,11 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		char buff[PATH_MAX+1];
 		shp->gd->shpath = 0;
 		if((n = pathprog(NiL, buff, sizeof(buff))) > 0 && n <= sizeof(buff))
-			shp->gd->shpath = strdup(buff);
+			shp->gd->shpath = sh_strdup(buff);
 		else if((cp && (sh_type(cp)&SH_TYPE_SH)) || (argc>0 && strchr(cp= *argv,'/')))
 		{
 			if(*cp=='/')
-				shp->gd->shpath = strdup(cp);
+				shp->gd->shpath = sh_strdup(cp);
 			else if(cp = nv_getval(PWDNOD))
 			{
 				int offset = staktell();
@@ -1342,7 +1368,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 				stakputc('/');
 				stakputs(argv[0]);
 				pathcanon(stakptr(offset),PATH_DOTDOT);
-				shp->gd->shpath = strdup(stakptr(offset));
+				shp->gd->shpath = sh_strdup(stakptr(offset));
 				stakseek(offset);
 			}
 		}
@@ -1398,8 +1424,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #if _lib_pathposix
 					char*	p;
 
-					if((n = pathposix(name, NIL(char*), 0)) > 0 && (p = (char*)malloc(++n)))
+					if((n = pathposix(name, NIL(char*), 0)) > 0)
 					{
+						p = (char*)sh_malloc(++n);
 						pathposix(name, p, n);
 						name = p;
 					}
@@ -1428,7 +1455,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	{
 		struct passwd *pw = getpwuid(shp->gd->userid);
 		if(pw)
-			shp->gd->user = strdup(pw->pw_name);
+			shp->gd->user = sh_strdup(pw->pw_name);
 		
 	}
 #endif
@@ -1455,14 +1482,14 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		sh_offoption(SH_PRIVILEGED);
 	/* shname for $0 in profiles and . scripts */
 	if(sh_isdevfd(argv[1]))
-		shp->shname = strdup(argv[0]);
+		shp->shname = sh_strdup(argv[0]);
 	else
-		shp->shname = strdup(shp->st.dolv[0]);
+		shp->shname = sh_strdup(shp->st.dolv[0]);
 	/*
 	 * return here for shell script execution
 	 * but not for parenthesis subshells
 	 */
-	error_info.id = strdup(shp->st.dolv[0]); /* error_info.id is $0 */
+	error_info.id = sh_strdup(shp->st.dolv[0]); /* error_info.id is $0 */
 	shp->jmpbuffer = (void*)&shp->checkbase;
 	sh_pushcontext(shp,&shp->checkbase,SH_JMPSCRIPT);
 	shp->st.self = &shp->global;
@@ -1587,7 +1614,7 @@ int sh_reinit(char *argv[])
 		sh_argreset(shp,shp->arglist,NIL(struct dolnod*));
 	shp->envlist=0;
 	shp->curenv = 0;
-	shp->shname = error_info.id = strdup(shp->st.dolv[0]);
+	shp->shname = error_info.id = sh_strdup(shp->st.dolv[0]);
 	sh_offstate(SH_FORKED);
 	shp->fn_depth = shp->dot_depth = 0;
 	sh_sigreset(0);
@@ -1599,7 +1626,7 @@ int sh_reinit(char *argv[])
 	}
 	*SHLVL->nvalue.ip +=1;
 	nv_offattr(SHLVL,NV_IMPORT);
-	shp->st.filename = strdup(shp->lastarg);
+	shp->st.filename = sh_strdup(shp->lastarg);
 	nv_delete((Namval_t*)0, (Dt_t*)0, 0);
 	job.exitval = 0;
 	shp->inpipe = shp->outpipe = 0;
@@ -1708,13 +1735,11 @@ static Namfun_t	 stat_child_fun =
 static void stat_init(Shell_t *shp)
 {
 	int		i,nstat = STAT_SUBSHELL+1;
-	struct Stats	*sp = newof(0,struct Stats,1,nstat*NV_MINSZ);
+	struct Stats	*sp = sh_newof(0,struct Stats,1,nstat*NV_MINSZ);
 	Namval_t	*np;
 	sp->numnodes = nstat;
 	sp->nodes = (char*)(sp+1);
-	shgd->stats = (int*)calloc(sizeof(int),nstat);
-	if(!shgd->stats)
-		sh_outofmemory();
+	shgd->stats = (int*)sh_calloc(sizeof(int),nstat);
 	sp->sh = shp;
 	for(i=0; i < nstat; i++)
 	{
@@ -1741,9 +1766,7 @@ static void stat_init(Shell_t *shp)
 static Init_t *nv_init(Shell_t *shp)
 {
 	double d=0;
-	ip = newof(0,Init_t,1,0);
-	if(!ip)
-		return(0);
+	ip = sh_newof(0,Init_t,1,0);
 	shp->nvfun.last = (char*)shp;
 	shp->nvfun.nofree = 1;
 	ip->sh = shp;
@@ -1854,7 +1877,7 @@ static Init_t *nv_init(Shell_t *shp)
 	DOTSHNOD->nvalue.cp = Empty;
 	nv_onattr(DOTSHNOD,NV_RDONLY);
 	SH_LINENO->nvalue.ip = &shp->st.lineno;
-	VERSIONNOD->nvalue.nrp = newof(0,struct Namref,1,0);
+	VERSIONNOD->nvalue.nrp = sh_newof(0,struct Namref,1,0);
         VERSIONNOD->nvalue.nrp->np = SH_VERSIONNOD;
         VERSIONNOD->nvalue.nrp->root = nv_dict(DOTSHNOD);
         VERSIONNOD->nvalue.nrp->table = DOTSHNOD;
@@ -1878,9 +1901,7 @@ Dt_t *sh_inittree(Shell_t *shp,const struct shtable2 *name_vals)
 	Dt_t *base_treep, *dict = 0;
 	for(tp=name_vals;*tp->sh_name;tp++)
 		n++;
-	np = (Namval_t*)calloc(n,sizeof(Namval_t));
-	if(!np)
-		sh_outofmemory();
+	np = (Namval_t*)sh_calloc(n,sizeof(Namval_t));
 	if(!shgd->bltin_nodes)
 	{
 		shgd->bltin_nodes = np;
@@ -2136,7 +2157,7 @@ Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 		if(!(mp->hdr.nofree&1))
 			free((void*)mp);
 	}
-	mp = newof(0,struct Mapchar,1,n);
+	mp = sh_newof(0,struct Mapchar,1,n);
 	mp->trans = trans;
 	mp->lctype = lctype;
 	if(low==0)
