@@ -1193,4 +1193,10 @@ got=$(FPATH=$tmp "$SHELL" ./lineno_autoload 2>&1)
 	$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /')"
 
 # ======
+# Before 2021-02-26, the DEBUG trap corrupted ${.sh.fun}
+unset .sh.fun
+got=$(some_func() { :; }; trap some_func DEBUG; trap - DEBUG; print -r "${.sh.fun}")
+[[ -z $got ]] || err_exit "\${.sh.fun} leaks out of DEBUG trap (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

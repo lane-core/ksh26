@@ -23,6 +23,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
      part uniquely identified it so the menu only showed one item. Details:
      https://www.mail-archive.com/ast-users@lists.research.att.com/msg00436.html
 
+- A bug with ${.sh.fun} in combination with the DEBUG trap has been fixed.
+  The ${.sh.fun} variable wrongly continued to contain the name of the last
+  function executed by the DEBUG trap after the trap action completed.
+
 2021-02-21:
 
 - Fixed: The way that SIGWINCH was handled (i.e. the signal emitted when the

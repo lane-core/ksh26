@@ -697,8 +697,6 @@ int sh_debug(Shell_t *shp, const char *trap, const char *name, const char *subsc
 	shp->indebug = 0;
 	if(shp->st.cmdname)
 		error_info.id = shp->st.cmdname;
-	nv_putval(SH_PATHNAMENOD,shp->st.filename,NV_NOFREE);
-	nv_putval(SH_FUNNAMENOD,shp->st.funname,NV_NOFREE);
 	shp->st = savst;
 	if(sav != stkptr(stkp,0))
 		stkset(stkp,sav,offset);
