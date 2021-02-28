@@ -42,6 +42,29 @@ b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s,
 b=$($SHELL -c '(LC_ALL=debug; / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
 [[ "$b" == "$a" ]] || err_exit "locale not restored after subshell -- expected '$a', got '$b'"
 
+# multibyte locale tests
+if ((SHOPT_MULTIBYTE))
+then	LC_ALL=debug
+	x='a<2b|>c<3d|\>e'
+	typeset -A exp=(
+		['${x:0:1}']=a
+		['${x:1:1}']='<2b|>'
+		['${x:3:1}']='<3d|\>'
+		['${x:4:1}']=e
+		['${x:1}']='<2b|>c<3d|\>e'
+		['${x: -1:1}']=e
+		['${x: -2:1}']='<3d|\>'
+		['${x:1:3}']='<2b|>c<3d|\>'
+		['${x:1:20}']='<2b|>c<3d|\>e'
+		['${x#??}']='c<3d|\>e'
+	)
+	for i in "${!exp[@]}"
+	do	eval "got=$i"
+		test "$got" = "${exp[$i]}" || err_exit "$i: expected '${exp[$i]}', got '$got'"
+	done
+	unset exp LC_ALL
+fi # SHOPT_MULTIBYTE
+
 # test shift-jis \x81\x40 ... \x81\x7E encodings
 # (shift char followed by 7 bit ascii)
 

@@ -710,7 +710,7 @@ actual=$(
 		(
 			echo ${.sh.subshell} | cat	# left element of pipe should increase ${.sh.subshell}
 			echo ${.sh.subshell}
-			ulimit -t unlimited		# fork
+			ulimit -t unlimited 2>/dev/null	# fork
 			echo ${.sh.subshell}		# should be same after forking existing virtual subshell
 		)
 		echo ${.sh.subshell}			# a background job should also increase ${.sh.subshell}
@@ -730,7 +730,7 @@ set --
 
 unset r v x
 (
-	ulimit -t unlimited  # TODO: this test messes up LINENO past the subshell unless we fork it
+	ulimit -t unlimited 2>/dev/null  # TODO: this test messes up LINENO past the subshell unless we fork it
 	x=foo
 	for v in EDITOR VISUAL OPTIND CDPATH FPATH PATH ENV RANDOM SECONDS _ LINENO
 	do	nameref r=$v
@@ -1082,7 +1082,7 @@ $SHELL -c '
 # ======
 # ${.sh.pid} should be the forked subshell's PID
 (
-	ulimit -t unlimited
+	ulimit -t unlimited 2>/dev/null  # fork the subshell
 	[[ ${.sh.pid} == $$ ]]
 ) && err_exit "\${.sh.pid} is the same as \$$ (both are $$)"
 

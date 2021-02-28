@@ -357,8 +357,8 @@ fi
 print cat >  $tmp/scriptx
 chmod +x $tmp/scriptx
 [[ $($SHELL -c "print foo | $tmp/scriptx ;:" 2> /dev/null ) == foo ]] || err_exit 'piping into script fails'
-[[ $($SHELL -c 'X=1;print -r -- ${X:=$(expr "a(0)" : '"'a*(\([^)]\))')}'" 2> /dev/null) == 1 ]] || err_exit 'x=1;${x:=$(..."...")} failure'
-[[ $($SHELL -c 'print -r -- ${X:=$(expr "a(0)" : '"'a*(\([^)]\))')}'" 2> /dev/null) == 0 ]] || err_exit '${x:=$(..."...")} failure'
+[[ $($SHELL -c 'X=1;print -r -- ${X:=$(expr "a(0)" : '"'a*(\([^)]\))')}" 2> /dev/null) == 1 ]] || err_exit 'x=1;${x:=$(..."...")} failure'
+[[ $($SHELL -c 'print -r -- ${X:=$(expr "a(0)" : '"'a*(\([^)]\))')}" 2> /dev/null) == 0 ]] || err_exit '${x:=$(..."...")} failure'
 if	cat /dev/fd/3 >/dev/null 2>&1  || whence mkfifo > /dev/null
 then	[[ $(cat <(print hello) ) == hello ]] || err_exit "process substitution not working outside for or while loop"
 	$SHELL -c '[[ $(for i in 1;do cat <(print hello);done ) == hello ]]' 2> /dev/null|| err_exit "process substitution not working in for or while loop"

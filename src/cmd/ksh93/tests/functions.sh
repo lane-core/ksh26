@@ -36,8 +36,9 @@ read -n4 c < $0 2> /dev/null
 
 ulimit -c 0
 
-binecho=$(whence -p echo)
+bin_echo=$(whence -p echo)
 bin_sleep=$(whence -p sleep)
+bin_kill=$(whence -p kill)
 
 integer foo=33
 bar=bye
@@ -138,7 +139,7 @@ fi
 if	[[ $PWD != "$dir" ]]
 then	err_exit 'cd inside nested subshell changes $PWD'
 fi
-fun() "$binecho" hello
+fun() "$bin_echo" hello
 if	[[ $(fun) != hello ]]
 then	err_exit one line functions not working
 fi
@@ -1126,7 +1127,15 @@ function gosleep
 	"$bin_sleep" 1
 }
 x=$(
-	(sleep .25; pid=; ps 2>/dev/null | grep sleep | read pid extra; [[ $pid ]] && kill -- "$pid") &
+	ulimit -t unlimited 2>/dev/null 	# fork this subshell
+	mysubpid=${.sh.pid}			# this subshell's new PID (new 93u+m feature)
+	(
+		sleep .25
+		# kill 'gosleep' by getting the PIDs that have $mysubpid as their parent PID
+		# (which includes this background process itself, but that's fine as we're invoking external 'kill')
+		pids=$(UNIX95=1 ps -o ppid= -o pid= 2>/dev/null | awk -v p=$mysubpid '$1==p { print $2 }')
+		[[ -n $pids ]] && "$bin_kill" $pids
+	) &
 	gosleep 2> /dev/null
 	print ok
 )

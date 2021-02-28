@@ -686,7 +686,7 @@ then	(
 fi
 cd "$tmp"
 
-$SHELL +E -i <<- \! && err_exit 'interactive shell should not exit 0 after false'
+$SHELL +E -i 2>/dev/null <<- \! && err_exit 'interactive shell should not exit 0 after false'
 	false
 	exit
 !

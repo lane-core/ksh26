@@ -643,7 +643,7 @@ err=$(
 
 # ======
 # A redirection with a null command could crash under certain circumstances (rhbz#1200534)
-"$SHELL" -i >/dev/null -c '
+"$SHELL" -i >/dev/null 2>&1 -c '
 	function dlog
 	{
 		fc -ln -0
