@@ -1257,7 +1257,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		if(shgd->lim.clk_tck <=0)
 			shgd->lim.clk_tck = CLK_TCK;
 		shgd->ed_context = (void*)ed_open(shp);
-		error_info.exit = sh_exit;
 		error_info.id = path_basename(argv[0]);
 	}
 	else
@@ -1301,9 +1300,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 				break;
 			nopt = optctx(0, 0);
 			oopt = optctx(nopt, 0);
-			error_info.exit = exit;  /* avoid crash on b___regress__ error as shell is not fully initialized */
 			b___regress__(2, regress, &shp->bltindata);
-			error_info.exit = sh_exit;
 			optctx(oopt, nopt);
 		}
 	}
@@ -1462,7 +1459,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	/* set[ug]id scripts require the -p flag */
 	if(shp->gd->userid!=shp->gd->euserid || shp->gd->groupid!=shp->gd->egroupid)
 	{
-#if SHOPT_P_SUID
+#ifdef SHOPT_P_SUID
 		/* require sh -p to run setuid and/or setgid */
 		if(!sh_isoption(SH_PRIVILEGED) && shp->gd->userid >= SHOPT_P_SUID)
 		{
@@ -1527,6 +1524,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->exittrap = 0;
 	shp->errtrap = 0;
 	shp->end_fn = 0;
+	error_info.exit = sh_exit;
 	return(shp);
 }
 
