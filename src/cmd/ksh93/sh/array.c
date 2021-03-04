@@ -1480,7 +1480,7 @@ char *nv_endsubscript(Namval_t *np, register char *cp, int mode)
 	/* first find matching ']' */
 	while(count>0 && (c= *++cp))
 	{
-		if(c=='\\' && (!(mode&NV_SUBQUOTE) || (c=cp[1])=='[' || c==']' || c=='\\' || c=='*' || c=='@'))
+		if(c=='\\')
 		{
 			quoted=1;
 			cp++;

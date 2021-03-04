@@ -161,8 +161,6 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 				sfprintf(shp->strbuf,"%s%s%c",nv_name(np),sub,0);
 				sub = sfstruse(shp->strbuf);
 			}
-			if(strchr(sub,'$'))
-				sub = sh_mactrim(shp,sub,0);
 			*cp = flag;
 			if(c || hasdot)
 			{
@@ -171,9 +169,9 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			}
 #if SHOPT_FIXEDARRAY
 			ap = nv_arrayptr(np);
-			cp = nv_endsubscript(np,sub,NV_ADD|NV_SUBQUOTE|(ap&&ap->fixed?NV_FARRAY:0));
+			cp = nv_endsubscript(np,sub,NV_ADD|(ap&&ap->fixed?NV_FARRAY:0));
 #else
-			cp = nv_endsubscript(np,sub,NV_ADD|NV_SUBQUOTE);
+			cp = nv_endsubscript(np,sub,NV_ADD);
 #endif /* SHOPT_FIXEDARRAY */
 			if(*cp!='[')
 				break;
@@ -270,7 +268,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				dot=NV_NOADD;
 				if((c = *++str) !='[')
 					continue;
-				str = nv_endsubscript((Namval_t*)0,cp=str,NV_SUBQUOTE)-1;
+				str = nv_endsubscript((Namval_t*)0,cp=str,0)-1;
 				if(sh_checkid(cp+1,(char*)0))
 					str -=2;
 			}

@@ -150,8 +150,6 @@ struct Ufunction
 #define	nv_funtree(n)	((n)->nvalue.rp->ptree)
 #define	funptr(n)	((n)->nvalue.bfp)
 
-#define NV_SUBQUOTE	(NV_ADD<<1)	/* used with nv_endsubscript */
-
 /* NAMNOD MACROS */
 /* ... for attributes */
 

@@ -544,18 +544,18 @@ i=0 j=1
 unset a x
 x=0
 ((a[++x]++))
-(( x==1)) || err_exit '((a[++x]++)) should only increment x once'
-(( a[1]==1))  || err_exit 'a[1] not incremented'
+((x==1)) || err_exit "((a[++x]++)) should only increment x once (expected '1', got '$x')"
+((a[1]==1)) || err_exit "a[1] not incremented (expected '1', got '${a[1]}')"
 unset a
 x=0
 ((a[x++]++))
-(( x==1)) || err_exit '((a[x++]++)) should only increment x once'
-(( a[0]==1))  || err_exit 'a[0] not incremented'
+((x==1)) || err_exit "((a[x++]++)) should only increment x once (expected '1', got '$x')"
+((a[0]==1)) || err_exit "a[0] not incremented (expected '1', got '${a[0]}')"
 unset a
 x=0
 ((a[x+=2]+=1))
-(( x==2)) || err_exit '((a[x+=2]++)) should result in x==2'
-(( a[2]==1))  || err_exit 'a[0] not 1'
+((x==2)) || err_exit "((a[x+=2]++)) should result in x==2 (expected '2', got '$x')"
+((a[2]==1)) || err_exit "a[0] not 1 (expected '1', got '${a[2]}')"
 
 unset a i
 typeset -a a
@@ -691,7 +691,9 @@ unset x
 let x=010
 [[ $x == 10 ]] || err_exit 'let treating 010 as octal'
 (set -o letoctal; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with letoctal on'
-(set -o posix 2>/dev/null; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with posix on'
+if [[ -o ?posix ]]
+then	(set -o posix; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with posix on'
+fi
 
 float z=0
 integer aa=2 a=1
@@ -699,37 +701,37 @@ typeset -A A
 A[a]=(typeset -A AA)
 A[a].AA[aa]=1
 (( z= A[a].AA[aa]++ ))
-(( z == 1 )) ||  err_exit "z should be 1 but is $z for associative array of
-associative array arithmetic"
-[[ ${A[a].AA[aa]} == 2 ]] || err_exit '${A[a].AA[aa]} should be 2 after ++ operation for associative array of associative array arithmetic'
+(( z == 1 )) ||  err_exit "z should be '1' but is '$z' for associative array of associative array arithmetic"
+[[ ${A[a].AA[aa]} == 2 ]] || err_exit "\${A[a].AA[aa]} should be '2' but is '${A[a].AA[aa]}'" \
+	'after ++ operation for associative array of associative array arithmetic'
 unset A[a]
 
 A[a]=(typeset -a AA)
 A[a].AA[aa]=1
 (( z += A[a].AA[aa++]++ ))
-(( z == 2 )) ||  err_exit "z should be 2 but is $z for associative array of
-index array arithmetic"
-(( aa == 3 )) || err_exit "subscript aa should be 3 but is $aa after ++"
-[[ ${A[a].AA[aa-1]} == 2 ]] || err_exit '${A[a].AA[aa]} should be 2 after ++ operation for ssociative array of index array arithmetic'
+(( z == 2 )) ||  err_exit "z should be '2' but is '$z' for associative array of index array arithmetic"
+(( aa == 3 )) || err_exit "subscript aa should be '3' but is '$aa' after ++"
+[[ ${A[a].AA[aa-1]} == 2 ]] || err_exit "\${A[a].AA[aa]} should be '2' but is '${A[a].AA[aa]}'" \
+	'after ++ operation for associative array of index array arithmetic'
 unset A
 
 typeset -a A
 A[a]=(typeset -A AA)
 A[a].AA[aa]=1
 (( z += A[a].AA[aa]++ ))
-(( z == 3 )) ||  err_exit "z should be 3 but is $z for index array of
-associative array arithmetic"
-[[ ${A[a].AA[aa]} == 2 ]] || err_exit '${A[a].AA[aa]} should be 2 after ++ operation for index array of associative array arithmetic'
+(( z == 3 )) ||  err_exit "z should be '3' but is '$z' for index array of associative array arithmetic"
+[[ ${A[a].AA[aa]} == 2 ]] || err_exit "\${A[a].AA[aa]} should be '2' but is '${A[a].AA[aa]}'" \
+	'after ++ operation for index array of associative array arithmetic'
 unset A[a]
 
 A[a]=(typeset -a AA)
 A[a].AA[aa]=1
 (( z += A[a++].AA[aa++]++ ))
-(( z == 4 )) ||  err_exit "z should be 4 but is $z for index array of
-index array arithmetic"
-[[ ${A[a-1].AA[aa-1]} == 2 ]] || err_exit '${A[a].AA[aa]} should be 2 after ++ operation for index array of index array arithmetic'
-(( aa == 4 )) || err_exit "subscript aa should be 4 but is $aa after ++"
-(( a == 2 )) || err_exit "subscript a should be 2 but is $a after ++"
+(( z == 4 )) ||  err_exit "z should be '4' but is '$z' for index array of index array arithmetic"
+[[ ${A[a-1].AA[aa-1]} == 2 ]] || err_exit "\${A[a].AA[aa]} should be '2' but is '${A[a].AA[aa]}'" \
+	'after ++ operation for index array of index array arithmetic'
+(( aa == 4 )) || err_exit "subscript aa should be '4' but is '$aa' after ++"
+(( a == 2 )) || err_exit "subscript a should be '2' but is '$a' after ++"
 unset A
 
 unset r x
@@ -773,6 +775,62 @@ v=$(printf $'%.28a\n' 64)
 # ======
 # Redirections with ((...)) should not cause a syntax error
 (eval '((1)) >/dev/null') 2>/dev/null || err_exit 'redirections with ((...)) yield a syntax error'
+
+# ======
+# Arbitrary command execution vulnerability in array subscripts in arithmetic expressions
+# https://github.com/ksh93/ksh/issues/152
+
+exp='array_test_1: 1$(echo INJECTION >&2): arithmetic syntax error'
+got=$(var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a[$var]++)); typeset -p a' array_test_1 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 1A: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a["$var"]++)); typeset -p a' array_test_1 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 1B: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+exp='typeset -A a=(['\''1$(echo INJECTION >&2)'\'']=1)'
+got=$(set +x; { var='1$(echo INJECTION >&2)'; typeset -A a; ((a[$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 2A: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='1$(echo INJECTION >&2)'; typeset -A a; ((a["$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 2B: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+exp='typeset -A a=(['\''$0`echo INJECTION >&2`'\'']=1)'
+got=$(set +x; { var='$0`echo INJECTION >&2`'; typeset -A a; ((a[$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 3A: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='$0`echo INJECTION >&2`'; typeset -A a; ((a["$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 3B: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+exp='typeset -A a=(['\''x\]+b\[$(echo INJECTION >&2)'\'']=1)'
+got=$(set +x; { var="x\]+b\[\$(echo INJECTION >&2)"; typeset -A a; ((a[$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 4A: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var="x\]+b\[\$(echo INJECTION >&2)"; typeset -A a; ((a["$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 4B: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+exp='typeset -A a=(['\''$var'\'']=1)'
+got=$(set +x; { var='$0$(echo INJECTION >&2)'; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5A: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='1`echo INJECTION >&2`'; typeset -A a; ((a["\$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5B: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var=''; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5C: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='\'; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5D: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var=']'; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5E: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='x]foo'; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5F: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var=''; typeset -A a; let 'a[$var]++'; typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5G: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='\'; typeset -A a; let 'a[$var]++'; typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5H: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var=']'; typeset -A a; let 'a[$var]++'; typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5I: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='x]foo'; typeset -A a; let 'a[$var]++'; typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5J: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var='1$(echo INJECTION >&2)'; typeset -A a; ((a["\$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5K: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var="x\]+b\[\$(echo INJECTION >&2)"; typeset -A a; ((a[\$var]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5L: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(set +x; { var="x\]+b\[\$(uname>&2)"; typeset -A a; ((a["\$var"]++)); typeset -p a; } 2>&1)
+[[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5M: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # ======
 exit $((Errors<125?Errors:125))
