@@ -92,7 +92,6 @@ struct lexdata
 	char		nested_tilde;
 	char 		*docend;
 	char		noarg;
-	char		balance;
 	char		warn;
 	char		message;
 	char		arith;
@@ -277,7 +276,7 @@ Lex_t *sh_lexopen(Lex_t *lp, Shell_t *sp, int mode)
 		lp->lexd.warn=1;
 	if(!mode)
 	{
-		lp->lexd.noarg = lp->lexd.level= lp->lexd.dolparen = lp->lexd.balance = 0;
+		lp->lexd.noarg = lp->lexd.level= lp->lexd.dolparen = 0;
 		lp->lexd.nocopy = lp->lexd.docword = lp->lexd.nest = lp->lexd.paren = 0;
 		lp->lexd.lex_state = lp->lexd.lastc=0;
 		lp->lexd.docend = 0;
@@ -326,7 +325,6 @@ int sh_lex(Lex_t* lp)
 	Stk_t			*stkp = shp->stk;
 	int		inlevel=lp->lexd.level, assignment=0, ingrave=0;
 	int		epatchar=0;
-	Sfio_t *sp;
 #if SHOPT_MULTIBYTE
 	LEN=1;
 #endif /* SHOPT_MULTIBYTE */
@@ -397,7 +395,6 @@ int sh_lex(Lex_t* lp)
 				fcseek(-LEN);
 				goto breakloop;
 			case S_EOF:
-				sp = fcfile();
 				if((n=lexfill(lp)) > 0)
 				{
 					fcseek(-1);
@@ -446,16 +443,11 @@ int sh_lex(Lex_t* lp)
 							c = LBRACE;
 							break;
 						case '"': case '`': case '\'':
-							lp->lexd.balance = c;
 							break;
 					}
-					if(sp && !(sfset(sp,0,0)&SF_STRING))
-					{
-						lp->lasttok = c;
-						lp->token = EOFSYM;
-						sh_syntax(lp);
-					}
-					lp->lexd.balance = c;
+					lp->lasttok = c;
+					lp->token = EOFSYM;
+					sh_syntax(lp);
 				}
 				goto breakloop;
 			case S_COM:
@@ -1299,13 +1291,9 @@ int sh_lex(Lex_t* lp)
 	}
 breakloop:
 	if(lp->lexd.nocopy)
-	{
-		lp->lexd.balance = 0;
 		return(0);
-	}
 	if(lp->lexd.dolparen)
 	{
-		lp->lexd.balance = 0;
 		if(lp->lexd.docword)
 			nested_here(lp);
 		lp->lexd.message = (wordflags&ARG_MESSAGE);
@@ -1318,12 +1306,6 @@ breakloop:
 		lp->arg = (struct argnod*)stkseek(stkp,ARGVAL);
 	if(n>0)
 		sfwrite(stkp,state,n);
-	/* add balancing character if necessary */
-	if(lp->lexd.balance)
-	{
-		sfputc(stkp,lp->lexd.balance);
-		lp->lexd.balance = 0;
-	}
 	sfputc(stkp,0);
 	stkseek(stkp,stktell(stkp)-1);
 	state = stkptr(stkp,ARGVAL);
