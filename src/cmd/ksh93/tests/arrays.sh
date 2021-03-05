@@ -226,13 +226,14 @@ if	[[ ${!xxx[@]} ]]
 then	err_exit '${!xxx[@]} should be null'
 fi
 integer i=0
+[[ -o xtrace ]] && was_xtrace=1 || was_xtrace=0
 {
 	set -x
 	xxx[++i]=1
-	set +x
+	((!was_xtrace)) && set +x
 } 2> /dev/null
 if	(( i != 1))
-then	err_exit 'execution trace side effects with array subscripts'
+then	err_exit "execution trace side effects with array subscripts (expected '1', got '$i')"
 fi
 unset list
 : $(set -A list foo bar)
