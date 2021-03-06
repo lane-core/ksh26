@@ -3,6 +3,16 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-03-07:
+
+- Fixed a bug with -G/--globstar introduced on 2020-08-09: patterns did not
+  match anything if any pathname component was '.' or '..', e.g. '**/./glob.c'
+  never matched. The 2020-08-09 fix does still apply to patterns like '.*'.
+
+- Enhancement to -G/--globstar: symbolic links to directories are now followed
+  if they match a normal (non-**) glob pattern. For example, if '/lnk' is a
+  symlink to a directory, '/lnk/**' and '/l?k/**' now work as you would expect.
+
 2021-03-06:
 
 - Fixed an old expansion bug: expansions of type ${var=value} and ${var:=value}

@@ -92,6 +92,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 16.	Unbalanced quotes and backticks now correctly produce a syntax error
 	in -c scripts, 'eval', and backtick-style command substitutions.
 
+17.	-G/--globstar: Symbolic links to directories are now followed if they
+	match a normal (non-**) glob pattern. For example, if '/lnk' is a
+	symlink to a directory, '/lnk/**' and '/l?k/**' now work as expected.
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

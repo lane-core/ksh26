@@ -125,6 +125,8 @@ gl_type(glob_t* gp, const char* path, int flags)
 		type = 0;
 	else if (S_ISDIR(st.st_mode))
 		type = GLOB_DIR;
+	else if (S_ISLNK(st.st_mode))
+		type = GLOB_SYM;
 	else if (!S_ISREG(st.st_mode))
 		type = GLOB_DEV;
 	else if (st.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))
@@ -479,7 +481,9 @@ skip:
 				break;
 			prefix = streq(dirname, ".") ? (char*)0 : dirname;
 		}
-		if ((!starstar && !gp->gl_starstar || (*gp->gl_type)(gp, dirname, GLOB_STARSTAR) == GLOB_DIR) && (dirf = (*gp->gl_diropen)(gp, dirname)))
+		if ((!starstar && !gp->gl_starstar || (t1 = (*gp->gl_type)(gp, dirname, GLOB_STARSTAR)) == GLOB_DIR
+			|| t1 == GLOB_SYM && pat[0]=='*' && pat[1]=='\0') /* follow symlinks to dirs for non-globstar components */
+		&& (dirf = (*gp->gl_diropen)(gp, dirname)))
 		{
 			if (!(gp->re_flags & REG_ICASE) && ((*gp->gl_attr)(gp, dirname, 0) & GLOB_ICASE))
 			{
@@ -528,13 +532,14 @@ skip:
 				*restore2 = gp->gl_delim;
 			while ((name = (*gp->gl_dirnext)(gp, dirf)) && !*gp->gl_intr)
 			{
-				if (name[0] == '.' && (!name[1] || name[1] == '.' && !name[2]))
-					continue;  /* do not ever match '.' or '..' */
+				if (!(matchdir && (pat[0] == '.' && (!pat[1] || pat[1] == '.' && !pat[2]) || strchr(pat,'/')))
+				&& name[0] == '.' && (!name[1] || name[1] == '.' && !name[2]))
+					continue;  /* never match '.' or '..' as final element unless specified literally */
 				if (notdir = (gp->gl_status & GLOB_NOTDIR))
 					gp->gl_status &= ~GLOB_NOTDIR;
 				if (ire && !regexec(ire, name, 0, NiL, 0))
 					continue;
-				if (matchdir && !notdir)
+				if (matchdir && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
 					addmatch(gp, prefix, name, matchdir, NiL, anymeta);
 				if (!regexec(pre, name, 0, NiL, 0))
 				{

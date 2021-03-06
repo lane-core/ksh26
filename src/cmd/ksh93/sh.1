@@ -6942,13 +6942,37 @@ Requires
 to truncate a file when turned on.
 .TP 8
 .B \-G
-Causes the pattern
+Enables recursive file name generation.
+This adds the double-star pattern
 .B **
-by itself to match files and zero or more directories and sub-directories
-when used for file name generation.
-If followed by a
-.B /
-only directories and sub-directories are matched.
+to the file generation mechanism (see
+.I "File Name Generation\^"
+above).
+By itself, it matches the recursive contents of the current directory,
+which is to say, all files and directories in the current directory
+and in all its subdirectories, sub-subdirectories, and so on.
+If the pathname pattern ends in
+.BR **/ ,
+only directories and subdirectories are matched,
+including symbolic links that point to directories.
+A prefixed directory name is not included in the results unless that
+directory was itself found by a pattern. For example,
+.B dir/**
+matches the recursive contents of
+.B dir
+but not
+.B dir
+itself, whereas
+.B di[r]/**
+matches both
+.B dir
+itself and the recursive contents of
+.BR dir .
+Symbolic links to non-directories are not followed.
+Symbolic links to directories are followed if they are specified literally
+or match a pattern as described under
+.IR "File Name Generation\^" ,
+but not if they result from a double-star pattern.
 .TP 8
 .B \-H
 Enable \f3!\fP-style history expansion similar to

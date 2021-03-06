@@ -121,10 +121,11 @@ struct _glob_
 
 /* gl_type return */
 #define GLOB_NOTFOUND	0		/* does not exist		*/
-#define GLOB_DEV	1		/* exists but not DIR EXE REG	*/
 #define GLOB_DIR	2		/* directory			*/
 #define GLOB_EXE	3		/* executable regular file	*/
 #define GLOB_REG	4		/* regular file			*/
+#define GLOB_SYM	5		/* symbolic link		*/
+#define GLOB_DEV	1		/* exists but none of the above	*/
 
 /* error return values */
 #define GLOB_ABORTED	1
