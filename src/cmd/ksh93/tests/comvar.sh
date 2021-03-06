@@ -482,9 +482,11 @@ typeset -C -A hello19=(
 	)
 )
 expected="typeset -C -A hello19=([19]=(one='xone 19';two='xtwo 19') [23]=(one='xone 23';two='xtwo 23'))"
-[[ $(typeset -p hello19) == "$expected" ]] || print -u2 'typeset -p hello19 incorrect'
+got=$(typeset -p hello19)
+[[ $got == "$expected" ]] || err_exit "typeset -p hello19 incorrect (expected $(printf %q "$expected"), got $(printf %q "$got"))"
 expected=$'(\n\tone=\'xone 19\'\n\ttwo=\'xtwo 19\'\n) (\n\tone=\'xone 23\'\n\ttwo=\'xtwo 23\'\n)'
-[[ ${hello19[@]} == "$expected" ]] || print -u2 '${hello19[@]} incorrect'
+got=${hello19[@]}
+[[ $got == "$expected" ]] || err_exit "\${hello19[@]} incorrect (expected $(printf %q "$expected"), got $(printf %q "$got"))"
 
 typeset -C -A foo1=( abc="alphabet" ) foo2=( abc="alphabet" )
 function add_one

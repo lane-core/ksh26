@@ -1314,7 +1314,7 @@ retry1:
 			 * a value; otherwise it always follows the code path for a set parameter, so is
 			 * not subject to 'set -u', and may test as set even after 'unset -v IFS'.
 			 */
-			if(!(*id=='I' && strcmp(id,"IFS")==0 && nv_getval(sh_scoped(mp->shp,IFSNOD)) == NULL))
+			if(!(*id=='I' && strcmp(id,"IFS")==0 && nv_getval(sh_scoped(mp->shp,IFSNOD)) == NIL(char*)))
 				np = nv_open(id,mp->shp->var_tree,flag|NV_NOFAIL);
 			if(!np)
 			{
@@ -1405,9 +1405,13 @@ retry1:
 		/*
 		 * Check if the parameter is set or unset.
 		 */
-		if(np && (type==M_TREE || !c || !ap))
+#if SHOPT_OPTIMIZE
+		if(np && type==M_BRACE && mp->shp->argaddr)
+			nv_optimize(np);  /* needed before calling nv_isnull() */
+#endif /* SHOPT_OPTIMIZE */
+		if(np && (type==M_BRACE ? !nv_isnull(np) : (type==M_TREE || !c || !ap)))
 		{
-			/* The parameter is set. */
+			/* Either the parameter is set, or it's a special type of expansion where 'unset' doesn't apply. */
 			char *savptr;
 			c = *((unsigned char*)stkptr(stkp,offset-1));
 			savptr = stkfreeze(stkp,0);
@@ -1443,13 +1447,7 @@ retry1:
 					if(ap)
 						v = nv_arrayisset(np,ap)?(char*)"x":0;
 					else
-					{
-#if SHOPT_OPTIMIZE
-						if(mp->shp->argaddr)
-							nv_optimize(np);  /* avoid BUG_ISSETLOOP */
-#endif /* SHOPT_OPTIMIZE */
 						v = nv_isnull(np)?0:(char*)"x";
-					}
 				}
 				else
 					v = nv_getval(np);

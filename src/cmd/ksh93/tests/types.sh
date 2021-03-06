@@ -84,7 +84,7 @@ Frame_t frame
 [[ $(typeset -p frame) == 'Frame_t frame=(typeset file;typeset lineno)' ]] || err_exit 'empty fields in type not displayed'
 x=( typeset -a arr=([2]=abc [4]=(x=1 y=def));zz=abc)
 typeset -C y=x
-[[ "$x" == "$y" ]] || print -u2 'y is not equal to x'
+[[ "$x" == "$y" ]] || err_exit "y is not equal to x (y == $(printf %q "$y"); x == $(printf %q "$x"))"
 Type_t z=(y=(xa=bb xq=cc))
 typeset -A arr=([foo]=one [bar]=2)
 typeset -A brr=([foo]=one [bar]=2)

@@ -1198,5 +1198,39 @@ unset .sh.fun
 got=$(some_func() { :; }; trap some_func DEBUG; trap - DEBUG; print -r "${.sh.fun}")
 [[ -z $got ]] || err_exit "\${.sh.fun} leaks out of DEBUG trap (got $(printf %q "$got"))"
 
+# =====
+# Before 2021-03-06, ${foo=bar} and ${foo:=bar} did not work if `foo` had a numeric type
+# https://github.com/ksh93/ksh/issues/157
+
+unset a b
+typeset -i a
+b=3+39
+got=${a=b}
+[[ $got == 42 ]] || err_exit "\${a=b}: expansion not working for integer type (expected '42', got '$got')"
+[[ $a == 42 ]] || err_exit "\${a=b}: a was not assigned the correct integer value (expected '42', got '$a')"
+
+unset a b
+typeset -F a
+b=3.75+38.25
+got=${a=b}
+exp=42.0000000000
+[[ $got == "$exp" ]] || err_exit "\${a=b}: expansion not working for float type (expected '$exp', got '$got')"
+[[ $a == "$exp" ]] || err_exit "\${a=b}: a was not assigned the correct float value (expected '$exp', got '$a')"
+
+unset a b
+typeset -i a
+b=3+39
+got=${a:=b}
+[[ $got == 42 ]] || err_exit "\${a:=b}: expansion not working for integer type (expected '42', got '$got')"
+[[ $a == 42 ]] || err_exit "\${a:=b}: a was not assigned the correct integer value (expected '42', got '$a')"
+
+unset a b
+typeset -F a
+b=3.75+38.25
+got=${a:=b}
+exp=42.0000000000
+[[ $got == "$exp" ]] || err_exit "\${a:=b}: expansion not working for float type (expected '$exp', got '$got')"
+[[ $a == "$exp" ]] || err_exit "\${a:=b}: a was not assigned the correct float value (expected '$exp', got '$a')"
+
 # ======
 exit $((Errors<125?Errors:125))

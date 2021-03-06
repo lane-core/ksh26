@@ -161,9 +161,10 @@ then 	err_exit 'for loop nameref optimization test2 error'
 fi
 
 unset -n x foo bar
-if	[[ $(nameref x=foo;for x in foo bar;do print ${!x};done) != $'foo\nbar' ]]
-then	err_exit 'for loop optimization with namerefs not working'
-fi
+exp=$'foo\nbar'
+got=$(nameref x=foo;for x in foo bar;do print ${!x};done)
+[[ $got == "$exp" ]] || err_exit 'for loop optimization with namerefs not working' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 if	[[ $(
 	p=(x=(r=3) y=(r=4))
 	for i in x y
@@ -465,9 +466,9 @@ EOF
 } 2> /dev/null #|| print -u2 bad
 exitval=$?
 if	[[ $(kill -l $exitval) == SEGV ]]
-then	print -u2 'name reference to unset type instance causes segmentation violation'
+then	err_exit 'name reference to unset type instance causes segmentation violation'
 else 	if((exitval))
-	then	print -u2 'name reference to unset type instance not redirected to .deleted'
+	then	err_exit 'name reference to unset type instance not redirected to .deleted'
 	fi
 fi
 

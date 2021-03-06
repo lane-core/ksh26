@@ -204,7 +204,7 @@ else	b1=iIWTk5ZAppaZk4Q=
 fi
 z=$b1
 typeset -b x=$b1
-[[ $x == "$z" ]] || print -u2 'binary variable not expanding correctly'
+[[ $x == "$z" ]] || err_exit "binary variable not expanding correctly ($(printf %q "$x") != $(printf %q "$z"))"
 [[  $(printf "%B" x) == $t1 ]] || err_exit 'typeset -b not working'
 typeset -b -Z5 a=$b1
 [[  $(printf "%B" a) == $w1 ]] || err_exit 'typeset -b -Z5 not working'
