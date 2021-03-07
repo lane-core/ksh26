@@ -1712,11 +1712,6 @@ void	sh_iorestore(Shell_t *shp, int last, int jmpval)
 	register int 	origfd, savefd, fd;
 	int flag = (last&IOSUBSHELL);
 	last &= ~IOSUBSHELL;
-	/*
-	 * There was an issue with truncating files (see 'ftruncate' below) that was caused by
-	 * out-of-sync streams. So, to be safe, sync all streams before restoring file descriptors.
-	 */
-	sfsync(NULL);
 	for (fd = shp->topfd - 1; fd >= last; fd--)
 	{
 		if(!flag && filemap[fd].subshell)
@@ -1740,7 +1735,10 @@ void	sh_iorestore(Shell_t *shp, int last, int jmpval)
 			return;
 		}
 		if(filemap[fd].tname == Empty && shp->exitval==0)
+		{
+			sfsync(NIL(Sfio_t*));
 			ftruncate(origfd,lseek(origfd,0,SEEK_CUR));
+		}
 		else if(filemap[fd].tname)
 			io_usename(filemap[fd].tname,(int*)0,origfd,shp->exitval?2:1);
 		sh_close(origfd);

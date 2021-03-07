@@ -12,6 +12,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug introduced on 2020-08-19: Ctrl+D would break after an
   interactive shell received SIGWINCH.
 
+- Fixed a bug introduced on 2020-05-21: on an interactive shell, command lines
+  containing a syntax error were not added to the command history file and
+  sometimes corrupted the command history.
+
 2021-03-05:
 
 - Unbalanced quotes and backticks now correctly produce a syntax error

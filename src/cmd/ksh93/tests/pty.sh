@@ -107,7 +107,6 @@ if	! pty $bintrue < /dev/null
 then	err_exit pty command hangs on $bintrue -- tests skipped
 	exit 0
 fi
-
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 026(C)
@@ -710,6 +709,22 @@ r ^2) vi_completion_B_file\r\n$
 w 0$aA_file
 r ^:test-3: ls vi_completion_A_file\r\n$
 r ^vi_completion_A_file\r\n$
+!
+
+# err_exit #
+tst $LINENO <<"!"
+L syntax error added to history file
+
+# https://github.com/ksh93/ksh/issues/209
+
+d 10
+p :test-1:
+w do something
+r ^:test-1: do something\r\n$
+r : syntax error: `do' unexpected\r\n$
+w fc -lN1
+r ^:test-2: fc -lN1\r\n$
+r \tdo something\r\n$
 !
 
 # ======
