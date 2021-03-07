@@ -552,8 +552,8 @@ void job_init(Shell_t *shp, int lflag)
                 job.mypgid = shp->gd->pid;
         }
 #ifdef SIGTSTP
-	possible = (setpgid(0,job.mypgid) >= 0);
-	if(sh_isoption(SH_INTERACTIVE) && (possible || errno==EPERM))
+	possible = (setpgid(0,job.mypgid) >= 0) || errno==EPERM;
+	if(sh_isoption(SH_INTERACTIVE) && possible)
 	{
 		/* wait until we are in the foreground */
 		while((job.mytgid=tcgetpgrp(JOBTTY)) != job.mypgid)

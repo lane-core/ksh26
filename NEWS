@@ -13,6 +13,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   if they match a normal (non-**) glob pattern. For example, if '/lnk' is a
   symlink to a directory, '/lnk/**' and '/l?k/**' now work as you would expect.
 
+- Fixed a bug introduced on 2021-02-11 that caused job control on interactive
+  ksh sessions to misbehave if the login shell was replaced by ksh using 'exec'.
+
 2021-03-06:
 
 - Fixed an old expansion bug: expansions of type ${var=value} and ${var:=value}
