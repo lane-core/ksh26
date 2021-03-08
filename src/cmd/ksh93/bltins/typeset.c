@@ -328,6 +328,11 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 					flag |= NV_INTEGER;
 				break;
 			case 'l':
+				if(shortint)
+				{
+					shortint = 0;
+					flag &= ~NV_SHORT;
+				}
 				tdata.wctname = e_tolower;
 				flag |= NV_UTOL;
 				break;
