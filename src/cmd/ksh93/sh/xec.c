@@ -695,6 +695,8 @@ int sh_debug(Shell_t *shp, const char *trap, const char *name, const char *subsc
 	n = sh_trap(trap,0);
 	np->nvalue.cp = 0;
 	shp->indebug = 0;
+	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
+	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
 	if(shp->st.cmdname)
 		error_info.id = shp->st.cmdname;
 	shp->st = savst;
