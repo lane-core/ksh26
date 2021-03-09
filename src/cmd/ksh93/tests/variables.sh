@@ -1248,4 +1248,15 @@ exp=42.0000000000
 [[ $a == "$exp" ]] || err_exit "\${a:=b}: a was not assigned the correct float value (expected '$exp', got '$a')"
 
 # ======
+# ${!FOO@} and ${!FOO*} expansions did not include FOO itself
+# https://github.com/ksh93/ksh/issues/183
+unset foo "${!foo@}"
+exp='foo foobar fool'
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
+[[ $got == "$exp" ]] || err_exit "\${!foo@}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp='foo/foobar/fool'
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo*}")
+[[ $got == "$exp" ]] || err_exit "\${!foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+# ======
 exit $((Errors<125?Errors:125))

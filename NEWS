@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-03-09:
+
+- The ${!foo@} and ${!foo*} expansions yield variable names beginning with foo,
+  but excluded 'foo' itself. The fix for this is now backported from 93v- beta.
+
 2021-03-07:
 
 - Fixed the typeset -p display of short integers without an assigned value.

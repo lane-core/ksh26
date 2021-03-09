@@ -1517,10 +1517,15 @@ retry1:
 			}
 			else
 			{
+				/* M_NAMESCAN: ${!prefix@} or ${!prefix*}. These work like $@, $*. */
 				dolmax = strlen(id);
 				dolg = -1;
 				nextname(mp,id,0);
-				v = nextname(mp,id,dolmax);
+				/* Check if the prefix (id) itself exists. If so, start with that. */
+				if(nv_open(id,mp->shp->var_tree,NV_NOREF|NV_NOADD|NV_VARNAME|NV_NOFAIL))
+					v = id;
+				else
+					v = nextname(mp,id,dolmax);
 			}
 		}
 		else if(type==M_SUBNAME)
