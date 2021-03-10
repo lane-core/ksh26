@@ -99,6 +99,11 @@ For more details, see the NEWS file and for complete details, see the git log.
 18.	The variable name search expansions ${!prefix@} and ${!prefix*} now
 	also include the variable 'prefix' itself in the possible results.
 
+19.	[[ -v var ]] is now properly equivalent to [[ -n ${var+set} ]].
+	Undocumented special-casing for numeric types has been removed.
+	For example, the following no longer produces an unexpected error:
+	    $ ksh -o nounset -c 'float n; [[ -v n ]] && echo $n'
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

@@ -1721,7 +1721,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			}
 			else
 			{
-				int32_t l=0,ol=0;
+				int32_t l=0;
 				if(flags&NV_INTEGER)
 				{
 					if((flags&NV_DOUBLE) == NV_DOUBLE)
@@ -1764,7 +1764,16 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				}
 				if(nv_size(np) <= 1)
 					nv_setsize(np,10);
-				if(nv_isattr (np, NV_SHORT))
+				if(nv_isattr(np,NV_INT16P)==NV_INT16P)
+				{
+					int16_t os=0;
+					if(!up->sp)
+						up->sp = new_of(int16_t,0);
+					else if(flags&NV_APPEND)
+						os = *(up->sp);
+					*(up->sp) = os+(int16_t)l;
+				}
+				else if(nv_isattr(np,NV_SHORT))
 				{
 					int16_t s=0;
 					if(flags&NV_APPEND)
@@ -1774,6 +1783,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				}
 				else
 				{
+					int32_t ol=0;
 					if(!up->lp)
 						up->lp = new_of(int32_t,0);
 					else if(flags&NV_APPEND)	

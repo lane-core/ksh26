@@ -322,7 +322,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				if(shortint)
 				{
 					flag &= ~NV_LONG;
-					flag |= NV_SHORT|NV_INTEGER;
+					flag |= NV_INT16P;
 				}
 				else
 					flag |= NV_INTEGER;
@@ -331,7 +331,8 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				if(shortint)
 				{
 					shortint = 0;
-					flag &= ~NV_SHORT;
+					/* Turn off the NV_INT16P bits except the NV_INTEGER bit */
+					flag &= ~(NV_INT16P & ~NV_INTEGER);
 				}
 				tdata.wctname = e_tolower;
 				flag |= NV_UTOL;
@@ -357,7 +358,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				if(flag&NV_INTEGER)
 				{
 					flag &= ~NV_LONG;
-					flag |= NV_SHORT;
+					flag |= NV_INT16P;
 				}
 				break;
 			case 't':

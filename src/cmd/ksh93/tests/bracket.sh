@@ -354,7 +354,9 @@ $SHELL 2> /dev/null -c '[[ "]" == ~(E)[]] ]]' || err_exit 'pattern "~(E)[]]" doe
 unset var
 [[ -v var ]] &&  err_exit '[[ -v var ]] should be false after unset var'
 float var
-[[ -v var ]]  ||  err_exit '[[ -v var ]] should be true after float var'
+[[ -v var ]] &&  err_exit '[[ -v var ]] should be false after float var'
+unset var; float var=
+[[ -v var ]] ||  err_exit '[[ -v var ]] should be true after float var='
 unset var
 [[ -v var ]] &&  err_exit '[[ -v var ]] should be false after unset var again'
 
@@ -388,6 +390,23 @@ error=$(set +x; "$SHELL" -c '[[ AATAAT =~ (AAT){2} ]]' 2>&1) \
 || err_exit "[[ AATAAT =~ (AAT){2} ]] does not match${error:+ (got $(printf %q "$error"))}"
 error=$(set +x; "$SHELL" -c '[[ AATAATCCCAATAAT =~ (AAT){2}CCC(AAT){2} ]]' 2>&1) \
 || err_exit "[[ AATAATCCCAATAAT =~ (AAT){2}CCC(AAT){2} ]] does not match${error:+ (got $(printf %q "$error"))}"
+
+# ======
+# The -v unary operator should work for names with all type attributes.
+empty=
+for flag in a b i l n s si u ui usi uli E F H L Mtolower Mtoupper R X lX S Z
+do	unset var
+	typeset "-$flag" var
+	[[ -v var ]] && err_exit "[[ -v var ]] should be false for unset var with attribute -$flag"
+	[[ -n ${var+s} ]] && err_exit "[[ -n \${var+s} ]] should be false for unset var with attribute -$flag"
+	unset var
+	case $flag in
+	n)	typeset -n var=empty ;;
+	*)	typeset "-$flag" var= ;;
+	esac
+	[[ -v var ]] || err_exit "[[ -v var ]] should be true for empty var with attribute -$flag"
+	[[ -n ${var+s} ]] || err_exit "[[ -n \${var+s} ]] should be true for empty var with attribute -$flag"
+done
 
 # ======
 exit $((Errors<125?Errors:125))

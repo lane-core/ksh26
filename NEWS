@@ -8,6 +8,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - The ${!foo@} and ${!foo*} expansions yield variable names beginning with foo,
   but excluded 'foo' itself. The fix for this is now backported from 93v- beta.
 
+- test -v var, [ -v var ], and [[ -v var ]] did not correctly test if a
+  variable is set or unset after it has been given a numeric attribute with
+  'typeset' but not yet assigned a value. This has been fixed so that
+  [[ -v var ]] is now equivalent to [[ -n ${var+set} ]] as documented.
+
 2021-03-07:
 
 - Fixed the typeset -p display of short integers without an assigned value.

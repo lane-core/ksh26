@@ -668,4 +668,32 @@ exp=$'00000\n000\n0000000'
 [[ $(typeset -bZ4 x; typeset -rbZ x; typeset -p x) == 'typeset -r -b -Z 0 -R 0 x' ]] || err_exit "typeset -rbZ failed to set new size."
 
 # ======
+# set/unset tests for numeric types
+for flag in i s si ui us usi uli E F X lX
+do
+	unset var
+	typeset "-$flag" var
+	[[ -v var ]] && err_exit "[[ -v var ]] should return false after typeset -$flag var"
+	[[ -z ${var+s} ]] || err_exit "\${var+s} should be empty after typeset -$flag var (got '${var+s}')"
+	[[ -z ${var:+n} ]] || err_exit "\${var:+n} should be empty after typeset -$flag var (got '${var+n}')"
+	[[ ${var-u} == 'u' ]] || err_exit "\${var-u} should be 'u' after typeset -$flag var (got '${var-u}')"
+	[[ ${var:-e} == 'e' ]] || err_exit "\${var:-e} should be 'e' after typeset -$flag var (got '${var:-e}')"
+	(( ${var=1} == 1 )) || err_exit "\${var=1} should yield 1 after typeset -$flag var (got '$var')"
+	unset var
+	typeset "-$flag" var
+	(( ${var:=1} == 1 )) || err_exit "\${var:=1} should yield 1 after typeset -$flag var (got '$var')"
+	unset var
+	typeset "-$flag" var=0
+	[[ -v var ]] || err_exit "[[ -v var ]] should return true after typeset -$flag var=0"
+	[[ ${var+s} == 's' ]] || err_exit "\${var+s} should be 's' after typeset -$flag var=0"
+	[[ ${var:+n} == 'n' ]] || err_exit "\${var:+n} should be 'n' after typeset -$flag var=0"
+	[[ ${var-u} != 'u' ]] || err_exit "\${var-u} should be 0 after typeset -$flag var (got '${var-u}')"
+	[[ ${var:-e} != 'e' ]] || err_exit "\${var:-e} should be 0 after typeset -$flag var (got '${var:-e}')"
+	(( ${var=1} == 0 )) || err_exit "\${var=1} should yield 0 after typeset -$flag var=0 (got '$var')"
+	unset var
+	typeset "-$flag" var=0
+	(( ${var:=1} == 0 )) || err_exit "\${var:=1} should yield 0 after typeset -$flag var=0 (got '$var')"
+done
+
+# ======
 exit $((Errors<125?Errors:125))

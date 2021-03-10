@@ -1838,7 +1838,7 @@ const char sh_opttypeset[] =
 	"become index \b0\b.]"
 "[C?Compound variable.  Each \aname\a will be a compound variable.  If "
 	"\avalue\a names a compound variable it will be copied to \aname\a. "
-	"Otherwise if the variable already exists, it will first be unset.]"
+	"Otherwise the variable is assigned the empty compound value.]"
 "[E]#?[n:=10?Floating point number represented in scientific notation. "
 	"\an\a specifies the number of significant figures when the "
 	"value is expanded.]"

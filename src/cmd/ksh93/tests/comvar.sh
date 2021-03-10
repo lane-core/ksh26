@@ -466,7 +466,7 @@ expected=$'typeset -C -a mica01=([4]=(a_string=\'foo bar\';some_stuff=hello))'
 [[ $(typeset -p mica01) == "$expected" ]] || err_exit 'appened to indexed array compound variable not working'
 
 unset x
-compound x=( integer x ; )
+compound x=( integer x= ; )
 [[ ! -v x.x ]] && err_exit 'x.x should be set'
 expected=$'(\n\ttypeset -l -i x=0\n)'
 [[ $(print -v x) == "$expected" ]] || err_exit "'print -v x' should be $expected"
