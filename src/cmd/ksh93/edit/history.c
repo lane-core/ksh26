@@ -150,9 +150,9 @@ static History_t *hist_ptr;
 	    (unsigned)acctfd < 10)
 	{
 		int n;
-		if((n = fcntl(acctfd, F_DUPFD, 10)) >= 0)
+		if((n = sh_fcntl(acctfd, F_dupfd_cloexec, 10)) >= 0)
 		{
-			close(acctfd);
+			sh_close(acctfd);
 			acctfd = n;
 		}
 	}
@@ -178,7 +178,7 @@ static int sh_checkaudit(History_t *hp, const char *name, char *logbuf, size_t l
 {
 	char	*cp, *last;
 	int	id1, id2, r=0, n, fd;
-	if((fd=open(name, O_RDONLY)) < 0)
+	if((fd=open(name, O_RDONLY,O_cloexec)) < 0)
 		return(0);
 	if((n = read(fd, logbuf,len-1)) < 0)
 		goto done;
@@ -202,7 +202,7 @@ static int sh_checkaudit(History_t *hp, const char *name, char *logbuf, size_t l
 	}
 	while(*cp==';' ||  *cp==' ');
 done:
-	close(fd);
+	sh_close(fd);
 	return(r);
 	
 }
@@ -262,23 +262,23 @@ retry:
 	cp = path_relative(shp,histname);
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
-	if((fd=open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT,histmode))>=0)
+	if((fd=open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
 	{
 		hsize=lseek(fd,(off_t)0,SEEK_END);
 	}
-	if((unsigned)fd <=2)
+	if((unsigned)fd < 10)
 	{
 		int n;
-		if((n=fcntl(fd,F_DUPFD,10))>=0)
+		if((n=sh_fcntl(fd,F_dupfd_cloexec,10))>=0)
 		{
-			close(fd);
+			sh_close(fd);
 			fd=n;
 		}
 	}
 	/* make sure that file has history file format */
 	if(hsize && hist_check(fd))
 	{
-		close(fd);
+		sh_close(fd);
 		hsize = 0;
 		if(unlink(cp)>=0)
 			goto retry;
@@ -293,7 +293,7 @@ retry:
 		{
 			if(!(fname = pathtmp(NIL(char*),0,0,NIL(int*))))
 				return(0);
-			fd = open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR,S_IRUSR|S_IWUSR);
+			fd = open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR,S_IRUSR|S_IWUSR|O_cloexec);
 		}
 	}
 	if(fd<0)
@@ -378,10 +378,10 @@ retry:
 		hp->auditfp = 0;
 		if(sh_isstate(SH_INTERACTIVE) && (hp->auditmask=sh_checkaudit(hp,SHOPT_AUDITFILE, buff, sizeof(buff))))
 		{
-			if((fd=sh_open(buff,O_BINARY|O_WRONLY|O_APPEND|O_CREAT,S_IRUSR|S_IWUSR))>=0 && fd < 10)
+			if((fd=sh_open(buff,O_BINARY|O_WRONLY|O_APPEND|O_CREAT|O_cloexec,S_IRUSR|S_IWUSR))>=0 && fd < 10)
 			{
 				int n;
-				if((n = sh_fcntl(fd,F_DUPFD, 10)) >= 0)
+				if((n = sh_fcntl(fd,F_dupfd_cloexec, 10)) >= 0)
 				{
 					sh_close(fd);
 					fd = n;
@@ -420,7 +420,7 @@ void hist_close(register History_t *hp)
 #if SHOPT_ACCTFILE
 	if(acctfd)
 	{
-		close(acctfd);
+		sh_close(acctfd);
 		acctfd = 0;
 	}
 #endif /* SHOPT_ACCTFILE */
@@ -465,7 +465,7 @@ static History_t* hist_trim(History_t *hp, int n)
 		/* The unlink can fail on windows 95 */
 		int fd;
 		char *last, *name=hist_old->histname;
-		close(sffileno(hist_old->histfp));
+		sh_close(sffileno(hist_old->histfp));
 		tmpname = (char*)sh_malloc(strlen(name)+14);
 		if(last = strrchr(name,'/'))
 		{
@@ -480,7 +480,7 @@ static History_t* hist_trim(History_t *hp, int n)
 			free(tmpname);
 			tmpname = name;
 		}
-		fd = open(tmpname,O_RDONLY);
+		fd = open(tmpname,O_RDONLY|O_cloexec);
 		sfsetfd(hist_old->histfp,fd);
 		if(tmpname==name)
 			tmpname = 0;
@@ -725,13 +725,13 @@ again:
 		if(last<0)
 		{
 			char	buff[HIST_MARKSZ];
-			int	fd = open(hp->histname,O_RDWR);
+			int	fd = open(hp->histname,O_RDWR|O_cloexec);
 			if(fd>=0)
 			{
 				hist_marker(buff,hp->histind);
 				write(fd,(char*)hist_stamp,2);
 				write(fd,buff,HIST_MARKSZ);
-				close(fd);
+				sh_close(fd);
 			}
 		}
 		last = 0;
@@ -1013,7 +1013,7 @@ int hist_match(register History_t *hp,off_t offset,char *string,int *coffset)
 	if(!(cp = first = (unsigned char*)sfgetr(hp->histfp,0,0)))
 		return(-1);
 	m = sfvalue(hp->histfp);
-	n = strlen(string);
+	n = (int)strlen(string);
 	while(m > n)
 	{
 		if(*cp==*string && memcmp(cp,string,n)==0)
@@ -1186,10 +1186,10 @@ static int hist_exceptf(Sfio_t* fp, int type, Sfdisc_t *handle)
 		if(errno==ENOSPC || hp->histwfail++ >= 10)
 			return(0);
 		/* write failure could be NFS problem, try to re-open */
-		close(oldfd=sffileno(fp));
-		if((newfd=open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR,S_IRUSR|S_IWUSR)) >= 0)
+		sh_close(oldfd=sffileno(fp));
+		if((newfd=open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
 		{
-			if(fcntl(newfd, F_DUPFD, oldfd) !=oldfd)
+			if(sh_fcntl(newfd, F_dupfd_cloexec, oldfd) != oldfd)
 				return(-1);
 			fcntl(oldfd,F_SETFD,FD_CLOEXEC);
 			close(newfd);
