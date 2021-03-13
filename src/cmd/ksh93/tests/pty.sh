@@ -402,14 +402,8 @@ r history
 !
 fi
 
-# Following test is disabled because it fails on too many systems, either intermittently
-# or consistently, through no fault of ksh, because vi(1) somehow fails to write "/tmp/"
-# as expected. Testing the POSIX compliance of whatever vi(1) the local system happens
-# to have is outside the scope of these tests, which are supposed to be testing ksh.
-# It is left here for re-enabling temporarily if related changes in ksh need testing.
-: <<\end_disabled
-# err_(don't count me)_exit #
-((SHOPT_VSH)) && TMPDIR=/tmp tst $LINENO <<"!"
+# err_exit #
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 137(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -422,13 +416,12 @@ p :test-1:
 c echo hello\E
 s 400
 c v
-u /tmp/
+u 1
 c A world\E
 s 400
 w :wq
 u ^hello world\r?\n$
 !
-end_disabled
 
 if	[[ $(id -u) == 0 ]]
 then	print -u2 "\t${Command}[$LINENO]: warning: running as root: skipping test POSIX sh 251(C)"
