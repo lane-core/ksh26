@@ -17,17 +17,8 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                                                                      #
 ########################################################################
-function err_exit
-{
-	print -u2 -r $'\t'"${Command}[$1] ${@:2}"
-	((Errors++))
-}
-alias err_exit='err_exit $LINENO'
 
-Command=${0##*/}
-integer aware=0 contrary=0 Errors=0 ignorant=0
-
-[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+. "${0%/*}/_common"
 
 function test_glob
 {

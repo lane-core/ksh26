@@ -19,23 +19,12 @@
 ########################################################################
 #
 # variable tree test #002
-# Propose of this test is whether ksh93 handles global variable trees
+# Purpose of this test is whether ksh93 handles global variable trees
 # and function-local variable trees the same way, including "nameref"
 # and "unset" handling.
 #
 
-function err_exit
-{
-	print -u2 -n "\t"
-	print -u2 -r ${Command}[$1]: "${@:2}"
-	(( Errors+=1 ))
-}
-alias err_exit='err_exit $LINENO'
-
-Command=${0##*/}
-integer Errors=0
-
-[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+. "${0%/*}/_common"
 
 # "built_tree1" and "built_tree2" are identical except the way how they test
 # whether a variable exists:

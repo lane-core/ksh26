@@ -345,9 +345,6 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		glob.sh)	grep -c '^[[:blank:]]*test_[a-z]\{3,\}' $i ;;
 		*)		grep -c err_exit $i ;;
 		esac	)
-	if	(( t > 2 ))
-	then	(( t = t - 2 ))
-	fi
 	tests[$i]=$t
 	T=test
 	if	(( t != 1 ))

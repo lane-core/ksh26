@@ -17,17 +17,8 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                                                                      #
 ########################################################################
-function err_exit
-{
-	print -u2 -n "\t"
-	print -u2 -r ${Command}[$Line]: "$@"
-	((Errors++))
-}
 
-integer Errors=0
-Command=${0##*/}
-
-[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
+. "${0%/*}/_common"
 
 # {...} expansion tests -- ignore if not supported
 

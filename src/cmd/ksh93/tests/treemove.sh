@@ -43,6 +43,8 @@
 # Use is subject to license terms.
 #
 
+. "${0%/*}/_common"
+
 #
 # This test checks whether "typeset -m" correctly moves local variables
 # into a global variable tree.
@@ -52,19 +54,6 @@
 #XXXX
 # -- snip --
 #
-
-function err_exit
-{
-	print -u2 -n "\t"
-	print -u2 -r ${Command}[$1]: "${@:2}"
-	(( Errors+=1 ))
-}
-alias err_exit='err_exit $LINENO'
-
-Command=${0##*/}
-integer Errors=0
-
-[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
 
 ## test start
 typeset -C tree1 tree2

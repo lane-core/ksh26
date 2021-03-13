@@ -18,19 +18,7 @@
 #                                                                      #
 ########################################################################
 
-function err_exit
-{
-	print -u2 -n "\t"
-	print -u2 -r ${Command}[$1]: "${@:2}"
-	let Errors+=1
-}
-alias err_exit='err_exit $LINENO'
-
-Command=${0##*/}
-integer Errors=0
-
-[[ -d $tmp && -w $tmp && $tmp == "$PWD" ]] || { err\_exit "$LINENO" '$tmp not set; run this from shtests. Aborting.'; exit 1; }
-
+. "${0%/*}/_common"
 
 # Determine method for running tests.
 # The 'vmstate' builtin can be used if ksh was compiled with vmalloc.
@@ -75,7 +63,7 @@ then	N=16384
 	{
 		ps -o rss= -p "$$"
 	}
-else	err\_exit "$LINENO" 'WARNING: cannot find method to measure memory usage; skipping tests'
+else	warning 'cannot find method to measure memory usage; skipping tests'
 	exit 0
 fi
 
