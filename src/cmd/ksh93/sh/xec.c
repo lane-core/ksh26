@@ -1014,7 +1014,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			char		*trap;
 			Namval_t	*np, *nq, *last_table;
 			struct ionod	*io;
-			int		command=0, flgs=NV_ASSIGN;
+			int		command=0, flgs=NV_ASSIGN, jmpval=0;
 			shp->bltindata.invariant = type>>(COMBITS+2);
 			type &= (COMMSK|COMSCAN);
 			sh_stats(STAT_SCMDS);
@@ -1258,7 +1258,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					volatile int scope=0, share=0;
 					volatile void *save_ptr;
 					volatile void *save_data;
-					int jmpval, save_prompt;
+					int save_prompt;
 					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
 					struct checkpt *buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 #if SHOPT_VSH
@@ -1440,10 +1440,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_unscope(shp);
 					bp->ptr = (void*)save_ptr;
 					bp->data = (void*)save_data;
-					/* don't restore for 'exec' or 'redirect' in subshell */
-					if((shp->topfd>topfd) && !(shp->subshell && (np==SYSEXEC || np==SYSREDIR)))
-						sh_iorestore(shp,topfd,jmpval);
-			
 					shp->redir0 = 0;
 					if(jmpval)
 						siglongjmp(*shp->jmplist,jmpval);
@@ -1456,7 +1452,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if(!command && np && nv_isattr(np,NV_FUNCTION))
 				{
 					volatile int indx;
-					int jmpval=0;
 					struct checkpt *buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 #if SHOPT_NAMESPACE
 					Namval_t node, *namespace=0;
@@ -1557,6 +1552,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 #if !SHOPT_DEVFD
 				fifo_cleanup();
 #endif
+				if(shp->topfd > topfd && !(shp->subshell && (np==SYSEXEC || np==SYSREDIR)))
+					sh_iorestore(shp,topfd,jmpval);
 				exitset();
 				break;
 			}
@@ -1631,6 +1628,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 #   endif /* _lib_fork */
 				if(parent<0)
 				{
+					/* prevent a file descriptor leak from a 'not found' error */
+					if(shp->topfd > topfd)
+						sh_iorestore(shp,topfd,0);
+
 					if(shp->comsub==1 && usepipe && unpipe)
 						sh_iounpipe(shp);
 					break;
