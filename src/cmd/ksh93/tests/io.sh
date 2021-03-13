@@ -780,5 +780,9 @@ got=$(procsub_delay <(echo hi) <(echo there) <(echo world))
 [[ $got == "$exp" ]] || err_exit "process substitutions passed to function failed" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# process substitutions should work regardless of umask
+got=$(umask 777; set +x; { cat <(echo ok); } 2>&1)
+[[ $got == ok ]] || err_exit "process substitution failed with umask 777 (got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))
