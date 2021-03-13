@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 bincat=$(whence -p cat)
 binecho=$(whence -p echo)

@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # to avoid spurious test failures with 'whence -a' tests, we need
 # to remove any duplicate paths to the same directory from $PATH.

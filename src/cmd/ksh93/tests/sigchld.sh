@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 float DELAY=${1:-0.02}
 integer FOREGROUND=10 BACKGROUND=2

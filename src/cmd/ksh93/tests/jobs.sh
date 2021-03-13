@@ -14,7 +14,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # All the tests here should run with job control on
 set -o monitor

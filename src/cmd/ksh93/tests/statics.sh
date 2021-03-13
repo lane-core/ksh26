@@ -21,7 +21,7 @@
 # Written by Roland Mainz <roland.mainz@nrubsig.org>
 #
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 set -o nounset
 

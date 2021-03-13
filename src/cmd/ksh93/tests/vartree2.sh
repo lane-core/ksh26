@@ -24,7 +24,7 @@
 # and "unset" handling.
 #
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # "built_tree1" and "built_tree2" are identical except the way how they test
 # whether a variable exists:

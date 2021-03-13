@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 tmpPS4='+ [temp_PS4|L$LINENO|e$?] '  # used to avoid interference to ${.sh.match} from $PS4 set by shtests
 

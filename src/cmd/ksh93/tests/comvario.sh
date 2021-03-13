@@ -19,7 +19,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # "nounset" disabled for now
 #set -o nounset

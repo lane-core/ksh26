@@ -19,7 +19,7 @@
 ########################################################################
 # test the behavior of co-processes
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 if	[[ -d /cygdrive ]]
 then	err_exit cygwin detected - coprocess tests disabled - enable at the risk of wedging your system

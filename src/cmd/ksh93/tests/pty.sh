@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # These are tests for the interactive shell, run in a pseudoterminal utility
 # called 'pty', which allows for scripting interactive sessions and which is

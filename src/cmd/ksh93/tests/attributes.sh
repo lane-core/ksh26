@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # ======
 # as of 93u+, typeset -xu/-xl failed to change case in a value (rhbz#1188377)

@@ -24,7 +24,7 @@
 # and "unset" handling.
 #
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 function build_tree
 {

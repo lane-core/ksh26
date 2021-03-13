@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # Determine method for running tests.
 # The 'vmstate' builtin can be used if ksh was compiled with vmalloc.

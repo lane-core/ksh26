@@ -19,7 +19,7 @@
 ########################################################################
 # test the behavior of return and exit with functions
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 unset HISTFILE
 

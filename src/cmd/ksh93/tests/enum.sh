@@ -18,7 +18,7 @@
 #                                                                      #
 ########################################################################
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 enum Color_t=(red green blue orange yellow)
 enum -i Sex_t=(Male Female)

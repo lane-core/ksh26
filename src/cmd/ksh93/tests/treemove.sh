@@ -43,7 +43,7 @@
 # Use is subject to license terms.
 #
 
-. "${0%/*}/_common"
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 #
 # This test checks whether "typeset -m" correctly moves local variables
