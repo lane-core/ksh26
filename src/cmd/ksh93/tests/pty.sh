@@ -400,6 +400,7 @@ L POSIX sh 137(C)
 # file. When the editor exits, the commands in the temporary file are
 # executed.
 
+d 15
 p :test-1:
 c echo hello\E
 s 400
