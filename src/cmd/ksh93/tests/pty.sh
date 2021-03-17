@@ -747,7 +747,7 @@ u set -o vi
 c \Erri
 w echo Success
 u echo
-r ^Success\r?\n$
+r Success\r?\n$
 !
 
 # ======
