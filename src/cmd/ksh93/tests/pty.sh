@@ -772,5 +772,18 @@ w echo $? ~\t
 u 42 /tmp
 !
 
+# err_exit #
+((SHOPT_MULTIBYTE)) &&
+[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+touch $'XXX\xc3\xa1' $'XXX\xc3\xab' &&
+tst $LINENO <<"!"
+L autocomplete should not fill partial multibyte characters
+# https://github.com/ksh93/ksh/issues/223
+d 15
+p :test-1:
+w : XX\t
+r ^:test-1: : XXX\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

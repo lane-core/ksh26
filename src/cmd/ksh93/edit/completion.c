@@ -39,6 +39,7 @@ static char *fmtx(const char *string)
 	int offset = staktell();
 	if(*cp=='#' || *cp=='~')
 		stakputc('\\');
+	mbinit();
 	while((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT);
 	if(n==S_EOF && *string!='#')
 		return((char*)string);
@@ -62,10 +63,18 @@ static int charcmp(int a, int b, int nocase)
 {
 	if(nocase)
 	{
-		if(isupper(a))
+#if _lib_towlower
+		if(mbwide())
+		{
+			a = (int)towlower((wint_t)a);
+			b = (int)towlower((wint_t)b);
+		}
+		else
+#endif
+		{
 			a = tolower(a);
-		if(isupper(b))
 			b = tolower(b);
+		}
 	}
 	return(a==b);
 }
@@ -78,8 +87,10 @@ static int charcmp(int a, int b, int nocase)
 static char *overlaid(register char *str,register const char *newstr,int nocase)
 {
 	register int c,d;
-	while((c= *(unsigned char *)str) && ((d= *(unsigned char*)newstr++),charcmp(c,d,nocase)))
-		str++;
+	char *strnext;
+	mbinit();
+	while((strnext = str, c = mbchar(strnext)) && (d = mbchar(newstr), charcmp(c,d,nocase)))
+		str = strnext;
 	if(*str)
 		*str = 0;
 	else if(*newstr==0)
@@ -98,6 +109,7 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 	int		mode=*type;
 	bp = outbuff;
 	*type = 0;
+	mbinit();
 	while(cp < last)
 	{
 		xp = cp;
@@ -500,6 +512,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		/* first re-adjust cur */
 		c = outbuff[*cur];
 		outbuff[*cur] = 0;
+		mbinit();
 		for(out=outbuff; *out;n++)
 			mbchar(out);
 		outbuff[*cur] = c;
