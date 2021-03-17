@@ -95,6 +95,7 @@ if	! pty $bintrue < /dev/null
 then	err_exit pty command hangs on $bintrue -- tests skipped
 	exit 0
 fi
+
 # err_exit #
 tst $LINENO <<"!"
 L POSIX sh 026(C)
@@ -740,14 +741,17 @@ L crash after switching from emacs to vi mode
 # trigger a memory fault: https://bugzilla.opensuse.org/show_bug.cgi?id=179917
 
 d 15
-w exec $SHELL -o emacs
-u emacs
+p :test-1:
+w exec "$SHELL" -o emacs
+r ^:test-1: exec "\$SHELL" -o emacs\r\n$
+p :test-1:
 w set -o vi
-u set -o vi
+r ^:test-1: set -o vi\r\n$
+p :test-2:
 c \Erri
 w echo Success
-u echo
-r Success\r?\n$
+r ^:test-2: echo Success\r\n$
+r ^Success\r\n$
 !
 
 # ======
