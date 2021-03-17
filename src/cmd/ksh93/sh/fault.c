@@ -677,7 +677,7 @@ void sh_done(void *ptr, register int sig)
 
 	/* Exit with portable 8-bit status (128 + signum) if last child process exits due to signal */
 	if (savxit & SH_EXITSIG)
-		savxit -= SH_EXITSIG + 128;
+		savxit = savxit & ~SH_EXITSIG | 0200;
 
 	exit(savxit&SH_EXITMASK);
 }
