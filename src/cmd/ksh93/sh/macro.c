@@ -2620,63 +2620,43 @@ static int	charlen(const char *string,int len)
 }
 
 /*
- * This is the default tilde discipline function
- */
-static int sh_btilde(int argc, char *argv[], Shbltin_t *context)
-{
-	Shell_t *shp = context->shp;
-	char *cp = sh_tilde(shp,argv[1]);
-	NOT_USED(argc);
-	if(!cp)
-		cp = argv[1];
-	sfputr(sfstdout, cp, '\n');
-	return(0);
-}
- 
-/*
  * <offset> is byte offset for beginning of tilde string
  */
 static void tilde_expand2(Shell_t *shp, register int offset)
 {
-	char		shtilde[10], *av[3], *ptr=stkfreeze(shp->stk,1);
-	Sfio_t		*iop, *save=sfstdout;
-	Namval_t	*np;
-	static int	beenhere=0;
-	strcpy(shtilde,".sh.tilde");
-	np = nv_open(shtilde,shp->fun_tree, NV_VARNAME|NV_NOARRAY|NV_NOASSIGN|NV_NOFAIL);
-	if(np && !beenhere)
+	char		*cp = NIL(char*);		/* character pointer for tilde expansion result */
+	char		*stakp = stakptr(0);		/* current stack object (&stakp[offset] is tilde string) */
+	int		curoff = staktell();		/* current offset of current stack object */
+	static char	block;				/* for disallowing tilde expansion in .get/.set to change ${.sh.tilde} */
+	/*
+	 * Allow overriding tilde expansion with a .sh.tilde.set or .get discipline function.
+	 */
+	if(!block && SH_TILDENOD->nvfun && SH_TILDENOD->nvfun->disc)
 	{
-		beenhere = 1;
-		sh_addbuiltin(shtilde,sh_btilde,0);
-		nv_onattr(np,NV_EXPORT);
+		stakfreeze(1);				/* terminate current stack object to avoid data corruption */
+		block++;
+		nv_putval(SH_TILDENOD, &stakp[offset], 0);
+		cp = nv_getval(SH_TILDENOD);
+		block--;
+		if(cp[0]=='\0' || cp[0]=='~')
+			cp = NIL(char*);		/* do not use empty or unexpanded result */
+		stakset(stakp,curoff);			/* restore stack to state on function entry */
 	}
-	av[0] = ".sh.tilde";
-	av[1] = &ptr[offset];
-	av[2] = 0;
-	iop = sftmp((IOBSIZE>PATH_MAX?IOBSIZE:PATH_MAX)+1);
-	sfset(iop,SF_READ,0);
-	sfstdout = iop;
-	if(np)
-		sh_fun(np, (Namval_t*)0, av);
-	else
-		sh_btilde(2, av, &shp->bltindata);
-	sfstdout = save;
-	stkset(shp->stk,ptr, offset);
-	sfseek(iop,(Sfoff_t)0,SEEK_SET);
-	sfset(iop,SF_READ,1);
-	if(ptr = sfreserve(iop, SF_UNBOUND, -1))
+	/*
+	 * Perform default tilde expansion unless overridden.
+	 * Write the result to the stack, if any.
+	 */
+	stakputc(0);
+	if(!cp)
+		cp = sh_tilde(shp,&stakp[offset]);
+	if(cp)
 	{
-		Sfoff_t n = sfvalue(iop);
-		while(ptr[n-1]=='\n')
-			n--;
-		if(n==1 && fcpeek(0)=='/' && ptr[n-1])
-			n--;
-		if(n)
-			sfwrite(shp->stk,ptr,n);
+		stakseek(offset);
+		if(!(cp[0]=='/' && !cp[1] && fcpeek(0)=='/'))
+			stakputs(cp);			/* for ~ == /, avoid ~/foo -> //foo */
 	}
 	else
-		sfputr(shp->stk,av[1],0);
-	sfclose(iop);
+		stakseek(curoff);
 }
 
 /*
