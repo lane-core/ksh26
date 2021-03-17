@@ -3999,9 +3999,12 @@ capture() # file command ...
 			note $action output captured in $o
 			s="$command: $action start at `date` in $INSTALLROOT"
 			case $quiet in
-			0)	trap "echo \"$command: $action done  at \`date\`\" in $INSTALLROOT 2>&1 | \$TEE -a $o" 0 1 2 ;;
-			*)	trap "echo \"$command: $action done  at \`date\`\" in $INSTALLROOT >> $o" 0 1 2 ;;
+			0)	cmd="echo \"$command: $action done  at \`date\`\" in $INSTALLROOT 2>&1 | \$TEE -a $o" ;;
+			*)	cmd="echo \"$command: $action done  at \`date\`\" in $INSTALLROOT >> $o" ;;
 			esac
+			trap "$cmd" 0
+			trap "$cmd; trap 1 0; kill -1 $$" 1
+			trap "$cmd; trap 2 0; kill -2 $$" 2
 			;;
 		esac
 		case $quiet in
