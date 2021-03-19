@@ -5854,6 +5854,40 @@ cat $j $k
 	view)	exit 0 ;;
 	esac
 
+	# check against previous compiler and flags
+
+	err=
+	for	var in CC CCFLAGS CCLDFLAGS LDFLAGS KSH_RELFLAGS
+	do	store=$INSTALLROOT/lib/package/gen/$var
+		eval "new=\$$var"
+		if	test -e $store
+		then	old=`cat $store`
+			case $old in
+			"$new")	;;
+			*)	case $old in
+				'')	old="(none)" ;;
+				*)	old="'$old'" ;;
+				esac
+				case $new in
+				'')	new="(none)" ;;
+				*)	new="'$new'" ;;
+				esac
+				echo "$command: $var changed from $old to $new" >&2
+				err=y ;;
+			esac
+		else	case $new in
+			'')	;;
+			*)	echo "$new" ;;
+			esac > $store
+		fi
+	done
+	case $err,${FORCE_FLAGS+f} in
+	y,)	echo "$command: This would likely break the build. Restore the flag(s)," >&2
+		echo "$command: or delete the build directory and rebuild from scratch." >&2
+		exit 1 ;;
+	esac
+	unset err var store old new
+
 	# all work under $INSTALLROOT/src
 
 	$make cd $INSTALLROOT/src
