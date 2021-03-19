@@ -389,28 +389,6 @@ r history
 !
 fi
 
-# err_exit #
-((SHOPT_VSH)) && whence -q vi && tst $LINENO <<"!"
-L POSIX sh 137(C)
-
-# If the User Portability Utilities Option is supported and shell
-# command line editing is supported: When in command mode, then v
-# invokes the vi editor to edit the current command line in a temporary
-# file. When the editor exits, the commands in the temporary file are
-# executed.
-
-d 15
-p :test-1:
-c echo hello\E
-s 400
-c v
-u 1
-c A world\E
-s 400
-w :wq
-u ^hello world\r?\n$
-!
-
 if	[[ $(id -u) == 0 ]]
 then	warning "running as root: skipping test POSIX sh 251(C)"
 else
