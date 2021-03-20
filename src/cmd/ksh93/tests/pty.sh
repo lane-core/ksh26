@@ -87,7 +87,13 @@ function tst
 # VISUAL, or if that is not set, EDITOR, automatically sets vi, gmacs or emacs mode if
 # its value matches *[Vv][Ii]*, *gmacs* or *macs*, respectively. See put_ed() in init.c.
 unset EDITOR
-export VISUAL=vi PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb
+if	((SHOPT_VSH))
+then	export VISUAL=vi
+elif	((SHOPT_ESH))
+then	export VISUAL=emacs
+else	unset VISUAL
+fi
+export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb
 
 if	! pty $bintrue < /dev/null
 then	warning "pty command hangs on $bintrue -- tests skipped"
@@ -164,7 +170,7 @@ u (Killed|Done)
 !
 
 # err_exit #
-((SHOPT_VSH)) && tst $LINENO <<"!"
+tst $LINENO <<"!"
 L POSIX sh 091(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -173,6 +179,7 @@ L POSIX sh 091(C)
 # control-W, backslash \ (followed by erase or kill), end-of-file and
 # <ESC> is inserted in the current command line.
 
+d 15
 c echo h
 c ell
 w o
@@ -187,7 +194,7 @@ L POSIX sh 093(C)
 # command line editing is supported:  After termination of a previous
 # command, sh is entered in insert mode.
 
-w echo hello
+w echo hello\E
 u ^hello\r?\n$
 c echo goo
 c dby
@@ -243,13 +250,14 @@ r history
 fi
 
 # err_exit #
-((SHOPT_VSH)) && tst $LINENO <<"!"
+tst $LINENO <<"!"
 L POSIX sh 097(C)
 
 # If the User Portability Utilities Option is supported and shell
 # command line editing is supported:  When in insert mode a <newline>
 # causes the current command line to be executed.
 
+d 15
 c echo ok\n
 u ^ok\r?\n$
 !
@@ -304,7 +312,7 @@ u ^ok\r?\n$
 !
 
 # err_exit #
-((SHOPT_VSH)) && tst $LINENO <<"!"
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L POSIX sh 101(C)
 
 # If the User Portability Utilities Option is supported and shell
@@ -738,7 +746,6 @@ L value of $? after tilde expansion in tab completion
 # Make sure that a .sh.tilde.set discipline function
 # cannot influence the exit status.
 
-w [[ -o ?vi ]] || set -o emacs
 w .sh.tilde.set() { true; }
 w HOME=/tmp
 w false ~\t
@@ -751,7 +758,7 @@ u 42 /tmp
 !
 
 # err_exit #
-((SHOPT_MULTIBYTE)) &&
+((SHOPT_MULTIBYTE && (SHOPT_VSH || SHOPT_ESH))) &&
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
 touch $'XXX\xc3\xa1' $'XXX\xc3\xab' &&
 tst $LINENO <<"!"
