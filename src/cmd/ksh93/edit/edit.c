@@ -147,9 +147,6 @@ static char KILL_LINE[20] = { ESC, '[', 'J', 0 };
 #   define _POSIX_DISABLE	0
 #endif
 
-#ifdef future
-    static int compare(const char*, const char*, int);
-#endif  /* future */
 #define ttyparm		(ep->e_ttyparm)
 #define nttyparm	(ep->e_nttyparm)
 static const char bellchr[] = "\a";	/* bell char */
@@ -212,10 +209,6 @@ int tty_set(int fd, int action, struct termios *tty)
 	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
 	if(fd >=0)
 	{
-#ifdef future
-		if(ep->e_savefd>=0 && compare(&ep->e_savetty,tty,sizeof(struct termios)))
-			return(0);
-#endif
 		while(tcsetattr(fd, action, tty) == SYSERR)
 		{
 			if(errno !=EINTR)
@@ -1521,21 +1514,6 @@ int	ed_genlen(register const genchar *str)
 	return(sp-str-1);
 }
 #endif /* (SHOPT_ESH || SHOPT_VSH) && SHOPT_MULTIBYTE */
-
-#ifdef future
-/*
- * returns 1 when <n> bytes starting at <a> and <b> are equal
- */
-static int compare(register const char *a,register const char *b,register int n)
-{
-	while(n-->0)
-	{
-		if(*a++ != *b++)
-			return(0);
-	}
-	return(1);
-}
-#endif
 
 #if SHOPT_OLDTERMIO
 

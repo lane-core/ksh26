@@ -240,18 +240,6 @@ int  sh_histinit(void *sh_context)
 		stakseek(offset);
 		histname = stakptr(offset);
 	}
-#ifdef future
-	if(hp=wasopen)
-	{
-		/* reuse history file if same name */
-		wasopen = 0;
-		shgd->hist_ptr = hist_ptr = hp;
-		if(strcmp(histname,hp->histname)==0)
-			return(1);
-		else
-			hist_free();
-	}
-#endif
 retry:
 	cp = path_relative(shp,histname);
 	if(!histinit)
@@ -641,18 +629,6 @@ again:
 				{
 					count += (cp-first);
 					n = hist_ind(hp, ++hp->histind);
-#ifdef future
-					if(count==hp->histcmds[n])
-					{
-	sfprintf(sfstderr,"count match n=%d\n",n);
-						if(histinit)
-						{
-							histinit = 0;
-							return;
-						}
-					}
-					else if(n>=histinit)
-#endif
 						hp->histcmds[n] = count;
 					first = cp;
 				}

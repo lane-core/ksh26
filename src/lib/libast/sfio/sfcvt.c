@@ -160,7 +160,7 @@ int		format;		/* conversion format		*/
 			return SF_INF;
 		}
 #endif
-# if _c99_in_the_wild
+# if __STDC_VERSION__ >= 199901L
 #  if _lib_signbit
 		if (signbit(f))
 #  else
@@ -338,7 +338,7 @@ int		format;		/* conversion format		*/
 			return SF_INF;
 		}
 #endif
-#if _c99_in_the_wild
+#if __STDC_VERSION__ >= 199901L
 # if _lib_signbit
 		if (signbit(f))
 # else

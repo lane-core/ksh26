@@ -476,15 +476,8 @@ static void p_redirect(register const struct ionod *iop)
 		if(iop->iodelim)
 		{
 			/* here document */
-#ifdef xxx
-			iop->iolink = (char*)here_doc;
-#endif
 			here_doc  = iop;
 			io_op[2] = '<';
-#ifdef future
-			if(iof&IOSTRIP)
-				io_op[3] = '-';
-#endif
 		}
 		sfputr(outfile,cp,' ');
 		if(iop->ionxt)
@@ -586,11 +579,6 @@ static void p_switch(register const struct regnod *reg)
 static void here_body(register const struct ionod *iop)
 {
 	Sfio_t *infile;
-#ifdef xxx
-	if(iop->iolink)
-		here_body((struct inode*)iop->iolink);
-	iop->iolink = 0;
-#endif
 	if(iop->iofile&IOSTRG)
 		infile = sfnew((Sfio_t*)0,iop->ioname,iop->iosize,-1,SF_STRING|SF_READ);
 	else
