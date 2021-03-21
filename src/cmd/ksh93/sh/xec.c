@@ -1617,15 +1617,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fifo_save_ppid = shgd->current_pid;
 #endif
 #if SHOPT_SPAWN
-#   ifdef _lib_fork
 				if(com && !job.jobcontrol)
 					parent = sh_ntfork(shp,t,com,&jobid,ntflag);
 				else
 					parent = sh_fork(shp,type,&jobid);
-#   else
-				if((parent = sh_ntfork(shp,t,com,&jobid,ntflag))<=0)
-					break;
-#   endif /* _lib_fork */
 				if(parent<0)
 				{
 					/* prevent a file descriptor leak from a 'not found' error */
@@ -3458,85 +3453,6 @@ static void coproc_init(Shell_t *shp, int pipes[])
 
 #if SHOPT_SPAWN
 
-
-#if !defined(_lib_fork)
-
-/*
- * create a shell script consisting of t->fork.forktre and execute it
- */
-static int run_subshell(Shell_t *shp,const Shnode_t *t,pid_t grp)
-{
-	static const char prolog[] = "(print $(typeset +A);set; typeset -p; print .sh.dollar=$$;set +o)";
-	register int i, fd, trace = sh_isoption(SH_XTRACE);
-	int pin,pout;
-	pid_t pid;
-	char *arglist[3], *envlist[2], devfd[12], *cp;
-	Sfio_t *sp = sftmp(0);
-	envlist[0] = "_=" SH_ID;
-	envlist[1] = 0;
-	arglist[0] = error_info.id?error_info.id:shp->shname;
-	if(*arglist[0]=='-')
-		arglist[0]++;
-	arglist[1] = devfd;
-	strncpy(devfd,e_devfdNN,sizeof(devfd));
-	arglist[2] = 0;
-	sfstack(sfstdout,sp);
-	if(trace)
-		sh_offoption(SH_XTRACE);
-	sfwrite(sfstdout,"typeset -A -- ",14);
-	sh_trap(prolog,0);
-	nv_scan(shp->fun_tree, print_fun, (void*)0,0, 0);
-	if(shp->st.dolc>0)
-	{
-		/* pass the positional parameters */
-		char **argv = shp->st.dolv+1;
-		sfwrite(sfstdout,"set --",6);
-		while(*argv)
-			sfprintf(sfstdout," %s",sh_fmtq(*argv++));
-		sfputc(sfstdout,'\n');
-	}
-	pin = (shp->inpipe?shp->inpipe[1]:0);
-	pout = (shp->outpipe?shp->outpipe[0]:0);
-	for(i=3; i < 10; i++)
-	{
-		if(shp->fdstatus[i]&IOCLEX && i!=pin && i!=pout)
-		{
-			sfprintf(sfstdout,"exec %d<&%d\n",i,i);
-			fcntl(i,F_SETFD,0);
-		}
-	}
-	sfprintf(sfstdout,"LINENO=%d\n",t->fork.forkline);
-	if(trace)
-	{
-		sfwrite(sfstdout,"set -x\n",7);
-		sh_onoption(SH_XTRACE);
-	}
-	sfstack(sfstdout,NIL(Sfio_t*));
-	sh_deparse(sp,t->fork.forktre,0);
-	sfseek(sp,(Sfoff_t)0,SEEK_SET);
-	fd = sh_dup(sffileno(sp));
-	cp = devfd+8;
-	if(fd>9)
-		*cp++ = '0' + (fd/10);
-	*cp++ = '0' + fd%10;
-	*cp = 0;
-	sfclose(sp);
-	sfsync(NIL(Sfio_t*));
-	if(!shp->gd->shpath)
-		shp->gd->shpath = pathshell();
-	pid = spawnveg(shp->shpath,arglist,envlist,grp);
-	close(fd);
-	for(i=3; i < 10; i++)
-	{
-		if(shp->fdstatus[i]&IOCLEX && i!=pin && i!=pout)
-			fcntl(i,F_SETFD,FD_CLOEXEC);
-	}
-	if(pid <=0)
-		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,arglist[0]);
-	return(pid);
-}
-#endif /* !_lib_fork */
-
 static void sigreset(Shell_t *shp,int mode)
 {
 	register char   *trap;
@@ -3551,7 +3467,7 @@ static void sigreset(Shell_t *shp,int mode)
 }
 
 /*
- * A combined fork/exec for systems with slow or non-existent fork()
+ * A combined fork/exec for systems with slow fork().
  * Note: Incompatible with job control.
  */
 static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,int flag)
@@ -3570,145 +3486,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		otype = savetype;
 		savetype=0;
 	}
-#   if !defined(_lib_fork)
-	if(!argv)
-	{
-		register Shnode_t *tchild = t->fork.forktre;
-		int optimize=0;
-		otype = t->tre.tretyp;
-		savetype = otype;
-		spawnpid = 0;
-#	ifndef _lib_fork
-		if((tchild->tre.tretyp&COMMSK)==TCOM)
-		{
-			Namval_t *np = (Namval_t*)(tchild->com.comnamp);
-			if(np)
-			{
-				path = nv_name(np);
-				if(!nv_isattr(np,BLT_ENV))
-					np=0;
-				else if(strcmp(path,"echo")==0 || memcmp(path,"print",5)==0)
-					np=0;
-			}
-			else if(!tchild->com.comarg)
-				optimize=1;
-			else if(tchild->com.comtyp&COMSCAN)
-			{
-				if(tchild->com.comarg->argflag&ARG_RAW)
-					path = tchild->com.comarg->argval;
-				else
-					path = 0;
-			}
-			else
-				path = ((struct dolnod*)tchild->com.comarg)->dolval[ARG_SPARE];
-			if(!np && path && !nv_search(path,shp->fun_tree,0))
-				optimize=1;
-		}
-#	endif
-		sh_pushcontext(shp,buffp,SH_JMPIO);
-		jmpval = sigsetjmp(buffp->buff,0);
-		{
-			if((otype&FINT) && !sh_isstate(SH_MONITOR))
-			{
-				signal(SIGQUIT,SIG_IGN);
-				signal(SIGINT,SIG_IGN);
-				if(!shp->st.ioset)
-				{
-					sh_iosave(shp,0,buffp->topfd,(char*)0);
-					sh_iorenumber(shp,sh_chkopen(e_devnull),0);
-				}
-			}
-			if(otype&FPIN)
-			{
-				int fd = shp->inpipe[1];
-				sh_iosave(shp,0,buffp->topfd,(char*)0);
-				sh_iorenumber(shp,shp->inpipe[0],0);
-				if(fd>=0 && (!(otype&FPOU) || (otype&FCOOP)) && fcntl(fd,F_SETFD,FD_CLOEXEC)>=0)
-					shp->fdstatus[fd] |= IOCLEX;
-			}
-			if(otype&FPOU)
-			{
-				sh_iosave(shp,1,buffp->topfd,(char*)0);
-				sh_iorenumber(shp,sh_dup(shp->outpipe[1]),1);
-				if(fcntl(shp->outpipe[0],F_SETFD,FD_CLOEXEC)>=0)
-					shp->fdstatus[shp->outpipe[0]] |= IOCLEX;
-			}
-	
-			if(t->fork.forkio)
-				sh_redirect(shp,t->fork.forkio,0);
-			if(optimize==0)
-			{
-#ifdef SIGTSTP
-				if(job.jobcontrol)
-				{
-					signal(SIGTTIN,SIG_DFL);
-					signal(SIGTTOU,SIG_DFL);
-					signal(SIGTSTP,SIG_DFL);
-				}
-#endif /* SIGTSTP */
-#ifdef JOBS
-				if(sh_isstate(SH_MONITOR) && (job.jobcontrol || (otype&FAMP)))
-				{
-					if((otype&FAMP) || job.curpgid==0)
-						grp = 1;
-					else
-						grp = job.curpgid;
-				}
-#endif /* JOBS */
-				spawnpid = run_subshell(shp,t,grp);
-			}
-			else
-			{
-				sh_exec(tchild,SH_NTFORK);
-				if(jobid)
-					*jobid = savejobid;
-			}
-		}
-		sh_popcontext(shp,buffp);
-		if((otype&FINT) && !sh_isstate(SH_MONITOR))
-		{
-			signal(SIGQUIT,sh_fault);
-			signal(SIGINT,sh_fault);
-		}
-		if((otype&FPIN) && (!(otype&FPOU) || (otype&FCOOP)) && fcntl(shp->inpipe[1],F_SETFD,FD_CLOEXEC)>=0)
-			shp->fdstatus[shp->inpipe[1]] &= ~IOCLEX;
-		if(t->fork.forkio || otype)
-			sh_iorestore(shp,buffp->topfd,jmpval);
-		if(optimize==0)
-		{
-#ifdef SIGTSTP
-			if(job.jobcontrol)
-			{
-				signal(SIGTTIN,SIG_IGN);
-				signal(SIGTTOU,SIG_IGN);
-				if(sh_isstate(SH_INTERACTIVE))
-					signal(SIGTSTP,SIG_IGN);
-				else
-					signal(SIGTSTP,SIG_DFL);
-			}
-#endif /* SIGTSTP */
-			if(spawnpid>0)
-				_sh_fork(shp,spawnpid,otype,jobid);
-			if(job.jobcontrol && grp>0 && !(otype&FAMP))
-			{
-				while(tcsetpgrp(job.fd,job.curpgid)<0 && job.curpgid!=spawnpid)
-					job.curpgid = spawnpid;
-			}
-		}
-		savetype=0;
-		if(jmpval>SH_JMPIO)
-			siglongjmp(*shp->jmplist,jmpval);
-		if(spawnpid<0 && (otype&FCOOP))
-		{
-			sh_close(shp->coutpipe);
-			sh_close(shp->cpipe[1]);
-			shp->cpipe[1] = -1;
-			shp->coutpipe = -1;
-		}
-		shp->exitval = 0;
-		return(spawnpid);
-	}
-#   endif /* !_lib_fork */
 	sh_pushcontext(shp,buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */
@@ -3874,14 +3651,4 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 	return(spawnpid);
 }
 
-#   ifdef _was_lib_fork
-#	define _lib_fork	1
-#   endif
-#   ifndef _lib_fork
-	pid_t fork(void)
-	{
-		errormsg(SH_DICT,ERROR_exit(3),e_notimp,"fork");
-		return(-1);
-	}
-#   endif /* _lib_fork */
 #endif /* SHOPT_SPAWN */

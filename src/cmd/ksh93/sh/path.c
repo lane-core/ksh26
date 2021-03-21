@@ -1194,7 +1194,6 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 		errno = ENOEXEC;
 		if(spawn)
 		{
-#ifdef _lib_fork
 			if(shp->subshell)
 				return(-1);
 			do
@@ -1204,9 +1203,6 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 			}
 			while(_sh_fork(shp,pid,0,(int*)0) < 0);
 			((struct checkpt*)shp->jmplist)->mode = SH_JMPEXIT;
-#else
-			return(-1);
-#endif
 		}
 		exscript(shp,path,argv,envp);
 	    case EACCES:

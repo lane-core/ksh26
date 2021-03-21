@@ -31,16 +31,6 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 	/* Standard includes */
 	#include <errno.h>
 
-	#ifndef _lib_fork
-	#error requires fork(2)
-	#endif
-	#ifndef _lib_execve
-	#error requires execve(2)
-	#endif
-	#ifndef _lib_waitpid
-	#error requires waitpid(2)
-	#endif
-
 	int main(int argc,char *argv[])
 	{
 		int extra_bytes = 0, envlen, argmax, i;

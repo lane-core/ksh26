@@ -32,6 +32,9 @@
 #if !defined(AST_VERSION) || AST_VERSION < 20111111L
 #error libast version 20111111 or later is required
 #endif
+#if !_lib_fork
+#error In 2021, ksh joined the 21st century and started requiring fork(2).
+#endif
 #if !SHOPT_MULTIBYTE
     /*
      * Disable multibyte without need for excessive '#if SHOPT_MULTIBYTE' peprocessor conditionals.
