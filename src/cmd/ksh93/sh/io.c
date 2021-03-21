@@ -2386,13 +2386,11 @@ static int subexcept(Sfio_t* sp,register int mode, void *data, Sfdisc_t* handle)
 		free((void*)disp);
 		return(0);
 	}
-#ifdef SF_ATEXIT
 	else if (mode==SF_ATEXIT)
 	{
 		sfdisc(sp, SF_POPDISC);
 		return(0);
 	}
-#endif
 	else if(mode==SF_READ)
 		return(0);
 	return(-1);

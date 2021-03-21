@@ -108,10 +108,6 @@ struct adata
 char		nv_local = 0;
 static void(*nullscan)(Namval_t*,void*);
 
-#if ( SFIO_VERSION  <= 20010201L )
-#   define _data        data
-#endif
-
 /* ========	name value pair routines	======== */
 
 #include	"shnodes.h"

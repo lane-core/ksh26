@@ -851,26 +851,8 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 					shp->bltin_dir = 0;
 					return(oldpp);
 				}
-#ifdef SH_PLUGIN_VERSION
 				if (dll = dllplugin(SH_ID, stakptr(m), NiL, SH_PLUGIN_VERSION, NiL, RTLD_LAZY, NiL, 0))
 					sh_addlib(shp,dll,stakptr(m),oldpp);
-#else
-				if (dll = dllplug(SH_ID, stakptr(m), NiL, RTLD_LAZY, NiL, 0))
-				{
-					/*
-					 * this detects the 2007-05-11 builtin context change and also
-					 * the 2008-03-30 opt_info.num change that hit libcmd::b_head
-					 */
-
-					if (libcmd && !dlllook(dll, "b_pids"))
-					{
-						dlclose(dll);
-						dll = 0;
-					}
-					else
-						sh_addlib(shp,dll,stakptr(m),oldpp);
-				}
-#endif
 				if(dll &&
 				   (addr=(Shbltin_f)dlllook(dll,stakptr(n))) &&
 				   (!(np = sh_addbuiltin(stakptr(PATH_OFFSET),NiL,NiL)) || np->nvalue.bfp!=(Nambfp_f)addr) &&

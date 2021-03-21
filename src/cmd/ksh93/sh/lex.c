@@ -123,11 +123,7 @@ struct lexdata
 #define poplevel(lp)	(lp->lexd.lastc=lp->lexd.lex_match[--lp->lexd.level])
 
 static char		*fmttoken(Lex_t*, int, char*);
-#ifdef SF_BUFCONST
-    static int          alias_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
-#else
-    static int 		alias_exceptf(Sfio_t*, int, Sfdisc_t*);
-#endif
+static int		alias_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 static void		setupalias(Lex_t*,const char*, Namval_t*);
 static int		comsub(Lex_t*,int);
 static void		nested_here(Lex_t*);
@@ -2414,22 +2410,12 @@ struct alias
 /*
  * This code gets called whenever an end of string is found with alias
  */
-
-#ifndef SF_ATEXIT
-#   define SF_ATEXIT	0
-#endif
-/*
- * This code gets called whenever an end of string is found with alias
- */
-#ifdef SF_BUFCONST
 static int alias_exceptf(Sfio_t *iop,int type,void *data, Sfdisc_t *handle)
-#else
-static int alias_exceptf(Sfio_t *iop,int type,Sfdisc_t *handle)
-#endif
 {
 	register struct alias *ap = (struct alias*)handle;
 	register Namval_t *np;
 	register Lex_t	*lp;
+	NOT_USED(data);
 	if(type==0 || type==SF_ATEXIT || !ap)
 		return(0);
 	lp = ap->lp;
@@ -2448,7 +2434,7 @@ static int alias_exceptf(Sfio_t *iop,int type,Sfdisc_t *handle)
 	}
 	if(ap->nextc)
 	{
-		/* if last character is a blank, then next work can be alias */
+		/* if last character is a blank, then next word can be alias */
 		register int c = fcpeek(-1);
 		if(isblank(c))
 			lp->aliasok = 1;

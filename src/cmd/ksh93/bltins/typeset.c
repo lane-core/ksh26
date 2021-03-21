@@ -1027,7 +1027,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	Stk_t	*stkp;
 	void *library=0;
 	char *errmsg;
-#ifdef SH_PLUGIN_VERSION
+#if SHOPT_DYNAMIC
 	unsigned long ver;
 	int list = 0;
 	char path[1024];
@@ -1055,7 +1055,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #endif /* SHOPT_DYNAMIC */
 		break;
 	    case 'l':
-#ifdef SH_PLUGIN_VERSION
+#if SHOPT_DYNAMIC
 		list = 1;
 #endif
 	        break;
@@ -1083,7 +1083,6 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #if SHOPT_DYNAMIC
 	if(arg)
 	{
-#ifdef SH_PLUGIN_VERSION
 		if(!(library = dllplugin(SH_ID, arg, NiL, SH_PLUGIN_VERSION, &ver, RTLD_LAZY, path, sizeof(path))))
 		{
 			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",arg,dllerror(0));
@@ -1091,13 +1090,6 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		}
 		if(list)
 			sfprintf(sfstdout, "%s %08lu %s\n", arg, ver, path);
-#else
-		if(!(library = dllplug(SH_ID,arg,NIL(char*),RTLD_LAZY,NIL(char*),0)))
-		{
-			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",arg,dlerror());
-			return(1);
-		}
-#endif
 		sh_addlib(tdata.sh,library,arg,NiL);
 	}
 	else

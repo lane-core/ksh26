@@ -110,14 +110,8 @@ static History_t* hist_trim(History_t*, int);
 static int	hist_nearend(History_t*,Sfio_t*, off_t);
 static int	hist_check(int);
 static int	hist_clean(int);
-#ifdef SF_BUFCONST
-    static ssize_t  hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
-    static int      hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
-#else
-    static int	hist_write(Sfio_t*, const void*, int, Sfdisc_t*);
-    static int	hist_exceptf(Sfio_t*, int, Sfdisc_t*);
-#endif
-
+static ssize_t	hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
+static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 
 static int	histinit;
 static mode_t	histmode;
@@ -788,11 +782,7 @@ void hist_flush(register History_t *hp)
  * a zero byte.  Line sequencing is added as required
  */
 
-#ifdef SF_BUFCONST
 static ssize_t hist_write(Sfio_t *iop,const void *buff,register size_t insize,Sfdisc_t* handle)
-#else
-static int hist_write(Sfio_t *iop,const void *buff,register int insize,Sfdisc_t* handle)
-#endif
 {
 	register History_t *hp = (History_t*)handle;
 	register char *bufptr = ((char*)buff)+insize;
@@ -1174,14 +1164,11 @@ done:
 /*
  * Handle history file exceptions
  */
-#ifdef SF_BUFCONST
 static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
-#else
-static int hist_exceptf(Sfio_t* fp, int type, Sfdisc_t *handle)
-#endif
 {
 	register int newfd,oldfd;
 	History_t *hp = (History_t*)handle;
+	NOT_USED(data);
 	if(type==SF_WRITE)
 	{
 		if(errno==ENOSPC || hp->histwfail++ >= 10)

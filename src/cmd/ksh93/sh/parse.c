@@ -46,12 +46,6 @@
 
 #define HERE_MEM	SF_BUFSIZE	/* size of here-docs kept in memory */
 
-#if CDT_VERSION < 20111111L
-#define hash	nvlink.hl._hash
-#else
-#define hash	nvlink.lh.__hash
-#endif
-
 /* These routines are local to this module */
 
 static Shnode_t	*makeparent(Lex_t*, int, Shnode_t*);
@@ -2000,6 +1994,15 @@ static Shnode_t *test_primary(Lex_t *lexp)
 
 #if SHOPT_KIA
 /*
+ * ksh is currently compiled with -D_API_ast=20100309, which sets CDT_VERSION to 20100309 in src/lib/libast/include/cdt.h
+ * which enables a legacy Cdt API also used elsewhere in ksh. Do not remove this version check as it is not yet obsolete.
+ */
+#if CDT_VERSION < 20111111L
+#define hash	nvlink.hl._hash
+#else
+#define hash	nvlink.lh.__hash
+#endif
+/*
  * return an entity checksum
  * The entity is created if it doesn't exist
  */
@@ -2035,6 +2038,7 @@ unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,
 	}
 	return(np->hash);
 }
+#undef hash
 
 static void kia_add(register Namval_t *np, void *data)
 {
