@@ -1523,6 +1523,7 @@ make install
 					prev port/lclib.h implicit
 					prev std/iconv.h implicit
 					prev include/ccode.h implicit
+					prev include/error.h implicit
 					prev std/dirent.h implicit
 					prev include/ast.h implicit
 				done comp/iconv.c
@@ -1571,6 +1572,7 @@ make install
 						make stropts.h implicit
 						done stropts.h dontcare virtual
 						prev std/wchar.h implicit
+						prev include/error.h implicit
 						make FEATURE/float implicit
 							meta FEATURE/float features/%>FEATURE/% features/float float
 							make features/float
@@ -1595,6 +1597,7 @@ make install
 						make sfio/vthread.h implicit
 							prev windows.h implicit
 							prev std/endian.h implicit
+							prev include/error.h implicit
 							prev ast_common.h implicit
 						done sfio/vthread.h dontcare
 						make include/sfio_t.h implicit
@@ -2748,6 +2751,7 @@ make install
 				make comp/strtol.c
 					make string/strtoi.h implicit
 						prev sfio/sfhdr.h implicit
+						prev include/error.h implicit
 						prev include/ast.h implicit
 					done string/strtoi.h dontcare
 				done comp/strtol.c
