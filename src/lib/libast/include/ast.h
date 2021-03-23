@@ -228,7 +228,7 @@ typedef struct
 
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define NiL		0
-#define NoP(x)		(void)(x)
+#define NoP(x)		do (void)(x); while(0)	/* for silencing "unused parameter" warnings */
 #else
 #define NiL		((char*)0)
 #define NoP(x)		(&x,1)
