@@ -5,6 +5,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-04-04:
 
+- A bug was fixed that caused a broken prompt display upon redrawing the
+  command line if the last line of the prompt includes an xterm escape
+  sequence that is terminated by $'\a' (the bell character).
+
 - Harden readonly variables. Readonly variables or arrays no longer allow
   attribute changes which would otherwise allow their value to be altered.
   Expanded support for readonly variables within multidimensional arrays.

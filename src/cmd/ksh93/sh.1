@@ -2122,9 +2122,12 @@ if executing under
 .TP
 .SM
 .B PS1
-The value of this variable is expanded for parameter
-expansion, command substitution, and arithmetic substitution to define the
-primary prompt string which by default is
+Every time a new command line is started on an interactive shell,
+the value of this variable is expanded to resolve
+backslash escaping, parameter expansion, command substitution,
+and arithmetic substitution.
+The result defines the primary prompt string for that command line.
+The default is
 .RB `` "$ \|\|\|" ''.
 The character
 .B !
@@ -2138,6 +2141,12 @@ Two successive occurrences of
 will produce a single
 .B !
 when the prompt string is printed.
+Note that any terminal escape sequences used in the
+.B PS1
+prompt thus need every instance of
+.B !
+in them to be changed to
+.BR !! .
 .TP
 .SM
 .B PS2
