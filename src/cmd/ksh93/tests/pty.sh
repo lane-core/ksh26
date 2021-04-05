@@ -109,6 +109,7 @@ L POSIX sh 026(C)
 # SIGTSTP signal then the <state> field in the output message is set to
 # Stopped, Suspended, Stopped(SIGTSTP) or Suspended(SIGTSTP).
 
+d 15
 I ^\r?\n$
 p :test-1:
 w sleep 60 &
