@@ -860,8 +860,6 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 	}
 } 
 
-#define array_scan(np)	((nv_arrayptr(np)->nelem&ARRAY_SCAN))
-
 static char* get_match(register Namval_t* np, Namfun_t *fp)
 {
 	struct match	*mp = (struct match*)fp;

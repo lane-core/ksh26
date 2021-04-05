@@ -710,4 +710,23 @@ actual="$(typeset -p foo)"
 [[ "$expect" == "$actual" ]] || err_exit "Multidimensional associative arrays are created with an extra array member (expected $expect, got $actual)"
 
 # ======
+# Unsetting an array element removed all following elements if after subscript range expansion
+# https://github.com/ksh93/ksh/issues/254
+for range in \
+	0..3 1..3 0..2 0..1 1..2 2..3 0..-1 0..-2 \
+	.. 0.. 1.. 2.. 3.. ..0 ..1 ..2 ..3 \
+	-4.. -3.. -2.. -1.. ..-4 ..-3 ..-2 ..-1 \
+	-4..-1 -3..-1 -2..-1 -1..-1
+do
+	unset foo
+	set -A foo a b c d e f
+	eval "true \${foo[$range]}"
+	unset foo[2] # remove 3rd element 'c'
+	exp="a b d e f"
+	got=${foo[@]}
+	[[ $got == "$exp" ]] || err_exit "Expanding indexed array range \${foo[$range]} breaks 'unset foo[2]'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# ======
 exit $((Errors<125?Errors:125))
