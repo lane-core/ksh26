@@ -421,18 +421,17 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 	}
 	if(nq = nv_search(sub, ap->table, NV_ADD))
 	{
-		char		*saved_value;
-		int		rdonly = nv_isattr(np,NV_RDONLY);
+		char	*saved_value = NIL(char*);
 		if(!nq->nvfun && nq->nvalue.cp && *nq->nvalue.cp==0)
 			_nv_unset(nq,NV_RDONLY);
 		nv_arraychild(np,nq,0);
 		if(!nv_isattr(tp,NV_BINARY))
-			saved_value = stkcopy(stkstd,nv_getval(np));
+			saved_value = nv_getval(np);
 		if(!nv_clone(tp,nq,flags|NV_NOFREE))
 			return(0);
-		if(!rdonly)
+		if(!nv_isattr(np,NV_RDONLY))
 			nv_offattr(nq,NV_RDONLY);
-		if(!nv_isattr(tp,NV_BINARY))
+		if(saved_value)
 			nv_putval(nq,saved_value,0);
 		ap->nelem |= ARRAY_SCAN;
 		return(1);
@@ -699,6 +698,8 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 #endif /* SHOPT_FIXEDARRAY */
 			np->nvalue.up = up;
 		nv_putv(np,string,flags,&ap->hdr);
+		if(nofree && !up->cp)
+			up->cp = Empty;
 #if SHOPT_FIXEDARRAY
 		if(fp = (struct fixed_array*)ap->fixed)
 		{
@@ -1775,7 +1776,13 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 					nv_arraychild(np,mp,0);
 				if(sh.subshell)
 					np = sh_assignok(np,1);
-				if(!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0))
+				/*
+				 * type == 0x26 == NV_INTEGER|NV_LTOU|NV_RJUST (see include/nval.h) indicates an
+				 * associative array of a type created by the enum command. nelem should not be
+				 * increased in that case or 'unset' will fail to completely unset such an array.
+				 */
+				if(type != (NV_INTEGER|NV_LTOU|NV_RJUST)
+				&& (!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0)))
 					ap->header.nelem++;
 				if(nv_isnull(mp))
 				{

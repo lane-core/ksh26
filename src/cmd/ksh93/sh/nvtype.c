@@ -1332,7 +1332,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 			nv_putsub(np,"0",ARRAY_FILL);
 			ap = nv_arrayptr(np);
 			nelem = 1;
-		
+			nv_arraysettype(np,tp,"0",flags);
 		}
 	}
 	else

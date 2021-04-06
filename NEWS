@@ -9,6 +9,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   like 'unset arr[3]' to unset not just element 3 of the array but all elements
   starting from 3, if a range expansion like ${arr[5..10]} was previously used.
 
+- Several fixes for arrays of a type created by 'enum' were backported from ksh
+  93v-, further to the two enum array fixes already applied on 2021-02-01:
+  1. The array[@]} expansion was fixed for associative arrays of an enum type.
+  2. Assignments now work correctly for all enum values for both indexed and
+     associative arrays.
+  3. 'unset' will now completely unset an associative array of an enum type.
+
 2021-04-04:
 
 - A bug was fixed that caused a broken prompt display upon redrawing the
