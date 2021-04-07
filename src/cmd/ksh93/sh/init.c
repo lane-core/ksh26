@@ -694,19 +694,19 @@ static char* get_rand(register Namval_t* np, Namfun_t *fp)
  */
 static Sfdouble_t nget_lineno(Namval_t* np, Namfun_t *fp)
 {
-	double d=1;
+	int d = 1;
 	if(error_info.line >0)
 		d = error_info.line;
 	else if(error_info.context && error_info.context->line>0)
 		d = error_info.context->line;
 	NOT_USED(np);
 	NOT_USED(fp);
-	return(d);
+	return((Sfdouble_t)d);
 }
 
 static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	register long n;
+	Sfdouble_t n;
 	Shell_t *shp = sh_getinterp();
 	if(!val)
 	{
@@ -717,15 +717,15 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		return;
 	}
 	if(flags&NV_INTEGER)
-		n = *(double*)val;
+		n = (Sfdouble_t)(*(double*)val);
 	else
 		n = sh_arith(shp,val);
-	shp->st.firstline += nget_lineno(np,fp)+1-n;
+	shp->st.firstline += (int)(nget_lineno(np,fp) + 1 - n);
 }
 
 static char* get_lineno(register Namval_t* np, Namfun_t *fp)
 {
-	register long n = nget_lineno(np,fp);
+	long n = (long)nget_lineno(np,fp);
 	return(fmtbase(n, 10, 0));
 }
 
