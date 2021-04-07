@@ -349,7 +349,7 @@ x=$(LC_ALL=debug $SHELL -c 'typeset -R10 x="a<2b|>c";print -r -- "${x}"')
 x=$(LC_ALL=debug $SHELL -c 'typeset -L10 x="a<2b|>c";print -r -- "${x}"')
 [[ $x == 'a<2b|>c   ' ]] || err_exit 'typeset -L10 should end in three spaces'
 
-if	false &&  # Disable this test because it really test the OS-provided en_US.UTF-8 locale data, which may be broken.
+if	false &&  # Disable this test because it really tests the OS-provided en_US.UTF-8 locale data, which may be broken.
 	$SHELL -c "export LC_ALL=en_US.UTF-8; c=$'\342\202\254'; [[ \${#c} == 1 ]]" 2>/dev/null
 then	LC_ALL=en_US.UTF-8
 	unset i p1 p2 x
@@ -376,6 +376,19 @@ then	LC_ALL=en_US.UTF-8
 		|| err_exit "incorrect string from printf %q"
 	fi
 	
+fi
+
+# ======
+# The locale should be restored along with locale variables when leaving a virtual subshell.
+# https://github.com/ksh93/ksh/issues/253#issuecomment-815290154
+if	((SHOPT_MULTIBYTE))
+then
+	unset "${!LC_@}"
+	LANG=C.UTF-8
+	exp=$'5\n10\n5'
+	got=$(eval 'var=äëïöü'; echo ${#var}; (LANG=C; echo ${#var}); echo ${#var})
+	[[ $got == "$exp" ]] || err_exit "locale is not restored properly upon leaving virtual subshell" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 fi
 
 # ======

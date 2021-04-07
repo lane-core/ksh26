@@ -1262,4 +1262,14 @@ got="$($SHELL -c 'PS4="${.sh.subshell}"; echo ${.sh.subshell}')"
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Corruption of SECONDS on leaving virtual subshell
+# https://github.com/ksh93/ksh/issues/253#issuecomment-815191052
+osec=$SECONDS
+(SECONDS=20)
+nsec=$SECONDS
+if	((nsec<osec || nsec>osec+0.1))
+then	err_exit "SECONDS corrupted after leaving virtual subshell (expected $osec, got $nsec)"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
