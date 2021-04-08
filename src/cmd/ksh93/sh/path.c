@@ -781,15 +781,17 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 			return(0);
 		}
 		isfun = (oldpp->flags&PATH_FPATH);
-		if(!isfun && !sh_isoption(SH_RESTRICTED))
+		if(!isfun)
 		{
 #if SHOPT_DYNAMIC
 			Shbltin_f addr;
 			int n;
 #endif
+			/* Handle default path-bound builtins */
 			if(*stakptr(PATH_OFFSET)=='/' && nv_search(stakptr(PATH_OFFSET),shp->bltin_tree,0))
 				return(oldpp);
 #if SHOPT_DYNAMIC
+			/* Load builtins from dynamic libraries */
 			n = staktell();
 			stakputs("b_");
 			stakputs(name);
