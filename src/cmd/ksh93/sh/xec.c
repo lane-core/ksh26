@@ -3631,7 +3631,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(spawnpid < 0) switch(errno=shp->path_err)
 		{
 		    case ENOENT:
-			errormsg(SH_DICT,ERROR_system(ERROR_NOENT),e_found+4);
+			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
 			UNREACHABLE();
 		    default:
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
