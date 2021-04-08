@@ -8,6 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - The $LC_TIME variable is now recognized by ksh and if set to an invalid
   locale will show an error.
 
+- Fixed BUG_CSUBSTDO: If standard output is closed before running a command
+  substitution, redirecting any other file descriptor no longer closes standard
+  output inside of the command substitution.
+
 2021-04-05:
 
 - Fixed a regression, introduced in ksh 93t+ 2009-07-31, that caused a command
