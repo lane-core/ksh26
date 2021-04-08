@@ -1174,46 +1174,6 @@ int sh_type(register const char *path)
 }
 
 
-static char *get_mode(Namval_t* np, Namfun_t* nfp)
-{
-	mode_t mode = nv_getn(np,nfp);
-	return(fmtperm(mode));
-}
-
-static void put_mode(Namval_t* np, const char* val, int flag, Namfun_t* nfp)
-{
-	if(val)
-	{
-		mode_t mode;
-		char *last=0;
-		if(flag&NV_INTEGER)
-		{
-			if(flag&NV_LONG)
-				mode = *(Sfdouble_t*)val;
-			else
-				mode = *(double*)val;
-		}
-		else
-			mode = strperm(val, &last,0);
-		if(*last)
-		{
-			errormsg(SH_DICT,ERROR_exit(1),"%s: invalid mode string",val);
-			UNREACHABLE();
-		}
-		nv_putv(np,(char*)&mode,NV_INTEGER,nfp);
-	}
-	else
-		nv_putv(np,val,flag,nfp);
-}
-
-static const Namdisc_t modedisc =
-{
-	0,
-        put_mode,
-        get_mode,
-};
-
-
 /*
  * initialize the shell
  */
@@ -1510,22 +1470,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->bltindata.shgetenv = sh_getenv;
 	shp->bltindata.shsetenv = sh_setenviron;
 	astintercept(&shp->bltindata,1);
-#if 0
-#define NV_MKINTTYPE(x,y,z)	nv_mkinttype(#x,sizeof(x),(x)-1<0,(y),(Namdisc_t*)z); 
-	NV_MKINTTYPE(pid_t,"process id",0);
-	NV_MKINTTYPE(gid_t,"group id",0);
-	NV_MKINTTYPE(uid_t,"user id",0);
-	NV_MKINTTYPE(size_t,(const char*)0,0);
-	NV_MKINTTYPE(ssize_t,(const char*)0,0);
-	NV_MKINTTYPE(off_t,"offset in bytes",0);
-	NV_MKINTTYPE(ino_t,"\ai-\anode number",0);
-	NV_MKINTTYPE(mode_t,(const char*)0,&modedisc);
-	NV_MKINTTYPE(dev_t,"device id",0);
-	NV_MKINTTYPE(nlink_t,"hard link count",0);
-	NV_MKINTTYPE(blkcnt_t,"block count",0);
-	NV_MKINTTYPE(time_t,"seconds since the epoch",0);
-	nv_mkstat();
-#endif
 	if(shp->userinit=userinit)
 		(*userinit)(shp, 0);
 	shp->exittrap = 0;
