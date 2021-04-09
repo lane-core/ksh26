@@ -617,7 +617,7 @@ esac
 # When running a script without a #! hashbang path, ksh attempts to replace argv with the arguments
 # of the script. However, fixargs() didn't wipe out the rest of previous arguments after the last
 # \0. This caused an erroneous record in /proc/<PID>/cmdline and the output of the ps command.
-cd '$tmp"
+cd "$tmp"
 getPsOutput() {
 	# UNIX95=1 makes this work on HP-UX.
 	actual=$(UNIX95=1 ps -o args= -p "$1" 2>&1)
