@@ -1020,6 +1020,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			error_info.line = t->com.comline-shp->st.firstline;
 			com = sh_argbuild(shp,&argn,&(t->com),OPTIMIZE);
 			echeck = 1;
+			shp->arithrecursion = 0;
 			if(t->tre.tretyp&COMSCAN)
 			{
 				argp = t->com.comarg;
@@ -1903,6 +1904,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 
 		    case TPAR:
 			echeck = 1;
+			shp->arithrecursion = 0;
 			flags &= ~OPTIMIZE_FLAG;
 			if(!shp->subshell && !shp->st.trapcom[0] && !shp->st.trap[SH_ERRTRAP] && (flags&sh_state(SH_NOFORK)))
 			{
@@ -1966,6 +1968,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int	*exitval=0,*saveexitval = job.exitval;
 			pid_t	savepgid = job.curpgid;
 			echeck = 1;
+			shp->arithrecursion = 0;
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(shp->subshell)
@@ -2649,6 +2652,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				skipexitset++;
 			error_info.line = t->tst.tstline-shp->st.firstline;
 			echeck = 1;
+			shp->arithrecursion = 0;
 			if((type&TPAREN)==TPAREN)
 			{
 				sh_exec(t->lst.lstlef,OPTIMIZE);
