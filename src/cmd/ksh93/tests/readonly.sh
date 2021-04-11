@@ -314,12 +314,12 @@ rtests=(
 	)
 )
 
-typeset -i i
+typeset -i i n
 n=${#rtests[@]}
-for ((i=0; i<$n; i++))
+ulimit --cpu 3 2>/dev/null
+for ((i=0; i<n; i++))
 do
 	got=$(
-		((.sh.version < 20210404)) && ulimit -t unlimited 2>/dev/null	# fork to dodge an arith recursion detection bug
 		trap "${rtests[$i].res}" EXIT
 		eval "${rtests[$i].ini}"
 		eval "${rtests[$i].chg}" 2>&1
@@ -327,7 +327,7 @@ do
 	[[ $got == *$': is read only\n'* ]] || err_exit "Readonly variable did not warn for rtests[$i]: "\
 		"setup='${rtests[$i].ini}', change='${rtests[$i].chg}'"
 	got=${got#*$': is read only\n'}
-	[[ ${rtests[$i].exp} == "$got" ]] || err_exit "Readonly variable changed on rtests[$i]: "\
+	[[ $got == *"${rtests[$i].exp}" ]] || err_exit "Readonly variable changed on rtests[$i]: "\
 		"expected '${rtests[$i].exp}', got '$got'"
 done
 unset i n got rtests
