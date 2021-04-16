@@ -786,5 +786,16 @@ r ^:test-2: echo asdf\r\n$
 r ^asdf\r\n$
 !
 
+# err_exit #
+((SHOPT_ESH)) && mkdir -p emacstest/123abc && VISUAL=emacs tst $LINENO <<"!"
+L autocomplete stops numeric input
+# https://github.com/ksh93/ksh/issues/198
+
+d 15
+p :test-1:
+w cd emacste\t123abc
+r ^:test-1: cd emacstest/123abc\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
