@@ -428,8 +428,8 @@ do	cd /tmp
 	OLDPWD=/bar
 	cd /bin
 	cd /usr
-	cd /home
-	cd /home
+	cd /dev
+	cd /dev
 	cd - > /dev/null
 	unset OLDPWD PWD
 	cd /bin

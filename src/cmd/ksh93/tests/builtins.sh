@@ -1135,7 +1135,7 @@ got=$(fn)
 # $PWD should be set correctly after cd
 exp="$PWD
 $PWD"
-got=$(echo $PWD; PWD=/tmp cd /home; echo $PWD)
+got=$(echo $PWD; PWD=/tmp cd /dev; echo $PWD)
 [[ $got == "$exp" ]] ||
 	err_exit "PWD is incorrect after cd" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
