@@ -491,28 +491,67 @@ n=$( exec {n}< /dev/null; print -r -- $n)
 # ======
 # Truncating a file using <> and >#num
 # https://github.com/att/ast/issues/61
-
-for ((i=1; i<=10; i++)) do print "$i"; done | tee "$tmp/nums2" > "$tmp/nums1"
-expect=$'1\n2\n3\n4'
-
-(1<>;"$tmp/nums1" >#5)
-actual=$(cat "$tmp/nums1")
-[[ "$actual" = "$expect" ]] || err_exit "Failed to truncate file in subshell \
-(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-
 # The <>; redirection operator didn't work correctly in -c scripts
 # https://github.com/att/ast/issues/9
-"$SHELL" -c '1<>;"$1/nums2" >#5' x "$tmp"
-actual=$(cat "$tmp/nums2")
-[[ "$actual" = "$expect" ]] || err_exit "Failed to truncate file in -c script \
-(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+# https://github.com/ksh93/ksh/issues/278
 
-echo test > "$tmp/ast-9-reproducer"
-"$SHELL" -c "echo x 1<>; \"$tmp/ast-9-reproducer\""
-exp=x
-got=$(cat "$tmp/ast-9-reproducer")
-[[ $exp == "$got" ]] || err_exit "<>; redirection operator fails in -c scripts \
-(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# the extra '3>&2 3>&-' is to verify it all keeps working with multiple redirections
+typeset -A exp=(
+	['3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	[': 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['{ :; } 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['(:) 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['while false; do :; done 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['until true; do :; done 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['if false; then :; fi 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['case x in y) :;; esac 3>&2 3>&- 1<>;nums >#5']=$'1\n2\n3\n4'
+	['fn() { :; } 3>&2 3>&- 1<>;nums >#5; fn']=$'1\n2\n3\n4'
+	['echo x 3>&2 3>&- 1<>;nums']=x
+	['{ echo x; } 3>&2 3>&- 1<>;nums']=x
+	['(echo x) 3>&2 3>&- 1<>;nums']=x
+	['while :; do echo x; break; done 3>&2 3>&- 1<>;nums']=x
+	['until ! :; do echo x; break; done 3>&2 3>&- 1<>;nums']=x
+	['if :; then echo x; fi 3>&2 3>&- 1<>;nums']=x
+	['case x in x) echo x;; esac 3>&2 3>&- 1<>;nums']=x
+	['fn() { echo x; } 3>&2 3>&- 1<>;nums; fn']=x
+)
+nums=$'1\n2\n3\n4\n5\n6\n7\n8\n9\n10'
+for script in "${!exp[@]}"
+do
+	echo "$nums" >nums
+	eval "$script"
+	got=$(<nums)
+	[[ $got == "${exp[$script]}" ]] || err_exit "IOREWRITE: '$script' failed in main shell" \
+		"(expected $(printf %q "${exp[$script]}"), got $(printf %q "$got"))"
+	echo "$nums" >nums
+	eval "( $script )"
+	got=$(<nums)
+	[[ $got == "${exp[$script]}" ]] || err_exit "IOREWRITE: '$script' failed in subshell" \
+		"(expected $(printf %q "${exp[$script]}"), got $(printf %q "$got"))"
+	echo "$nums" >nums
+	"$SHELL" -c "$script"
+	got=$(<nums)
+	[[ $got == "${exp[$script]}" ]] || err_exit "IOREWRITE: '$script' failed as -c script" \
+		"(expected $(printf %q "${exp[$script]}"), got $(printf %q "$got"))"
+	echo "$nums" >nums
+	echo "$script" >test.sh
+	"$SHELL" test.sh
+	got=$(<nums)
+	[[ $got == "${exp[$script]}" ]] || err_exit "IOREWRITE: '$script' failed as regular script" \
+		"(expected $(printf %q "${exp[$script]}"), got $(printf %q "$got"))"
+done
+unset exp script
+
+got=$("$SHELL" -c $'trap "echo bye" 0\n{ echo hi; } >/dev/null' 2>&1)
+exp=bye
+[[ $got == "$exp" ]] || err_exit "redirection in last -c script command persists for trap" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+echo $'trap "echo bye" 0\n{ echo hi; } >/dev/null' >test.sh
+got=$("$SHELL" test.sh 2>&1)
+exp=bye
+[[ $got == "$exp" ]] || err_exit "redirection in last regular script command persists for trap" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Exit behaviour of 'exec', 'command exec', 'redirect' on redirections
@@ -538,7 +577,7 @@ actual=$( (redirect /dev/null/foo >$tmp/wrong_redirect) 2>&1; echo " status = $?
 # Process substitution
 
 # An output process substitution should work when combined with a redirection.
-result=$("$SHELL" -c 'echo ok > >(sed s/ok/good/); wait')
+result=$("$SHELL" -c 'echo ok > >(sed s/ok/good/); wait' 2>&1)
 [[ $result == good ]] || err_exit 'process substitution does not work with redirections' \
 				"(expected 'good', got $(printf %q "$result"))"
 

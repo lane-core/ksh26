@@ -958,6 +958,21 @@ static Namval_t *enter_namespace(Shell_t *shp, Namval_t *nsp)
 }
 #endif /* SHOPT_NAMESPACE */
 
+/*
+ * Check whether to execve(2) the final command or make its redirections permanent.
+ */
+static int check_exec_optimization(struct ionod *iop)
+{
+	if(sh.subshell || sh.exittrap || sh.errtrap)
+		return(0);
+	/* '<>;' (IOREWRITE) redirections are incompatible with exec */
+	while(iop && !(iop->iofile & IOREWRITE))
+		iop = iop->ionxt;
+	if(iop)
+		return(0);
+	return(1);
+}
+
 int sh_exec(register const Shnode_t *t, int flags)
 {
 	register Shell_t	*shp = sh_getinterp();
@@ -1003,8 +1018,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 		shp->exitval=0;
 		shp->lastsig = 0;
 		shp->lastpath = 0;
-		if(shp->exittrap || shp->errtrap || (t->tre.treio && (t->tre.treio->iofile&IOREWRITE)))
-			execflg = 0; /* don't run the command with execve(2) */
 		switch(type&COMMSK)
 		{
 		    case TCOM:
@@ -1174,6 +1187,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 				int tflags = 1;
 				if(np &&  nv_isattr(np,BLT_DCL))
 					tflags |= 2;
+				if(execflg && !check_exec_optimization(io))
+					execflg = 0;
 				if(argn==0)
 				{
 					/* fake 'true' built-in */
@@ -1848,8 +1863,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
-			if(shp->subshell)
-				execflg = 0;
 			sh_pushcontext(shp,buffp,SH_JMPIO);
 			if(type&FPIN)
 			{
@@ -1875,6 +1888,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 			{
 				if(shp->comsub==1)
 					tsetio = 1;
+				if(execflg && !check_exec_optimization(t->fork.forkio))
+				{
+					execflg = 0;
+					flags &= ~sh_state(SH_NOFORK);
+				}
 				sh_redirect(shp,t->fork.forkio,execflg);
 				(t->fork.forktre)->tre.tretyp |= t->tre.tretyp&FSHOWME;
 				sh_exec(t->fork.forktre,flags&~simple);

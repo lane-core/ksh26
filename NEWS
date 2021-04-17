@@ -8,10 +8,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug in emacs mode: after using tab completion to complete the name
   of a directory, it was not possible to type numbers after the slash.
 
-2021-04-15:
-
 - Fixed an optimization bug that caused the <>; redirection operator to fail
-  when used in -c scripts.
+  when used with the last command in a -c script.
 
 2021-04-14:
 
