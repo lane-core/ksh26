@@ -219,7 +219,7 @@ void sh_subfork(void)
 		shp->subshell = 0;
 		shp->comsub = 0;
 		sp->subpid=0;
-		shp->st.trapcom[0] = (comsub==2 ? NULL : trap);
+		shp->st.trapcom[0] = (comsub==2 ? NIL(char*) : trap);
 		shp->savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		shgd->realsubshell--;
@@ -581,7 +581,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->comsub = comsub;
 		job.bktick_waitall = (comsub==1);
 	}
-	if(!comsub || !shp->subshare)
+	if(!shp->subshare)
 	{
 		struct subshell *xp;
 		sp->shpwd = shp->pwd;
@@ -634,9 +634,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				else if(shp->st.trapcom[isig])
 					savsig[isig] = sh_strdup(shp->st.trapcom[isig]);
 				else
-					savsig[isig] = NULL;
+					savsig[isig] = NIL(char*);
 			}
-			/* this nonsense needed for $(trap) */
+			/* this is needed for var=$(trap) */
 			shp->st.otrapcom = (char**)savsig;
 		}
 		sp->cpid = shp->cpid;
@@ -794,7 +794,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	job.curpgid = savejobpgid;
 	job.exitval = saveexitval;
 	shp->bckpid = sp->bckpid;
-	if(sp->shpwd)	/* restore environment if saved */
+	if(!shp->subshare)	/* restore environment if saved */
 	{
 		int n;
 		shp->options = sp->options;
@@ -842,24 +842,21 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			free((void*)savsig);
 		}
 		shp->options = sp->options;
-		if(!shp->pwd || strcmp(sp->pwd,shp->pwd))
+		if(shp->pwd != sp->pwd && (!shp->pwd || !sp->pwd || strcmp(sp->pwd,shp->pwd)))
 		{
-			/* restore PWDNOD */
+			/* restore the present working directory */
 			Namval_t *pwdnod = sh_scoped(shp,PWDNOD);
-			if(shp->pwd)
-			{
 #if _lib_fchdir
-				if(fchdir(sp->pwdfd) < 0)
+			if(fchdir(sp->pwdfd) < 0)
 #else
-				if(chdir(sp->pwd) < 0)
+			if(!sp->pwd || chdir(sp->pwd) < 0)
 #endif /* _lib_fchdir */
-				{
-					saveerrno = errno;
-					fatalerror = 2;
-				}
-				shp->pwd=sp->pwd;
-				path_newdir(shp,shp->pathlist);
+			{
+				saveerrno = errno;
+				fatalerror = 2;
 			}
+			shp->pwd=sp->pwd;
+			path_newdir(shp,shp->pathlist);
 			if(nv_isattr(pwdnod,NV_NOFREE))
 				pwdnod->nvalue.cp = (const char*)sp->pwd;
 		}
@@ -939,17 +936,17 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			case 1:
 				shp->toomany = 1;
 				errno = saveerrno;
-				errormsg(SH_DICT,ERROR_system(1),e_redirect);
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_redirect);
 				UNREACHABLE();
 			case 2:
 				/* reinit PWD as it will be wrong */
-				shp->pwd = NULL;
+				shp->pwd = NIL(const char*);
 				path_pwd(shp,0);
 				errno = saveerrno;
-				errormsg(SH_DICT,ERROR_system(1),"Failed to restore PWD upon exiting subshell");
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"Failed to restore PWD upon exiting subshell");
 				UNREACHABLE();
 			default:
-				errormsg(SH_DICT,ERROR_system(1),"Subshell error %d",fatalerror);
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"Subshell error %d",fatalerror);
 				UNREACHABLE();
 		}
 	}

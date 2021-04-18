@@ -92,6 +92,8 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	oldpwd = path_pwd(shp,0);
 	opwdnod = sh_scoped(shp,OLDPWDNOD);
 	pwdnod = sh_scoped(shp,PWDNOD);
+	if(oldpwd == e_dot && pwdnod->nvalue.cp)
+		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
 	{
 		opwdnod = sh_assignok(opwdnod,1);
@@ -137,8 +139,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				cdpath->shp = shp;
 			}
 		}
-		if(!oldpwd)
-			oldpwd = path_pwd(shp,1);
 	}
 	if(*dir!='/')
 	{
@@ -221,14 +221,31 @@ success:
 	dir = (char*)stakfreeze(1)+PATH_OFFSET;
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
-	if(*dir != '/')
-		return(0);
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
-	flag = strlen(dir);
-	/* delete trailing '/' */
-	while(--flag>0 && dir[flag]=='/')
-		dir[flag] = 0;
-	nv_putval(pwdnod,dir,NV_RDONLY);
+	if(*dir == '/')
+	{
+		flag = strlen(dir);
+		/* delete trailing '/' */
+		while(--flag>0 && dir[flag]=='/')
+			dir[flag] = 0;
+		nv_putval(pwdnod,dir,NV_RDONLY);
+	}
+	else
+	{
+		/* pathcanon() failed to canonicalize the directory, which happens when 'cd' is invoked from a
+		   nonexistent PWD with a relative path as the argument. Reinitialize $PWD as it will be wrong. */
+		char *cp = getcwd(NIL(char*),0);
+		if(cp)
+		{
+			nv_putval(pwdnod,cp,NV_RDONLY);
+			free(cp);
+		}
+		else
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_direct);
+			UNREACHABLE();
+		}
+	}
 	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
 	shp->pwd = pwdnod->nvalue.cp;
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);

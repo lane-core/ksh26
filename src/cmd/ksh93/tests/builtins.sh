@@ -671,8 +671,8 @@ then	(
 			mv t1 t2
 			mkdir t1
 		)
-		[[ -f real_t1 ]] || err_exit 'real_t1 not found after parent directory renamed in subshell'
-	)
+		[[ -f real_t1 ]]
+	) || err_exit 'real_t1 not found after parent directory renamed in subshell'
 fi
 cd "$tmp"
 
@@ -1205,6 +1205,17 @@ then	exp='  version         cat (*) ????-??-??'
 		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 else	warning 'skipping path-bound builtin tests: builtin /opt/ast/bin/cat not found'
 fi
+
+# ======
+# part of https://github.com/ksh93/ksh/issues/153
+mkdir "$tmp/deleted"
+cd "$tmp/deleted"
+tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/deleted"'
+exp=$PWD
+got=$("$SHELL" -c 'cd /; echo "$OLDPWD"' 2>&1)
+[[ $got == "$exp" ]] || err_exit "OLDPWD not correct after cd'ing from a nonexistent PWD" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+cd "$tmp"
 
 # ======
 exit $((Errors<125?Errors:125))

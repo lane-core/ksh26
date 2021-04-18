@@ -887,17 +887,21 @@ got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
 # ======
 # Segmentation fault when using cd in a subshell, when current directory cannot be determined
 # https://github.com/ksh93/ksh/issues/153
-cd "$tmp"
-mkdir deleted
-cd deleted
+mkdir "$tmp/deleted"
+cd "$tmp/deleted"
 tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/deleted"'
+
+exp="subPWD: ${PWD%/deleted}"$'\n'"mainPWD: $PWD"
+got=$( { "$SHELL" -c '(subshfn() { bad; }; cd ..; echo "subPWD: $PWD"); typeset -f subshfn; echo "mainPWD: $PWD"'; } 2>&1 )
+[[ $got == "$exp" ]] || err_exit "subshell state not restored after 'cd ..' from deleted PWD" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 exp="PWD=$PWD"
 got=$( { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1 )
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore nonexistent PWD on exiting a virtual subshell' \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
-cd "$tmp"
-mkdir recreated
-cd recreated
+mkdir "$tmp/recreated"
+cd "$tmp/recreated"
 tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/recreated"; mkdir "$tmp/recreated"'
 exp="PWD=$PWD"
 got=$( { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1 )
