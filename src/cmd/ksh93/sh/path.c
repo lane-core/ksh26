@@ -256,6 +256,7 @@ char *path_pwd(Shell_t *shp,int flag)
 	{
 		/* Check if $HOME is a path to the PWD; this ensures $PWD == $HOME
 		   at login, even if $HOME is a path that contains symlinks */
+		char tofree = 0;
 		cp = nv_getval(sh_scoped(shp,HOME));
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
@@ -263,17 +264,19 @@ char *path_pwd(Shell_t *shp,int flag)
 			cp = getcwd(NIL(char*),0);
 			if(!cp)
 				return((char*)e_dot);
+			tofree++;
 		}
 		/* Store in PWD variable */
 		if(shp->subshell)
 			pwdnod = sh_assignok(pwdnod,1);
-		nv_offattr(pwdnod,NV_NOFREE);
 		nv_putval(pwdnod,cp,NV_RDONLY);
+		if(tofree)
+			free(cp);
 	}
-	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
+	nv_onattr(pwdnod,NV_EXPORT);
 	/* Set shell PWD */
-	shp->pwd = (char*)(pwdnod->nvalue.cp);
-	return(cp);
+	shp->pwd = sh_strdup(pwdnod->nvalue.cp);
+	return((char*)shp->pwd);
 }
 
 /*

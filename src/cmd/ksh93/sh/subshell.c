@@ -82,7 +82,6 @@ static struct subshell
 	pid_t		subpid;	/* child process id */
 	Sfio_t*		saveout;/* saved standard output */
 	char		*pwd;	/* present working directory */
-	const char	*shpwd;	/* saved pointer to sh.pwd */
 	void		*jobs;	/* save job info */
 	mode_t		mask;	/* saved umask */
 	short		tmpfd;	/* saved tmp file descriptor */
@@ -213,7 +212,6 @@ void sh_subfork(void)
 	else
 	{
 		/* this is the child part of the fork */
-		/* setting subpid to 1 causes subshell to exit when reached */
 		sh_onstate(SH_FORKED);
 		subshell_data = 0;
 		shp->subshell = 0;
@@ -561,9 +559,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		path_get(shp,e_dot);
 		shp->pathinit = 0;
 	}
-#if _lib_fchdir
-	sp->pwdfd = -1;
-#endif /* _lib_fchdir */
 	if(!shp->pwd)
 		path_pwd(shp,0);
 	sp->bckpid = shp->bckpid;
@@ -584,8 +579,8 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->subshare)
 	{
 		struct subshell *xp;
-		sp->shpwd = shp->pwd;
 #if _lib_fchdir
+		sp->pwdfd = -1;
 		for(xp=sp->prev; xp; xp=xp->prev) 
 		{
 			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,shp->pwd)==0)
@@ -687,6 +682,17 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 #if _lib_fchdir
 			if(sp->pwdfd < 0 && !shp->subshare)	/* if we couldn't get a file descriptor to our PWD ... */
 				sh_subfork();			/* ...we have to fork, as we cannot fchdir back to it. */
+#else
+			if(!shp->subshare)
+			{
+				if(sp->pwd && access(sp->pwd,X_OK)<0)
+				{
+					free(sp->pwd);
+					sp->pwd = NIL(char*);
+				}
+				if(!sp->pwd)
+					sh_subfork();
+			}
 #endif /* _lib_fchdir */
 			sh_offstate(SH_INTERACTIVE);
 			sh_exec(t,flags);
@@ -842,32 +848,21 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			free((void*)savsig);
 		}
 		shp->options = sp->options;
-		if(shp->pwd != sp->pwd && (!shp->pwd || !sp->pwd || strcmp(sp->pwd,shp->pwd)))
-		{
-			/* restore the present working directory */
-			Namval_t *pwdnod = sh_scoped(shp,PWDNOD);
+		/* restore the present working directory */
 #if _lib_fchdir
-			if(fchdir(sp->pwdfd) < 0)
+		if(sp->pwdfd > 0 && fchdir(sp->pwdfd) < 0)
 #else
-			if(!sp->pwd || chdir(sp->pwd) < 0)
+		if(sp->pwd && strcmp(sp->pwd,shp->pwd) && chdir(sp->pwd) < 0)
 #endif /* _lib_fchdir */
-			{
-				saveerrno = errno;
-				fatalerror = 2;
-			}
-			shp->pwd=sp->pwd;
-			path_newdir(shp,shp->pathlist);
-			if(nv_isattr(pwdnod,NV_NOFREE))
-				pwdnod->nvalue.cp = (const char*)sp->pwd;
-		}
-		else if(sp->shpwd != shp->pwd)
 		{
-			shp->pwd = sp->pwd;
-			if(PWDNOD->nvalue.cp==sp->shpwd)
-				PWDNOD->nvalue.cp = sp->pwd;
+			saveerrno = errno;
+			fatalerror = 2;
 		}
-		else
-			free((void*)sp->pwd);
+		else if(sp->pwd && strcmp(sp->pwd,shp->pwd))
+			path_newdir(shp,shp->pathlist);
+		if(shp->pwd)
+			free((void*)shp->pwd);
+		shp->pwd = sp->pwd;
 #if _lib_fchdir
 		if(sp->pwdclose)
 			close(sp->pwdfd);
@@ -940,6 +935,8 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				UNREACHABLE();
 			case 2:
 				/* reinit PWD as it will be wrong */
+				if(shp->pwd)
+					free((void*)shp->pwd);
 				shp->pwd = NIL(const char*);
 				path_pwd(shp,0);
 				errno = saveerrno;
