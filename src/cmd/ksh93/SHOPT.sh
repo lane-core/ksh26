@@ -33,7 +33,6 @@ SHOPT P_SUID=				# real uid's that require -p for set[ug]id (do not set to 0 to 
 SHOPT RAWONLY=1				# make viraw the only vi mode
 SHOPT REGRESS=				# enable __regress__ builtin and instrumented intercepts for testing
 SHOPT REMOTE=				# enable --rc if running as a remote shell
-SHOPT SEVENBIT=				# strip the eighth bit from characters
 SHOPT SPAWN=				# use spawnveg for fork/exec
 SHOPT STATS=1				# add .sh.stats variable
 SHOPT SUID_EXEC=1			# allow (safe) suid/sgid shell scripts
