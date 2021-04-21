@@ -2060,6 +2060,7 @@ static char	*fmttoken(Lex_t *lp, register int sym)
 		return((char*)sh_translate(e_endoffile));
 	if(sym==NL)
 		return((char*)sh_translate(e_newline));
+	stakfreeze(0);
 	stakputc(sym);
 	if(sym&SYMREP)
 		stakputc(sym);

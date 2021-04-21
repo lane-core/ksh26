@@ -44,7 +44,7 @@ The options have the following defaults and meanings:
                      built-ins. The value must include double quotes.
     CRNL         off <cr><nl> treated as <nl> in shell grammar.
     DEVFD            Use the more secure /dev/fd mechanism instead of FIFOs for
-                     proces substitutions. On by default on OSs with /dev/fd.
+                     process substitutions. On by default on OSs with /dev/fd.
     DYNAMIC      on  Dynamic loading of builtins. (Requires dlopen() interface.)
     ECHOPRINT    off Make echo equivalent to print.
     EDPREDICT    on  Enables predictive editing. As you type a line beginning
@@ -84,7 +84,7 @@ The options have the following defaults and meanings:
                      value will require the -p flag to run suid/sgid scripts.
     RAWONLY      on  Turn on if the vi line mode doesn't work right unless
                      you do a set -o viraw.
-    REGRESS      off Enable the __regress__ built-in command  and instrumented
+    REGRESS      off Enable the __regress__ built-in command and instrumented
                      intercepts for testing.
     REMOTE       off Set --rc (read profile scripts) even if ksh was invoked
                      with standard input on a socket, i.e. as a remote shell.

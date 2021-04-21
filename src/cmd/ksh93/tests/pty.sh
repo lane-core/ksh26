@@ -797,5 +797,19 @@ w cd emacste\t123abc
 r ^:test-1: cd emacstest/123abc\r\n$
 !
 
+# err_exit #
+echo '((' >$tmp/synerror
+ENV=$tmp/synerror tst $LINENO <<"!"
+L syntax error in profile causes exit on startup
+# https://github.com/ksh93/ksh/issues/281
+
+d 15
+r /synerror: syntax error: `\(' unmatched\r\n$
+p :test-1:
+w echo ok
+r ^:test-1: echo ok\r\n$
+r ^ok\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
