@@ -22,8 +22,34 @@
 
 bincat=$(whence -p cat)
 
-# test shell builtin commands
+# ======
+# These are regression tests for the getconf builtin.
 builtin getconf
+bingetconf=$(getconf GETCONF)
+bad_result=$(getconf --version 2>&1)
+
+# The -l option should convert all variable names to lowercase.
+# https://github.com/att/ast/issues/1171
+got=$(getconf -l | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
+	"(got $(printf %q "$got"))"
+
+# The -q option should quote all string values.
+# https://github.com/att/ast/issues/1173
+exp="GETCONF=\"$bingetconf\""
+got=$(getconf -q | grep 'GETCONF=')
+[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
+	"(expected $exp, got $got)"
+
+# The -n option should only return matching names.
+# https://github.com/ksh93/ksh/issues/279
+exp="GETCONF=$bingetconf"
+got=$(getconf -n GETCONF)
+[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
+	"(expected $exp, got $got)"
+
+# ======
+# Test shell builtin commands
 : ${foo=bar} || err_exit ": failed"
 [[ $foo == bar ]] || err_exit ": side effects failed"
 set -- - foobar
