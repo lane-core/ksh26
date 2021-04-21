@@ -12,6 +12,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   3. The -c/--call, -n/--name and -s/--standard options matched all variable
      names provided by 'getconf -a', even if none were actual matches.
 
+- The readonly attribute of ksh variables is no longer imported from
+  or exported to other ksh shell instances through the environment.
+
 2021-04-16:
 
 - Fixed a bug in emacs mode: after using tab completion to complete the name

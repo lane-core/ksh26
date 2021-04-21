@@ -2241,7 +2241,7 @@ char **sh_envgen(void)
 	/* Export variable attributes into env var named by e_envmarker, unless POSIX mode is on */
 	cp = data.attval = strcopy(*data.argnam,e_envmarker);
 	if(!sh_isoption(SH_POSIX))
-		nv_scan(shp->var_tree, attstore,&data,0,(NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
+		nv_scan(shp->var_tree, attstore,&data,0,(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
 	*data.attval = 0;
 	if(cp!=data.attval)
 		data.argnam++;

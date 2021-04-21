@@ -1986,6 +1986,9 @@ static void env_import_attributes(Shell_t *shp, char *next)
 					size--;
 				}
 			}
+			flag &= ~NV_RDONLY;	/* refuse to import readonly attribute */
+			if(!flag)
+				continue;
 			nv_newattr(np,flag|NV_IMPORT|NV_EXPORT,size);
 		}
 	}
