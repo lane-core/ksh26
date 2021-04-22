@@ -196,7 +196,10 @@ static int p_redirect(register const struct ionod *iop)
 			sfputl(outfile,iop->iofile|IOVNM);
 		else
 			sfputl(outfile,iop->iofile);
-		p_string(iop->ioname);
+		if((iop->iofile & IOPROCSUB) && !(iop->iofile & IOLSEEK))
+			p_tree((Shnode_t*)iop->ioname);	/* process substitution as file name to redirection */
+		else
+			p_string(iop->ioname);		/* file name, descriptor, etc. */
 		if(iop->iodelim)
 		{
 			p_string(iop->iodelim);

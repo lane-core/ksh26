@@ -842,4 +842,15 @@ exp='Foo bar'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# In shcomp, process substitution did not work when used as the file name to a redirection.
+# https://github.com/ksh93/ksh/issues/165
+# Note: avoid testing this in a command substitution, as those are always parsed at runtime,
+# meaning shcomp will also include them as literal source text instead of compiling them.
+echo ok > >(cat >out1)
+wait "$!"  # the procsub is run asynchronously, so wait before reading from the file
+cat >out2 < <(case x in x) cat out1;; esac)
+[[ $(<out2) == ok ]] || err_exit "process substitution not working as file name to redirection" \
+	"(expected 'ok', got $(printf %q "$(<out2)"))"
+
+# ======
 exit $((Errors<125?Errors:125))
