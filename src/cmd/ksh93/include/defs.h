@@ -165,6 +165,7 @@ struct shared
 	int		path_err;	/* last error on path search */ \
 	Dt_t		*track_tree;	/* for tracked aliases */ \
 	Dt_t		*var_base;	/* global level variables */ \
+	Dt_t		*fun_base;	/* global level functions */ \
 	Dt_t		*openmatch; \
 	Namval_t	*namespace;	/* current active namespace */ \
 	Namval_t	*last_table;	/* last table used in last nv_open */ \

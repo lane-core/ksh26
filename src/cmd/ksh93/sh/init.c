@@ -1821,7 +1821,7 @@ static Init_t *nv_init(Shell_t *shp)
 	dtuserdata(shp->track_tree,shp,1);
 	shp->bltin_tree = sh_inittree(shp,(const struct shtable2*)shtab_builtins);
 	dtuserdata(shp->bltin_tree,shp,1);
-	shp->fun_tree = dtopen(&_Nvdisc,Dtoset);
+	shp->fun_base = shp->fun_tree = dtopen(&_Nvdisc,Dtoset);
 	dtuserdata(shp->fun_tree,shp,1);
 	dtview(shp->fun_tree,shp->bltin_tree);
 	nv_mount(DOTSHNOD, "type", shp->typedict=dtopen(&_Nvdisc,Dtoset));

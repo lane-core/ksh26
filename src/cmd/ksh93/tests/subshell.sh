@@ -656,6 +656,7 @@ v=$("$SHELL" -c '. "$1"' x "$a") && [[ $v == ok ]] || err_exit "fail: more fun 4
 # ...multiple levels of subshell
 func() { echo mainfunction; }
 v=$(
+	set +x
 	(
 		func() { echo sub1; }
 		(
@@ -664,19 +665,33 @@ v=$(
 				func() { echo sub3; }
 				func
 				PATH=/dev/null
-				unset -f func
+				dummy=${ dummy=${ dummy=${ dummy=${ unset -f func; }; }; }; };  # test subshare within subshell
 				func 2>/dev/null
 				(($? == 127)) && echo ok_nonexistent || echo fail_zombie
 			)
 			func
 		)
 		func
-	)
-	func
+	) 2>&1
+	func 2>&1
 )
 expect=$'sub3\nok_nonexistent\nsub2\nsub1\nmainfunction'
 [[ $v == "$expect" ]] \
 || err_exit "multi-level subshell function failure (expected $(printf %q "$expect"), got $(printf %q "$v"))"
+
+# ... https://github.com/ksh93/ksh/issues/228
+fail() {
+	echo 'Failure'
+}
+exp=Success
+got=$(
+	foo() { true; }			# Define function before forking
+	ulimit -t unlimited 2>/dev/null	# Fork the subshell
+	unset -f fail
+	PATH=/dev/null fail 2>/dev/null || echo "$exp"
+)
+[[ $got == "$exp" ]] || err_exit 'unset -f fails in forked subshells if a function is defined before forking' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Unsetting or redefining aliases within subshells
@@ -944,6 +959,29 @@ v=main
 v=main
 (v=sub; (d=${ v=shared; }; [[ $v == shared ]]) ) || err_exit "shared comsub in nested subshell wrongly scoped (2)"
 [[ $v == main ]] || err_exit "shared comsub leaks out of subshell (7)"
+
+# ...multiple levels of subshell
+v=main
+got=$(
+	(
+		v=sub1
+		(
+			v=sub2
+			(
+				v=sub3
+				echo $v
+				dummy=${ dummy=${ dummy=${ dummy=${ unset v; }; }; }; };  # test subshare within subshell
+				[[ -n $v || -v v ]] && echo fail_zombie || echo ok_nonexistent
+			)
+			echo $v
+		)
+		echo $v
+	)
+	echo $v
+)
+exp=$'sub3\nok_nonexistent\nsub2\nsub1\nmain'
+[[ $got == "$exp" ]] || err_exit "multi-level subshell function failure" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # After the memory leak patch for rhbz#982142, this minor regression was introduced:
