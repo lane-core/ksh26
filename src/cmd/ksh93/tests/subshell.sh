@@ -693,6 +693,12 @@ got=$(
 [[ $got == "$exp" ]] || err_exit 'unset -f fails in forked subshells if a function is defined before forking' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# function set in subshell, unset in subshell of that subshell
+exp='*: f: not found'
+got=$( f() { echo WRONG; }; ( unset -f f; PATH=/dev/null f 2>&1 ) )
+[[ $got == $exp ]] || err_exit 'unset -f fails in sub-subshell on function set in subshell' \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 # Unsetting or redefining aliases within subshells
 
