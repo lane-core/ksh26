@@ -1398,7 +1398,7 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 		}
 		else if(troot==shp->alias_tree)
 			r = 1;
-		else if(troot==shp->fun_tree && troot!=shp->fun_base)
+		else if(troot==shp->fun_tree && troot!=shp->fun_base && nv_search(name,shp->fun_tree,0))
 			nv_open(name,troot,NV_NOSCOPE);	/* create dummy virtual subshell node without NV_FUNCTION attribute */
 	}
 	sh_popcontext(shp,&buff);
