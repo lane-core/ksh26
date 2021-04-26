@@ -1011,4 +1011,12 @@ unalias a
 	"expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # ======
+# Redirecting standard output for a single command should not cause a subshare to fork
+exp='good'
+got='bad'
+dummy=${ : >&2; got='good'; }
+[[ $got == "$exp" ]] || err_exit 'subshare stopped sharing state after command that redirects stdout' \
+	"(expected '$exp', got '$got')"
+
+# ======
 exit $((Errors<125?Errors:125))
