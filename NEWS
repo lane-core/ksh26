@@ -5,6 +5,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-04-30:
 
+- The emacs 'ESC .' (M-.) and vi '_' commands now take shell quoting into
+  account when repeating a word from the previous command line. For example, if
+  the previous command is 'ls Stairway\ To\ Heaven.mp3', then they now insert
+  'Stairway\ To\ Heaven.mp3' instead of 'Heaven.mp3'. Thanks to Govind Kamat.
+
 - Fixed a bug introduced on 2020-09-05 that caused "echo ${var:+'{}'}"
   to be misparsed.
 

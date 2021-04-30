@@ -812,5 +812,19 @@ r ^:test-1: echo ok\r\n$
 r ^ok\r\n$
 !
 
+# err_exit #
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L split on quoted whitespace when extracting words from command history
+# https://github.com/ksh93/ksh/pull/291
+
+d 15
+p :test-1:
+w true ls One\\ "Two Three"$'Four Five'.mp3
+r ^:test-1: true ls One\\ "Two Three"\$'Four Five'\.mp3\r\n$
+p :test-2:
+w :\E_
+r ^:test-2: : One\\ "Two Three"\$'Four Five'\.mp3\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
