@@ -1019,4 +1019,20 @@ dummy=${ : >&2; got='good'; }
 	"(expected '$exp', got '$got')"
 
 # ======
+unset d x
+exp='end 1'
+got=$(d=${ true & x=1; echo end; }; echo $d $x)
+[[ $got == "$exp" ]] || err_exit 'subshare forks when running background job' \
+	"(expected '$exp', got '$got')"
+
+# ======
+# https://github.com/ksh93/ksh/issues/289
+got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ ulimit -t 1; }); ulimit -t)
+[[ $got == 1 ]] && err_exit "'ulimit' command run in subshare leaks out of parent virtual subshell"
+got=$(_AST_FEATURES="TEST_TMP_VAR - $$" "$SHELL" -c '(d=${ builtin getconf;}); getconf TEST_TMP_VAR' 2>&1)
+[[ $got == $$ ]] && err_exit "'builtin' command run in subshare leaks out of parent virtual subshell"
+got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ exec true; }); echo ok)
+[[ $got == ok ]] || err_exit "'exec' command run in subshare disregards parent virtual subshell"
+
+# ======
 exit $((Errors<125?Errors:125))

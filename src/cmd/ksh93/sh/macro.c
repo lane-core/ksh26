@@ -2075,6 +2075,7 @@ nosub:
 /*
  * This routine handles command substitution
  * <type> is 0 for older `...` version
+ * 1 for $(...) or 2 for ${ subshare; }
  */
 static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 {
@@ -2194,7 +2195,11 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			type = 3;
 		}
 		else
+		{
+			if(type==2 && sh.subshell && !sh.subshare)
+				sh_subfork();	/* subshares within virtual subshells are broken, so fork first */
 			sp = sh_subshell(mp->shp,t,sh_isstate(SH_ERREXIT),type);
+		}
 		fcrestore(&save);
 	}
 	else

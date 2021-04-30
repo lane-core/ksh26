@@ -13,6 +13,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug introduced on 2020-09-05 that caused "echo ${var:+'{}'}"
   to be misparsed.
 
+- Fixed: the effects of 'builtin', 'exec' and 'ulimit' leaked out of a parent
+  virtual subshell if run from a ${ shared-state; } command substitution.
+
 2021-04-26:
 
 - Fixed a bug introduced on 2021-02-20 in which a shared-state command

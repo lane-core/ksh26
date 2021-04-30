@@ -273,32 +273,11 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	Namarr_t		*ap;
 	unsigned int		save;
 	/*
-	 * Don't create a scope if told not to (see nv_restore()).
+	 * Don't create a scope if told not to (see nv_restore()) or if this is a subshare.
 	 * Also, moving/copying ${.sh.level} (SH_LEVELNOD) may crash the shell.
 	 */
-	if(subshell_noscope || add<2 && np==SH_LEVELNOD)
+	if(subshell_noscope || sh.subshare || add<2 && np==SH_LEVELNOD)
 		return(np);
-	/*
-	 * Don't create a scope for a ${ shared-state command substitution; } (a.k.a. subshare).
-	 * However, if the subshare is in a virtual subshell, we need to create a scope in that.
-	 * If so, temporarily make that the current subshell and call this function recursively.
-	 */
-	if(shp->subshare)
-	{
-		while(subshell_data->subshare)		/* move up as long as parent is also a subshare */
-			subshell_data = subshell_data->prev;
-		subshell_data = subshell_data->prev;	/* move to first non-subshare parent */
-		if(!subshell_data)			/* if that's not a virtual subshell, don't create a scope */
-		{
-			subshell_data = sp;
-			return(np);
-		}
-		shp->subshare = 0;
-		np = sh_assignok(np,add);
-		shp->subshare = 1;
-		subshell_data = sp;
-		return(np);
-	}
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
 		shp->last_root = ap->table;
@@ -427,14 +406,8 @@ static void nv_restore(struct subshell *sp)
 Dt_t *sh_subtracktree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell)
+	if(create && sh.subshell && !sh.subshare)
 	{
-		if(sh.subshare)
-		{
-			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
-				sp = sp->prev;
-			sp = sp->prev;		/* move to first non-subshare parent */
-		}
 		if(sp && !sp->strack)
 		{
 			sp->strack = dtopen(&_Nvdisc,Dtset);
@@ -453,14 +426,8 @@ Dt_t *sh_subtracktree(int create)
 Dt_t *sh_subfuntree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell)
+	if(create && sh.subshell && !sh.subshare)
 	{
-		if(sh.subshare)
-		{
-			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
-				sp = sp->prev;
-			sp = sp->prev;		/* move to first non-subshare parent */
-		}
 		if(sp && !sp->sfun)
 		{
 			sp->sfun = dtopen(&_Nvdisc,Dtoset);
