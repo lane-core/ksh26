@@ -858,5 +858,19 @@ w test \$\{.sh.level\t
 r ^:test-1: test \$\{.sh.level\}\r\n$
 !
 
+# err_exit #
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
+L tab completion executes command substitutions
+# https://github.com/ksh93/ksh/issues/268
+
+d 15
+p :test-1:
+w $(echo true)\t
+r ^:test-1: \$\(echo true\)\r\n$
+p :test-2:
+w `echo true`\t
+r ^:test-2: `echo true`\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
