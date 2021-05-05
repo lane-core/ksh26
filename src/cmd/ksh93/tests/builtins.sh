@@ -768,8 +768,24 @@ printf '\\\000' | read -r -d ''
 
 # ======
 # BUG_CMDSPASGN: Preceding a special builtin with 'command' should disable its special properties.
-foo=BUG command eval ':'
-[[ $foo == BUG ]] && err_exit "'command' fails to disable the special properties of special builtins"
+# Test that assignments preceding 'command' are local.
+command -p ls
+for arg in '' -v -V -p -x
+do
+	for cmd in '' : true ls eval 'eval :' 'eval true' 'eval ls'
+	do
+		[[ $arg == -x ]] && ! command -xv "${cmd% *}" >/dev/null && continue
+		unset foo
+		eval "foo=BUG command $arg $cmd" >/dev/null 2>&1
+		got=$?
+		case $arg,$cmd in
+		-v, | -V, )	exp=2 ;;
+		*)		exp=0 ;;
+		esac
+		[[ $got == "$exp" ]] || err_exit "exit status of 'command $arg $cmd' is $got, expected $exp"
+		[[ -v foo ]] && err_exit "preceding assignment survives 'command $arg $cmd'"
+	done
+done
 
 # Regression that occurred after fixing the bug above: the += operator didn't work correctly.
 # https://www.mail-archive.com/ast-users@lists.research.att.com/msg00369.html
