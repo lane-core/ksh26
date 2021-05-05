@@ -267,10 +267,13 @@ x2=.000000001
 if	[[ $(printf "%g\n" x2 2>/dev/null) != 1e-09 ]]
 then	err_exit 'printf "%g" not working correctly'
 fi
-#FIXME#($SHELL read -s foobar <<\!
-#FIXME#testing
-#FIXME#!
-#FIXME#) 2> /dev/null || err_exit ksh read -s var fails
+
+(read -s foobar <<<testing_read_s) 2> /dev/null || err_exit "'read -s var' fails"
+exp=$'^[[:digit:]]+\ttesting_read_s$'
+got=$(fc -l -0)
+[[ $got =~ $exp ]] || err_exit "'read -s' did not write to history file" \
+	"(expected match of regex $(printf %q "$exp"), got $(printf %q "$got"))"
+
 if	[[ $(printf +3 2>/dev/null) !=   +3 ]]
 then	err_exit 'printf is not processing formats beginning with + correctly'
 fi
@@ -769,7 +772,6 @@ printf '\\\000' | read -r -d ''
 # ======
 # BUG_CMDSPASGN: Preceding a special builtin with 'command' should disable its special properties.
 # Test that assignments preceding 'command' are local.
-command -p ls
 for arg in '' -v -V -p -x
 do
 	for cmd in '' : true ls eval 'eval :' 'eval true' 'eval ls'
