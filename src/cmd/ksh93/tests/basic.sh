@@ -826,11 +826,14 @@ expect_status=2
 # ======
 # Test for illegal seek error (ksh93v- regression)
 # https://www.mail-archive.com/ast-users@lists.research.att.com/msg00816.html
+if [[ $(uname -s) != SunOS ]]  # Solaris 11.4 join(1) hangs on this test -- not ksh's fault
+then
 exp='1
 2'
 got="$(join <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))"
 [[ $exp == $got ]] || err_exit "pipeline fails with illegal seek error" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi  # $(uname -s) != SunOS
 
 # ======
 exit $((Errors<125?Errors:125))
