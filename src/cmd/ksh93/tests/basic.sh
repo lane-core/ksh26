@@ -667,7 +667,7 @@ got=$(eval 'x=`for i in test; do case $i in test) true;; esac; done`' 2>&1) \
 
 # Redirecting disabled the DEBUG trap
 exp=$'LINENO: 4\nfoo\nLINENO: 5\nLINENO: 6\nbar\nLINENO: 7\nbaz'
-got=$({ "$SHELL" -c '
+got=$(set +x; { "$SHELL" -c '
 	PATH=/dev/null
 	trap "echo LINENO: \$LINENO >&1" DEBUG	# 3
 	echo foo				# 4
@@ -680,7 +680,7 @@ got=$({ "$SHELL" -c '
 
 # The DEBUG trap crashed when re-trapping inside a subshell
 exp=$'trap -- \': main\' EXIT\ntrap -- \': main\' ERR\ntrap -- \': main\' KEYBD\ntrap -- \': main\' DEBUG'
-got=$({ "$SHELL" -c '
+got=$(set +x; { "$SHELL" -c '
 	PATH=/dev/null
 	for sig in EXIT ERR KEYBD DEBUG
 	do	trap ": main" $sig
@@ -694,7 +694,7 @@ got=$({ "$SHELL" -c '
 
 # Field splitting broke upon evaluating an unquoted expansion in a DEBUG trap
 exp=$'a\nb\nc'
-got=$({ "$SHELL" -c '
+got=$(set +x; { "$SHELL" -c '
 	PATH=/dev/null
 	v=""
 	trap ": \$v" DEBUG
