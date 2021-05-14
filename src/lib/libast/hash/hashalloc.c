@@ -50,7 +50,6 @@ hashalloc(Hash_table_t* ref, ...)
 	va_list*		vp = va;
 	Hash_region_f		region = 0;
 	void*			handle;
-	va_listarg		tmpval;
 
 	va_start(ap, ref);
 
@@ -153,8 +152,16 @@ hashalloc(Hash_table_t* ref, ...)
 				va_copy(*vp, ap);
 				vp++;
 			}
-			tmpval = va_listval(va_arg(ap, va_listarg));
-			va_copy(ap, tmpval);
+#if __clang__ && __SIZEOF_POINTER__ == 4
+			{
+				va_list		np;
+
+				np = va_listval(va_arg(ap, va_listarg));
+				va_copy(ap, np);
+			}
+#else
+			va_copy(ap, va_listval(va_arg(ap, va_listarg)));
+#endif
 			break;
 		case 0:
 			if (vp > va)
