@@ -152,7 +152,7 @@ hashalloc(Hash_table_t* ref, ...)
 				va_copy(*vp, ap);
 				vp++;
 			}
-#if __clang__ && __SIZEOF_POINTER__ == 4
+#if __clang__ && __SIZEOF_POINTER__ == 4 && !__APPLE__
 			{
 				va_list		np;
 

@@ -234,7 +234,7 @@ tokscan(register char* s, char** nxt, const char* fmt, ...)
 			prv_f = f;
 			f = va_arg(ap, char*);
 			va_copy(prv_ap, ap);
-#if __clang__ && __SIZEOF_POINTER__ == 4
+#if __clang__ && __SIZEOF_POINTER__ == 4 && !__APPLE__
 			{
 				va_list		np;
 
