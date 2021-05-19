@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed SHLVL so that replacing ksh by itself (exec ksh) will not increase it.
 
+- Fixed a regression introduced on 2020-08-05 that caused a non-interactive
+  shell to exit if an I/O redirection of a function call encountered an error.
+
 2021-05-13:
 
 - Fixed a bug with 'test -t 1' that was introduced on 2021-04-26:
