@@ -412,4 +412,16 @@ foo=10
 ([[ foo -eq 10 ]]) || err_exit 'foo -eq 10 fails in [[ ... ]] with foo=10'
 
 # ======
+# The negator should negate the negator
+# This bug was shared with bash:
+# https://lists.gnu.org/archive/html/bug-bash/2021-06/msg00006.html
+[[ ! ! -n x ]] && ! [[ ! ! ! -n x ]] && [[ ! ! ! ! -n x ]] && ! [[ ! ! ! ! ! -n x ]] \
+&& [[ ! ! -n x && ! ! ! ! -n x && ! ! ! ! ! ! -n x ]] \
+|| err_exit '! does not negate ! in [[ ... ]]'
+# The bug did not exist in 'test'/'[', but check for it anyway
+[ ! ! -n x ] && ! [ ! ! ! -n x ] && [ ! ! ! ! -n x ] && ! [ ! ! ! ! ! -n x ] \
+&& [ ! ! -n x -a ! ! ! ! -n x -a ! ! ! ! ! ! -n x ] \
+|| err_exit '! does not negate ! in [ ... ]'
+
+# ======
 exit $((Errors<125?Errors:125))

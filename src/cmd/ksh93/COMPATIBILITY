@@ -147,6 +147,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 	zero instead of negative infinity. Previously, int() was an alias to
 	floor(), but now it behaves like trunc().
 
+27.	The '!' logical negation operator in the '[[' compound command now
+	correctly negates another '!', e.g., [[ ! ! 1 -eq 1 ]] now returns
+	0/true. Note that this has always been the case for 'test'/'['.
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88
