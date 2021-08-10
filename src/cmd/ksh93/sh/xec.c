@@ -52,6 +52,10 @@
 #   define vfork()      fork()
 #endif
 
+#if _lib_getrusage && !defined(RUSAGE_SELF)
+#   include <sys/resource.h>
+#endif
+
 #define SH_NTFORK	SH_TIMING
 #define NV_BLTPFSH	NV_ARRAY
 
