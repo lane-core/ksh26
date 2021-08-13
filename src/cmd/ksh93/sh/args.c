@@ -735,7 +735,7 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
 	if(fd==0 && shp->subshell)
-		sh_subtmpfile(shp->comsub);
+		sh_subtmpfile(shp);
 #if SHOPT_DEVFD
 	sfwrite(shp->stk,e_devfdNN,8);
 	pv[2] = 0;

@@ -100,7 +100,6 @@ struct jobs
 	char		jobcontrol;	/* turned on for real job control */
 	char		waitsafe;	/* wait will not block */
 	char		waitall;	/* wait for all jobs in pipe */
-	char		bktick_waitall;	/* wait state for `backtick comsubs` */
 	char		toclear;	/* job table needs clearing */
 	unsigned char	*freejobs;	/* free jobs numbers */
 };

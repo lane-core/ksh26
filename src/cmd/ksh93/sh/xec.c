@@ -184,29 +184,8 @@ static int iousepipe(Shell_t *shp)
 	if(sh_rpipe(subpipe) < 0)
 		return(0);
 	usepipe++;
-	if(shp->comsub!=1)
-	{
-		subpipe[2] = sh_fcntl(subpipe[1],F_DUPFD,10);
-		sh_close(subpipe[1]);
-		return(1);
-	}
-	subpipe[2] = sh_fcntl(fd,F_dupfd_cloexec,10);
-	sh_iovalidfd(shp,subpipe[2]);
-	shp->fdstatus[subpipe[2]] = shp->fdstatus[1];
-	while(close(fd)<0 && errno==EINTR)
-		errno = err;
-	fcntl(subpipe[1],F_DUPFD,fd);
-	shp->fdstatus[1] = shp->fdstatus[subpipe[1]]&~IOCLEX;
+	subpipe[2] = sh_fcntl(subpipe[1],F_DUPFD,10);
 	sh_close(subpipe[1]);
-	if(subdup=shp->subdup) for(i=0; i < 10; i++)
-	{
-		if(subdup&(1<<i))
-		{
-			sh_close(i);
-			fcntl(1,F_DUPFD,i);
-			shp->fdstatus[i] = shp->fdstatus[1];
-		}
-	}
 	return(1);
 }
 
@@ -217,48 +196,9 @@ void sh_iounpipe(Shell_t *shp)
 	if(!usepipe)
 		return;
 	--usepipe;
-	if(shp->comsub>1)
-	{
-		sh_close(subpipe[2]);
-		while(read(subpipe[0],buff,sizeof(buff))>0);
-		goto done;
-	}
-	while(close(fd)<0 && errno==EINTR)
-		errno = err;
-	fcntl(subpipe[2], F_DUPFD, fd);
-	shp->fdstatus[1] = shp->fdstatus[subpipe[2]];
-	if(subdup) for(n=0; n < 10; n++)
-	{
-		if(subdup&(1<<n))
-		{
-			sh_close(n);
-			fcntl(1, F_DUPFD, n);
-			shp->fdstatus[n] = shp->fdstatus[1];
-		}
-	}
-	shp->subdup = 0;
 	sh_close(subpipe[2]);
-	if(usepipe==0) while(1)
-	{
-		while(job.waitsafe && job.savesig==SIGCHLD)
-		{
-			if(!vmbusy())
-			{
-				job.in_critical++;
-				job_reap(SIGCHLD);
-				job.in_critical--;
-				break;
-			}
-			sh_delay(1,0);
-		}
-		if((n = read(subpipe[0],buff,sizeof(buff)))==0)
-			break;
-		if(n>0)
-			sfwrite(sfstdout,buff,n);
-		else if(errno!=EINTR)
-			break;
-	}
-done:
+	while(read(subpipe[0],buff,sizeof(buff))>0)
+		;
 	sh_close(subpipe[0]);
 	subpipe[0] = -1;
 	tsetio = 0;
@@ -1399,7 +1339,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->notify = 0;
 						bp->flags = (OPTIMIZE!=0);
 						if(shp->subshell && nv_isattr(np,BLT_NOSFIO))
-							sh_subtmpfile(shp->comsub);
+							sh_subtmpfile(shp);
 						if(execflg && !shp->subshell &&
 							!shp->st.trapcom[0] && !shp->st.trap[SH_ERRTRAP] && shp->fn_depth==0 && !nv_isattr(np,BLT_ENV))
 						{
@@ -1616,12 +1556,14 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int pipes[3];
 			if(shp->subshell)
 			{
-				sh_subtmpfile(2);
-				if((shp->comsub && (type&(FAMP|TFORK))==(FAMP|TFORK) || shp->comsub==1) &&
-				!(shp->fdstatus[1]&IONOSEEK))
-					unpipe = iousepipe(shp);
-				if((type&(FAMP|TFORK))==(FAMP|TFORK) && !shp->subshare)
-					sh_subfork();
+				sh_subtmpfile(shp);
+				if((type&(FAMP|TFORK))==(FAMP|TFORK))
+				{
+					if(shp->comsub && !(shp->fdstatus[1]&IONOSEEK))
+						unpipe = iousepipe(shp);
+					if(!shp->subshare)
+						sh_subfork();
+				}
 			}
 			no_fork = !ntflag && !(type&(FAMP|FPOU)) && !shp->subshell &&
 			    !(shp->st.trapcom[SIGINT] && *shp->st.trapcom[SIGINT]) &&
@@ -1675,8 +1617,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						if(shp->topfd > topfd)
 							sh_iorestore(shp,topfd,0);  /* prevent FD leak from 'not found' */
-						if(shp->comsub==1 && usepipe && unpipe)
-							sh_iounpipe(shp);
 						break;
 					}
 				}
@@ -1908,8 +1848,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval==0)
 			{
-				if(shp->comsub==1)
-					tsetio = 1;
 				if(execflg && !check_exec_optimization(t->fork.forkio))
 				{
 					execflg = 0;
@@ -1942,8 +1880,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(type || !sh_isoption(SH_PIPEFAIL))
 						shp->exitval = type;
 				}
-				if(shp->comsub==1 && usepipe)
-					sh_iounpipe(shp);
 				shp->pipepid = 0;
 				shp->st.ioset = 0;
 			}
@@ -2028,11 +1964,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(shp->subshell)
-			{
-				sh_subtmpfile(2);
-				if(shp->comsub==1 && !(shp->fdstatus[1]&IONOSEEK))
-					iousepipe(shp);
-			}
+				sh_subtmpfile(shp);
 			shp->inpipe = pvo;
 			shp->outpipe = pvn;
 			pvo[1] = -1;
@@ -2047,7 +1979,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				memset(exitval,0,job.waitall*sizeof(int));
 			}
 			else
-				job.waitall |= (job.bktick_waitall || !pipejob && sh_isstate(SH_MONITOR));
+				job.waitall |= (!pipejob && sh_isstate(SH_MONITOR));
 			job_lock();
 			nlock++;
 			do
@@ -2460,8 +2392,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			if(t->par.partre)
 			{
-				if(shp->subshell && shp->comsub==1)
-					sh_subfork();
 				long timer_on = sh_isstate(SH_TIMING);
 #ifdef timeofday
 				/* must be run after forking a subshell */
@@ -3015,15 +2945,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 			job.curpgid = curpgid;
 		if(jobid)
 			*jobid = myjob;
-		if(shp->comsub==1 && usepipe)
-		{
-			if(!tsetio || !subdup)
-			{
-				if(shp->topfd > restorefd)
-					sh_iorestore(shp,restorefd,0);
-				sh_iounpipe(shp);
-			}
-		}
 		return(parent);
 	}
 #if !_std_malloc

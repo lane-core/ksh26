@@ -381,7 +381,7 @@ extern Dt_t		*sh_subtracktree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
-extern void		sh_subtmpfile(char);
+extern void		sh_subtmpfile(Shell_t*);
 extern char 		*sh_substitute(const char*,const char*,char*);
 extern void		sh_timetraps(Shell_t*);
 extern const char	*_sh_translate(const char*);

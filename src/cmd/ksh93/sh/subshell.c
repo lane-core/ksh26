@@ -112,14 +112,12 @@ static unsigned int subenv;
 
 
 /*
- * This routine will turn the sftmp() file into a real /tmp file or pipe
- * if the /tmp file create fails
+ * This routine will turn the sftmp() file into a real temporary file
  */
-void	sh_subtmpfile(char comsub_flag)
+void	sh_subtmpfile(Shell_t *shp)
 {
 	if(sfset(sfstdout,0,0)&SF_STRING)
 	{
-		Shell_t *shp = sh_getinterp();
 		register int fd;
 		register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 		register struct subshell *sp = subshell_data->pipe;
@@ -136,40 +134,21 @@ void	sh_subtmpfile(char comsub_flag)
 			UNREACHABLE();
 		}
 		/* popping a discipline forces a /tmp file create */
-		if(comsub_flag != 1)
-			sfdisc(sfstdout,SF_POPDISC);
+		sfdisc(sfstdout,SF_POPDISC);
 		if((fd=sffileno(sfstdout))<0)
 		{
-			/* unable to create the /tmp file so use a pipe */
-			int fds[3];
-			Sfoff_t off;
-			fds[2] = 0;
-			sh_pipe(fds);
-			sp->pipefd = fds[0];
-			sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
-			/* write the data to the pipe */
-			if(off = sftell(sfstdout))
-				write(fds[1],sfsetbuf(sfstdout,(Void_t*)sfstdout,0),(size_t)off);
-			sfclose(sfstdout);
-			if((sh_fcntl(fds[1],F_DUPFD, 1)) != 1)
-			{
-				errormsg(SH_DICT,ERROR_system(1),e_file+4);
-				UNREACHABLE();
-			}
-			sh_close(fds[1]);
+			errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"could not create temp file");
+			UNREACHABLE();
 		}
+		shp->fdstatus[fd] = IOREAD|IOWRITE;
+		sfsync(sfstdout);
+		if(fd==1)
+			fcntl(1,F_SETFD,0);
 		else
 		{
-			shp->fdstatus[fd] = IOREAD|IOWRITE;
-			sfsync(sfstdout);
-			if(fd==1)
-				fcntl(1,F_SETFD,0);
-			else
-			{
-				sfsetfd(sfstdout,1);
-				shp->fdstatus[1] = shp->fdstatus[fd];
-				shp->fdstatus[fd] = IOCLOSE;
-			}
+			sfsetfd(sfstdout,1);
+			shp->fdstatus[1] = shp->fdstatus[fd];
+			shp->fdstatus[fd] = IOCLOSE;
 		}
 		sh_iostream(shp,1);
 		sfset(sfstdout,SF_SHARE|SF_PUBLIC,1);
@@ -197,7 +176,7 @@ void sh_subfork(void)
 		trap = sh_strdup(trap);
 	/* see whether inside $(...) */
 	if(sp->pipe)
-		sh_subtmpfile(shp->comsub);
+		sh_subtmpfile(shp);
 	shp->curenv = 0;
 	shp->savesig = -1;
 	if(pid = sh_fork(shp,FSHOWME,NIL(int*)))
@@ -537,10 +516,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->subshare)
 		sp->pathlist = path_dup((Pathcomp_t*)shp->pathlist);
 	if(comsub)
-	{
 		shp->comsub = comsub;
-		job.bktick_waitall = (comsub==1);
-	}
 	if(!shp->subshare)
 	{
 		struct subshell *xp;
@@ -704,8 +680,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		else
 		{
-			job.bktick_waitall = 0;
-			if(comsub!=1 && shp->spid)
+			if(shp->spid)
 			{
 				int e = shp->exitval;
 				job_wait(shp->spid);
@@ -900,7 +875,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(sp->subpid)
 	{
 		job_wait(sp->subpid);
-		if(comsub>1)
+		if(comsub)
 			sh_iounpipe(shp);
 	}
 	shp->comsub = sp->comsub;
