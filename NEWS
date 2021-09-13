@@ -3,6 +3,18 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-09-13:
+
+- Fixed a bug introduced in 93u+ 2012-02-07 that caused the 'printf' builtin
+  (and its 'print -f' equivalent) to fail to recognise integer arguments with a
+  leading zero as octal numbers. For example, 'printf "%d\n" 010' now once
+  again outputs '8' instead of '10'.
+
+- Disable the POSIX arithmetic context while running a command substitution
+  invoked from within an arithmetic expression. This fixes a bug that caused
+  integer arguments with a leading zero to be incorrectly interpreted as octal
+  numbers in non-POSIX arithmetic contexts within such command substitutions.
+
 2021-09-12:
 
 - When invoking a script without an interpreter/hashbang path on Linux and

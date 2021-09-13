@@ -877,4 +877,26 @@ fi
 unset got
 
 # ======
+# https://github.com/ksh93/ksh/issues/326
+for m in u d i o x X
+do
+	case $m in
+	o)	exp="10;21;32;" ;;
+	x)	exp="8;11;1a;" ;;
+	X)	exp="8;11;1A;" ;;
+	*)	exp="8;17;26;" ;;
+	esac
+	got=${ printf "%$m;" 010 021 032; }
+	[[ $got == "$exp" ]] || err_exit "printf %$m does not recognize octal arguments" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# https://github.com/ksh93/ksh/issues/326#issuecomment-917707463
+exp=18
+got=$(( $(integer x; x=010; echo $x) + 010 ))
+#		       ^^^ decimal     ^^^ octal
+[[ $got == "$exp" ]] || err_exit 'Integer with leading zero incorrectly interpreted as octal in non-POSIX arith context' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
