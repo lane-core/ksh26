@@ -97,7 +97,7 @@ struct jobs
 	int		suspend;	/* suspend character */
 	int		linedisc;	/* line discipline */
 #endif /* JOBS */
-	char		jobcontrol;	/* turned on for real job control */
+	char		jobcontrol;	/* turned on for interactive shell with control of terminal */
 	char		waitsafe;	/* wait will not block */
 	char		waitall;	/* wait for all jobs in pipe */
 	char		toclear;	/* job table needs clearing */
