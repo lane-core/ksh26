@@ -2795,12 +2795,12 @@ int sh_run(int argn, char *argv[])
 
 int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 {
-	register char *cp;
-	register int bracket = 0;
-	int decl = (nl&2);
-	nl &= ~2;
 	if(sh_isoption(SH_XTRACE))
 	{
+		register char *cp;
+		register int bracket = 0;
+		int decl = (nl&2);
+		nl &= ~2;
 		/* make this trace atomic */
 		sfset(sfstderr,SF_SHARE|SF_PUBLIC,0);
 		if(!(cp=nv_getval(sh_scoped(shp,PS4NOD))))
@@ -2836,8 +2836,8 @@ int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 				}
 				sfputr(sfstderr,cp,*argv?' ':nl);
 			}
-			sfset(sfstderr,SF_SHARE|SF_PUBLIC,1);
 		}
+		sfset(sfstderr,SF_SHARE|SF_PUBLIC,1);
 		return(1);
 	}
 	return(0);
