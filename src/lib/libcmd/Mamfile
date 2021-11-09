@@ -165,7 +165,7 @@ make install
 							done chgrp.c
 							make chmod.c
 								prev FEATURE/symlink implicit
-								prev fts.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
 							done chmod.c
@@ -194,7 +194,7 @@ make install
 									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/error.h
-								prev fts.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								make ${PACKAGE_ast_INCLUDE}/modex.h implicit
 									make ${PACKAGE_ast_INCLUDE}/modecanon.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
@@ -245,7 +245,7 @@ make install
 								make ${PACKAGE_ast_INCLUDE}/hashkey.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/hashkey.h
-								prev fts.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/times.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
@@ -360,7 +360,7 @@ make install
 								prev cmd.h implicit
 							done rev.c
 							make rm.c
-								prev fts.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
 							done rm.c
