@@ -1493,6 +1493,8 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 				}
 				else if(sh_subsavefd(fn))
 				{
+					if(shp->subshell && !shp->subshare && sh_iocheckfd(shp,fn) == IOCLOSE)
+						sh_subfork();	/* work around https://github.com/ksh93/ksh/issues/161 */
 					if(fd==fn && !shp->subshare)
 					{
 						if((r=sh_fcntl(fd,F_DUPFD,10)) > 0)
