@@ -900,31 +900,4 @@ then	for cmd in echo print printf
 fi
 
 # ======
-# https://github.com/ksh93/ksh/issues/161
-: >bug161.out
-redirect 9>bug161.out
-( { redirect 9>&1; } 9>&- )
-echo "good" 2>/dev/null >&9
-[[ $(<bug161.out) == "good" ]] || err_exit "File descriptor is unexpectedly closed after redirect in subshell" \
-	"(expected 'good', got $(printf %q "$(<bug161.out)"))"
-redirect 9>/dev/null
-redirect 9>&-
-v=$( { redirect 9>&1; } )
-echo "test" 2>bug161.err >&9
-exp='*cannot open*'
-got=$(<bug161.err)
-[[ $got == $exp ]] || err_exit "File descriptor not properly re-closed after redirect in subshell" \
-	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-
-# https://github.com/ksh93/ksh/issues/161#issuecomment-831658583
-redirect 6>&-
-got=$( set +x; (
-	openfd() { redirect 6>&1; }
-	openfd
-	echo "OK" >&6
-) 2>&1 )
-[[ $got == OK ]] || err_exit "Open file descriptor does not survive function" \
-	"(expected OK, got $(printf %q "$got"))"
-
-# ======
 exit $((Errors<125?Errors:125))
