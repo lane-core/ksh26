@@ -1164,16 +1164,16 @@ int sh_type(register const char *path)
 		}
 		break;
 	}
+#if _WINIX
+	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && (!*(s+2) || *(s+2) == '.'))
+#else
+	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && !*(s+2))
+#endif
+		t |= SH_TYPE_POSIX;
 	if (*s++ == 's' && (*s == 'h' || *s == 'u'))
 	{
 		s++;
 		t |= SH_TYPE_SH;
-#if _WINIX
-		if (!(t & SH_TYPE_KSH) && (!*s || *s == '.'))
-#else
-		if (!(t & SH_TYPE_KSH) && !*s)
-#endif
-			t |= SH_TYPE_POSIX;
 		if ((t & SH_TYPE_KSH) && *s == '9' && *(s+1) == '3')
 			s += 2;
 #if _WINIX
