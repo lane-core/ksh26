@@ -1323,13 +1323,8 @@ retry1:
 				flag &= ~NV_NOADD;
 			/*
 			 * Get a node pointer (np) to the parameter, if any.
-			 *
-			 * The IFS node always exists, so we must special-case IFS by checking if it has
-			 * a value; otherwise it always follows the code path for a set parameter, so is
-			 * not subject to 'set -u', and may test as set even after 'unset -v IFS'.
 			 */
-			if(!(*id=='I' && strcmp(id,"IFS")==0 && nv_getval(sh_scoped(mp->shp,IFSNOD)) == NIL(char*)))
-				np = nv_open(id,mp->shp->var_tree,flag|NV_NOFAIL);
+			np = nv_open(id,mp->shp->var_tree,flag|NV_NOFAIL);
 			if(!np)
 			{
 				sfprintf(mp->shp->strbuf,"%s%c",id,0);

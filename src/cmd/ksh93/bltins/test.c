@@ -496,8 +496,6 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 		}
 		if(ap = nv_arrayptr(np))
 			return(nv_arrayisset(np,ap));
-		if(*arg=='I' && strcmp(arg,"IFS")==0)
-			return(nv_getval(np)!=NULL);  /* avoid BUG_IFSISSET */
 		return(!nv_isnull(np));
 	    }
 	    default:
