@@ -1970,10 +1970,11 @@ static Shnode_t *test_primary(Lex_t *lexp)
 #endif /* SHOPT_KIA */
 		if(sh_lex(lexp))
 			sh_syntax(lexp);
-		if(num&TEST_PATTERN)
+		if(num&TEST_STRCMP)
 		{
+			/* If the argument is unquoted, enable pattern matching */
 			if(lexp->arg->argflag&(ARG_EXP|ARG_MAC))
-				num &= ~TEST_PATTERN;
+				num &= ~TEST_STRCMP;
 		}
 		t = getnode(tstnod);
 		t->lst.lsttyp = TTST|TTEST|TBINARY|(num<<TSHIFT);

@@ -7456,9 +7456,8 @@ to those specified for the \f3[[\fP compound command under
 .I Conditional Expressions
 above, but with several important differences. The \f3=\fP, \f3==\fP and
 \f3!=\fP operators test for string (in)equality without pattern matching;
-the \f3==\fP variant is nonstandard and should not be used. The \f3=\(ap\fP,
-\f3<\fP, \f3>\fP, \f3&&\fP and \f3||\fP operators are not available. Instead
-of \f3&&\fP and \f3||\fP, the \f3-a\fP and \f3-o\fP binary operators can be
+\f3==\fP is nonstandard and unportable. The f3&&\fP and \f3||\fP operators are
+not available. Instead, the \f3-a\fP and \f3-o\fP binary operators can be
 used, but they are fraught with pitfalls due to grammatical ambiguities and
 therefore deprecated in favor of invoking separate \f3test\fP commands. Most
 importantly, as \f3test\fP and \f3[\fP are simple regular commands, field

@@ -5,6 +5,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-11-13:
 
+- The test/[ built-in command now supports the '<' and '=~' operators from [[.
+  As of now, test/[ supports the same operators as [[ except for the different
+  and/or operators. Note: test/[ remains deprecated due to its many pitfalls.
+
 - The test/[ built-in command is fixed so that the binary -a (and) and -o (or)
   operators, as in [ "$a" -a "$b" ] or [ "$a" -o "$b" ], work even if "$a" is
   '!' or '('. To avoid breaking backwards compatibility with the nonstandard

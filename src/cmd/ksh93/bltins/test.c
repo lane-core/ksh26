@@ -174,7 +174,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		case 4:
 		{
 			register int op = sh_lookup(cp=argv[2],shtab_testops);
-			if(op&TEST_BINOP)
+			if(op&TEST_ANDOR)
 				break;
 			if(!op)
 			{
@@ -309,7 +309,7 @@ static int e3(struct test *tp)
 	register int op;
 	char *binop;
 	arg=nxtarg(tp,0);
-	if(sh_isoption(SH_POSIX) && tp->ap + 1 < tp->ac && ((op=sh_lookup(tp->av[tp->ap],shtab_testops)) & TEST_BINOP))
+	if(sh_isoption(SH_POSIX) && tp->ap + 1 < tp->ac && ((op=sh_lookup(tp->av[tp->ap],shtab_testops)) & TEST_ANDOR))
 	{	/*
 		 * In POSIX mode, makes sure standard binary -a/-o takes precedence
 		 * over nonstandard unary -a/-o if the lefthand expression is "!" or "("
@@ -374,7 +374,7 @@ static int e3(struct test *tp)
 	}
 skip:
 	op = sh_lookup(binop=cp,shtab_testops);
-	if(!(op&TEST_BINOP))
+	if(!(op&TEST_ANDOR))
 		cp = nxtarg(tp,0);
 	if(!op)
 	{
@@ -520,6 +520,10 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 	}
 }
 
+/*
+ * This function handles binary operators for both the
+ * test/[ built-in and the [[ ... ]] compound command
+ */
 int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 {
 	register double lnum = 0, rnum = 0;
@@ -549,6 +553,9 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 			return(strcmp(left, right)==0);
 		case TEST_SNE:
 			return(strcmp(left, right)!=0);
+		case TEST_REP:
+			sfprintf(stkstd, "~(E)%s", right);
+			return(test_strmatch(shp, left, stkfreeze(stkstd, 1))>0);
 		case TEST_EF:
 			return(test_inode(left,right));
 		case TEST_NT:
@@ -567,15 +574,8 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 			return(lnum>=rnum);
 		case TEST_LE:
 			return(lnum<=rnum);
-		default:
-		{
-			/* fallback for operators not supported by the test builtin */
-			int i=0;
-			while(shtab_testops[i].sh_number && shtab_testops[i].sh_number != op)
-				i++;
-			errormsg(SH_DICT, ERROR_exit(2), op==TEST_END ? e_badop : e_unsupported_op, shtab_testops[i].sh_name);
-		}
 	}
+	/* all possible binary operators should be covered above */
 	UNREACHABLE();
 }
 

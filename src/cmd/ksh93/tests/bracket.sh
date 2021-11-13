@@ -434,5 +434,20 @@ then	set -o posix -o trackall
 	set +o posix
 fi
 
+# =====
+# test should support '<' as well as '>'; before 2021-11-13, ksh supported
+# only '>' due to '<' being missorted in shtab_testops[] in data/testops.c
+[ foo \< bar ] 2>/dev/null
+(($?==1)) || err_exit '[ foo \< bar ] not working'
+[ foo \> bar ] 2>/dev/null
+(($?==1)) || err_exit '[ foo \> bar ] not working'
+
+# as of 2021-11-13, test also supports =~
+[ att_ =~ '(att|cus)_.*' ] 2>/dev/null || err_exit 'test/[: =~ ERE not working'
+[ abc =~ 'a(b)c' ] 2>/dev/null || err_exit "[ abc =~ 'a(b)c' ] fails"
+[ abc =~ '\babc\b' ] 2>/dev/null || err_exit "[ abc =~ '\\babc\\b' ] fails"
+[ AATAAT =~ '(AAT){2}' ] 2>/dev/null || err_exit "[ AATAAT =~ '(AAT){2}' ] does not match"
+[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] || err_exit "[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] does not match"
+
 # ======
 exit $((Errors<125?Errors:125))

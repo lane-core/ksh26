@@ -31,6 +31,7 @@
 
 /*
  * This is the list of binary test and [[ ... ]] operators
+ * It must be sorted in ascending ASCII order
  */
 
 const Shtable_t shtab_testops[] =
@@ -47,12 +48,11 @@ const Shtable_t shtab_testops[] =
 		"-nt",		TEST_NT,
 		"-o",		TEST_OR,
 		"-ot",		TEST_OT,
+		"<",		TEST_SLT,
 		"=",		TEST_SEQ,
 		"==",		TEST_SEQ,
 		"=~",           TEST_REP,
-		"<",		TEST_SLT,
 		">",		TEST_SGT,
-		"]]",		TEST_END,
 		"",		0
 };
 
@@ -134,6 +134,9 @@ const char sh_opttest[] =
 	"[+\astring1\a = \astring2\a?\astring1\a is equal to \astring2\a.]"
 	"[+\astring1\a == \astring2\a *?Same as \b=\b.]"
 	"[+\astring1\a != \astring2\a?\astring1\a is not equal to \astring2\a.]"
+	"[+\astring1\a =~ \aere\a *?\astring1\a matches the extended regular expression \aere\a.]"
+	"[+\astring1\a \\< \astring2\a *?\astring1\a lexically sorts before \astring2\a.]"
+	"[+\astring1\a \\> \astring2\a *?\astring1\a lexically sorts after \astring2\a.]"
 	"[+\anum1\a -eq \anum2\a?\anum1\a is numerically equal to \anum2\a.]"
 	"[+\anum1\a -ne \anum2\a?\anum1\a is not numerically equal to \anum2\a.]"
 	"[+\anum1\a -lt \anum2\a?\anum1\a is less than \anum2\a.]"
@@ -167,6 +170,5 @@ const char test_opchars[]	= "HLNRSVOGCaeohrwxdcbfugkv"
 const char e_argument[]		= "argument expected";
 const char e_missing[]		= "%s missing";
 const char e_badop[]		= "%s: unknown operator";
-const char e_unsupported_op[]	= "%s: operator not supported; use [[ ... ]]";
 const char e_tstbegin[]		= "[[ ! ";
 const char e_tstend[]		= " ]]\n";

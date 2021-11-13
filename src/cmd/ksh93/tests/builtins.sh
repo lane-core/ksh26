@@ -240,8 +240,7 @@ fi
 if	[[ $(LC_MESSAGES=C type test) != 'test is a shell builtin' ]]
 then	err_exit 'whence -v test not a builtin'
 fi
-builtin -d test
-if	[[ $(type test) == *builtin* ]]
+if	[[ $(builtin -d test; type test) == *builtin* ]]
 then	err_exit 'whence -v test after builtin -d incorrect'
 fi
 typeset -Z3 percent=$(printf '%o\n' "'%'")
@@ -1070,21 +1069,10 @@ then	got=$( { "$SHELL" -c '
 fi
 
 # ==========
-# Verify that the POSIX 'test' builtin complains loudly when the '=~' operator is used rather than
-# failing silently. See https://github.com/att/ast/issues/1152.
-actual=$($SHELL -c 'test foo =~ foo' 2>&1)
-actual_status=$?
-actual=${actual#*: }
-expect='test: =~: operator not supported; use [[ ... ]]'
-expect_status=2
-[[ "$actual" = "$expect" ]] || err_exit "test =~ failed (expected $expect, got $actual)"
-[[ "$actual_status" = "$expect_status" ]] ||
-    err_exit "test =~ failed with the wrong exit status (expected $expect_status, got $actual_status)"
-
-# Invalid operators 'test' and '[[ ... ]]' both reject should also cause an error with exit status 2.
+# Verify that the POSIX 'test' builtin exits with status 2 when given an invalid binary operator.
 for operator in '===' ']]'
 do
-	actual="$($SHELL -c "test foo $operator foo" 2>&1)"
+	actual=$(test foo "$operator" foo 2>&1)
 	actual_status=$?
 	actual=${actual#*: }
 	expect="test: $operator: unknown operator"
