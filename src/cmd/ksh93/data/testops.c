@@ -57,7 +57,7 @@ const Shtable_t shtab_testops[] =
 };
 
 const char sh_opttest[] =
-"[-1c?\n@(#)$Id: test (ksh 93u+m) 2020-08-31 $\n]"
+"[-1c?\n@(#)$Id: test (ksh 93u+m) 2021-11-13 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?test, [ - evaluate expression]"
 "[+DESCRIPTION?\btest\b evaluates expressions and returns its result using the "
@@ -97,7 +97,7 @@ const char sh_opttest[] =
 	"[+?Operators marked with a * are not part of the POSIX standard.]"
 "}"
 "[+UNARY OPERATORS?These evaluate as True if:]{"
-	"[+-a \afile\a *?Same as \b-e\b.]"
+	"[+-a \afile\a *?Deprecated. Same as \b-e\b.]"
 	"[+-b \afile\a?\afile\a is a block special file.]"
 	"[+-c \afile\a?\afile\a is a character special file.]"
 	"[+-d \afile\a?\afile\a is a directory.]"

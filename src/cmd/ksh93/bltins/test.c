@@ -243,8 +243,9 @@ done:
 /*
  * evaluate a test expression.
  * flag is 0 on outer level
- * flag is 1 when in parenthesis
- * flag is 2 when evaluating -a 
+ * flag is 1 when in parentheses
+ * flag is 2 when evaluating -a (TEST_AND)
+ * flag is 3 when evaluating -o (TEST_OR)
  */
 static int expr(struct test *tp,register int flag)
 {
@@ -308,6 +309,17 @@ static int e3(struct test *tp)
 	register int op;
 	char *binop;
 	arg=nxtarg(tp,0);
+	if(sh_isoption(SH_POSIX) && tp->ap + 1 < tp->ac && ((op=sh_lookup(tp->av[tp->ap],shtab_testops)) & TEST_BINOP))
+	{	/*
+		 * In POSIX mode, makes sure standard binary -a/-o takes precedence
+		 * over nonstandard unary -a/-o if the lefthand expression is "!" or "("
+		 */
+		tp->ap++;
+		if(op==TEST_AND)
+			return(*arg && expr(tp,2));
+		else /* TEST_OR */
+			return(*arg || expr(tp,3));
+	}
 	if(arg && c_eq(arg, '!'))
 		return(!e3(tp));
 	if(c_eq(arg, '('))

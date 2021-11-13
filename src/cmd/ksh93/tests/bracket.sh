@@ -424,4 +424,15 @@ foo=10
 || err_exit '! does not negate ! in [ ... ]'
 
 # ======
+# https://github.com/ksh93/ksh/issues/330
+if	(set -o posix) 2>/dev/null
+then	set -o posix -o trackall
+	test ! -a "" && err_exit "POSIX test/[: binary -a operator does not work with '!' as left-hand expression"
+	test \( -a \) 2>/dev/null || err_exit "POSIX test/[: binary -a operator does not work with '(' as left-hand expression"
+	test ! -o trackall || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
+	test \( -o \) 2>/dev/null || err_exit "POSIX test/[: binary -o operator does not work with '(' as left-hand expression"
+	set +o posix
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

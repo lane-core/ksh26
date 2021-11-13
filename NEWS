@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-11-13:
+
+- The test/[ built-in command is fixed so that the binary -a (and) and -o (or)
+  operators, as in [ "$a" -a "$b" ] or [ "$a" -o "$b" ], work even if "$a" is
+  '!' or '('. To avoid breaking backwards compatibility with the nonstandard
+  unary [ -a "$file" ] and [ -o "$option" ] operators in combination with '!'
+  or parentheses, this fix is only activated if the posix option is on.
+
 2021-11-07:
 
 - Fixed a bug that could corrupt output if standard output is closed upon

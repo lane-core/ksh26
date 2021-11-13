@@ -7244,6 +7244,12 @@ disables the \fB&>\fR redirection shorthand;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
+.IP \[bu]
+changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
+\fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators
+work even if \fIexpr1\fR equals "\fB!\fR" or "\fb(\fR" (which means the
+nonstandard unary \fB-a\fR \fIfile\fR and \fB-o\fR \fIoption\fR operators
+cannot be directly negated using \fB!\fR or wrapped in parentheses);
 and
 .IP \[bu]
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to
@@ -7451,13 +7457,15 @@ to those specified for the \f3[[\fP compound command under
 above, but with several important differences. The \f3=\fP, \f3==\fP and
 \f3!=\fP operators test for string (in)equality without pattern matching;
 the \f3==\fP variant is nonstandard and should not be used. The \f3=\(ap\fP,
-\f3<\fP, \f3>\fP, \f3&&\fP and \f3||\fP operators are not available. Most
+\f3<\fP, \f3>\fP, \f3&&\fP and \f3||\fP operators are not available. Instead
+of \f3&&\fP and \f3||\fP, the \f3-a\fP and \f3-o\fP binary operators can be
+used, but they are fraught with pitfalls due to grammatical ambiguities and
+therefore deprecated in favor of invoking separate \f3test\fP commands. Most
 importantly, as \f3test\fP and \f3[\fP are simple regular commands, field
 splitting and file name generation \f2are\fP performed on all their
 arguments and all aspects of regular shell grammar (such as redirection)
 remain active. This is usually harmful, so care must be taken to quote
-arguments and expansions to avoid this. There are also certain inherent
-grammatical ambiguities in the expressions. To avoid the many pitfalls
+arguments and expansions to avoid this. To avoid the many pitfalls
 arising from these issues, the \f3[[\fP compound command should be used
 instead. The primary purpose of the \f3test\fP and \f3[\fP commands is
 compatibility with other shells that lack \f3[[\fP.
