@@ -159,6 +159,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		if(!(argc==4 && (not=sh_lookup(cp=argv[2],shtab_testops))))
 		{
 			cp =  (++argv)[1];
+			++tdata.av;
 			argc -= 2;
 		}
 	}
@@ -320,7 +321,7 @@ static int e3(struct test *tp)
 		else /* TEST_OR */
 			return(*arg || expr(tp,3));
 	}
-	if(arg && c_eq(arg, '!'))
+	if(arg && c_eq(arg, '!') && tp->ap < tp->ac)
 		return(!e3(tp));
 	if(c_eq(arg, '('))
 	{

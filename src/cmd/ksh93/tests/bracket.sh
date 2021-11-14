@@ -447,7 +447,19 @@ fi
 [ abc =~ 'a(b)c' ] 2>/dev/null || err_exit "[ abc =~ 'a(b)c' ] fails"
 [ abc =~ '\babc\b' ] 2>/dev/null || err_exit "[ abc =~ '\\babc\\b' ] fails"
 [ AATAAT =~ '(AAT){2}' ] 2>/dev/null || err_exit "[ AATAAT =~ '(AAT){2}' ] does not match"
-[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] || err_exit "[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] does not match"
+[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] 2>/dev/null || err_exit "[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] does not match"
+
+# string nonemptiness tests combined with -a/-o and parentheses
+for c in "0:x -a x" "1:x -a ''" "1:'' -a x" "1:'' -a ''" \
+	 "0:x -o x" "0:x -o ''" "0:'' -o x" "1:'' -o ''" \
+	 "0:x -a !" "0:x -o !" "1:'' -a !" "0:'' -o !"
+do	e=${c%%:*}
+	c=${c#*:}
+	eval "[ \( $c \) ]" 2>/dev/null
+	(($?==e)) || err_exit "[ \( $c \) ] not working"
+	eval "test \( $c \)" 2>/dev/null
+	(($?==e)) || err_exit "test \( $c \) not working"
+done
 
 # ======
 exit $((Errors<125?Errors:125))
