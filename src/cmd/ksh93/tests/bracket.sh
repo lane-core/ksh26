@@ -440,7 +440,7 @@ fi
 [ foo \< bar ] 2>/dev/null
 (($?==1)) || err_exit '[ foo \< bar ] not working'
 [ foo \> bar ] 2>/dev/null
-(($?==1)) || err_exit '[ foo \> bar ] not working'
+(($?==0)) || err_exit '[ foo \> bar ] not working'
 
 # as of 2021-11-13, test also supports =~
 [ att_ =~ '(att|cus)_.*' ] 2>/dev/null || err_exit 'test/[: =~ ERE not working'
