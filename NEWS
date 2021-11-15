@@ -5,6 +5,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-11-14:
 
+- Fixed: ksh crashed after unsetting .sh.match and then matching a pattern.
+
 - Another test/[ fix: "test \( string1 -a string2 \)" and "test \( string1 -o
   string2 \)" no longer give an incorrect "argument expected" error message.
 

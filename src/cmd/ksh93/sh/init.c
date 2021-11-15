@@ -783,6 +783,9 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 	unsigned int	savesub = shp->subshell;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namarr_t	*ap_save = ap;
+	/* do not crash if .sh.match is unset */
+	if(!ap)
+		return;
 	shp->subshell = 0;
 #if !SHOPT_2DMATCH
 	index = 0;
