@@ -2924,11 +2924,12 @@ arithmetic or long double precision floating point for
 systems that provide this data type.
 Floating point constants follow the ANSI-C programming language
 floating point conventions.
-The floating point constants
-.B Nan
+The case-insensitive floating point constants
+.B NaN
 and
 .B Inf
-can be used to represent "not a number" and infinity respectively.
+can be used to represent "not a number" and infinity respectively,
+unless the \fBposix\fR shell option is on.
 Integer constants follow the ANSI-C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
@@ -7244,6 +7245,10 @@ disables the \fB&>\fR redirection shorthand;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
+.IP \[bu]
+disables the special floating point constants \fBInf\fR and \fBNaN\fR in
+arithmetic evaluation so that, e.g., \fB$((inf))\fR and \fB$((nan))\fR refer
+to the variables by those names;
 .IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators

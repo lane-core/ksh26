@@ -899,4 +899,26 @@ got=$(( $(integer x; x=010; echo $x) + 010 ))
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# BUG_ARITHNAN: In ksh <= 93u+m 2021-11-15 and zsh 5.6 - 5.8, the case-insensitive
+# floating point constants Inf and NaN are recognised in arithmetic evaluation,
+# overriding any variables with the names Inf, NaN, INF, nan, etc.
+if	(set --posix) 2>/dev/null
+then	set --posix
+	Inf=42 NaN=13
+	inf=421 nan=137
+	INF=429 NAN=937
+	typeset -l v=$((Inf)),$((NaN)),$((inf)),$((nan)),$((INF)),$((NAN))
+	case $v in
+	( inf,nan,inf,nan,inf,nan )
+		err_exit "posix: arith: inf/nan override variables" ;;
+	( "$Inf,$NaN,$inf,$nan,$INF,$NAN" )
+		: mustNotHave BUG_ARITHNAN ;;
+	( * )
+		err_exit "posix: arith: weird inf/nan problem: $(printf %q "$v")" ;;
+	esac
+	unset -v Inf NaN inf nan INF NAN v
+	set --noposix
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
