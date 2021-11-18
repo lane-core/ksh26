@@ -71,17 +71,17 @@ struct printmap
 	size_t		size;
 	char		*name;
 	char		map[3];
-	const char	*description;
+	const char	*equivalent;
 };
 
-const struct printmap  Pmap[] =
+static const struct printmap  Pmap[] =
 {
-	3,	"csv",	"q+",	"Equivalent to %#q",
-	4,	"html",	"H",	"Equivalent to %H",
-	3,	"ere",	"R",	"Equivalent to %R",
-	7,	"pattern","P",	"Equivalent to %#P",
-	3,	"url",	"H+",	"Equivalent to %#H",
-	0,	0,	0,
+	3,	"csv",		"q+",	"%#q",
+	3,	"ere",		"R",	"%R",
+	4,	"html",		"H",	"%H",
+	7,	"pattern",	"P",	"%P",
+	3,	"url",		"H+",	"%#H",
+	0,	0,		0,
 };
 
 
@@ -159,9 +159,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	const struct printmap *pm;
 	char c='%';
 	for(pm=Pmap;pm->size>0;pm++)
-	{
-		sfprintf(sp, "[+%c(%s)q?%s.]",c,pm->name,pm->description);
-	}
+		sfprintf(sp, "[+%c(%s)q?Equivalent to %s.]",c,pm->name,pm->equivalent);
 	return(1);
 }
 
@@ -260,7 +258,6 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 						nflag++;
 					if(*argv && strcmp(*argv,"-n")==0)
 					{
-
 						nflag++;
 						argv++;
 					}
@@ -425,7 +422,6 @@ static char strformat(char *s)
 #if SHOPT_MULTIBYTE && defined(FMT_EXP_WIDE)
 	int		w;
 #endif
-
         b = t = s;
         for (;;)
         {
@@ -470,7 +466,6 @@ static char strformat(char *s)
                 *t++ = c;
         }
 }
-
 
 static char *genformat(char *format)
 {
@@ -706,7 +701,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 	Shell_t		*shp = pp->sh;
 	register char*	argp = *pp->nextarg;
 	char		*w,*s;
-
 	if(fe->n_str>0 && (format=='T'||format=='Q') && varname(fe->t_str,fe->n_str) && (!argp || varname(argp,-1)))
 	{
 		if(argp)
