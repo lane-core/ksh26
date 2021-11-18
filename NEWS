@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-11-18:
+
+- The printf built-in command now supports a -v option as on bash and zsh.
+  This allows you to assign formatted output directly to a variable.
+
 2021-11-16:
 
 - By default, arithmetic expressions in ksh no longer interpret a number
