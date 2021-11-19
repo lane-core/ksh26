@@ -1537,7 +1537,7 @@ In this case, the
 portion of
 .I word\^
 will be re-evaluated for each element.
-.PP
+.SS Shell Variables.
 The following
 parameters
 are automatically set by the shell:
@@ -1609,7 +1609,7 @@ so that the value is safe for being evaluated by the shell.
 .TP
 .B .sh.edchar
 This variable contains the value of the keyboard character
-(or sequence of characters if the first character is an ESC, ascii
+(or sequence of characters if the first character is an ESC, ASCII
 .BR 033\^ )
 that has
 been entered when processing a
@@ -2839,12 +2839,12 @@ Causes the remainder of the string to be ignored.
 .TP
 .B \eE
 Equivalent to the escape character
-(ascii
+(ASCII
 .BR 033 ),
 .TP
 .B \ee
 Equivalent to the escape character
-(ascii
+(ASCII
 .BR 033 ),
 .TP
 .BI \ec x
@@ -4637,7 +4637,7 @@ For example,
 .B M-f
 (pronounced Meta f)
 is entered by depressing ESC
-(ascii
+(ASCII
 .BR 033 )
 followed by `f'.
 .RB ( M-F
@@ -6506,11 +6506,11 @@ escape conventions will be applied:
 .PD 0
 .TP
 .B \ea
-The alert character (ascii
+The alert character (ASCII
 .BR 07 ).
 .TP
 .B \eb
-The backspace character (ascii
+The backspace character (ASCII
 .BR 010 ).
 .TP
 .B \ec
@@ -6520,27 +6520,27 @@ to end without processing more arguments and
 not adding a new-line.
 .TP
 .B \ef
-The formfeed character (ascii
+The formfeed character (ASCII
 .BR 014 ).
 .TP
 .B \en
-The newline character (ascii
+The newline character (ASCII
 .BR 012 ).
 .TP
 .B \er
-The carriage return character (ascii
+The carriage return character (ASCII
 .BR 015 ).
 .TP
 .B \et
-The tab character (ascii
+The tab character (ASCII
 .BR 011 ).
 .TP
 .B \ev
-The vertical tab character (ascii
+The vertical tab character (ASCII
 .BR 013 ).
 .TP
 .B \eE
-The escape character (ascii
+The escape character (ASCII
 .BR 033 ).
 .TP
 .B \e\e
@@ -6607,7 +6607,7 @@ is used, no
 is added to the output.
 .RE
 .TP
-\f3printf\fP \f2format\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
+\f3printf\fP \*(OK \f3\-v\fP \f2vname\fP \*(CK \f2format\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 The arguments
 .I arg\^
 are printed on standard output
@@ -6766,6 +6766,13 @@ formats, separates groups of digits with the grouping delimiter
 on groups of 3 in the C locale).
 .PD
 .PP
+.TP
+The \f3\-v\fP option assigns the output directly to a variable instead of
+writing it to standard output. This is faster than capturing the output using a
+command substitution and avoids the latter's stripping of final linefeed
+characters (\fB\\n\fR). The \f2vname\fP argument should be a valid variable
+name, optionally with one or more array subscripts in square brackets.
+Note that square brackets should be quoted to avoid pathname expansion.
 .RE
 .TP
 \f3pwd\fP \*(OK \f3\-LP\fP \*(CK
