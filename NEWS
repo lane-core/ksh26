@@ -8,6 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - The printf built-in command now supports a -v option as on bash and zsh.
   This allows you to assign formatted output directly to a variable.
 
+- Fixed a performance regression introduced on 2021-05-03 that caused
+  the shbench[*] fibonacci benchmark to run slower.
+  [*]: https://github.com/ksh-community/shbench
+
 2021-11-16:
 
 - By default, arithmetic expressions in ksh no longer interpret a number
