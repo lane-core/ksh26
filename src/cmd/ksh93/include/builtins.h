@@ -60,6 +60,7 @@
 #define SYSDOT		(shgd->bltin_cmds+20)	/* . */
 #define SYSSOURCE	(shgd->bltin_cmds+21)	/* source */
 #define SYSRETURN	(shgd->bltin_cmds+22)	/* return */
+#define SYSENUM		(shgd->bltin_cmds+23)	/* enum */
 
 /* entry point for shell special builtins */
 
@@ -169,6 +170,7 @@ extern const char sh_optdot[];
 #ifndef ECHOPRINT
     extern const char sh_optecho[];
 #endif /* !ECHOPRINT */
+extern const char sh_optenum[];
 extern const char sh_opteval[];
 extern const char sh_optexec[];
 extern const char sh_optredirect[];
