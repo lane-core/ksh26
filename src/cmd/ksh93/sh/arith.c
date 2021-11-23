@@ -243,6 +243,15 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			np = (Namval_t*)lvalue->value;
 			np = scope(np, lvalue, 1);
 		}
+		if(nv_isattr(np,NV_UINT16)==NV_UINT16)
+		{
+			Namfun_t *fp = nv_hasdisc(np, &ENUM_disc);
+			if(fp && (n < 0.0 || n > (Sfdouble_t)(b_enum_nelem(fp) - 1)))
+			{
+				errormsg(SH_DICT, ERROR_exit(1), "%s: value %ld out of enum range", nv_name(np), (long)n);
+				UNREACHABLE();
+			}
+		}
 		nv_putval(np, (char*)&n, NV_LDOUBLE);
 		if(lvalue->eflag)
 			lvalue->ptr = (void*)nv_hasdisc(np,&ENUM_disc);
