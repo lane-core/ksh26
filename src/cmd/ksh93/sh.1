@@ -7277,6 +7277,9 @@ enables the recognition of a leading zero as introducing an octal number in
 all arithmetic evaluation contexts, except in the \fBlet\fR built-in while
 \fBletoctal\fR is off;
 .IP \[bu]
+stops the \fB.\fR command (but not \fBsource\fR) from looking up functions
+defined with the \fBfunction\fR syntax;
+.IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators
 work even if \fIexpr1\fR equals "\fB!\fR" or "\fb(\fR" (which means the
