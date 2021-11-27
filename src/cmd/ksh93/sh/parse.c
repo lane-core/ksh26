@@ -222,6 +222,9 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		char **argv = dp->dolval + ARG_SPARE;
 		if(intypeset==2)
 		{
+			/* Skip over possible 'command' prefix(es) */
+			while(*argv && strcmp(*argv, SYSENUM->nvname))
+				argv++;
 			/* Skip over 'enum' options */
 			opt_info.index = 0;
 			while(optget(argv, sh_optenum))
@@ -245,11 +248,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		}
 	}
 	if(cp)
-	{
-		Namval_t	*mp=(Namval_t*)tp->comnamp ,*bp;
-		bp = sh_addbuiltin(cp, (Shbltin_f)mp->nvalue.bfp, (void*)0);
-		nv_onattr(bp,nv_isattr(mp,NV_PUBLIC));
-	}
+		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
 }
 
 /*
