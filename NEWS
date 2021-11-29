@@ -5,6 +5,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-11-29:
 
+- Fixed a memory fault that prevented ksh from functioning on ARM-based Macs.
+
 - Ksh no longer behaves badly when parsing a type definition command
   ('typeset -T' or 'enum') without executing it or when executing it in
   a subshell. Types can now safely be defined in subshells and defined
