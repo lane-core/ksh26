@@ -10,6 +10,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   a subshell. Types can now safely be defined in subshells and defined
   conditionally as in 'if condition; then enum ...; fi'.
 
+- A bug that caused the time keyword to override the errexit shell option has
+  been fixed.
+
 2021-11-24:
 
 - The --posix mode was amended to stop the '.' command (but not 'source') from
