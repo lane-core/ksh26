@@ -1411,6 +1411,13 @@ breakloop:
 					    case TEST_GE:
 						alt = ">=";  /* '-ge' --> '>=' */
 						break;
+					    default:
+#if _AST_ksh_release
+						alt = NIL(char*);	/* output '(null)' (should never happen) */
+#else
+						abort();
+#endif
+						break;
 					}
 					errormsg(SH_DICT, ERROR_warn(0), e_lexobsolete4,
 							shp->inlineno, state, alt);
