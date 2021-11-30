@@ -1389,7 +1389,32 @@ breakloop:
 			if(lp->lex.testop2)
 			{
 				if(lp->lexd.warn && (c&TEST_ARITH))
-					errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete4,shp->inlineno,state);
+				{
+					char *alt;
+					switch(c)
+					{
+					    case TEST_EQ:
+						alt = "==";  /* '-eq' --> '==' */
+						break;
+					    case TEST_NE:
+						alt = "!=";  /* '-ne' --> '!=' */
+						break;
+					    case TEST_LT:
+						alt = "<";   /* '-lt' --> '<' */
+						break;
+					    case TEST_GT:
+						alt = ">";   /* '-gt' --> '>' */
+						break;
+					    case TEST_LE:
+						alt = "<=";  /* '-le' --> '<=' */
+						break;
+					    case TEST_GE:
+						alt = ">=";  /* '-ge' --> '>=' */
+						break;
+					}
+					errormsg(SH_DICT, ERROR_warn(0), e_lexobsolete4,
+							shp->inlineno, state, alt);
+				}
 				if(c&TEST_STRCMP)
 					lp->lex.incase = 1;
 				else if(c==TEST_REP)
