@@ -1546,7 +1546,7 @@ struct Conf_s
 	short		standard;
 	short		section;
 	short		call;
-	short		op;
+	int		op;
 };
 
 typedef struct Prefix_s
