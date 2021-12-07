@@ -1,3 +1,4 @@
+# Disable default inclusion of <stdio.h> by setting stdio option to empty
 set stdio
 
 # Flag systems that omit necessary definitions such as u_long
