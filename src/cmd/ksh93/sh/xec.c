@@ -3254,8 +3254,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(jmpval)
 		r=shp->exitval;
-	if(nsig && r>SH_EXITSIG)
-		kill(shgd->current_pid,r&SH_EXITMASK);
+	if(jmpval==SH_JMPFUN && sh.lastsig)
+		kill(shgd->current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted ksh function */
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap(shp);

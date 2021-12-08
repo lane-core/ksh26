@@ -1084,4 +1084,11 @@ then	kill -9 $tpid
 fi
 
 # ======
+# Virtual subshells should clip $? to 8 bits, as real subshells get that enforced by the kernel.
+# (Note: 'ulimit' will reliably fork a virtual subshell into a real one.)
+e1=$( (f() { return 267; }; f); echo $? )
+e2=$( (ulimit -t unlimited 2>/dev/null; f() { return 267; }; f); echo $? )
+((e1==11 && e2==11)) || err_exit "exit status of virtual ($e1) and real ($e2) subshell should both be clipped to 8 bits (11)"
+
+# ======
 exit $((Errors<125?Errors:125))

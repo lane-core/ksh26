@@ -871,6 +871,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			srand(rp->rand_seed = sp->rand_seed);
 			rp->rand_last = sp->rand_last;
 		}
+		/* Real subshells have their exit status truncated to 8 bits by the kernel.
+		 * Since virtual subshells should be indistinguishable, do the same here. */
+		sh.exitval &= SH_EXITMASK;
 	}
 	shp->subshare = sp->subshare;
 	shp->subdup = sp->subdup;
