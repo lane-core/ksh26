@@ -762,6 +762,7 @@ make install
 			done defs.o generated
 			make edit.o
 				make edit/edit.c
+					prev include/shlex.h implicit
 					prev include/edit.h implicit
 					prev include/history.h implicit
 					prev include/terminal.h implicit
@@ -1396,7 +1397,9 @@ make install
 	make shcomp
 		make shcomp.o
 			make sh/shcomp.c
+				prev include/terminal.h implicit
 				prev include/shnodes.h implicit
+				prev include/path.h implicit
 				prev include/defs.h implicit
 				prev include/shell.h implicit
 				prev include/version.h implicit
