@@ -2106,6 +2106,8 @@ noreturn void sh_syntax(Lex_t *lp)
 		fcclose();
 	shp->inlineno = lp->inlineno;
 	shp->st.firstline = lp->firstline;
+	/* reset lexer state */
+	sh_lexopen(lp, &sh, 0);
 	if(!sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_PROFILE))
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax1,lp->lastline,tokstr,cp);
 	else

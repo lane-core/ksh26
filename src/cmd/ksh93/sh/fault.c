@@ -68,6 +68,9 @@ void	sh_fault(register int sig)
 	register char		*trap;
 	register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 	int	action=0;
+	/* reset lexer state on Ctrl+C */
+	if(sh_isstate(SH_INTERACTIVE) && sig==SIGINT)
+		sh_lexopen(sh.lex_context, &sh, 0);
 	/* reset handler */
 	if(!(sig&SH_TRAP))
 		signal(sig, sh_fault);
