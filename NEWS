@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-13:
+
+- Fixed a bug introduced on 2020-08-09 that prevented '.' and '..' from
+  being completed when using file name tab completion.
+
 2021-12-11:
 
 - Fixed two more crashing bugs that occurred if ksh received a signal (such

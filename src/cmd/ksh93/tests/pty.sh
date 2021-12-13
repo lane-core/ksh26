@@ -929,5 +929,24 @@ r > \)
 r one two three end
 !
 
+# err_exit #
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
+L tab completion of '.' and '..'
+# https://github.com/ksh93/ksh/issues/372
+
+d 15
+
+# typing '.' followed by two tabs should show a menu that includes "number) ../"
+p :test-1:
+w : .\t\t
+u ) \.\./\r\n$
+
+# typing '..' followed by a tab should complete to '../' (as it is
+# known that there are no files starting with '..' in the test PWD)
+p :test-2:
+w : ..\t
+r : \.\./\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
