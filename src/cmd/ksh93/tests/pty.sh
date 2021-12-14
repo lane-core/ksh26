@@ -45,7 +45,7 @@ esac
 # To avoid false regressions, we have to set 'erase' and 'kill' on the real terminal.
 if	test -t 0 2>/dev/null </dev/tty && stty_restore=$(stty -g </dev/tty)
 then	trap 'stty "$stty_restore" </dev/tty' EXIT  # note: on ksh, the EXIT trap is also triggered for termination due to a signal
-	stty erase ^H kill ^X
+	stty erase ^H kill ^X </dev/tty >/dev/tty 2>&1
 else	warning "cannot set tty state -- tests skipped"
 	exit 0
 fi
@@ -75,7 +75,7 @@ function tst
 	integer lineno=$1 offset
 	typeset text
 
-	pty $debug --dialogue --messages='/dev/fd/1' $SHELL |
+	pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty $SHELL |
 	while	read -r text
 	do	if	[[ $text == *debug* ]]
 		then	print -u2 -r -- "$text"
