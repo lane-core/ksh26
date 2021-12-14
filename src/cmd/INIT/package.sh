@@ -2821,6 +2821,7 @@ showenv()
 
 capture() # file command ...
 {
+	tee_pid=
 	case $make:$noexec in
 	:)	case $action in
 		install|make|view)
@@ -2883,7 +2884,7 @@ capture() # file command ...
 			then	TEE=tee
 			fi
 			# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
-			# the build's exit status with 'wait' and use it for $error_status
+			# the build's exit status and use it for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
 			(
@@ -2892,6 +2893,7 @@ capture() # file command ...
 				exec rm $o.fifo
 			) &
 			$TEE -a $o < $o.fifo &
+			tee_pid=$!
 			o=$o.fifo
 			;;
 		esac
@@ -2910,6 +2912,11 @@ capture() # file command ...
 	if	test "$exit_status" -gt "$error_status"
 	then	error_status=$exit_status
 	fi
+	case $tee_pid in
+	?*)	# allow 'tee' to catch up before returning to prompt
+		wait "$tee_pid"
+		;;
+	esac
 }
 
 make_recurse() # dir
