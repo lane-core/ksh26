@@ -537,7 +537,6 @@ typedef struct reglib_s			/* library private regex_t info	*/
 	Vector_t*	bestpos;	/* ditto for best match		*/
 	regmatch_t*	match;		/* subexrs in current match 	*/
 	regmatch_t*	best;		/* ditto in best match yet	*/
-	Stk_t*		mst;		/* match stack			*/
 	Stk_pos_t	stk;		/* exec stack pos		*/
 	size_t		min;		/* minimum match length		*/
 	size_t		nsub;		/* internal re_nsub		*/
