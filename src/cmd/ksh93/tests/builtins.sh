@@ -1100,14 +1100,16 @@ got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 
 # ======
 # Regression test for https://github.com/att/ast/issues/949
-foo_script='#!/bin/sh
-exit 0'
-echo "$foo_script" > "$tmp/foo1.sh"
-echo "$foo_script" > "$tmp/foo2.sh"
-builtin chmod
-chmod +x "$tmp/foo1.sh" "$tmp/foo2.sh"
-$SHELL "$tmp/foo1.sh" || err_exit "builtin 'chmod +x' doesn't work on first script"
-$SHELL "$tmp/foo2.sh" || err_exit "builtin 'chmod +x' doesn't work on second script"
+if	(builtin chmod) 2>/dev/null
+then	foo_script='#!/bin/sh
+	exit 0'
+	echo "$foo_script" > "$tmp/foo1.sh"
+	echo "$foo_script" > "$tmp/foo2.sh"
+	builtin chmod
+	chmod +x "$tmp/foo1.sh" "$tmp/foo2.sh"
+	$SHELL "$tmp/foo1.sh" || err_exit "builtin 'chmod +x' doesn't work on first script"
+	$SHELL "$tmp/foo2.sh" || err_exit "builtin 'chmod +x' doesn't work on second script"
+fi
 
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
@@ -1208,19 +1210,21 @@ got=$(
 # ======
 # Test for bugs related to 'uname -d'
 # https://github.com/att/ast/pull/1187
-builtin uname
-exp=$(uname -o)
+if	(builtin uname) 2>/dev/null
+then	builtin uname
+	exp=$(uname -o)
 
-# Test for a possible crash (to avoid crashing the script, fork the subshell)
-(
-	ulimit -t unlimited 2> /dev/null
-	uname -d > /dev/null
-) || err_exit "'uname -d' crashes"
+	# Test for a possible crash (to avoid crashing the script, fork the subshell)
+	(
+		ulimit -t unlimited 2> /dev/null
+		uname -d > /dev/null
+	) || err_exit "'uname -d' crashes"
 
-# 'uname -d' shouldn't change the output of 'uname -o'
-got=$(ulimit -t unlimited 2> /dev/null; uname -d > /dev/null; uname -o)
-[[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	# 'uname -d' shouldn't change the output of 'uname -o'
+	got=$(ulimit -t unlimited 2> /dev/null; uname -d > /dev/null; uname -o)
+	[[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # ======
 # https://github.com/ksh93/ksh/issues/138

@@ -157,25 +157,27 @@ fi
 
 #$SHELL -c 'export LANG='$locale'; printf "\u[20ac]\u[20ac]" > $tmp/two_euro_chars.txt'
 printf $'\342\202\254\342\202\254' > $tmp/two_euro_chars.txt
-if((SHOPT_MULTIBYTE)); then
-exp="6 2 6"
-else
-exp="6 6 6"
-fi # SHOPT_MULTIBYTE
-set -- $($SHELL -c "
-	if	builtin wc 2>/dev/null || builtin -f cmd wc 2>/dev/null
-	then	unset LC_CTYPE
-		export LANG=$locale
-		export LC_ALL=C
-		wc -C < $tmp/two_euro_chars.txt
-		unset LC_ALL
-		wc -C < $tmp/two_euro_chars.txt
-		export LC_ALL=C
-		wc -C < $tmp/two_euro_chars.txt
-	fi
-")
-got=$*
-[[ $got == $exp ]] || err_exit "builtin wc LC_ALL default failed -- expected '$exp', got '$got'"
+if	(builtin wc) 2>/dev/null
+then	if((SHOPT_MULTIBYTE)); then
+	exp="6 2 6"
+	else
+	exp="6 6 6"
+	fi # SHOPT_MULTIBYTE
+	set -- $($SHELL -c "
+		if	builtin wc 2>/dev/null || builtin -f cmd wc 2>/dev/null
+		then	unset LC_CTYPE
+			export LANG=$locale
+			export LC_ALL=C
+			wc -C < $tmp/two_euro_chars.txt
+			unset LC_ALL
+			wc -C < $tmp/two_euro_chars.txt
+			export LC_ALL=C
+			wc -C < $tmp/two_euro_chars.txt
+		fi
+	")
+	got=$*
+	[[ $got == $exp ]] || err_exit "builtin wc LC_ALL default failed -- expected '$exp', got '$got'"
+fi
 
 # multibyte char straddling buffer boundary
 
