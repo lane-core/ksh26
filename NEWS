@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   command to: basename, cat, cp, cut, dirname, getconf, ln, mktemp, mv.
   Add /opt/ast/bin to your $PATH to use these. Type 'cp --man', etc. for info.
 
+- A bug introduced on 2020-09-17 was fixed that caused interactive ksh to exit
+  if Ctrl+C was pressed while SIGINT was being ignored (as in "trap '' INT").
+
 2021-12-13:
 
 - Fixed a bug introduced on 2020-08-09 that prevented '.' and '..' from

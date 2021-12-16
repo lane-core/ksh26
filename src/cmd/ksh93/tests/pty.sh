@@ -948,5 +948,47 @@ w : ..\t
 r : \.\./\r\n$
 !
 
+# err_exit #
+tst $LINENO <<"!"
+L Ctrl+C with SIGINT ignored
+# https://github.com/ksh93/ksh/issues/343
+
+d 15
+
+# SIGINT ignored by child
+p :test-1:
+w PS1=':child-!: ' "$SHELL"
+p :child-1:
+w trap '' INT
+p :child-2:
+c \\\cC
+r :child-2:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
+
+# SIGINT ignored by parent
+p :test-2:
+w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
+p :child-1:
+c \\\cC
+r :child-1:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
+
+# SIGINT ignored by parent, trapped in child
+p :test-3:
+w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
+p :child-1:
+w trap 'echo test' INT
+p :child-2:
+c \\\cC
+r :child-2:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
+!
+
 # ======
 exit $((Errors<125?Errors:125))
