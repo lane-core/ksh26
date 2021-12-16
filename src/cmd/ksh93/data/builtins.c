@@ -135,18 +135,14 @@ const struct shtable3 shtab_builtins[] =
 #include SHOPT_CMDLIB_HDR
 #else
 	CMDLIST(basename)
-	CMDLIST(chmod)
+	CMDLIST(cat)
+	CMDLIST(cp)
+	CMDLIST(cut)
 	CMDLIST(dirname)
 	CMDLIST(getconf)
-	CMDLIST(head)
-	CMDLIST(mkdir)
-	CMDLIST(logname)
-	CMDLIST(cat)
-	CMDLIST(cmp)
-	CMDLIST(cut)
-	CMDLIST(uname)
-	CMDLIST(wc)
-	CMDLIST(sync)
+	CMDLIST(ln)
+	CMDLIST(mktemp)
+	CMDLIST(mv)
 #if !_std_malloc && !_AST_std_malloc
 	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
