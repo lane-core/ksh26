@@ -23,7 +23,6 @@
 #    based on AST 'package' by Glenn Fowler <gsf@research.att.com>     #
 #    simplified and rewritten by Martijn Dekker <martijn@inlv.org>     #
 ########################################################################
-command=package
 
 # Escape from a non-POSIX shell
 min_posix='path=Bad && case $PATH in (Bad) exit 1;; esac && '\
@@ -95,18 +94,17 @@ lib="" # need /usr/local/lib /usr/local/shlib
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
-env="HOSTTYPE NPROC PACKAGEROOT INSTALLROOT PATH"
+env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH"
 
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
 CROSS=0
 
 MAKESKIP=${MAKESKIP:-"*[-.]*"}
-SED=
-TR=
 
 all_types='*.*|sun4'		# all but sun4 match *.*
 
+command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
@@ -125,7 +123,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     All package files are in the \b$PACKAGEROOT\b directory tree.
     Binary package files are in the \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/\b\ahosttype\a) tree, where
-    \ahosttpe\a=$(\bbin/package host type\b).
+    \ahosttype\a=$(\bbin/package host type\b).
     See \bDETAILS\b for more information.]
 [+?Note that no environment variables need be set by the user;
     \b'$command$'\b determines the environment based on the current working
@@ -371,6 +369,8 @@ do	case $# in
 			exec 1>&2
 			;;
 		esac
+		# Plain-text fallback. Regenerate with:
+		# ksh -c 'COLUMNS=80 bin/package --man' 2>&1 | sed "s/'/'\\\\''/g; 1s/^/echo '/; \$s/\$/'/"
 		echo 'NAME
   package - build, test and install ksh 93u+m
 
@@ -383,7 +383,7 @@ DESCRIPTION
   POSIX shell and C compiler installation are the only requirements. All
   package files are in the $PACKAGEROOT directory tree. Binary package files
   are in the $INSTALLROOT ($PACKAGEROOT/arch/hosttype) tree, where
-  hosttpe=$(bin/package host type). See DETAILS for more information.
+  hosttype=$(bin/package host type). See DETAILS for more information.
 
   Note that no environment variables need be set by the user; package
   determines the environment based on the current working directory. The use
@@ -417,8 +417,7 @@ DESCRIPTION
     export [ variable ...]
           List name=value for variable, one per line. If the only attribute is
           specified then only the variable values are listed. If no variables
-          are specified then HOSTTYPE NPROC PACKAGEROOT INSTALLROOT PATH are
-          assumed.
+          are specified then HOSTTYPE PACKAGEROOT INSTALLROOT PATH are assumed.
     help [ action ]
           Display help text on the standard error (standard output for action).
     host [ attribute ... ]
@@ -727,7 +726,7 @@ use)	case $1 in
 				*)	HOSTTYPE=$HOSTTYPE-64 ;;
 				esac
 				case $wow in
-				*/32)	echo $command: cannot build $bit-bit on $wow $sys >&2; exit 2 ;;
+				*/32)	err_out "cannot build $bit-bit on $wow $sys" ;;
 				esac
 				;;
 			esac
@@ -739,8 +738,8 @@ use)	case $1 in
 			$exec umask 002
 			$exec unset MAKESKIP
 
-			$exec export P=$PWD
-			$exec export A=$P/arch/$HOSTTYPE
+			P=$PWD
+			A=$P/arch/$HOSTTYPE
 
 			$exec export CDPATH=:..:$A/src/cmd:$A/src/lib:$A/src/uwin:$P/lib/package
 			$exec export INSTALLROOT=$A
@@ -857,28 +856,8 @@ hostinfo() # attribute ...
 		done
 		PATH=$PATH:$i/bin
 	done
-	# LD_LIBRARY_PATH may be out of sync with PATH here
-	case $SED in
-	'')	SED=sed
-		$SED 1d < /dev/null > /dev/null 2>&1 ||
-		for dir in /bin /usr/bin
-		do	if	test -x $dir/$SED
-			then	SED=$dir/$SED
-				break
-			fi
-		done
-		TR=tr
-		$TR < /dev/null > /dev/null 2>&1 ||
-		for dir in /bin /usr/bin
-		do	if	test -x $dir/$TR
-			then	TR=$dir/$TR
-				break
-			fi
-		done
-		;;
-	esac
 	case $PACKAGE_PATH in
-	?*)	for i in $(echo "$PACKAGE_PATH" | "$SED" 's,:, ,g')
+	?*)	for i in $(echo "$PACKAGE_PATH" | sed 's,:, ,g')
 		do	PATH=$PATH:$i/bin
 		done
 		;;
@@ -902,16 +881,14 @@ hostinfo() # attribute ...
 			cpu|name|rating|type)
 				something=1
 				;;
-			*)	echo "$command: $action: $info: unknown attribute" >&2
-				exit 1
+			*)	err_out "$action: $info: unknown attribute"
 				;;
 			esac
 			;;
 		esac
 	done
 	case $canon in
-	-)	echo "$command: $action: canon: host type name expected" >&2
-		exit 1
+	-)	err_out "$action: canon: host type name expected"
 		;;
 	esac
 	case $something in
@@ -929,13 +906,7 @@ hostinfo() # attribute ...
 	for info
 	do
 	case $info in
-	cpu)	case $NPROC in
-		[123456789]*)
-			_hostinfo_="$_hostinfo_ $NPROC"
-			continue
-			;;
-		esac
-		cpu=$(sysctl -n hw.ncpu)
+	cpu)	cpu=$(sysctl -n hw.ncpu)
 		case $cpu in
 		[123456789]*)
 			_hostinfo_="$_hostinfo_ $cpu"
@@ -1002,7 +973,7 @@ hostinfo() # attribute ...
 			do	case $# in
 				0)	break ;;
 				esac
-				i=$($1 2>/dev/null | $TR ' 	' '
+				i=$($1 2>/dev/null | tr ' 	' '
 
 ' | grep -c "^$2")
 				case $i in
@@ -1031,7 +1002,7 @@ hostinfo() # attribute ...
 			do	case $# in
 				0)	break ;;
 				esac
-				i=$($1 2>/dev/null | $SED -e "${2}!d" -e "s${3}")
+				i=$($1 2>/dev/null | sed -e "${2}!d" -e "s${3}")
 				case $i in
 				[123456789]*)
 					cpu=$i
@@ -1075,7 +1046,7 @@ int main()
 	name)	_name_=$(hostname || uname -n || cat /etc/whoami || echo local)
 		_hostinfo_="$_hostinfo_ $_name_"
 		;;
-	rating)	for rating in $(grep -i ^bogomips /proc/cpuinfo 2>/dev/null | $SED -e 's,.*:[ 	]*,,' -e 's,\(...*\)\..*,\1,' -e 's,\(\..\).*,\1,')
+	rating)	for rating in $(grep -i ^bogomips /proc/cpuinfo 2>/dev/null | sed -e 's,.*:[ 	]*,,' -e 's,\(...*\)\..*,\1,' -e 's,\(\..\).*,\1,')
 		do	case $rating in
 			[0123456789]*)	break ;;
 			esac
@@ -1267,14 +1238,14 @@ int main()
 			esac
 			a=$(arch || uname -m || att uname -m || uname -s || att uname -s)
 			case $a in
-			*[\ \	]*)	a=$(echo $a | $SED "s/[ 	]/-/g") ;;
+			*[\ \	]*)	a=$(echo $a | sed "s/[ 	]/-/g") ;;
 			esac
 			case $a in
 			'')	a=unknown ;;
 			esac
 			m=$(mach || machine || uname -p || att uname -p)
 			case $m in
-			*[\ \	]*)	m=$(echo $m | $SED "s/[ 	]/-/g") ;;
+			*[\ \	]*)	m=$(echo $m | sed "s/[ 	]/-/g") ;;
 			esac
 			case $m in
 			'')	m=unknown ;;
@@ -1297,7 +1268,7 @@ int main()
 				esac
 				case $os in
 				[abcdefghijklmnopqrstuvwxyz]*[0123456789])
-					eval $(echo $os | $SED -e 's/^\([^0123456789.]*\)\.*\(.*\)/os=\1 rel=\2/')
+					eval $(echo $os | sed -e 's/^\([^0123456789.]*\)\.*\(.*\)/os=\1 rel=\2/')
 					;;
 				esac
 				;;
@@ -1308,7 +1279,7 @@ int main()
 		esac
 		type=unknown
 		case $host in
-		*.*)	host=$(echo $host | $SED -e 's/\..*//') ;;
+		*.*)	host=$(echo $host | sed -e 's/\..*//') ;;
 		esac
 		case $mach in
 		unknown)
@@ -1368,14 +1339,14 @@ int main()
 			9000/[78]*)
 				type=hp.pa
 				;;
-			*/*)	type=hp.$(echo $arch | $SED 's,/,_,g')
+			*/*)	type=hp.$(echo $arch | sed 's,/,_,g')
 				;;
 			*)	type=hp.$arch
 				;;
 			esac
 			;;
 		[Ii][Rr][Ii][Xx]*)
-			set xx $(hinv | $SED -e '/^CPU:/!d' -e 's/CPU:[ 	]*\([^ 	]*\)[ 	]*\([^ 	]*\).*/\1 \2/' -e q | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
+			set xx $(hinv | sed -e '/^CPU:/!d' -e 's/CPU:[ 	]*\([^ 	]*\)[ 	]*\([^ 	]*\).*/\1 \2/' -e q | tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
 			shift
 			type=$1
 			n=
@@ -1420,7 +1391,7 @@ int main()
 			fi
 			split='
 '
-			a=$(strings $a < /dev/null | $SED -e 's/[^abcdefghijklmnopqrstuvwxyz0123456789]/ /g' -e 's/[ 	][ 	]*/\'"$split"'/g' | $SED -e "/^${type}[0123456789]$/!d" -e "s/^${type}//" -e q)
+			a=$(strings $a < /dev/null | sed -e 's/[^abcdefghijklmnopqrstuvwxyz0123456789]/ /g' -e 's/[ 	][ 	]*/\'"$split"'/g' | sed -e "/^${type}[0123456789]$/!d" -e "s/^${type}//" -e q)
 			case $a in
 			[0123456789])	n=$a ;;
 			esac
@@ -1456,7 +1427,7 @@ int main()
 			type=sco
 			;;
 		[Ss]ol*)
-			v=$(echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//')
+			v=$(echo $rel | sed -e 's/^[25]\.//' -e 's/\.[^.]*$//')
 			case $v in
 			[6789]|[1-9][0-9])
 				;;
@@ -1475,7 +1446,7 @@ int main()
 			esac
 			type=sol$v.$arch
 			;;
-		[Ss]un*)type=$(echo $arch | $SED -e 's/\(sun.\).*/\1/')
+		[Ss]un*)type=$(echo $arch | sed -e 's/\(sun.\).*/\1/')
 			case $type in
 			sparc)	type=sun4 ;;
 			esac
@@ -1496,7 +1467,7 @@ int main()
 					esac
 					;;
 				esac
-				v=$(echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//')
+				v=$(echo $rel | sed -e 's/^[25]\.//' -e 's/\.[^.]*$//')
 				case $v in
 				[6789]|[1-9][0-9])
 					;;
@@ -1553,7 +1524,7 @@ int main()
 			FTX*|ftx*)
 				case $mach in
 				*[0123456789][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-					mach=$(echo $mach | $SED -e 's/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*$//')
+					mach=$(echo $mach | sed -e 's/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*$//')
 					;;
 				esac
 				type=stratus.$mach
@@ -1563,7 +1534,7 @@ int main()
 					type=os2
 					arch=$rel
 					;;
-				*)	type=$(echo $os | $SED -e 's/[0123456789].*//' -e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789.].*//')
+				*)	type=$(echo $os | sed -e 's/[0123456789].*//' -e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789.].*//')
 					;;
 				esac
 				case $type in
@@ -1572,7 +1543,7 @@ int main()
 					;;
 				[Uu][Ww][Ii][Nn]*|[Ww]indows_[0123456789][0123456789]|[Ww]indows_[Nn][Tt])
 					type=win32
-					arch=$(echo $arch | $SED -e 's/_[^_]*$//')
+					arch=$(echo $arch | sed -e 's/_[^_]*$//')
 					;;
 				esac
 				case $arch in
@@ -1621,16 +1592,16 @@ int main()
 		esac
 		case $type in
 		*[-_]32|*[-_]64|*[-_]128)
-			bits=$(echo $type | $SED 's,.*[-_],,')
-			type=$(echo $type | $SED 's,[-_][0-9]*$,,')
+			bits=$(echo $type | sed 's,.*[-_],,')
+			type=$(echo $type | sed 's,[-_][0-9]*$,,')
 			;;
 		*)	bits=
 			;;
 		esac
-		type=$(echo $type | $SED -e 's%[-+/].*%%' | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
+		type=$(echo $type | sed -e 's%[-+/].*%%' | tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
 		case $type in
-		*.*)	lhs=$(echo $type | $SED -e 's/\..*//')
-			rhs=$(echo $type | $SED -e 's/.*\.//')
+		*.*)	lhs=$(echo $type | sed -e 's/\..*//')
+			rhs=$(echo $type | sed -e 's/.*\.//')
 			case $rhs in
 			[x0123456789]*86)	rhs=i$rhs ;;
 			68*)			rhs=m$rhs ;;
@@ -1640,7 +1611,7 @@ int main()
 						rhs=i386 ;;
 			powerpc)		rhs=ppc ;;
 			s[0123456789]*[0123456789]x)
-						rhs=$(echo $rhs | $SED -e 's/x$/-64/') ;;
+						rhs=$(echo $rhs | sed -e 's/x$/-64/') ;;
 			esac
 			case $rhs in
 			arm[abcdefghijklmnopqrstuvwxyz_][0123456789]*)
@@ -1654,7 +1625,7 @@ int main()
 				?*dwarf)x=coff ;;
 				?*elf)	x=elf ;;
 				esac
-				lhs=$(echo ${lhs}XXX | $SED -e "s/${x}XXX//")
+				lhs=$(echo ${lhs}XXX | sed -e "s/${x}XXX//")
 				;;
 			esac
 			case $lhs in
@@ -1668,7 +1639,7 @@ int main()
 						;;
 			freebsd)		case $rel in
 						[01234].*)	lhs=${lhs}4 ;;
-						[123456789]*.*)	lhs=${lhs}$(echo $rel | $SED -e 's/\..*//') ;;
+						[123456789]*.*)	lhs=${lhs}$(echo $rel | sed -e 's/\..*//') ;;
 						esac
 						;;
 			hpux)			lhs=hp ;;
@@ -1722,7 +1693,7 @@ int b() { return 0; }
 								esac
 								if	$cc $abi -mips$i -c $tmp.b.c &&
 									$cc -o $tmp.exe $tmp.a.o $tmp.b.o
-								then	type=$(echo $type | $SED -e 's/.$//')$i
+								then	type=$(echo $type | sed -e 's/.$//')$i
 									break
 								fi
 							done
@@ -1814,7 +1785,13 @@ int b() { return 0; }
 
 note() # message ...
 {
-	echo $command: "$@" >&2
+	printf "$command: %s\\n" "$@" >&2
+}
+
+err_out()
+{
+	note "$@"
+	exit 1
 }
 
 # cc checks
@@ -1837,7 +1814,7 @@ checkcc()
 	fi
 	case $cc in
 	'')	case $action in
-		make|test)	note "$CC: not found"; exit 1 ;;
+		make|test)	err_out "$CC: not found" ;;
 		*)		note "warning: $CC: not found" ;;
 		esac
 		;;
@@ -2022,16 +1999,12 @@ case $x in
 
 	case $action in
 	export|use)
-		packageroot $PACKAGEROOT || {
-			echo "$command: $PACKAGEROOT: invalid package root directory" >&2
-			exit 1
-		}
+		packageroot $PACKAGEROOT || err_out "$PACKAGEROOT: invalid package root directory"
 		case $KEEP_HOSTTYPE:$hosttype in
 		0:?*)	if	test -d ${PACKAGEROOT:-.}/arch/$hosttype
 			then	KEEP_HOSTTYPE=1
 				HOSTTYPE=$hosttype
-			else	echo "$command: $hosttype: package root not found" >&2
-				exit 1
+			else	err_out "$hosttype: package root not found"
 			fi
 			;;
 		esac
@@ -2039,8 +2012,7 @@ case $x in
 	*)	packageroot $PACKAGEROOT || {
 			case $KEEP_PACKAGEROOT in
 			1)	;;
-			*)	echo "$command: $PACKAGEROOT: must be in the package root directory tree" >&2
-				exit 1
+			*)	err_out "$PACKAGEROOT: must be in the package root directory tree"
 				;;
 			esac
 		}
@@ -2062,7 +2034,7 @@ case $x in
 			do	test -h $PACKAGEROOT/bin/$i 2>/dev/null ||
 				case $(ls -t $INITROOT/$i.sh $PACKAGEROOT/bin/$i 2>/dev/null) in
 				"$INITROOT/$i.sh"*)
-					note update $PACKAGEROOT/bin/$i
+					note "update $PACKAGEROOT/bin/$i"
 					shellmagic
 					case $SHELLMAGIC in
 					'')	$exec cp $INITROOT/$i.sh $PACKAGEROOT/bin/$i || exit
@@ -2102,11 +2074,10 @@ cat $INITROOT/$i.sh
 				cp $INITROOT/hello.c pkg$$.c || exit 3
 				$cc -o pkg$$.exe pkg$$.c > pkg$$.e 2>&1 || {
 					if $cc -Dnew=old -o pkg$$.exe pkg$$.c > /dev/null 2>&1
-					then	echo "$command: ${warn}$CC: must be a C compiler (not C++)" >&2
+					then	err_out "${warn}$CC: must be a C compiler (not C++)"
 					else	cat pkg$$.e
-						echo "$command: ${warn}$CC: failed to compile and link $INITROOT/hello.c -- is it a C compiler?" >&2
+						err_out "${warn}$CC: failed to compile and link $INITROOT/hello.c -- is it a C compiler?"
 					fi
-					exit 2
 				}
 				if ./pkg$$.exe >/dev/null 2>&1
 				then	code=0
@@ -2298,11 +2269,10 @@ cat $INITROOT/$i.sh
 			EXECTYPE=$_hostinfo_
 			case $HOSTTYPE in
 			$EXECTYPE)
-				echo "$command: $CC: seems to be a cross-compiler" >&2
-				echo "$command: set HOSTTYPE to something other than the native $EXECTYPE" >&2
-				echo "$command: If not, your $TMPDIR directory may be mounted without execute permission." >&2
-				echo "$command: Try exporting TMPDIR as a directory where you can execute binary files." >&2
-				exit 1
+				err_out "$CC seems to be a cross-compiler." \
+					"Set HOSTTYPE to something other than the native $EXECTYPE." \
+					"If not, your $TMPDIR directory may be mounted without execute permission." \
+					"Try exporting TMPDIR as a directory where you can execute binary files."
 				;;
 			esac
 			;;
@@ -2343,8 +2313,8 @@ cat $INITROOT/$i.sh
 		PATH=$save_PATH
 		unset save_PATH
 		case $KEEP_SHELL in
-		0)	echo "Cannot find good default shell, please supply SHELL=/path/to/shell" >&2
-			exit 1 ;;
+		0)	err_out "Cannot find a good default shell; please supply SHELL=/path/to/shell"
+			;;
 		esac
 		;;
 	esac
@@ -2458,8 +2428,7 @@ cygwin.*)
 		;;
 	esac
 	case $lose in
-	?*)	echo "$command: $HOSTTYPE: export '$lose' in CYGWIN or languish in Windows" >&2
-		exit 1
+	?*)	err_out "$HOSTTYPE: export '$lose' in CYGWIN or languish in Windows"
 		;;
 	esac
 	;;
@@ -2526,7 +2495,7 @@ view() # [test] [-|type] [src|bin|all] file
 	esac
 	_view_=
 	case $_view_t_ in
-	?*)	echo $command: $1: $_view_t_ not found >&2 ;;
+	?*)	note "$1: $_view_t_ not found" ;;
 	esac
 	return 1
 }
@@ -2588,7 +2557,7 @@ int main(int argc, char** argv) { return argc || argv; }
 		test -f $INITROOT/hello.c -a -f $INITROOT/p.c -a -w $PACKAGEROOT || {
 			for i
 			do	onpath $i || {
-					echo "$command: $i: command not found" >&2
+					note "$i: command not found"
 					return 1
 				}
 			done
@@ -2599,7 +2568,7 @@ int main(int argc, char** argv) { return argc || argv; }
 			;;
 		*)	_PACKAGE_cc=1
 			test -f $INITROOT/hello.c -a -f $INITROOT/p.c || {
-				echo "$command: $INITROOT: INIT package source not found" >&2
+				note "$INITROOT: INIT package source not found"
 				return 1
 			}
 
@@ -2615,7 +2584,7 @@ int main(int argc, char** argv) { return argc || argv; }
 				$show PROTOROOT=$PACKAGEROOT/proto
 				export PROTOROOT
 				INITPROTO=$PROTOROOT/src/cmd/INIT
-				note proto convert $PACKAGEROOT/src into $PROTOROOT/src
+				note "proto convert $PACKAGEROOT/src into $PROTOROOT/src"
 				dirs="src"
 				(
 					if	test -f $PROTOROOT/UPDATE
@@ -2671,17 +2640,17 @@ int main(int argc, char** argv) { return argc || argv; }
 		*00)	view - bin/$i && continue ;;
 		esac
 		case $k in
-		000)	echo "$command: $i: not found: download the INIT package $HOSTTYPE binary to continue" >&2
+		000)	note "$i: not found: download the INIT package $HOSTTYPE binary to continue"
 			return 1
 			;;
-		010)	echo "$command: $i: not found: set CC=C-compiler or download the INIT package $HOSTTYPE binary to continue" >&2
+		010)	note "$i: not found: set CC=C-compiler or download the INIT package $HOSTTYPE binary to continue"
 			return 1
 			;;
-		100)	echo "$command: $i: not found: download the INIT package source or $HOSTTYPE binary to continue" >&2
+		100)	note "$i: not found: download the INIT package source or $HOSTTYPE binary to continue"
 			return 1
 			;;
 		110)	case $CROSS in
-			1)	echo "$command: $i: not found: make the local $EXECTYPE binary package before $HOSTTYPE" >&2
+			1)	note "$i: not found: make the local $EXECTYPE binary package before $HOSTTYPE"
 				return 1
 				;;
 			esac
@@ -2699,7 +2668,7 @@ int main(int argc, char** argv) { return argc || argv; }
 		esac
 		case $(ls -t $INITROOT/$i.c $INSTALLROOT/bin/$i 2>/dev/null) in
 		"$INITROOT/$i.c"*)
-			note update $INSTALLROOT/bin/$i
+			note "update $INSTALLROOT/bin/$i"
 			if	test proto != "$i" && executable $INSTALLROOT/bin/proto
 			then	case $exec in
 				'')	$INSTALLROOT/bin/proto -p $INITROOT/$i.c > $i.c || return ;;
@@ -2797,7 +2766,7 @@ capture() # file command ...
 			fi
 			o=$o.out
 			: > $o
-			note $action output captured in $o
+			note "$action output captured in $o"
 			s="$command: $action start at $(date) in $INSTALLROOT"
 			case $quiet in
 			0)	cmd="echo \"$command: $action done  at \$(date)\" in $INSTALLROOT 2>&1 | \$TEE -a $o" ;;
@@ -2955,10 +2924,9 @@ make|view)
 			;;
 		*)	case " $must " in
 			*" $t "*)
-				echo "$command: $t: not found -- must be on PATH to $action" >&2
-				exit 1
+				err_out "$t: not found -- must be on PATH to $action"
 				;;
-			*)	echo "$command: warning: $t: not found -- some $action actions may fail" >&2
+			*)	note "warning: $t: not found -- some $action actions may fail"
 				;;
 			esac
 			;;
@@ -2968,10 +2936,10 @@ make|view)
 	# verify the top view
 
 	if	test ! -d $PACKAGEROOT/src
-	then	note no source packages to make
+	then	note "no source packages to make"
 		exit 0
 	elif	test ! -d $INSTALLROOT/src
-	then	note initialize the $INSTALLROOT view
+	then	note "initialize the $INSTALLROOT view"
 	fi
 	for i in arch arch/$HOSTTYPE
 	do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
@@ -3049,7 +3017,7 @@ make|view)
 							$exec chmod +x "$b" || exit
 							cc=$b
 							intercept=1
-							note update $b
+							note "update $b"
 							;;
 						esac
 					fi
@@ -3070,7 +3038,7 @@ make|view)
 					case $(ls -t "$b" "$s" 2>/dev/null) in
 					$b*)	;;
 					$s*)	$exec cp "$s" "$b"
-						note update $b
+						note "update $b"
 						;;
 					esac
 				done
@@ -3088,7 +3056,7 @@ make|view)
 		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
 		$s*)	$exec cp "$s" "$b"
-			note update $b
+			note "update $b"
 			;;
 		esac
 	done
@@ -3100,14 +3068,13 @@ make|view)
 		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
 		$s*)	$exec cp "$s" "$b"
-			note update $b
+			note "update $b"
 			;;
 		esac
 	done
 	case $cc in
 	/*)	;;
-	*)	echo "$command: $CC: not found -- set CC=C-compiler" >&2
-		exit 1
+	*)	err_out "$CC: not found -- set CC=C-compiler"
 		;;
 	esac
 	case $exec in
@@ -3117,11 +3084,11 @@ make|view)
 		if	$CC -o $tmp.exe $tmp.c > /dev/null 2> $tmp.err &&
 			test -x $tmp.exe
 		then	: ok
-		else	echo "$command: $CC: failed to compile this program:" >&2
+		else	note "$CC: failed to compile this program:"
 			cat $tmp.c >&2
 			if	test -s $tmp.err
 			then	cat $tmp.err >&2
-			else	echo "$command: $CC: not a C compiler" >&2
+			else	note "$CC: not a C compiler"
 			fi
 			rm -f $tmp.*
 			exit 1
@@ -3154,7 +3121,7 @@ make|view)
 					} > $INSTALLROOT/bin/cc
 					chmod +x $INSTALLROOT/bin/cc
 					;;
-				*)	note generate a $INSTALLROOT/bin/cc wrapper for $CC
+				*)	note "generate a $INSTALLROOT/bin/cc wrapper for $CC"
 					;;
 				esac
 				CC=cc
@@ -3180,7 +3147,7 @@ make|view)
 		case $(ls -t $i $j $k 2>/dev/null) in
 		$i*)	;;
 		*)	if	test -f $j -a -f $k
-			then	note update $i
+			then	note "update $i"
 				shellmagic
 				case $exec in
 				'')	{
@@ -3250,7 +3217,7 @@ cat $j $k
 				'')	new="(none)" ;;
 				*)	new="'$new'" ;;
 				esac
-				echo "$command: $var changed from $old to $new" >&2
+				note "$var changed from $old to $new"
 				err=y ;;
 			esac
 		else	test -d $INSTALLROOT/lib/package/gen && case $new in
@@ -3260,9 +3227,9 @@ cat $j $k
 		fi
 	done
 	case $err,${FORCE_FLAGS+f} in
-	y,)	echo "$command: This would likely break the build. Restore the flag(s)," >&2
-		echo "$command: or delete the build directory and rebuild from scratch." >&2
-		exit 1 ;;
+	y,)	err_out "This would likely break the build. Restore the flag(s)," \
+			"or delete the build directory and rebuild from scratch."
+		;;
 	esac
 	unset err var store old new
 
@@ -3275,21 +3242,6 @@ cat $j $k
 	case $exec in
 	'')	hostinfo name
 		echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
-		;;
-	esac
-
-	# make in parallel if possible
-
-	case $NPROC in
-	'')	hostinfo cpu
-		case $_hostinfo_ in
-		0|1)	;;
-		*)	NPROC=$_hostinfo_
-			$show NPROC=$NPROC
-			$show export NPROC
-			export NPROC
-			;;
-		esac
 		;;
 	esac
 
@@ -3412,8 +3364,7 @@ cat $j $k
 					test -f $OK/$i &&
 					case $exec:$i in
 					:ksh)
-						echo "$command: $OK/$i: cannot update [may be in use by a running process] remove manually and try again" >&2
-						exit 1
+						err_out "$OK/$i: cannot update [may be in use by a running process] remove manually and try again"
 						;;
 					esac
 					$exec $execrate $cp $i $OK/$i
@@ -3440,15 +3391,11 @@ cat $j $k
 
 	# build with mamake
 
-	note make with mamake
+	note "make with mamake"
 	case $target in
 	'')	target="install" ;;
 	esac
 	eval capture mamake \$makeflags \$noexec \$target $assign
-	;;
-
-remove)	echo "$command: $action: not implemented yet" >&2
-	exit 1
 	;;
 
 results)set '' $target
@@ -3483,8 +3430,7 @@ results)set '' $target
 		old)	suf=old
 			;;
 		on)	case $# in
-			1)	echo $command: $action: $1: host pattern argument expected >&2
-				exit 1
+			1)	err_out "$action: $1: host pattern argument expected"
 				;;
 			esac
 			shift
@@ -3536,8 +3482,7 @@ results)set '' $target
 				;;
 			esac
 		done
-		echo "$command: $i action output not found" >&2
-		exit 1
+		err_out "$i action output not found"
 	done
 	sep=
 	case $t in
@@ -3614,33 +3559,18 @@ use)	# finalize the environment
 		export CDPATH
 		;;
 	esac
-	P=$PACKAGEROOT
-	$show P=$P
-	$show export P
-	export P
-	A=$INSTALLROOT
-	$show A=$A
-	$show export A
-	export A
-	case $NPROC in
-	'')	hostinfo cpu
-		case $_hostinfo_ in
-		0|1)	;;
-		*)	NPROC=$_hostinfo_
-			$show NPROC=$NPROC
-			$show export NPROC
-			export NPROC
-			;;
-		esac
-		;;
-	esac
 	eval PACKAGE_USE=$package_use
 	export PACKAGE_USE
 
 	# run the command
 
 	case $run in
-	'')	case $show in
+	'')	note	"You are now entering a new environment set up to use the package in:" \
+			"    $INSTALLROOT" \
+			"You're using the shell:" \
+			"    $SHELL" \
+			"Type 'exit' to leave and go back to normal."
+		case $show in
 		':')	$exec exec $SHELL ;;
 		esac
 		;;
@@ -3649,8 +3579,7 @@ use)	# finalize the environment
 	esac
 	;;
 
-*)	echo "$command: $action: internal error" >&2
-	exit 1
+*)	err_out "$action: internal error"
 	;;
 
 esac
