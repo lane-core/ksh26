@@ -6,38 +6,140 @@ set stdio
 # Affected: Mac OS X, UnixWare.
 typ u_long
 
-# In FreeBSD, definitions like _POSIX_SOURCE and such are used to *limit*
-# functionality to known API; they don't enable anything. The general intent in
-# BSD is to enable everything by default. So we look for that here, but stay
-# careful that we don't get fooled by presence of FreeBSD that underpins some
-# subsystems in Mac OS X; there are other Apple-specific portability hacks
-# elsewhere we should not interfere with.
-if tst note{ FreeBSD or DragonFly BSD }end compile{
+#
+# The following tests try to define the features/standards macros that expose
+# as much functionality as possible on the current system. We've got our own
+# feature test framework, iffe, so we want POSIX + all possible extensions.
+#
+# The results of these are included in everything that uses libast and
+# (as of 2021-12-06) also in all subsequent feature tests run by iffe.
+#
+# Note: The code between compile{ ... }end is the feature test; the text
+# in the subsequent { ... } block is output literally to FEATURE/standards.
+#
+
+if tst note{ BSD (Free, Net, Open, et al) }end compile{
+		/*
+		 * On BSD systems, _POSIX_SOURCE and such are used to *limit* functionality to a known API;
+		 * they don't enable anything. The general intent in BSD is to enable everything by default.
+		 */
 		#include <sys/param.h>
-		#if (!defined(__FreeBSD__) && !defined(__DragonFly__)) || defined(__APPLE__) || defined(__MACH__)
-		#error not one of the listed systems
+		#include <sys/types.h>
+		#if !(BSD && !__APPLE__ && !__MACH__ && !NeXTBSD)  /* NeXT/macOS falsely claim to be BSD */
+		#error not BSD
+		#endif
+		#if _typ_u_long
+		u_long _test_dummy_;
 		#endif
 	}end {
+		/* No standards or features macro here. On BSD, everything is enabled by default */
+	}
+elif tst note{ Darwin (macOS, Mac OS X) }end compile{
+		/*
+		 * From compat(5) on macOS 10.14.6:
+		 *
+		 *     Defining  _POSIX_C_SOURCE or _DARWIN_C_SOURCE causes  library and kernel calls to
+		 *     conform to the SUSv3 standards even if doing so would alter the behavior of func-
+		 *     tions used in 10.3.   Defining _POSIX_C_SOURCE also removes functions, types, and
+		 *     other interfaces that are not part of SUSv3  from the normal C namespace,  unless
+		 *     _DARWIN_C_SOURCE is also defined  (i.e., _DARWIN_C_SOURCE is _POSIX_C_SOURCE with
+		 *     non-POSIX extensions).
+		 */
+		#define _DARWIN_C_SOURCE 1
+		#include <sys/param.h>
+		#include <sys/types.h>
+		#if !(__APPLE__ && __MACH__ && NeXTBSD)
+		#error not Darwin
+		#endif
+		#if _typ_u_long
+		u_long _test_dummy_;
+		#endif
+	}end {
+		#ifndef _DARWIN_C_SOURCE
+		#define _DARWIN_C_SOURCE 1
+		#endif
 	}
 elif tst note{ SunOS (Solaris, illumos) }end compile{
+		/*
+		 * From standards(5) on Solaris 11.4:
+		 *
+		 *       Applications  that  are intended to be conforming POSIX.1-2008 applica-
+		 *       tions must  define  the  feature  test  macro  _POSIX_C_SOURCE=200809L,
+		 *       before including any headers.
+		 *       [...]
+		 *       If  the application is using interfaces and headers not defined by that
+		 *       standard, then in addition to defining the appropriate standard feature
+		 *       test macro, it must also define __EXTENSIONS__. Defining __EXTENSIONS__
+		 *       provides the application with access to all interfaces and headers  not
+		 *       in conflict with the specified standard.
+		 *
+		 * However, _POSIX_C_SOURCE does not work for backwards compatibility because
+		 * /usr/include/sys/feature_tests.h checks for exact values of _POSIX_C_SOURCE,
+		 * not a value greater than this or that. So, setting it to 200809L would break
+		 * compatibility with Solaris 10 which only supports POSIX 2001. Therefore, hack it:
+		 * define all the _XPG? macros that _POSIX_C_SOURCE=200809L would cause to be defined
+		 * on Solaris 11.4, causing earlier versions to fall back to earlier standards.
+		 */
+		#define _XPG7
+		#define	_XPG6
+		#define	_XPG5
+		#define _XPG4_2
+		#define _XPG4
+		#define _XPG3
+		#define	_XOPEN_SOURCE	700
+		#define	__EXTENSIONS__
+		#include <sys/types.h>
 		#if !__sun
 		#error dark
 		#endif
+		#if _typ_u_long
+		u_long _test_dummy_;
+		#endif
 	}end {
-		#define _XPG7		1
-		#define	_XPG6		1
-		#define	_XPG5		1
-		#define _XPG4		1
-		#define	__EXTENSIONS__	1
-		#define	_XOPEN_SOURCE	9900
+		#define _XPG7
+		#define	_XPG6
+		#define	_XPG5
+		#define _XPG4_2
+		#define _XPG4
+		#define _XPG3
+		#define	_XOPEN_SOURCE	700
+		#define	__EXTENSIONS__
 	}
-elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _DARWIN_C_SOURCE & __EXTENSIONS__ works }end compile{
+elif tst note{ GNU (glibc) }end compile{
+		/*
+		 * GNU (GNU's Not UNIX). From feature_test_macros(7) on a GNU/Linux system with glibc 2.32:
+		 *
+		 *   _GNU_SOURCE
+		 *          Defining this macro (with any value) implicitly defines _ATFILE_SOURCE, _LARGE‐
+		 *          FILE64_SOURCE,    _ISOC99_SOURCE,    _XOPEN_SOURCE_EXTENDED,     _POSIX_SOURCE,
+		 *          _POSIX_C_SOURCE  with the value 200809L (200112L in glibc versions before 2.10;
+		 *          199506L in glibc versions before 2.5; 199309L in glibc versions before 2.1) and
+		 *          _XOPEN_SOURCE  with  the  value  700 (600 in glibc versions before 2.10; 500 in
+		 *          glibc versions before 2.2).  In addition, various GNU-specific  extensions  are
+		 *          also exposed.
+		 *          Since glibc 2.19, defining _GNU_SOURCE also has the effect of implicitly defin‐
+		 *          ing _DEFAULT_SOURCE.  In glibc versions before 2.20, defining _GNU_SOURCE  also
+		 *          had the effect of implicitly defining _BSD_SOURCE and _SVID_SOURCE.
+		 */
+		#define _GNU_SOURCE	1
+		#include <features.h>
+		#include <sys/types.h>
+		#if !__GLIBC__
+		#error not GNU
+		#endif
+		#if _typ_u_long
+		u_long _test_dummy_;
+		#endif
+	}end {
+		#ifndef _GNU_SOURCE
+		#define _GNU_SOURCE	1
+		#endif
+	}
+elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _ALL_SOURCE	1
 		#define _POSIX_SOURCE	1
 		#define _POSIX_C_SOURCE	21000101L
 		#define _XOPEN_SOURCE	9900
-		#define _GNU_SOURCE	1
-		#define _DARWIN_C_SOURCE 1
 		#define __EXTENSIONS__	1
 		#include <sys/types.h>
 		#include <sys/stat.h>
@@ -60,22 +162,14 @@ elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _
 		#ifndef _XOPEN_SOURCE
 		#define _XOPEN_SOURCE	9900
 		#endif
-		#ifndef _GNU_SOURCE
-		#define _GNU_SOURCE	1
-		#endif
-		#ifndef _DARWIN_C_SOURCE
-		#define _DARWIN_C_SOURCE 1
-		#endif
 		#ifndef __EXTENSIONS__
 		#define __EXTENSIONS__	1
 		#endif
 	}
-elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _DARWIN_C_SOURCE & __EXTENSIONS__ works }end compile{
+elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _ALL_SOURCE	1
 		#define _POSIX_SOURCE	1
 		#define _XOPEN_SOURCE	9900
-		#define _GNU_SOURCE	1
-		#define _DARWIN_C_SOURCE 1
 		#define __EXTENSIONS__	1
 		#include <sys/types.h>
 		#include <sys/stat.h>
@@ -95,22 +189,14 @@ elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _DARW
 		#ifndef _XOPEN_SOURCE
 		#define _XOPEN_SOURCE	9900
 		#endif
-		#ifndef _GNU_SOURCE
-		#define _GNU_SOURCE	1
-		#endif
-		#ifndef _DARWIN_C_SOURCE
-		#define _DARWIN_C_SOURCE 1
-		#endif
 		#ifndef __EXTENSIONS__
 		#define __EXTENSIONS__	1
 		#endif
 	}
-elif tst note{ _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _DARWIN_C_SOURCE & __EXTENSIONS__ works }end compile{
+elif tst note{ _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _POSIX_SOURCE	1
 		#define _POSIX_C_SOURCE	21000101L
 		#define _XOPEN_SOURCE	9900
-		#define _GNU_SOURCE	1
-		#define _DARWIN_C_SOURCE 1
 		#define __EXTENSIONS__	1
 		#include <sys/types.h>
 		#include <sys/stat.h>
@@ -129,12 +215,6 @@ elif tst note{ _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _
 		#endif
 		#ifndef _XOPEN_SOURCE
 		#define _XOPEN_SOURCE	9900
-		#endif
-		#ifndef _GNU_SOURCE
-		#define _GNU_SOURCE	1
-		#endif
-		#ifndef _DARWIN_C_SOURCE
-		#define _DARWIN_C_SOURCE 1
 		#endif
 		#ifndef __EXTENSIONS__
 		#define __EXTENSIONS__	1
