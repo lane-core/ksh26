@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2021-12-16 $
+@(#)$Id: shtests (ksh 93u+m) 2021-12-20 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -410,7 +410,12 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		mkdir -m700 "$tmp_s" || exit
 		# must incorporate _common in script itself so the aliases are expanded at compile time
 		sed '/^\. .*\/_common/ {
+			i\
+				saveLINENO=$LINENO
 			r _common
+			a\
+				LINENO=$saveLINENO\
+				unset saveLINENO
 			d
 		}' < $i > $c.orig
 		cd "$tmp_s" || exit
