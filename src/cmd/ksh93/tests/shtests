@@ -408,16 +408,10 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
 		tmp_s=$tmp/$u.shcomp
 		mkdir -m700 "$tmp_s" || exit
-		# must incorporate _common in script itself so the aliases are expanded at compile time
-		sed '/^\. .*\/_common/ {
-			i\
-				saveLINENO=$LINENO
-			r _common
-			a\
-				LINENO=$saveLINENO\
-				unset saveLINENO
-			d
-		}' < $i > $c.orig
+		# Must define aliases from _common in script itself so they are expanded at compile time.
+		# Replace the first few lines with those to avoid affecting $LINENO; they are comments anyway.
+		num_alias=$(grep -c '^alias [[:alnum:]_]\{2,\}=' _common)
+		{ grep '^alias [[:alnum:]_]\{2,\}=' _common; sed "1,$num_alias d" "$i"; } >$c.orig
 		cd "$tmp_s" || exit
 		if	"$SHCOMP" "$c.orig" > $c
 		then	if	tmp=$tmp_s $valgrind $SHELL $trace $c
