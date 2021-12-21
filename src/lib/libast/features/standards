@@ -23,11 +23,14 @@ if tst note{ BSD (Free, Net, Open, et al) }end compile{
 		 * On BSD systems, _POSIX_SOURCE and such are used to *limit* functionality to a known API;
 		 * they don't enable anything. The general intent in BSD is to enable everything by default.
 		 */
+		#include <limits.h>
+		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
 		#if !(BSD && !__APPLE__ && !__MACH__ && !NeXTBSD)  /* NeXT/macOS falsely claim to be BSD */
 		#error not BSD
 		#endif
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
@@ -46,11 +49,14 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 		 *     non-POSIX extensions).
 		 */
 		#define _DARWIN_C_SOURCE 1
+		#include <limits.h>
+		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
 		#if !(__APPLE__ && __MACH__ && NeXTBSD)
 		#error not Darwin
 		#endif
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
@@ -61,24 +67,13 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 	}
 elif tst note{ SunOS (Solaris, illumos) }end compile{
 		/*
-		 * From standards(5) on Solaris 11.4:
-		 *
-		 *       Applications  that  are intended to be conforming POSIX.1-2008 applica-
-		 *       tions must  define  the  feature  test  macro  _POSIX_C_SOURCE=200809L,
-		 *       before including any headers.
-		 *       [...]
-		 *       If  the application is using interfaces and headers not defined by that
-		 *       standard, then in addition to defining the appropriate standard feature
-		 *       test macro, it must also define __EXTENSIONS__. Defining __EXTENSIONS__
-		 *       provides the application with access to all interfaces and headers  not
-		 *       in conflict with the specified standard.
-		 *
-		 * However, _POSIX_C_SOURCE does not work for backwards compatibility because
-		 * /usr/include/sys/feature_tests.h checks for exact values of _POSIX_C_SOURCE,
-		 * not a value greater than this or that. So, setting it to 200809L would break
-		 * compatibility with Solaris 10 which only supports POSIX 2001. Therefore, hack it:
-		 * define all the _XPG? macros that _POSIX_C_SOURCE=200809L would cause to be defined
-		 * on Solaris 11.4, causing earlier versions to fall back to earlier standards.
+		 * On Solaris/illumos, we ignore the standards(5) manual completely because
+		 * defining any standards macro, and even defining __EXTENSIONS__ (!), will
+		 * disable functionality that libast depends on. Instead we define unofficial
+		 * _XPG* macros that enable up-to-date declarations and functionality in
+		 * Solaris system headers.
+		 * (Note that we must also avoid passing any -std=... flag to the compiler,
+		 * because that will disable essential functionality as well.)
 		 */
 		#define _XPG7
 		#define	_XPG6
@@ -86,12 +81,16 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define _XPG4_2
 		#define _XPG4
 		#define _XPG3
-		#define	_XOPEN_SOURCE	700
-		#define	__EXTENSIONS__
+		#define __EXTENSIONS__	1
+		#define	_XOPEN_SOURCE	9900
+		#undef _POSIX_C_SOURCE
+		#include <limits.h>
+		#include <unistd.h>
 		#include <sys/types.h>
 		#if !__sun
 		#error dark
 		#endif
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
@@ -102,8 +101,9 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define _XPG4_2
 		#define _XPG4
 		#define _XPG3
-		#define	_XOPEN_SOURCE	700
-		#define	__EXTENSIONS__
+		#define __EXTENSIONS__	1
+		#define	_XOPEN_SOURCE	9900
+		#undef _POSIX_C_SOURCE
 	}
 elif tst note{ GNU (glibc) }end compile{
 		/*
@@ -122,11 +122,14 @@ elif tst note{ GNU (glibc) }end compile{
 		 *          had the effect of implicitly defining _BSD_SOURCE and _SVID_SOURCE.
 		 */
 		#define _GNU_SOURCE	1
+		#include <limits.h>
+		#include <unistd.h>
 		#include <features.h>
 		#include <sys/types.h>
 		#if !__GLIBC__
 		#error not GNU
 		#endif
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
@@ -146,6 +149,8 @@ elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
@@ -176,6 +181,8 @@ elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ work
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
@@ -203,6 +210,8 @@ elif tst note{ _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ 
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
@@ -229,6 +238,8 @@ elif tst note{ _POSIX_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
@@ -251,6 +262,8 @@ elif tst note{ _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
@@ -269,6 +282,8 @@ elif tst note{ _XOPEN_SOURCE works }end compile{
 		#include <stdlib.h>
 		#include <unistd.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
@@ -282,6 +297,8 @@ else tst note{ __EXTENSIONS__ works }end compile{
 		#include <sys/types.h>
 		#include <sys/stat.h>
 		#include <fcntl.h>
+		#include <limits.h>
+		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy;
 		#endif
