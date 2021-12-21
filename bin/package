@@ -1724,12 +1724,12 @@ int b() { return 0; }
 			esac
 			;;
 		*)	case $bits in
-			'')	bits=$(	cd "$TMPDIR"
-					LC_ALL=C
-					export LC_ALL
+			'')	bits=$(	set -e
+					cd "$TMPDIR"
 					tmp=hi$$
-					trap 'rm -f $tmp.*' 0 1 2
+					trap 'rm -rf "$tmp".*' 0 1 2
 					echo 'int main() { return 0; }' > $tmp.a.c
+					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
 					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
 				case $bits in
@@ -1805,7 +1805,10 @@ checkcc()
 	if	onpath $CC
 	then	cc=$_onpath_
 	else	case $CC in
-		cc)	if	onpath gcc
+		cc)	if	onpath clang
+			then	CC=clang
+				cc=$_onpath_
+			elif	onpath gcc
 			then	CC=gcc
 				cc=$_onpath_
 			fi
