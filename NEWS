@@ -12,6 +12,15 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 	[1]	30909      <--- incorrect job control output from subshell
 	done
 
+- Fixed: after suspending (Ctrl+Z) a subshell that is running an external
+  command, resuming the subshell with 'fg' failed and the job was lost.
+	$ (vi)    <--- press Ctrl+Z
+	[2] + Stopped                  (vi)
+	$ fg
+	(vi)      <--- vi failed to resume; immediate return to command line
+	$ fg
+	ksh: no such job
+
 2021-12-20:
 
 - Ported performance optimizations from illumos to improve the performance
