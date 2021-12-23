@@ -3458,6 +3458,7 @@ use)	# finalize the environment
 	esac
 	eval PACKAGE_USE=$package_use
 	export PACKAGE_USE
+	unset LC_ALL  # respect the user's locale again; avoids multibyte corruption
 
 	# run the command
 

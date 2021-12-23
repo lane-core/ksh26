@@ -1779,9 +1779,8 @@ TEST 17 'features/* => FEATURE/*'
 
 	EXEC	-r -v run features/stdio
 		INPUT features/stdio $'header stdio.h'
-		OUTPUT FEATURE/stdio $'
-/* : : generated from features/stdio by iffe version 1995-03-19 : : */
-                  
+		OUTPUT FEATURE/stdio $'/* : : generated from features/stdio by iffe version 1995-03-19 : : */
+#ifndef _REGRESS
 #define _REGRESS	1
 #define _sys_types	1	/* #include <sys/types.h> ok */
 #include <stdio.h>
