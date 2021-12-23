@@ -2004,14 +2004,29 @@ static void env_import_attributes(Shell_t *shp, char *next)
 }
 
 /*
- * terminate shell and free up the space
+ * libshell ABI compatibility functions
  */
-int sh_term(void)
+#define BYPASS_MACRO
+
+unsigned long sh_isoption BYPASS_MACRO (int opt)
 {
-	sfdisc(sfstdin,SF_POPDISC);
-	free((char*)sh.outbuff);
-	stakset(NIL(char*),0);
-	return(0);
+	return(sh_isoption(opt));
+}
+
+unsigned long sh_onoption BYPASS_MACRO (int opt)
+{
+	return(sh_onoption(opt));
+}
+
+unsigned long sh_offoption BYPASS_MACRO (int opt)
+{
+	return(sh_offoption(opt));
+}
+
+void	sh_sigcheck BYPASS_MACRO (Shell_t *shp)
+{
+	NOT_USED(shp);
+	sh_sigcheck(&sh);
 }
 
 Dt_t*	sh_bltin_tree(void)
