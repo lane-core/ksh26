@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  *
  * Shell initialization
@@ -2015,33 +2014,7 @@ int sh_term(void)
 	return(0);
 }
 
-/* function versions of these */
-
-#define DISABLE	/* proto workaround */
-
-unsigned long sh_isoption DISABLE (int opt)
-{
-	return(sh_isoption(opt));
-}
-
-unsigned long sh_onoption DISABLE (int opt)
-{
-	return(sh_onoption(opt));
-}
-
-unsigned long sh_offoption DISABLE (int opt)
-{
-	return(sh_offoption(opt));
-}
-
-void	sh_sigcheck DISABLE (Shell_t *shp)
-{
-	if(!shp)
-		shp = sh_getinterp();
-	sh_sigcheck(shp);
-}
-
-Dt_t*	sh_bltin_tree DISABLE (void)
+Dt_t*	sh_bltin_tree(void)
 {
 	return(sh.bltin_tree);
 }

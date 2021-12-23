@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Research
@@ -72,8 +71,6 @@ main()
 	int		f_lck = 0;
 	int		o_local = 2;
 
-	printf("#pragma prototyped\n");
-	printf("\n");
 	printf("#if _typ_off64_t\n");
 	printf("#undef	off_t\n");
 	printf("#ifdef __STDC__\n");

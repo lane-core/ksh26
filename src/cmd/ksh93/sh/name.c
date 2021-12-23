@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Labs
  *
@@ -3714,13 +3713,6 @@ Namval_t *nv_lastdict(void)
 void *nv_context(Namval_t *np)
 {
 	return((void*)np->nvfun);
-}
-
-#define DISABLE /* proto workaround */
-
-int nv_isnull DISABLE (register Namval_t *np)
-{
-	return(nv_isnull(np));
 }
 
 #undef nv_setsize
