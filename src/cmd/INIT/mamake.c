@@ -110,7 +110,7 @@ static const char usage[] =
 #include <sys/stat.h>
 #include <time.h>
 
-#if !_PACKAGE_ast && defined(__STDC__)
+#if !_PACKAGE_ast
 #include <stdlib.h>
 #include <string.h>
 #endif

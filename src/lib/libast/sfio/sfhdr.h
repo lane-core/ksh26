@@ -1206,30 +1206,6 @@ extern Sfdouble_t	ldexpl(Sfdouble_t, int);
 
 #if !_PACKAGE_ast
 
-#if !__STDC__ && !_hdr_stdlib
-extern void	abort(void);
-extern int	atexit(void(*)(void));
-extern char*	getenv(const char*);
-extern void*	malloc(size_t);
-extern void*	realloc(void*, size_t);
-extern void	free(void*);
-extern size_t	strlen(const char*);
-extern char*	strcpy(char*, const char*);
-
-extern void*	memset(void*, int, size_t);
-extern void*	memchr(const void*, int, size_t);
-extern void*	memccpy(void*, const void*, int, size_t);
-#ifndef memcpy
-extern void*	memcpy(void*, const void*, size_t);
-#endif
-#if !defined(strtod)
-extern double	strtod(const char*, char**);
-#endif
-#if !defined(remove)
-extern int	sysremovef(const char*);
-#endif
-#endif /* !__STDC__ && !_hdr_stdlib */
-
 #if !_hdr_unistd
 extern int	sysclosef(int);
 extern ssize_t	sysreadf(int, void*, size_t);

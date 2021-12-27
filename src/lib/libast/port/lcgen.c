@@ -39,10 +39,8 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#ifdef __STDC__
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 typedef struct Link_s
 {

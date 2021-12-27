@@ -487,18 +487,8 @@ extern int		getpagesize(void);
 extern void*		sbrk(ssize_t);
 #endif
 
-#if !__STDC__ && !_hdr_stdlib
-extern size_t		strlen( const char* );
-extern char*		strcpy( char*, const char* );
-extern int		strcmp( const char*, const char* );
-extern int		atexit( void(*)(void) );
-extern char*		getenv( const char* );
-extern void*		memcpy( void*, const void*, size_t );
-extern void*		memset( void*, int, size_t );
-#else
 #include	<stdlib.h>
 #include	<string.h>
-#endif
 
 /* for vmexit.c */
 extern int		onexit( void(*)(void) );

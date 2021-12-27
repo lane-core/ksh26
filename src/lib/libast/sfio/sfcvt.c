@@ -20,9 +20,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if __STDC__
 #include	"FEATURE/standards"
-#endif
 #include	"sfhdr.h"
 
 /*	Convert a floating point value to ASCII.

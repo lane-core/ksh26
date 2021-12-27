@@ -37,9 +37,7 @@
 
 #if _typ_off64_t
 #undef	off_t
-#ifdef __STDC__
 #define	off_t		off_t
-#endif
 #endif
 
 #if _hdr_fcntl
@@ -73,18 +71,14 @@ main()
 
 	printf("#if _typ_off64_t\n");
 	printf("#undef	off_t\n");
-	printf("#ifdef __STDC__\n");
 	printf("#define	off_t		off_t\n");
-	printf("#endif\n");
 	printf("#endif\n");
 	printf("\n");
 	printf("#include <ast_fs.h>\n");
 	printf("\n");
 	printf("#if _typ_off64_t\n");
 	printf("#undef	off_t\n");
-	printf("#ifdef __STDC__\n");
 	printf("#define	off_t		off_t\n");
-	printf("#endif\n");
 	printf("#endif\n");
 	printf("\n");
 	printf("#include <fcntl.h>\n");
