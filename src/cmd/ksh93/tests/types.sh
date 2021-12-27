@@ -467,7 +467,7 @@ cat > B_t <<-  \EOF
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
+if	n=$(set +x; FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
 then	[[ $n == '5' ]] || err_exit "dynamic loading of types gives wrong result (got $(printf %q "$n"))"
 else	err_exit "unable to load types dynamically (got $(printf %q "$n"))"
 fi

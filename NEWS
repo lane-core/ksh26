@@ -8,6 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a crash or freeze that would occur on Linux when using Ctrl+C to
   interrupt a command substitution containing a pipe in an interactive shell.
 
+- Fixed a crash that could occur while processing a here-document while
+  xtrace (set -x) is on and the $PS4 prompt contains parameter expansions or
+  command substitutions.
+
 2021-12-26:
 
 - Listing aliases or tracked aliases in a script no longer corrupts

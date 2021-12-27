@@ -593,7 +593,7 @@ result=$("$SHELL" -c 'echo ok > >(sed s/ok/good/); wait' 2>&1)
 # Process substitution in an interactive shell or profile script shouldn't
 # print the process ID of the asynchronous process.
 echo 'false >(false)' > "$tmp/procsub-envtest"
-result=$(ENV=$tmp/procsub-envtest "$SHELL" -ic 'true >(true)' 2>&1)
+result=$(set +x; ENV=$tmp/procsub-envtest "$SHELL" -ic 'true >(true)' 2>&1)
 [[ -z $result ]] || err_exit 'interactive shells and/or profile scripts print a PID during process substitution' \
 				"(expected '', got $(printf %q "$result"))"
 
