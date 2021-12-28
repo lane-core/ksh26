@@ -864,7 +864,8 @@ for w in 'whence -t' 'type -t' 'whence -t -v'; do
 	got=$($w export)
 	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for special builtins" \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
-	if [[ $(PATH=/opt/ast/bin type cat 2>&1) != "cat is a shell builtin version of /opt/ast/bin/cat" ]]
+	builtin -d cat
+	if [[ $(set +x; PATH=/opt/ast/bin type cat 2>&1) != "cat is a shell builtin version of /opt/ast/bin/cat" ]]
 	then	warning "/opt/ast/bin/cat isn't a builtin; skipping path-bound builtin tests"
 	else
 		got=$(PATH=/opt/ast/bin $w cat)
@@ -904,7 +905,8 @@ for w in 'whence -t' 'type -t' 'whence -t -v'; do
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 
 	# The final few tests are for '-t -a'
-	if [[ $(PATH=/opt/ast/bin type cat 2>&1) == "cat is a shell builtin version of /opt/ast/bin/cat" ]]
+	builtin -d cat
+	if [[ $(set +x; PATH=/opt/ast/bin type cat 2>&1) == "cat is a shell builtin version of /opt/ast/bin/cat" ]]
 	then	exp="alias
 function
 builtin
