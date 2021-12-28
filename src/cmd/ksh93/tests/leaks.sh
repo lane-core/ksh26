@@ -418,4 +418,11 @@ DO
 DONE
 
 # ======
+TEST title='showing --man info' known=y url=https://github.com/ksh93/ksh/issues/407
+DO
+	set --man 2>/dev/null
+	ulimit --man 2>/dev/null
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))
