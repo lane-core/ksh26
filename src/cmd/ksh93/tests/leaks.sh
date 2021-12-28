@@ -106,7 +106,7 @@ alias DONE=\
 '		.lt.after=$(getmem); '\
 '		if	((.lt.after <= .lt.before)); '\
 '		then	((.lt.good++ == min_good_blocks)) && break; '\
-'		else 	((_good = 0)); '\
+'		else 	((.lt.good = 0)); '\
 '			((.lt.total += (.lt.after - .lt.before))); '\
 '			.lt.before=$(getmem); '\
 '		fi; '\
