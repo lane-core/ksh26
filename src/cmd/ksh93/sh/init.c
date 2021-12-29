@@ -1191,7 +1191,7 @@ int sh_type(register const char *path)
 Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 {
 	static int beenhere;
-	Shell_t	*shp;
+	Shell_t *shp = &sh;
 	register int n;
 	int type = 0;
 	char *save_envmarker;
@@ -1208,11 +1208,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	if(!beenhere)
 	{
 		beenhere = 1;
-		shp = &sh;
 #if SHOPT_REGRESS
 		sh_regress_init(shp);
 #endif
-		shgd = sh_newof(0,struct shared,1,0);
 		shgd->current_pid = shgd->pid = getpid();
 		shgd->ppid = getppid();
 		shgd->userid=getuid();
@@ -1231,10 +1229,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		shgd->ed_context = (void*)ed_open(shp);
 		error_info.id = path_basename(argv[0]);
 	}
-	else
-		shp = sh_newof(0,Shell_t,1,0);
 	umask(shp->mask=umask(0));
-	shp->gd = shgd;
+	sh.gd = &sh;	/* backwards compatibility pointer (there was formerly a separate global data struct) */
 	shp->mac_context = sh_macopen(shp);
 	shp->arg_context = sh_argopen(shp);
 	shp->lex_context = (void*)sh_lexopen(0,shp,1);
@@ -1485,11 +1481,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->end_fn = 0;
 	error_info.exit = sh_exit;
 	return(shp);
-}
-
-Shell_t *sh_getinterp(void)
-{
-	return(&sh);
 }
 
 /*
@@ -2123,4 +2114,13 @@ Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 	}
 	mp->hdr.disc =  &TRANS_disc;
 	return(&mp->hdr);
+}
+
+/*
+ * for libshell ABI compatibility
+ */
+#undef sh_getinterp
+Shell_t *sh_getinterp(void)
+{
+	return(&sh);
 }
