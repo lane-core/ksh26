@@ -49,6 +49,27 @@
 #include	"lexstates.h"
 #include	"version.h"
 
+#ifdef BUILD_DTKSH
+#include <Dt/DtNlUtils.h>
+#include <Dt/EnvControlP.h>
+#include <X11/X.h>
+#include <X11/Intrinsic.h>
+#include <X11/IntrinsicP.h>
+#include <X11/CoreP.h>
+#include <X11/StringDefs.h>
+#include <Xm/XmStrDefs.h>
+#include <Xm/Xm.h>
+#include <Xm/Protocols.h>
+#include "dtksh.h"
+#include "xmksh.h"
+#include "dtkcmds.h"
+#include "xmcvt.h"
+#include "widget.h"
+#include "extra.h"
+#include "xmwidgets.h"
+#include "msgs.h"
+#endif /* BUILD_DTKSH */
+
 #if _hdr_wctype
 #include	<ast_wchar.h>
 #include	<wctype.h>
@@ -1480,6 +1501,16 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	shp->errtrap = 0;
 	shp->end_fn = 0;
 	error_info.exit = sh_exit;
+#ifdef BUILD_DTKSH
+	{
+		int *lockedFds = LockKshFileDescriptors();
+		(void) XtSetLanguageProc((XtAppContext)NULL, (XtLanguageProc)NULL, (XtPointer)NULL);
+		DtNlInitialize();
+		_DtEnvControl(DT_ENV_SET);
+		UnlockKshFileDescriptors(lockedFds);
+		dtksh_init();
+	}
+#endif /* BUILD_DTKSH */
 	return(shp);
 }
 
