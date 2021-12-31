@@ -108,7 +108,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2021-12-22 $
+@(#)$Id: '$command$' (ksh 93u+m) 2021-12-31 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -511,7 +511,7 @@ SEE ALSO
   mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2021-12-22
+  version         package (ksh 93u+m) 2021-12-31
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -2665,9 +2665,11 @@ capture() # file command ...
 			: > $o
 			note "$action output captured in $o"
 			s="$command: $action start at $(date) in $INSTALLROOT"
+			cmd='case $error_status in 0) r=done;; *) r=failed;; esac;'
+			cmd=$cmd' echo "$command: $action $r at $(date) in $INSTALLROOT"'
 			case $quiet in
-			0)	cmd="echo \"$command: $action done  at \$(date)\" in $INSTALLROOT 2>&1 | \$TEE -a $o" ;;
-			*)	cmd="echo \"$command: $action done  at \$(date)\" in $INSTALLROOT >> $o" ;;
+			0)	cmd="$cmd 2>&1 | \$TEE -a $o" ;;
+			*)	cmd="$cmd >> $o" ;;
 			esac
 			trap "$cmd" 0
 			trap "$cmd; trap 1 0; kill -1 $$" 1
