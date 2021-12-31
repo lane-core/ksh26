@@ -25,7 +25,8 @@
 ########################################################################
 
 # Escape from a non-POSIX shell
-min_posix='path=Bad && case $PATH in (Bad) exit 1;; esac && '\
+# ('test X -ef Y' is technically non-POSIX, but practically universal)
+min_posix='test / -ef / && path=Bad && case $PATH in (Bad) exit 1;; esac && '\
 'PWD=Bad && cd -P -- / && case $PWD in (/) ;; (*) exit 1;; esac && '\
 '! { ! case x in ( x ) : ${0##*/} || : $( : ) ;; esac; } && '\
 'trap "exit 0" 0 && exit 1'
@@ -140,6 +141,12 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     {
         [+debug|environment?Show environment and actions but do not
             execute.]
+	[+flat?With the \bmake\b action, create a flat view by linking all
+	    files from \b$INSTALLROOT\b, minus build system internals, onto
+	    their corresponding path under \b$PACKAGEROOT\b.
+	    Only one architecture can have a flat view.
+	    If \bflat\b is specified with the \bclean\b action, then
+	    only clean up this flat view and do not delete \b$INSTALLROOT\b.]
         [+force?Force the action to override saved state.]
         [+never?Run make -N and show other actions.]
         [+only?Only operate on the specified packages.]
@@ -150,7 +157,9 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     }
 [+?The actions are:]
     {
-	[+clean | clobber?Delete the \barch/\b\aHOSTTYPE\a hierarchy; this
+	[+clean | clobber?Clean up the flat view, if any.
+	    Then, unless \bflat\b was given,
+	    delete the \barch/\b\aHOSTTYPE\a hierarchy; this
 	    deletes all generated files and directories for \aHOSTTYPE\a.
 	    The hierarchy can be rebuilt by \b'$command$' make\b.]
         [+export\b [ \avariable\a ...]]?List \aname\a=\avalue\a for
@@ -295,6 +304,7 @@ esac
 action=
 bit=
 exec=
+flat=0
 force=0
 global=
 hi=
@@ -330,6 +340,8 @@ do	case $# in
 		;;
 	debug|environment)
 		exec=echo make=echo show=echo
+		;;
+	flat)	flat=1
 		;;
 	force)	force=1
 		;;
@@ -392,6 +404,11 @@ DESCRIPTION
   The qualifiers are:
     debug|environment
           Show environment and actions but do not execute.
+    flat  With the make action, create a flat view by linking all files from
+          $INSTALLROOT, minus build system internals, onto their corresponding
+          path under $PACKAGEROOT. Only one architecture can have a flat view.
+          If flat is specified with the clean action, then only clean up this
+          flat view and do not delete $INSTALLROOT.
     force Force the action to override saved state.
     never Run make -N and show other actions.
     only  Only operate on the specified packages.
@@ -403,8 +420,9 @@ DESCRIPTION
 
   The actions are:
     clean | clobber
-          Delete the arch/HOSTTYPE hierarchy; this deletes all generated files
-          and directories for HOSTTYPE. The hierarchy can be rebuilt by package
+          Clean up the flat view, if any. Then, unless flat was given, delete
+          the arch/HOSTTYPE hierarchy; this deletes all generated files and
+          directories for HOSTTYPE. The hierarchy can be rebuilt by package
           make.
     export [ variable ...]
           List name=value for variable, one per line. If the only attribute is
@@ -2745,9 +2763,23 @@ error_status=0
 case $action in
 
 clean|clobber)
-	cd $PACKAGEROOT
-	$exec rm -rf arch/$HOSTTYPE
-	exit
+	cd "$PACKAGEROOT" || exit
+	note "cleaning up flat view"
+	$exec find "arch/$HOSTTYPE" -name src -prune -o -type f -exec "$SHELL" -c '
+		for h
+		do	p=${h#"arch/$HOSTTYPE/"}
+			if	test "$p" -ef "$h"
+			then	rm -f "$p"
+			fi
+		done
+	' "$0" {} +
+	case $flat in
+	0)	note "deleting arch/$HOSTTYPE"
+		$exec rm -rf arch/$HOSTTYPE
+		;;
+	esac
+	note "removing empty directories"
+	$exec find . -depth -type d -exec rmdir {} + 2>/dev/null
 	;;
 
 export)	case $INSTALLROOT in
@@ -3295,6 +3327,23 @@ cat $j $k
 	'')	target="install" ;;
 	esac
 	eval capture mamake \$makeflags \$noexec \$target $assign
+
+	case $flat in
+	1)	note "creating flat view"
+		cd "$PACKAGEROOT" || exit
+		# exclude build system internals
+		$exec find "arch/$HOSTTYPE" -name package -prune -o -name probe -prune -o -name FEATURE -prune \
+		-o -name ok -prune -o -name src -prune -o -name '*.dSYM' -prune -o -path "*/lib/lib" -prune \
+		-o -type f ! -name '*.old' -exec "$SHELL" -c '
+			for h
+			do	p=${h#"arch/$HOSTTYPE/"}
+				d=${p%/*}
+				test -d "$d" || mkdir -p "$d" || exit
+				ln -f "$h" "$p" 2>/dev/null || ln -sf "$h" "$p" || exit
+			done
+		' "$0" {} +
+		;;
+	esac
 	;;
 
 results)set '' $target
