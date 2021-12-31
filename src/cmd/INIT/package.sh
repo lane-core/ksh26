@@ -142,8 +142,8 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
         [+debug|environment?Show environment and actions but do not
             execute.]
 	[+flat?With the \bmake\b action, create a flat view by linking all
-	    files from \b$INSTALLROOT\b, minus build system internals, onto
-	    their corresponding path under \b$PACKAGEROOT\b.
+	    files from \b$INSTALLROOT\b, minus \b*.old\b files,
+	    onto their corresponding path under \b$PACKAGEROOT\b.
 	    Only one architecture can have a flat view.
 	    If \bflat\b is specified with the \bclean\b action, then
 	    only clean up this flat view and do not delete \b$INSTALLROOT\b.]
@@ -405,10 +405,10 @@ DESCRIPTION
     debug|environment
           Show environment and actions but do not execute.
     flat  With the make action, create a flat view by linking all files from
-          $INSTALLROOT, minus build system internals, onto their corresponding
-          path under $PACKAGEROOT. Only one architecture can have a flat view.
-          If flat is specified with the clean action, then only clean up this
-          flat view and do not delete $INSTALLROOT.
+          $INSTALLROOT, minus *.old files, onto their corresponding path under
+          $PACKAGEROOT. Only one architecture can have a flat view. If flat is
+          specified with the clean action, then only clean up this flat view
+          and do not delete $INSTALLROOT.
     force Force the action to override saved state.
     never Run make -N and show other actions.
     only  Only operate on the specified packages.
@@ -609,7 +609,7 @@ do	case $i in
 	*:*=*)	args="$args $i"
 		continue
 		;;
-	*=*)	eval $(echo ' ' "$i" | sed 's,^[ 	]*\([^=]*\)=\(.*\),n=\1 v='\''\2'\'',')
+	*=*)	n=${i%%=*} v=${i#*=}
 		;;
 	esac
 	case $i in
@@ -2765,13 +2765,20 @@ case $action in
 clean|clobber)
 	cd "$PACKAGEROOT" || exit
 	note "cleaning up flat view"
-	$exec find "arch/$HOSTTYPE" -name src -prune -o -type f -exec "$SHELL" -c '
-		for h
-		do	p=${h#"arch/$HOSTTYPE/"}
-			if	test "$p" -ef "$h"
-			then	rm -f "$p"
+	# clean up all links with arch dir except bin/package
+	$exec find "arch/$HOSTTYPE" -path "arch/$HOSTTYPE/bin/package" -o -type f -exec "$SHELL" -c '
+		first=y
+		for h					# loop through the PPs
+		do	case $first in
+			y)	set --			# clear PPs ("for" uses a copy)
+				first=n ;;
+			esac
+			p=${h#"arch/$HOSTTYPE/"}	# get flat view path
+			if	test "$p" -ef "$h"	# is it part of the flat view?
+			then	set -- "$@" "$p"	# add to new PPs
 			fi
 		done
+		exec rm -f "$@"				# rm all at once: fast
 	' "$0" {} +
 	case $flat in
 	0)	note "deleting arch/$HOSTTYPE"
@@ -3328,15 +3335,34 @@ cat $j $k
 	esac
 	eval capture mamake \$makeflags \$noexec \$target $assign
 
-	case $flat in
-	1)	note "creating flat view"
+	case $HOSTTYPE in
+	darwin.*)
+		# clean up macOS .dSYM bundles belonging to deleted temps
 		cd "$PACKAGEROOT" || exit
-		# exclude build system internals
-		$exec find "arch/$HOSTTYPE" -name package -prune -o -name probe -prune -o -name FEATURE -prune \
-		-o -name ok -prune -o -name src -prune -o -name '*.dSYM' -prune -o -path "*/lib/lib" -prune \
-		-o -type f ! -name '*.old' -exec "$SHELL" -c '
+		$exec find "arch/$HOSTTYPE" -type d -name '*.dSYM' -exec "$SHELL" -c '
+			first=y
+			for d					# loop through the PPs
+			do	case $first in
+				y)	set --			# clear PPs ("for" uses a copy)
+					first=n ;;
+				esac
+				e=${d%.dSYM}			# get exe name
+				if	! test -f "$e"		# nonexistent?
+				then	set -- "$@" "$d"	# add to new PPs
+				fi
+			done
+			exec rm -rf "$@"			# rm all at once: fast
+		' "$0" {} +
+		;;
+	esac
+
+	case $flat in
+	1)	note "updating flat view"
+		cd "$PACKAGEROOT" || exit
+		$exec find "arch/$HOSTTYPE" -type f ! -name '*.old' -exec "$SHELL" -c '
 			for h
 			do	p=${h#"arch/$HOSTTYPE/"}
+				test "$h" -ef "$p" && continue	# already created
 				d=${p%/*}
 				test -d "$d" || mkdir -p "$d" || exit
 				ln -f "$h" "$p" 2>/dev/null || ln -sf "$h" "$p" || exit
