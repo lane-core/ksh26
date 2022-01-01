@@ -2690,8 +2690,8 @@ capture() # file command ...
 			*)	cmd="$cmd >> $o" ;;
 			esac
 			trap "$cmd" 0
-			trap "$cmd; trap 1 0; kill -1 $$" 1
-			trap "$cmd; trap 2 0; kill -2 $$" 2
+			trap "error_status=1; $cmd; trap 1 0; kill -1 $$" 1
+			trap "error_status=1; $cmd; trap 2 0; kill -2 $$" 2
 			;;
 		esac
 		case $quiet in
