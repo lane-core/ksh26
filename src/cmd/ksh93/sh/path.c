@@ -201,7 +201,7 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 		{
 			if((pid=_spawnveg(shp,path,argv,envp,0)) < 0)
 				return(-1);
-			job_post(shp,pid,0);
+			job_post(pid,0);
 			job_wait(pid);
 			if(shp->exitval>exitval)
 				exitval = shp->exitval;

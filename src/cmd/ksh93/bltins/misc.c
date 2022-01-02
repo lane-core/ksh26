@@ -145,7 +145,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		if(arg0)
 			argv[0] = arg0;
 #ifdef JOBS
-		if(job_close(&sh) < 0)
+		if(job_close() < 0)
 			return(1);
 #endif /* JOBS */
 		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */

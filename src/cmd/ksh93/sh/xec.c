@@ -1780,7 +1780,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(parent)
 					{
 						job.toclear = 0;
-						job_post(shp,parent,0);
+						job_post(parent,0);
 						job_wait(parent);
 						sh_iorestore(topfd,SH_JMPCMD);
 						sh_done((shp->exitval&SH_EXITSIG)?(shp->exitval&SH_EXITMASK):0);
@@ -2920,11 +2920,11 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 #if SHOPT_BGX
 		if(!postid && (flags&(FAMP|FINT)) == (FAMP|FINT))
 			postid = 1;
-		myjob = job_post(shp,parent,postid);
+		myjob = job_post(parent,postid);
 		if(postid==1)
 			postid = 0;
 #else
-		myjob = job_post(shp,parent,postid);
+		myjob = job_post(parent,postid);
 #endif /* SHOPT_BGX */
 		if(job.waitall && (flags&FPOU))
 		{

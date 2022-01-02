@@ -204,7 +204,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 #endif /* SIGXFSZ */
 			sh_onoption(SH_MONITOR);
 		}
-		job_init(shp,sh_isoption(SH_LOGIN_SHELL));
+		job_init(sh_isoption(SH_LOGIN_SHELL));
 		if(sh_isoption(SH_LOGIN_SHELL))
 		{
 			/*	system profile	*/
@@ -435,7 +435,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 			sh_setstate(states);
 			goto done;
 		}
-		if(!sh_isoption(SH_INTERACTIVE) || sh_isstate(SH_FORKED) || (jmpval > SH_JMPERREXIT && job_close(shp) >=0))
+		if(!sh_isoption(SH_INTERACTIVE) || sh_isstate(SH_FORKED) || (jmpval > SH_JMPERREXIT && job_close() >=0))
 		{
 			sh_offstate(SH_INTERACTIVE);
 			sh_offstate(SH_MONITOR);
@@ -551,7 +551,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 						errormsg(SH_DICT,0,e_logout);
 						continue;
 					}
-					else if(job_close(shp)<0)
+					else if(job_close()<0)
 						continue;
 				}
 				else if(sferr==SH_EXITSIG)
@@ -616,7 +616,7 @@ done:
 	{
 		if(isatty(0) && !sh_isoption(SH_CFLAG))
 			sfputc(sfstderr,'\n');
-		job_close(shp);
+		job_close();
 	}
 	if(jmpval == SH_JMPSCRIPT)
 		siglongjmp(*shp->jmplist,jmpval);

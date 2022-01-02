@@ -413,7 +413,7 @@ void	sh_chktrap(void)
 		sh_timetraps(&sh);
 #if SHOPT_BGX
 	if((sh.sigflag[SIGCHLD]&SH_SIGTRAP) && sh.st.trapcom[SIGCHLD])
-		job_chldtrap(&sh,sh.st.trapcom[SIGCHLD],1);
+		job_chldtrap(sh.st.trapcom[SIGCHLD],1);
 #endif /* SHOPT_BGX */
 	while(--sig>=0)
 	{
@@ -652,7 +652,7 @@ noreturn void sh_done(register int sig)
 	if((sh_isoption(SH_INTERACTIVE) && sh.login_sh) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))
 		job_walk(sfstderr, job_hup, SIGHUP, NIL(char**));
 #endif	/* JOBS */
-	job_close(&sh);
+	job_close();
 	if(nv_search("VMTRACE", sh.var_tree,0))
 		strmatch((char*)0,(char*)0);
 	sfsync((Sfio_t*)sfstdin);
