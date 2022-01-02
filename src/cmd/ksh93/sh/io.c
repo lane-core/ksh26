@@ -2137,7 +2137,7 @@ static int	io_prompt(Sfio_t *iop,register int flag)
 		case 1:
 		{
 			register int c;
-			sh_lexopen(sh.lex_context, &sh, 0);   /* reset lexer state */
+			sh_lexopen(sh.lex_context, 0);   /* reset lexer state */
 #if defined(TIOCLBIC) && defined(LFLUSHO)
 			if(!sh_isoption(SH_VI) && !sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
 			{

@@ -291,7 +291,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		int		bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
@@ -397,7 +397,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
 		if(!nv_isnull(SH_VALNOD))
 		{

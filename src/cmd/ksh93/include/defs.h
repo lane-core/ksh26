@@ -137,7 +137,6 @@ extern void		sh_chktrap(void);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);
 extern int		sh_debug(Shell_t *shp,const char*,const char*,const char*,char *const[],int);
 extern int 		sh_echolist(Shell_t*,Sfio_t*, int, char**);
-extern struct argnod	*sh_endword(Shell_t*,int);
 extern char 		**sh_envgen(void);
 extern void 		sh_envnolocal(Namval_t*,void*);
 extern Sfdouble_t	sh_arith(const char*);
