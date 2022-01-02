@@ -1248,7 +1248,7 @@ int    b_set(int argc,register char *argv[],Shbltin_t *context)
 	tdata.prefix=0;
 	if(argv[1])
 	{
-		if(sh_argopts(argc,argv,tdata.sh) < 0)
+		if(sh_argopts(argc,argv) < 0)
 			return(2);
 		if(sh_isoption(SH_VERBOSE))
 			sh_onstate(SH_VERBOSE);

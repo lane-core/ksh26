@@ -1199,7 +1199,7 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 			else if(shp->subshell)
 				sh_subtmpfile(shp);
 			ap->argchn.ap = (struct argnod*)fname;
-			ap = sh_argprocsub(shp,ap);
+			ap = sh_argprocsub(ap);
 			fname = ap->argval;
 		}
 		errno=0;

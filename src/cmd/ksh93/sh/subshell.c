@@ -500,7 +500,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sfsync(shp->outpool);
 	sh_sigcheck(shp);
 	shp->savesig = -1;
-	if(argsav = sh_arguse(shp))
+	if(argsav = sh_arguse())
 		argcnt = argsav->dolrefcnt;
 	if(shp->curenv==0)
 	{
@@ -891,7 +891,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	subshell_data = sp->prev;
 	sh_popcontext(&sh,&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
-		sh_argfree(shp,argsav,0);
+		sh_argfree(argsav,0);
 	if(sh.topfd != checkpoint.topfd)
 		sh_iorestore(&sh,checkpoint.topfd|IOSUBSHELL,jmpval);
 	if(sp->sig)

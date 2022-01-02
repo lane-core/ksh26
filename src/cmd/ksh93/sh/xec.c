@@ -973,7 +973,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			type &= (COMMSK|COMSCAN);
 			sh_stats(STAT_SCMDS);
 			error_info.line = t->com.comline-shp->st.firstline;
-			com = sh_argbuild(shp,&argn,&(t->com),OPTIMIZE);
+			com = sh_argbuild(&argn,&(t->com),OPTIMIZE);
 			echeck = 1;
 			if(t->tre.tretyp&COMSCAN)
 			{
@@ -2104,11 +2104,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 			{
 				args=shp->st.dolv+1;
 				nargs = shp->st.dolc;
-				argsav=sh_arguse(shp);
+				argsav=sh_arguse();
 			}
 			else
 			{
-				args=sh_argbuild(shp,&argn,tp,0);
+				args=sh_argbuild(&argn,tp,0);
 				nargs = argn;
 			}
 			np = nv_open(t->for_.fornam, shp->var_tree,NV_NOASSIGN|NV_NOARRAY|NV_VARNAME|NV_NOREF);
@@ -2199,7 +2199,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(shp->st.breakcnt>0)
 				shp->st.execbrk = (--shp->st.breakcnt !=0);
 			shp->st.loopcnt--;
-			sh_argfree(shp,argsav,0);
+			sh_argfree(argsav,0);
 			nv_close(np);
 			break;
 		    }
@@ -3163,7 +3163,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		}
 	}
 	sh_sigreset(0);
-	argsav = sh_argnew(shp,argv,&saveargfor);
+	argsav = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(shp,buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
@@ -3222,7 +3222,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh_unscope(shp);
 	shp->namespace = nspace;
 	shp->var_tree = (Dt_t*)prevscope->save_tree;
-	sh_argreset(shp,argsav,saveargfor);
+	sh_argreset(argsav,saveargfor);
 	trap = shp->st.trapcom[0];
 	shp->st.trapcom[0] = 0;
 	sh_sigreset(1);

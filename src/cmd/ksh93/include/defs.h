@@ -124,15 +124,14 @@ extern char*	sh_setenviron(const char*);
 #define SH_READEVAL		0x4000	/* for sh_eval */
 #define SH_FUNEVAL		0x10000	/* for sh_eval for function load */
 
-extern void		sh_applyopts(Shell_t*,Shopt_t);
-extern char 		**sh_argbuild(Shell_t*,int*,const struct comnod*,int);
-extern struct dolnod	*sh_argfree(Shell_t *, struct dolnod*,int);
-extern struct dolnod	*sh_argnew(Shell_t*,char*[],struct dolnod**);
-extern void 		*sh_argopen(Shell_t*);
-extern struct argnod	*sh_argprocsub(Shell_t*,struct argnod*);
-extern void 		sh_argreset(Shell_t*,struct dolnod*,struct dolnod*);
+extern char 		**sh_argbuild(int*,const struct comnod*,int);
+extern struct dolnod	*sh_argfree(struct dolnod*,int);
+extern struct dolnod	*sh_argnew(char*[],struct dolnod**);
+extern void 		*sh_argopen(void);
+extern struct argnod	*sh_argprocsub(struct argnod*);
+extern void 		sh_argreset(struct dolnod*,struct dolnod*);
 extern Namval_t		*sh_assignok(Namval_t*,int);
-extern struct dolnod	*sh_arguse(Shell_t*);
+extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(Shell_t*);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);

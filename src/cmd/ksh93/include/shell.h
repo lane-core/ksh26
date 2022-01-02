@@ -465,7 +465,6 @@ extern int		sh_exec(const Shnode_t*,int);
  * sh_getinterp() and shgd are provided here for compatibility.
  */
 extern Shell_t		sh;
-extern Shell_t		*sh_getinterp(void);	/* for libshell ABI compatibility */
 #define	sh_getinterp()	(&sh)
 #define shgd		(&sh)
 

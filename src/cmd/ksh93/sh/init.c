@@ -1253,7 +1253,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	umask(shp->mask=umask(0));
 	sh.gd = &sh;	/* backwards compatibility pointer (there was formerly a separate global data struct) */
 	shp->mac_context = sh_macopen(shp);
-	shp->arg_context = sh_argopen(shp);
+	sh.arg_context = sh_argopen();
 	shp->lex_context = (void*)sh_lexopen(0,shp,1);
 	shp->strbuf = sfstropen();
 	shp->stk = stkstd;
@@ -1381,7 +1381,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #endif
 		/* look for options */
 		/* shp->st.dolc is $#	*/
-		if((shp->st.dolc = sh_argopts(-argc,argv,shp)) < 0)
+		if((shp->st.dolc = sh_argopts(-argc,argv)) < 0)
 		{
 			shp->exitval = 2;
 			sh_done(shp,0);
@@ -1590,7 +1590,7 @@ int sh_reinit(char *argv[])
 	if(argv)
 		shp->arglist = sh_argcreate(argv);
 	if(shp->arglist)
-		sh_argreset(shp,shp->arglist,NIL(struct dolnod*));
+		sh_argreset(sh.arglist,NIL(struct dolnod*));
 	shp->envlist=0;
 	shp->curenv = 0;
 	shp->shname = error_info.id = sh_strdup(shp->st.dolv[0]);
@@ -2145,13 +2145,4 @@ Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 	}
 	mp->hdr.disc =  &TRANS_disc;
 	return(&mp->hdr);
-}
-
-/*
- * for libshell ABI compatibility
- */
-#undef sh_getinterp
-Shell_t *sh_getinterp(void)
-{
-	return(&sh);
 }

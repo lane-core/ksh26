@@ -307,7 +307,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
 	shp->posix_fun = 0;
 	if(np || argv[1])
-		argsave = sh_argnew(shp,argv,&saveargfor);
+		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(shp,&buff,SH_JMPDOT);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
@@ -330,7 +330,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		free(tofree);
 	shp->dot_depth--;
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
-		sh_argreset(shp,(struct dolnod*)argsave,saveargfor);
+		sh_argreset((struct dolnod*)argsave,saveargfor);
 	else
 	{
 		prevscope->dolc = shp->st.dolc;

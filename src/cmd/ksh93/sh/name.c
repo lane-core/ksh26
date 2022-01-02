@@ -412,7 +412,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 				{
 					int argc;
 					Dt_t	*last_root = shp->last_root;
-					char **argv = sh_argbuild(shp,&argc,&tp->com,0);
+					char **argv = sh_argbuild(&argc,&tp->com,0);
 					shp->last_root = last_root;
 #if SHOPT_TYPEDEF
 					if(shp->mktype && shp->dot_depth==0 && np==((struct sh_type*)shp->mktype)->nodes[0])
