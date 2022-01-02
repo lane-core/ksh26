@@ -816,7 +816,7 @@ static int arg_expand(register struct argnod *argp, struct argnod **argchain,int
 		}
 		else
 #endif /* SHOPT_OPTIMIZE */
-		count = sh_macexpand(&sh,argp,argchain,flag);
+		count = sh_macexpand(argp,argchain,flag);
 	}
 	else
 	{

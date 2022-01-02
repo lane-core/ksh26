@@ -77,7 +77,8 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 		/* do binding to node now */
 		int c = cp[flag];
 		cp[flag] = 0;
-		if((!(np = nv_open(cp,sh.var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np)) && sh_macfun(&sh,cp, offset = staktell()))
+		if((!(np = nv_open(cp,sh.var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np))
+		&& sh_macfun(cp, offset = staktell()))
 		{
 			Fun = sh_arith(sub=stakptr(offset));
 			FunNode.nvalue.ldp = &Fun;

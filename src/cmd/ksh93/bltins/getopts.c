@@ -48,7 +48,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 		sfputc(stkp,'$');
 		sfputc(stkp,'(');
 		sfputr(stkp,s,')');
-		sfputr(sp,sh_mactry(shp,stkfreeze(stkp,1)),-1);
+		sfputr(sp,sh_mactry(stkfreeze(stkp,1)),-1);
 		stkset(stkp,savptr,savtop);
 	}
         return(1);

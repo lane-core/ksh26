@@ -2292,7 +2292,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			error_info.line = t->ar.arline-shp->st.firstline;
 			arg[0] = "((";
 			if(!(t->ar.arexpr->argflag&ARG_RAW))
-				arg[1] = sh_macpat(shp,t->ar.arexpr,OPTIMIZE|ARG_ARITH);
+				arg[1] = sh_macpat(t->ar.arexpr,OPTIMIZE|ARG_ARITH);
 			else
 				arg[1] = t->ar.arexpr->argval;
 			arg[2] = "))";
@@ -2323,7 +2323,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 		    case TSW:
 		    {
 			Shnode_t *tt = (Shnode_t*)t;
-			char *trap, *r = sh_macpat(shp,tt->sw.swarg,OPTIMIZE);
+			char *trap, *r = sh_macpat(tt->sw.swarg,OPTIMIZE);
 			error_info.line = t->sw.swline-shp->st.firstline;
 			t= (Shnode_t*)(tt->sw.swlst);
 			if(trap=shp->st.trap[SH_DEBUGTRAP])
@@ -2343,7 +2343,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					register char *s;
 					if(rex->argflag&ARG_MAC)
 					{
-						s = sh_macpat(shp,rex,OPTIMIZE|ARG_EXP);
+						s = sh_macpat(rex,OPTIMIZE|ARG_EXP);
 						while(*s=='\\' && s[1]==0)
 							s+=2;
 					}
@@ -2645,9 +2645,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				register char *trap;
 				char *argv[6];
 				n = type>>TSHIFT;
-				left = sh_macpat(shp,&(t->lst.lstlef->arg),OPTIMIZE);
+				left = sh_macpat(&(t->lst.lstlef->arg),OPTIMIZE);
 				if(type&TBINARY)
-					right = sh_macpat(shp,&(t->lst.lstrit->arg),((n==TEST_PEQ||n==TEST_PNE)?ARG_EXP:0)|OPTIMIZE);
+					right = sh_macpat(&(t->lst.lstrit->arg),((n==TEST_PEQ||n==TEST_PNE)?ARG_EXP:0)|OPTIMIZE);
 				if(trap=shp->st.trap[SH_DEBUGTRAP])
 					argv[0] = (type&TNEGATE)?((char*)e_tstbegin):"[[";
 				if(sh_isoption(SH_XTRACE))
@@ -2802,7 +2802,7 @@ int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 		else
 		{
 			sh_offoption(SH_XTRACE);
-			cp = sh_mactry(shp,cp);
+			cp = sh_mactry(cp);
 			sh_onoption(SH_XTRACE);
 		}
 		if(*cp)

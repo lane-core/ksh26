@@ -1169,10 +1169,10 @@ int	sh_redirect(struct ionod *iop, int flag)
 				memset(ap, 0, ARGVAL);
 				ap->argflag = ARG_MAC;
 				strcpy(ap->argval,iop->ioname);
-				fname=sh_macpat(&sh,ap,(iof&IOARITH)?ARG_ARITH:ARG_EXP);
+				fname=sh_macpat(ap,(iof&IOARITH)?ARG_ARITH:ARG_EXP);
 			}
 			else if(!(iof&IOPROCSUB))
-				fname=sh_mactrim(&sh,fname,(!sh_isoption(SH_NOGLOB)&&sh_isoption(SH_INTERACTIVE))?2:0);
+				fname=sh_mactrim(fname,(!sh_isoption(SH_NOGLOB)&&sh_isoption(SH_INTERACTIVE))?2:0);
 		}
 		if((iof&IOPROCSUB) && !(iof&IOLSEEK))
 		{
@@ -1616,7 +1616,7 @@ static int io_heredoc(register struct ionod *iop, const char *name, int traceon)
 		if(!(iop->iofile&IOQUOTE))
 		{
 			char *lastpath = sh.lastpath;
-			sh_machere(&sh,infile,outfile,iop->ioname);
+			sh_machere(infile,outfile,iop->ioname);
 			sh.lastpath = lastpath;
 			if(infile)
 				sfclose(infile);
@@ -2149,7 +2149,7 @@ static int	io_prompt(Sfio_t *iop,register int flag)
 				ioctl(sffileno(sfstderr),TIOCLBIC,&mode);
 			}
 #endif	/* TIOCLBIC */
-			cp = sh_mactry(&sh,nv_getval(sh_scoped(&sh,PS1NOD)));
+			cp = sh_mactry(nv_getval(sh_scoped(&sh,PS1NOD)));
 			sh.exitval = 0;  /* avoid sending a signal on termination */
 			for(;c= *cp;cp++)
 			{

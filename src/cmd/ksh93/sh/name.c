@@ -303,7 +303,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		if(arg->argflag&ARG_MAC)
 		{
 			shp->prefix = 0;
-			cp = sh_mactrim(shp,arg->argval,(flags&NV_NOREF)?-3:-1);
+			cp = sh_mactrim(arg->argval,(flags&NV_NOREF)?-3:-1);
 			shp->prefix = prefix;
 		}
 		else
@@ -317,7 +317,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 				register Shnode_t *tp=fp->fortre;
 				flag |= (flags&(NV_NOSCOPE|NV_STATIC|NV_FARRAY));
 				if(arg->argflag&ARG_QUOTED)
-					cp = sh_mactrim(shp,fp->fornam,-1);
+					cp = sh_mactrim(fp->fornam,-1);
 				else
 					cp = fp->fornam;
 				error_info.line = fp->fortyp-shp->st.firstline;

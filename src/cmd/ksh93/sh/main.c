@@ -212,7 +212,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 			if(!sh_isoption(SH_NOUSRPROFILE) && !sh_isoption(SH_PRIVILEGED))
 			{
 				char **files = shp->gd->login_files;
-				while ((name = *files++) && !sh_source(shp, iop, sh_mactry(shp,name)));
+				while ((name = *files++) && !sh_source(shp, iop, sh_mactry(name)));
 			}
 		}
 		/* make sure PWD is set up correctly */
@@ -221,7 +221,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		{
 			if(!sh_isoption(SH_NOUSRPROFILE) && !sh_isoption(SH_PRIVILEGED) && sh_isoption(SH_RC))
 			{
-				if(name = sh_mactry(shp,nv_getval(ENVNOD)))
+				if(name = sh_mactry(nv_getval(ENVNOD)))
 					name = *name ? sh_strdup(name) : (char*)0;
 #if SHOPT_SYSRC
 				if(!strmatch(name, "?(.)/./*"))
@@ -682,7 +682,7 @@ static void chkmail(Shell_t *shp, char *files)
 						/* save and restore $_ */
 						char *save = shp->lastarg;
 						shp->lastarg = cp;
-						errormsg(SH_DICT,0,sh_mactry(shp,qp?qp+1:(char*)e_mailmsg));
+						errormsg(SH_DICT,0,sh_mactry(qp?qp+1:(char*)e_mailmsg));
 						shp->lastarg = save;
 					}
 					lastmail = statb;

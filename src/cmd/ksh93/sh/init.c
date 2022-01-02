@@ -1228,7 +1228,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	}
 	umask(sh.mask=umask(0));
 	sh.gd = &sh;	/* backwards compatibility pointer (there was formerly a separate global data struct) */
-	sh.mac_context = sh_macopen(&sh);
+	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = (void*)sh_lexopen(0,1);
 	sh.strbuf = sfstropen();
