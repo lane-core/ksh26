@@ -106,7 +106,7 @@ Sfdouble_t nv_getn(Namval_t *np, register Namfun_t *nfp)
 		else
 			str = nv_getv(np,fp?fp:nfp);
 		if(str && *str)
-			d = sh_arith(shp,str);
+			d = sh_arith(str);
 	}
 	return(d);
 }

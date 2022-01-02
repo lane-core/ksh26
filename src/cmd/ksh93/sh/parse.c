@@ -323,7 +323,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 	t->ar.arline = sh_getlineno(lp);
 	t->ar.arexpr = ap;
 	if(ap->argflag&ARG_RAW)
-		t->ar.arcomp = sh_arithcomp(lp->sh,ap->argval);
+		t->ar.arcomp = sh_arithcomp(ap->argval);
 	else
 	{
 		const char *p, *q;

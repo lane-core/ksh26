@@ -1030,7 +1030,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 						 * possible side effects
 						 */
 						cp[-1] = 0;
-						sh_arith(shp,sp+1);
+						sh_arith(sp+1);
 						cp[-1] = ']';
 					}
 					return(np);
@@ -1140,7 +1140,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 					{
 						/* subscript must be 0 */
 						cp[-1] = 0;
-						n = sh_arith(shp,sp+1);
+						n = sh_arith(sp+1);
 						cp[-1] = ']';
 						if(n)
 							return(0);
@@ -1683,7 +1683,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 						ld = *((double*)sp);
 				}
 				else
-					ld = sh_arith(shp,sp);
+					ld = sh_arith(sp);
 				if(!up->ldp)
 					up->ldp = new_of(Sfdouble_t,0);
 				else if(flags&NV_APPEND)
@@ -1703,7 +1703,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 						d = *(double*)sp;
 				}
 				else
-					d = sh_arith(shp,sp);
+					d = sh_arith(sp);
 				if(!up->dp)
 					up->dp = new_of(double,0);
 				else if(flags&NV_APPEND)
@@ -1747,7 +1747,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 					}
 				}
 				else if(sp)
-					ll = (Sflong_t)sh_arith(shp,sp);
+					ll = (Sflong_t)sh_arith(sp);
 				if(!up->llp)
 					up->llp = new_of(Sflong_t,0);
 				else if(flags&NV_APPEND)
@@ -1791,7 +1791,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				}
 				else if(sp)
 				{
-					Sfdouble_t ld = sh_arith(shp,sp);
+					Sfdouble_t ld = sh_arith(sp);
 					if(ld<0)
 						l = (int32_t)ld;
 					else
@@ -2954,7 +2954,7 @@ Sfdouble_t nv_getnum(register Namval_t *np)
 		}
 	}
 	else if((str=nv_getval(np)) && *str!=0)
-		r = sh_arith(shp,str);
+		r = sh_arith(str);
 	return(r);
 }
 

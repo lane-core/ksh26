@@ -1368,14 +1368,14 @@ retry1:
 					dolmax =1;
 					if(array_assoc(ap))
 						arrmax = sh_strdup(v);
-					else if((dolmax = (int)sh_arith(mp->shp,v))<0)
+					else if((dolmax = (int)sh_arith(v))<0)
 						dolmax += array_maxindex(np);
 					if(type==M_SUBNAME)
 						bysub = 1;
 				}
 				else
 				{
-					if((int)sh_arith(mp->shp,v))
+					if((int)sh_arith(v))
 						np = 0;
 				}
 			}
@@ -2102,9 +2102,9 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			if(t->ar.arcomp)
 				num = arith_exec(t->ar.arcomp);
 			else if((t->ar.arexpr->argflag&ARG_RAW))
-				num = sh_arith(mp->shp,t->ar.arexpr->argval);
+				num = sh_arith(t->ar.arexpr->argval);
 			else
-				num = sh_arith(mp->shp,sh_mactrim(mp->shp,t->ar.arexpr->argval,3));
+				num = sh_arith(sh_mactrim(mp->shp,t->ar.arexpr->argval,3));
 		out_offset:
 			stkset(stkp,savptr,savtop);
 			*mp = savemac;

@@ -348,7 +348,7 @@ static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t
 	{
 		if(np==HISTFILE && (cp=nv_getval(np)) && strcmp(val,cp)==0) 
 			return;
-		if(np==HISTSIZE && sh_arith(shp,val)==nv_getnum(HISTSIZE))
+		if(np==HISTSIZE && sh_arith(val)==nv_getnum(HISTSIZE))
 			return;
 		hist_close(shp->gd->hist_ptr);
 	}
@@ -688,7 +688,7 @@ static void put_rand(register Namval_t* np,const char *val,int flags,Namfun_t *f
 	if(flags&NV_INTEGER)
 		n = *(double*)val;
 	else
-		n = sh_arith(&sh,val);
+		n = sh_arith(val);
 	srand(rp->rand_seed = (unsigned int)n);
 	rp->rand_last = -1;
 	if(!np->nvalue.lp)
@@ -758,7 +758,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 	if(flags&NV_INTEGER)
 		n = (Sfdouble_t)(*(double*)val);
 	else
-		n = sh_arith(shp,val);
+		n = sh_arith(val);
 	shp->st.firstline += (int)(nget_lineno(np,fp) + 1 - n);
 }
 

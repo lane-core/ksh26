@@ -514,8 +514,8 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 			left++;
 		while(*right=='0')
 			right++;
-		lnum = sh_arith(shp,left);
-		rnum = sh_arith(shp,right);
+		lnum = sh_arith(left);
+		rnum = sh_arith(right);
 	}
 	switch(op)
 	{

@@ -183,7 +183,7 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 		UNREACHABLE();
 	}
 	while(arg= *argv++)
-		r = !sh_arith(shp,arg);
+		r = !sh_arith(arg);
 	return(r);
 }
 
@@ -388,7 +388,7 @@ int    b_shift(register int n, register char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
-	n = ((arg= *argv)?(int)sh_arith(shp,arg):1);
+	n = ((arg= *argv)?(int)sh_arith(arg):1);
 	if(n<0 || shp->st.dolc<n)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,arg);

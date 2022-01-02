@@ -2307,7 +2307,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(t->ar.arcomp)
 				shp->exitval  = !arith_exec((Arith_t*)t->ar.arcomp);
 			else
-				shp->exitval = !sh_arith(shp,arg[1]);
+				shp->exitval = !sh_arith(arg[1]);
 			break;
 		    }
 
