@@ -392,7 +392,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 			}
 			fcntl(fno,F_SETFD,FD_CLOEXEC);
 			shp->fdstatus[fno] |= IOCLEX;
-			iop = sh_iostream((void*)shp,fno);
+			iop = sh_iostream(fno);
 		}
 		else
 			iop = sfstdin;
@@ -425,7 +425,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 	if(jmpval)
 	{
 		Sfio_t *top;
-		sh_iorestore((void*)shp,0,jmpval);
+		sh_iorestore(0,jmpval);
 		hist_flush(shp->gd->hist_ptr);
 		sfsync(shp->outpool);
 		shp->st.execbrk = shp->st.breakcnt = 0;

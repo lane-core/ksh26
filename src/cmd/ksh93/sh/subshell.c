@@ -150,7 +150,7 @@ void	sh_subtmpfile(Shell_t *shp)
 			shp->fdstatus[1] = shp->fdstatus[fd];
 			shp->fdstatus[fd] = IOCLOSE;
 		}
-		sh_iostream(shp,1);
+		sh_iostream(1);
 		sfset(sfstdout,SF_SHARE|SF_PUBLIC,1);
 		sfpool(sfstdout,shp->outpool,SF_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
@@ -708,7 +708,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(sp->pipefd>=0)
 		{
 			/* sftmp() file has been returned into pipe */
-			iop = sh_iostream(shp,sp->pipefd);
+			iop = sh_iostream(sp->pipefd);
 			sfclose(sfstdout);
 		}
 		else
@@ -732,7 +732,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			}
 			if(iop && sffileno(iop)==1)
 			{
-				int fd = sfsetfd(iop,sh_iosafefd(shp,3));
+				int fd = sfsetfd(iop,sh_iosafefd(3));
 				if(fd<0)
 				{
 					shp->toomany = 1;
@@ -741,7 +741,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 					UNREACHABLE();
 				}
 				if(fd >= shp->gd->lim.open_max)
-					sh_iovalidfd(shp,fd);
+					sh_iovalidfd(fd);
 				shp->sftable[fd] = iop;
 				fcntl(fd,F_SETFD,FD_CLOEXEC);
 				shp->fdstatus[fd] = (shp->fdstatus[1]|IOCLEX);
@@ -893,7 +893,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
 		sh_argfree(argsav,0);
 	if(sh.topfd != checkpoint.topfd)
-		sh_iorestore(&sh,checkpoint.topfd|IOSUBSHELL,jmpval);
+		sh_iorestore(checkpoint.topfd|IOSUBSHELL,jmpval);
 	if(sp->sig)
 	{
 		if(sp->prev)

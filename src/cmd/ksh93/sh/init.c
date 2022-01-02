@@ -1281,7 +1281,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			break;
 		}
 	}
-	sh_ioinit(&sh);
+	sh_ioinit();
 	/* initialize signal handling */
 	sh_siginit();
 	stakinstall(NIL(Stak_t*),nomemory);

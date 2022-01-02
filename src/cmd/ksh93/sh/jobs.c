@@ -566,7 +566,7 @@ void job_init(Shell_t *shp, int lflag)
 			if((fd = open(ttynam,O_RDWR)) <0)
 				return;
 			if(fd!=JOBTTY)
-				sh_iorenumber(shp,fd,JOBTTY);
+				sh_iorenumber(fd,JOBTTY);
 #ifdef SIGTSTP
 			tcsetpgrp(JOBTTY,shp->gd->pid);
 #endif /* SIGTSTP */

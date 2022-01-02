@@ -301,7 +301,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 			sh_fun(nq,np,(char**)0);
 		sh_popcontext(&sh, &checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(&sh, checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
@@ -416,7 +416,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			sh_fun(nq,np,(char**)0);
 		sh_popcontext(&sh, &checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(&sh, checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);

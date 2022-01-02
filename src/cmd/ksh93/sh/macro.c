@@ -2164,7 +2164,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			if((ip=t->tre.treio) && 
 				((ip->iofile&IOLSEEK) || !(ip->iofile&IOUFD)) &&
 				(r=sigsetjmp(buff.buff,0))==0)
-				fd = sh_redirect(mp->shp,ip,3);
+				fd = sh_redirect(ip,3);
 			else
 				fd = sh_chkopen(e_devnull);
 			sh_popcontext(mp->shp,&buff);

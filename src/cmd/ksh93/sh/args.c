@@ -772,7 +772,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sh_setstate(savestates);
 #if SHOPT_DEVFD
 	sh_close(pv[1-fd]);
-	sh_iosave(&sh,-pv[fd], sh.topfd, (char*)0);
+	sh_iosave(-pv[fd], sh.topfd, (char*)0);
 #else
 	/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
 	if(!sh.fifo_tree)
