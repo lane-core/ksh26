@@ -665,7 +665,7 @@ static void chkmail(Shell_t *shp, char *files)
 				if(!arglist && S_ISDIR(statb.st_mode)) 
 				{
 					/* generate list of directory entries */
-					path_complete(shp,cp,"/*",&arglist);
+					path_complete(cp,"/*",&arglist);
 				}
 				else
 				{

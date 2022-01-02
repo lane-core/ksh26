@@ -181,7 +181,7 @@ char *sh_mactrim(Shell_t *shp, char *str, register int mode)
 	{
 		/* expand only if unique */
 		struct argnod *arglist=0;
-		if((mode=path_expand(shp,str,&arglist))==1)
+		if((mode=path_expand(str,&arglist))==1)
 			str = arglist->argval;
 		else if(mode>1)
 		{
@@ -2505,10 +2505,10 @@ static void endfield(register Mac_t *mp,int split)
 			mp->shp->argaddr = 0;
 #if SHOPT_BRACEPAT
 			if(sh_isoption(SH_BRACEEXPAND))
-				count = path_generate(mp->shp,argp,mp->arghead);
+				count = path_generate(argp,mp->arghead);
 			else
 #endif /* SHOPT_BRACEPAT */
-				count = path_expand(mp->shp,argp->argval,mp->arghead);
+				count = path_expand(argp->argval,mp->arghead);
 			if(count)
 				mp->fields += count;
 			else if(split)	/* pattern is null string */
