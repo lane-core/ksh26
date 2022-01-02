@@ -133,7 +133,7 @@ extern void 		sh_argreset(struct dolnod*,struct dolnod*);
 extern Namval_t		*sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
-extern void		sh_chktrap(Shell_t*);
+extern void		sh_chktrap(void);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);
 extern int		sh_debug(Shell_t *shp,const char*,const char*,const char*,char *const[],int);
 extern int 		sh_echolist(Shell_t*,Sfio_t*, int, char**);

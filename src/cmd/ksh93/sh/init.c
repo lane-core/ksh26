@@ -1307,7 +1307,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	}
 	sh_ioinit(shp);
 	/* initialize signal handling */
-	sh_siginit(shp);
+	sh_siginit();
 	stakinstall(NIL(Stak_t*),nomemory);
 	/* set up memory for name-value pairs */
 	shp->init_context = nv_init(shp);
@@ -1384,7 +1384,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		if((shp->st.dolc = sh_argopts(-argc,argv)) < 0)
 		{
 			shp->exitval = 2;
-			sh_done(shp,0);
+			sh_done(0);
 		}
 		opt_info.disc = 0;
 		dolv_index = (argc - 1) - shp->st.dolc;

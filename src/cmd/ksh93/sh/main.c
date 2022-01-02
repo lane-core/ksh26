@@ -361,7 +361,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		sh_onstate(SH_INTERACTIVE);
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
 	exfile(shp,iop,fdin);
-	sh_done(shp,0);
+	sh_done(0);
 }
 
 /*
@@ -621,7 +621,7 @@ done:
 	if(jmpval == SH_JMPSCRIPT)
 		siglongjmp(*shp->jmplist,jmpval);
 	else if(jmpval == SH_JMPEXIT)
-		sh_done(shp,0);
+		sh_done(0);
 	if(fno>0)
 		sh_close(fno);
 	if(shp->st.filename)

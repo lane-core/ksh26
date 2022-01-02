@@ -688,7 +688,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*shp->jmplist,jmpval);
 		shp->exitval &= SH_EXITMASK;
-		sh_done(shp,0);
+		sh_done(0);
 	}
 	if(!shp->savesig)
 		shp->savesig = -1;
@@ -901,7 +901,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		else
 		{
 			kill(shgd->current_pid,sp->sig);
-			sh_chktrap(shp);
+			sh_chktrap();
 		}
 	}
 	sh_sigcheck(shp);
@@ -920,7 +920,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(comsub && iop && sp->pipefd<0)
 		sfseek(iop,(off_t)0,SEEK_SET);
 	if(shp->trapnote)
-		sh_chktrap(shp);
+		sh_chktrap();
 	if(shp->exitval > SH_EXITSIG)
 	{
 		int sig = shp->exitval&SH_EXITMASK;

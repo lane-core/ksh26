@@ -747,7 +747,7 @@ onintr(struct addrinfo* addr, void* handle)
 		return -1;
 	}
 	if (sh->trapnote)
-		sh_chktrap(sh);
+		sh_chktrap();
 	return 0;
 }
 
@@ -1917,7 +1917,7 @@ static int slowexcept(register Sfio_t *iop,int type,void *data,Sfdisc_t *handle)
 		sh_exit(SH_EXITSIG);
 	}
 	if(shp->trapnote&SH_SIGTRAP)
-		sh_chktrap(shp);
+		sh_chktrap();
 	return(n);
 }
 

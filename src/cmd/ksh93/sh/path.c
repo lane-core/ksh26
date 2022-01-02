@@ -1102,7 +1102,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 			argc++;
 		sh_run(argc,argv);
 		if(!spawn)
-			sh_done(shp,0);
+			sh_done(0);
 		errno = 0;
 		return(-2);  /* treat like failure to spawn in sh_ntfork() except for the error message */
 	}

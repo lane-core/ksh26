@@ -91,7 +91,7 @@ struct funenv
 	if(getppid() != fifo_save_ppid)
 	{
 		unlink(shp->fifo);
-		sh_done(shp,0);
+		sh_done(0);
 	}
     }
 
@@ -1740,7 +1740,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 								 "process substitution: FIFO open failed");
 							UNREACHABLE();
 						}
-						sh_done(shp,0);
+						sh_done(0);
 					}
 					sh_iorenumber(shp,fn,fd);
 					sh_close(fn);
@@ -1783,7 +1783,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						job_post(shp,parent,0);
 						job_wait(parent);
 						sh_iorestore(shp,topfd,SH_JMPCMD);
-						sh_done(shp,(shp->exitval&SH_EXITSIG)?(shp->exitval&SH_EXITMASK):0);
+						sh_done((shp->exitval&SH_EXITSIG)?(shp->exitval&SH_EXITMASK):0);
 
 					}
 					job_unlock();
@@ -1808,7 +1808,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_popcontext(shp,buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*shp->jmplist,jmpval);
-				sh_done(shp,0);
+				sh_done(0);
 			}
 		    }
 
@@ -1915,7 +1915,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					siglongjmp(*shp->jmplist,jmpval);
 				if(shp->exitval > 256)
 					shp->exitval -= 128;
-				sh_done(shp,0);
+				sh_done(0);
 			}
 			else if(((type=t->par.partre->tre.tretyp)&FAMP) && ((type&COMMSK)==TFORK)
 			&& !job.jobcontrol && !shp->subshell)
@@ -1932,7 +1932,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					shgd->realsubshell++;
 					sh_exec(t->par.partre,flags);
 					shp->st.trapcom[0]=0;
-					sh_done(shp,0);
+					sh_done(0);
 				}
 			}
 			else
@@ -2712,14 +2712,14 @@ int sh_exec(register const Shnode_t *t, int flags)
 		}
 		if(shp->trapnote || (shp->exitval && sh_isstate(SH_ERREXIT)) &&
 			t && echeck) 
-			sh_chktrap(shp);
+			sh_chktrap();
 		/* set $_ */
 		if(mainloop && com0)
 		{
 			/* store last argument here if it fits */
 			static char	lastarg[32];
 			if(sh_isstate(SH_FORKED))
-				sh_done(shp,0);
+				sh_done(0);
 			if(shp->lastarg!= lastarg && shp->lastarg)
 				free(shp->lastarg);
 			if(strlen(comn) < sizeof(lastarg))
@@ -3254,7 +3254,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		kill(shgd->current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted ksh function */
 	if(jmpval > SH_JMPFUN)
 	{
-		sh_chktrap(shp);
+		sh_chktrap();
 		siglongjmp(*shp->jmplist,jmpval);
 	}
 	return(r);
