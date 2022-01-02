@@ -104,7 +104,7 @@ static int test_strmatch(Shell_t *shp,const char *str, const char *pat)
 	if(m==0 && n==1)
 		match[1] = strlen(str);
 	if(n)
-		sh_setmatch(shp, str, -1, n, match, 0);
+		sh_setmatch(str, -1, n, match, 0);
 	return(n);
 }
 

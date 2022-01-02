@@ -1846,7 +1846,7 @@ retry2:
 					else
 						nmatch=strgrpmatch(v,pattern,match,elementsof(match)/2,flag);
 					if(nmatch && replen>0)
-						sh_setmatch(mp->shp,v,vsize,nmatch,match,index++);
+						sh_setmatch(v,vsize,nmatch,match,index++);
 					if(nmatch)
 					{
 						vlast = v;
@@ -1878,7 +1878,7 @@ retry2:
 					break;
 				}
 				if(replen==0)
-					sh_setmatch(mp->shp,vlast,vsize_last,nmatch,match,index++);
+					sh_setmatch(vlast,vsize_last,nmatch,match,index++);
 			}
 			if(vsize)
 				mac_copy(mp,v,vsize>0?vsize:strlen(v));

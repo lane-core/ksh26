@@ -253,9 +253,11 @@ struct Shell_s
 	char		**sigmsg;
 	char		**login_files;
 	void		*ed_context;
-	int		*stats;
 	int		sigmax;
 	Shwait_f	waitevent;
+#if SHOPT_STATS
+	int		*stats;
+#endif
 
 	/* These are the members formerly defined via the _SH_PRIVATE macro.
 	 * Programs using libshell should not rely on them as they may change. */
