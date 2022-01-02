@@ -74,7 +74,6 @@ extern int	sh_chkopen(const char*);
 extern int	sh_ioaccess(int,int);
 extern int	sh_devtofd(const char*);
 extern int	sh_isdevfd(const char*);
-extern int	sh_source(Shell_t*, Sfio_t*, const char*);
 
 /* the following are readonly */
 extern const char	e_pexists[];

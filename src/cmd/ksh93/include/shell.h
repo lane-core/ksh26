@@ -226,13 +226,11 @@ struct Shell_s
 	Dt_t		*fun_tree;	/* for shell functions */
 	Dt_t		*alias_tree;	/* for alias names */
 	Dt_t		*bltin_tree;    /* for builtin commands */
+	Dt_t		*track_tree;	/* for tracked aliases */
 	Shscope_t	*topscope;	/* pointer to top-level scope */
 	int		inlineno;	/* line number of current input file */
 	int		exitval;	/* exit status of the command currently being run */
 	int		savexit;	/* $? == exit status of the last command executed */
-	unsigned char	trapnote;	/* set when trap/signal is pending */
-	char		shcomp;		/* set when running shcomp */
-	unsigned int	subshell;	/* set for virtual subshell */
 
 	/* These are the former 'struct shared' (shgd) members. */
 	struct limits	lim;
@@ -243,7 +241,6 @@ struct Shell_s
 	pid_t		pid;		/* $$, the main shell's PID (invariable) */
 	pid_t		ppid;		/* $PPID, the main shell's parent's PID */
 	pid_t		current_pid;	/* ${.sh.pid}, PID of current ksh process (updates when subshell forks) */
-	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
 	unsigned char	sigruntime[2];
 	Namval_t	*bltin_nodes;
 	Namval_t	*bltin_cmds;
@@ -259,9 +256,13 @@ struct Shell_s
 	int		*stats;
 #endif
 
-	/* These are the members formerly defined via the _SH_PRIVATE macro.
+	/* The following members are not considered to be part of the documented API.
 	 * Programs using libshell should not rely on them as they may change. */
 	Shell_t		*gd;		/* pointer to self for backwards compatibility (was: global data) */
+	int		subshell;	/* set for virtual subshell */
+	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
+	char		shcomp;		/* set when running shcomp */
+	unsigned char	trapnote;	/* set when trap/signal is pending */
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
 	Sfio_t		*heredocs;	/* current here-doc temp file */
@@ -270,7 +271,6 @@ struct Shell_s
 	char		*lastarg;
 	char		*lastpath;	/* last absolute path found */
 	int		path_err;	/* last error on path search */
-	Dt_t		*track_tree;	/* for tracked aliases */
 	Dt_t		*var_base;	/* global level variables */
 	Dt_t		*fun_base;	/* global level functions */
 	Dt_t		*openmatch;
