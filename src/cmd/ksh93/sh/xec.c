@@ -1029,7 +1029,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 #if SHOPT_PFSH
 				if(sh_isoption(SH_PFSH) && nv_isattr(np,NV_BLTINOPT) && !nv_isattr(np,NV_BLTPFSH)) 
 				{
-					if(path_xattr(shp,np->nvname,(char*)0))
+					if(path_xattr(np->nvname,(char*)0))
 					{
 						dtdelete(shp->bltin_tree,np);
 						np = 0;
@@ -1205,7 +1205,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						/* Do nothing */
 					}
-					else if(path_search(shp,com0,NIL(Pathcomp_t**),1))
+					else if(path_search(com0,NIL(Pathcomp_t**),1))
 					{
 						error_info.line = t->com.comline-shp->st.firstline;
 #if SHOPT_NAMESPACE
@@ -1307,7 +1307,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(!(nv_isattr(np,BLT_ENV)))
 						{
 							if(!shp->pwd)
-								path_pwd(shp,0);
+								path_pwd();
 							if(shp->pwd)
 								stat(".",&statb);
 							sfsync(NULL);
@@ -1451,7 +1451,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					register struct slnod *slp;
 					if(!np->nvalue.ip)
 					{
-						indx = path_search(shp,com0,NIL(Pathcomp_t**),0);
+						indx = path_search(com0,NIL(Pathcomp_t**),0);
 						if(indx==1)
 						{
 #if SHOPT_NAMESPACE
@@ -1802,7 +1802,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				{
 					sh_offoption(SH_ERREXIT);
 					sh_freeup();
-					path_exec(shp,com0,com,t->com.comset);
+					path_exec(com0,com,t->com.comset);
 				}
 			done:
 				sh_popcontext(shp,buffp);
@@ -2154,7 +2154,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						else
 							type = (int)strtol(val, (char**)0, 10)-1;
 						if(type<0 || type >= nargs)
-							cp = "";
+							cp = Empty;
 						else
 							cp = args[type];
 					}
@@ -3004,7 +3004,7 @@ pid_t sh_fork(Shell_t *shp,int flags, int *jobid)
 	register pid_t parent;
 	register int sig;
 	if(!shp->pathlist)
-		path_get(shp,"");
+		path_get(Empty);
 	sfsync(NIL(Sfio_t*));
 	shp->trapnote &= ~SH_SIGTERM;
 	job_fork(-1);
@@ -3514,14 +3514,14 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 			&& !nv_isattr(np,NV_NOALIAS)
 			&& np->nvalue.cp)
 				path = nv_getval(np);
-			else if(path_absolute(shp,path,NIL(Pathcomp_t*),0))
+			else if(path_absolute(path,NIL(Pathcomp_t*),0))
 			{
 				path = stkptr(shp->stk,PATH_OFFSET);
 				stkfreeze(shp->stk,0);
 			}
 			else
 			{
-				pp=path_get(shp,path);
+				pp=path_get(path);
 				while(pp)
 				{
 					if(pp->len==1 && *pp->name=='.')
@@ -3558,10 +3558,10 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		sigreset(shp,0);	/* set signals to ignore */
 		sigwasset++;
 	        /* find first path that has a library component */
-		for(pp=path_get(shp,argv[0]); pp && !pp->lib ; pp=pp->next);
+		for(pp=path_get(argv[0]); pp && !pp->lib ; pp=pp->next);
 		job_fork(-1);
 		jobfork = 1;
-		spawnpid = path_spawn(shp,path,argv,arge,pp,(grp<<1)|1);
+		spawnpid = path_spawn(path,argv,arge,pp,(grp<<1)|1);
 		if(spawnpid < 0 && errno==ENOEXEC)
 		{
 			char *devfd;
@@ -3577,7 +3577,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 			}
 			if(!shp->gd->shpath)
 				shp->gd->shpath = pathshell();
-			spawnpid = path_spawn(shp,shp->gd->shpath,&argv[-1],arge,pp,(grp<<1)|1);
+			spawnpid = path_spawn(shp->gd->shpath,&argv[-1],arge,pp,(grp<<1)|1);
 			if(fd>=0)
 				close(fd);
 			argv[0] = argv[-1];

@@ -2670,13 +2670,8 @@ Sfio_t	*sh_fd2sfio(int fd)
 Sfio_t *sh_pathopen(const char *cp)
 {
 	int n;
-#ifdef PATH_BFPATH
-	if((n=path_open(&sh,cp,path_get(&sh,cp))) < 0)
-		n = path_open(&sh,cp,(Pathcomp_t*)0);
-#else
-	if((n=path_open(&sh,cp,path_get(cp))) < 0)
-		n = path_open(&sh,cp,"");
-#endif
+	if((n=path_open(cp,path_get(cp))) < 0)
+		n = path_open(cp,(Pathcomp_t*)0);
 	if(n < 0)
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_open,cp);

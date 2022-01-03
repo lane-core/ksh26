@@ -56,7 +56,7 @@ static char *nextdir(glob_t *gp, char *dir)
 {
 	Pathcomp_t *pp = (Pathcomp_t*)gp->gl_handle;
 	if(!dir)
-		pp = path_get(&sh,"");
+		pp = path_get(Empty);
 	else
 		pp = pp->next;
 	gp->gl_handle = (void*)pp;

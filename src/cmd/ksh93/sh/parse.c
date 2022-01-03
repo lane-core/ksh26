@@ -1088,7 +1088,7 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 			n = lexp->token;
 			dcl_recursion = 1;
 			dcl_dehacktivate();
-			p = path_search(&sh,lexp->arg->argval,NIL(Pathcomp_t**),1);
+			p = path_search(lexp->arg->argval,NIL(Pathcomp_t**),1);
 			dcl_hacktivate();
 			dcl_recursion = save_recursion;
 			if(p && (np=nv_search(lexp->arg->argval,sh.fun_tree,0)) && nv_isattr(np,BLT_DCL))

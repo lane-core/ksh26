@@ -156,7 +156,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
 		sh_freeup();
-		path_exec(&sh,pname,argv,NIL(struct argnod*));
+		path_exec(pname,argv,NIL(struct argnod*));
 	}
 	return(1);
 }
@@ -262,7 +262,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		{
 			if(!np->nvalue.ip)
 			{
-				path_search(shp,script,NIL(Pathcomp_t**),0);
+				path_search(script,NIL(Pathcomp_t**),0);
 				if(np->nvalue.ip)
 				{
 					if(nv_isattr(np,NV_FPOSIX))
@@ -279,12 +279,12 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			np = 0;
 		if(!np)
 		{
-			if((fd=path_open(shp,script,path_get(shp,script))) < 0)
+			if((fd=path_open(script,path_get(script))) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(shp,stkptr(shp->stk,PATH_OFFSET));
+			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
 	}
 	*prevscope = shp->st;

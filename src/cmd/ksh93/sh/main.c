@@ -81,12 +81,6 @@ static char	beenhere = 0;
     }
 #endif /* _lib_sigvec */
 
-#ifdef PATH_BFPATH
-#define PATHCOMP	NIL(Pathcomp_t*)
-#else
-#define PATHCOMP	""
-#endif
-
 /*
  * search for file and exfile() it if it exists
  * 1 returned if file found, 0 otherwise
@@ -98,14 +92,14 @@ static int sh_source(Sfio_t *iop, const char *file)
 	char*	nid;
 	int	fd;
 
-	if (!file || !*file || (fd = path_open(&sh,file, PATHCOMP)) < 0)
+	if (!file || !*file || (fd = path_open(file, NIL(Pathcomp_t*))) < 0)
 	{
 		REGRESS(source, "sh_source", ("%s:ENOENT", file));
 		return 0;
 	}
 	oid = error_info.id;
 	nid = error_info.id = sh_strdup(file);
-	sh.st.filename = path_fullname(&sh,stakptr(PATH_OFFSET));
+	sh.st.filename = path_fullname(stakptr(PATH_OFFSET));
 	REGRESS(source, "sh_source", ("%s", file));
 	exfile(iop, fd);
 	error_info.id = oid;
@@ -150,7 +144,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	command = error_info.id;
 	if(nv_isnull(PS4NOD))
 		nv_putval(PS4NOD,e_traceprompt,NV_RDONLY);
-	path_pwd(&sh,1);
+	path_pwd();
 	iop = (Sfio_t*)0;
 	if(sh_isoption(SH_POSIX))
 		sh_onoption(SH_LETOCTAL);
@@ -215,7 +209,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 			}
 		}
 		/* make sure PWD is set up correctly */
-		path_pwd(&sh,1);
+		path_pwd();
 		if(!sh_isoption(SH_NOEXEC))
 		{
 			if(!sh_isoption(SH_NOUSRPROFILE) && !sh_isoption(SH_PRIVILEGED) && sh_isoption(SH_RC))
@@ -299,20 +293,16 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 						fdin = -1;
 					}
 					else
-						sh.st.filename = path_fullname(&sh,name);
+						sh.st.filename = path_fullname(name);
 					sp = 0;
 					if(fdin < 0 && !strchr(name,'/'))
 					{
-#ifdef PATH_BFPATH
-						if(path_absolute(&sh,name,NIL(Pathcomp_t*),0))
+						if(path_absolute(name,NIL(Pathcomp_t*),0))
 							sp = stakptr(PATH_OFFSET);
-#else
-							sp = path_absolute(&sh,name,NIL(char*));
-#endif
 						if(sp)
 						{
 							if((fdin=sh_open(sp,O_RDONLY,0))>=0)
-								sh.st.filename = path_fullname(&sh,sp);
+								sh.st.filename = path_fullname(sp);
 						}
 					}
 					if(fdin<0)

@@ -381,7 +381,6 @@ static Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, int flags, Namfun_t 
 static void put_restricted(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	int	path_scoped = 0, fpath_scoped=0;
-	Pathcomp_t *pp;
 	char *name = nv_name(np);
 	if(!(flags&NV_RDONLY) && sh_isoption(SH_RESTRICTED))
 	{
@@ -398,20 +397,18 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 	if(val && !(flags&NV_RDONLY) && np->nvalue.cp && strcmp(val,np->nvalue.cp)==0)
 		 return;
 	if(np==FPATHNOD	|| (fpath_scoped=(strcmp(name,FPATHNOD->nvname)==0)))		
-		sh.pathlist = (void*)path_unsetfpath(&sh);
+		sh.pathlist = (void*)path_unsetfpath();
 	nv_putv(np, val, flags, fp);
 	sh.universe = 0;
 	if(sh.pathlist)
 	{
 		val = np->nvalue.cp;
 		if(np==PATHNOD || path_scoped)
-			pp = (void*)path_addpath(&sh,(Pathcomp_t*)sh.pathlist,val,PATH_PATH);
+			sh.pathlist = (void*)path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_PATH);
 		else if(val && (np==FPATHNOD || fpath_scoped))
-			pp = (void*)path_addpath(&sh,(Pathcomp_t*)sh.pathlist,val,PATH_FPATH);
+			sh.pathlist = (void*)path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_FPATH);
 		else
 			return;
-		if(sh.pathlist = (void*)pp)
-			pp->shp = &sh;
 		if(!val && (flags&NV_NOSCOPE))
 		{
 			Namval_t *mp = dtsearch(sh.var_tree,np);
@@ -423,14 +420,11 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 
 static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
-	Pathcomp_t *pp;
 	nv_putv(np, val, flags, fp);
 	if(!sh.cdpathlist)
 		return;
 	val = np->nvalue.cp;
-	pp = (void*)path_addpath(&sh,(Pathcomp_t*)sh.cdpathlist,val,PATH_CDPATH);
-	if(sh.cdpathlist = (void*)pp)
-		pp->shp = &sh;
+	sh.cdpathlist = (void*)path_addpath((Pathcomp_t*)sh.cdpathlist,val,PATH_CDPATH);
 }
 
 #ifdef _hdr_locale
@@ -1074,7 +1068,7 @@ static int newconf(const char *name, const char *path, const char *value)
 	{
 		sh.universe = 0;
 		/* set directory in new universe */
-		if(*(arg = path_pwd(&sh,0))=='/')
+		if(*(arg = path_pwd())=='/')
 			chdir(arg);
 		/* clear out old tracked alias */
 		stakseek(0);
@@ -1939,7 +1933,7 @@ static char *env_init(void)
 	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
 	{
 		nv_offattr(PWDNOD,NV_TAGGED);
-		path_pwd(&sh,0);
+		path_pwd();
 	}
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */

@@ -524,11 +524,11 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->pathlist)
 	{
 		shp->pathinit = 1;
-		path_get(shp,e_dot);
+		path_get(e_dot);
 		shp->pathinit = 0;
 	}
 	if(!shp->pwd)
-		path_pwd(shp,0);
+		path_pwd();
 	sp->bckpid = shp->bckpid;
 	if(comsub)
 		sh_stats(STAT_COMSUB);
@@ -855,7 +855,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			fatalerror = 2;
 		}
 		else if(sp->pwd && strcmp(sp->pwd,shp->pwd))
-			path_newdir(shp,shp->pathlist);
+			path_newdir(sh.pathlist);
 		if(shp->pwd)
 			free((void*)shp->pwd);
 		shp->pwd = sp->pwd;
@@ -942,7 +942,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				if(shp->pwd)
 					free((void*)shp->pwd);
 				shp->pwd = NIL(const char*);
-				path_pwd(shp,0);
+				path_pwd();
 				errno = saveerrno;
 				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"Failed to restore PWD upon exiting subshell");
 				UNREACHABLE();
