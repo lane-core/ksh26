@@ -628,7 +628,7 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	shp->readscript = 0;
 #if SHOPT_NAMESPACE
 	if(shp->namespace)
-		np = sh_fsearch(shp,name,0);
+		np = sh_fsearch(name,0);
 	else
 #endif /* SHOPT_NAMESPACE */
 		np = nv_search(name,shp->fun_tree,0);

@@ -150,7 +150,7 @@ extern void 		sh_machere(Sfio_t*, Sfio_t*, char*);
 extern void 		*sh_macopen(void);
 extern char 		*sh_macpat(struct argnod*,int);
 extern Sfdouble_t	sh_mathfun(Shell_t*, void*, int, Sfdouble_t*);
-extern int		sh_outtype(Shell_t*, Sfio_t*);
+extern int		sh_outtype(Sfio_t*);
 extern char 		*sh_mactry(char*);
 extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
@@ -174,7 +174,7 @@ extern void             sh_unscope(void);
 extern void		sh_utol(const char*, char*);
 extern int 		sh_whence(char**,int);
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(Shell_t*,const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,int);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */

@@ -511,7 +511,7 @@ endargs:
 		Stk_t *stkp = tdata.sh->stk;
 		int off=0,offset = stktell(stkp);
 		if(!tdata.prefix)
-			return(sh_outtype(tdata.sh,sfstdout));
+			return(sh_outtype(sfstdout));
 		sfputr(stkp,NV_CLASS,-1);
 #if SHOPT_NAMESPACE
 		if(tdata.sh->namespace)
@@ -591,7 +591,7 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 		/* output types from namespace */
 		tp->sh->namespace = 0;
 		tp->sh->prefix = nv_name(np)+1;
-		sh_outtype(tp->sh,iop);
+		sh_outtype(iop);
 		tp->sh->prefix = 0;
 		tp->sh->namespace = np;
 		tp->sh->last_root = root;
@@ -684,7 +684,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 					}
 #if SHOPT_NAMESPACE
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,NV_ADD|HASH_NOSCOPE);
+						np = sh_fsearch(name,NV_ADD|HASH_NOSCOPE);
 					else
 #endif /* SHOPT_NAMESPACE */
 					np = nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE);
@@ -699,7 +699,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 #if SHOPT_NAMESPACE
 					np = 0;
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,HASH_NOSCOPE);
+						np = sh_fsearch(name,HASH_NOSCOPE);
 					if(!np)
 #endif /* SHOPT_NAMESPACE */
 					if(np=nv_search(name,troot,0))
@@ -1343,7 +1343,7 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 		{
 #if SHOPT_NAMESPACE
 			if(shp->namespace && troot!=shp->var_tree)
-				np = sh_fsearch(shp,name,nflag?HASH_NOSCOPE:0);
+				np = sh_fsearch(name,nflag?HASH_NOSCOPE:0);
 			if(!np)
 #endif /* SHOPT_NAMESPACE */
 			np=nv_open(name,troot,NV_NOADD|nflag);

@@ -987,7 +987,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(np && shp->namespace && nq!=shp->namespace && nv_isattr(np,NV_BLTIN|NV_INTEGER|BLT_SPC)!=(NV_BLTIN|BLT_SPC))
 			{
 				Namval_t *mp;
-				if(mp = sh_fsearch(shp,com[0],0))
+				if(mp = sh_fsearch(com[0],0))
 				{
 					nq = shp->namespace;
 					np = mp;
@@ -1020,7 +1020,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				{
 					Namval_t *mp;
 #if SHOPT_NAMESPACE
-					if(shp->namespace && (mp=sh_fsearch(shp,np->nvname,0)))
+					if(sh.namespace && (mp=sh_fsearch(np->nvname,0)))
 						np = mp;
 					else
 #endif /* SHOPT_NAMESPACE */
@@ -1048,7 +1048,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					np = nv_bfsearch(com0, root, &nq, &cp);
 #if SHOPT_NAMESPACE
 					if(shp->namespace && !nq && !cp)
-						np = sh_fsearch(shp,com0,0);
+						np = sh_fsearch(com0,0);
 #endif /* SHOPT_NAMESPACE */
 				}
 				comn = com[argn-1];
@@ -1209,7 +1209,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						error_info.line = t->com.comline-shp->st.firstline;
 #if SHOPT_NAMESPACE
-						if(!shp->namespace || !(np=sh_fsearch(shp,com0,0)))
+						if(!sh.namespace || !(np=sh_fsearch(com0,0)))
 #endif /* SHOPT_NAMESPACE */
 							np=nv_search(com0,shp->fun_tree,0);
 						if(!np || !np->nvalue.ip)
@@ -1456,7 +1456,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						{
 #if SHOPT_NAMESPACE
 							if(shp->namespace)
-								np = sh_fsearch(shp,com0,0);
+								np = sh_fsearch(com0,0);
 							else
 #endif /* SHOPT_NAMESPACE */
 							np = nv_search(com0,shp->fun_tree,HASH_NOSCOPE);
@@ -2527,7 +2527,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_NAMESPACE
 			if(shp->namespace && !shp->prefix && *fname!='.')
-				np = sh_fsearch(shp,fname,NV_ADD|HASH_NOSCOPE);
+				np = sh_fsearch(fname,NV_ADD|HASH_NOSCOPE);
 			if(!np)
 #endif /* SHOPT_NAMESPACE */
 			np = nv_open(fname,sh_subfuntree(1),NV_NOASSIGN|NV_NOARRAY|NV_VARNAME|NV_NOSCOPE);
