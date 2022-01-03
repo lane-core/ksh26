@@ -92,7 +92,7 @@ int path_expand(const char *pattern, struct argnod **arghead)
 	}
 	if(sh_isstate(SH_FCOMPLETE))	/* file name completion */
 		flags |= GLOB_FCOMPLETE;
-	gp->gl_fignore = nv_getval(sh_scoped(&sh,FIGNORENOD));
+	gp->gl_fignore = nv_getval(sh_scoped(FIGNORENOD));
 	if(suflen)
 		gp->gl_suffix = sufstr;
 	gp->gl_intr = &sh.trapnote;

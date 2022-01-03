@@ -2149,7 +2149,7 @@ static int	io_prompt(Sfio_t *iop,register int flag)
 				ioctl(sffileno(sfstderr),TIOCLBIC,&mode);
 			}
 #endif	/* TIOCLBIC */
-			cp = sh_mactry(nv_getval(sh_scoped(&sh,PS1NOD)));
+			cp = sh_mactry(nv_getval(sh_scoped(PS1NOD)));
 			sh.exitval = 0;  /* avoid sending a signal on termination */
 			for(;c= *cp;cp++)
 			{
@@ -2175,12 +2175,12 @@ static int	io_prompt(Sfio_t *iop,register int flag)
 			 * in case we're executing a PS2.get discipline function at parse time. */
 			int	savestacktop = staktell();
 			char	*savestackptr = stakfreeze(0);
-			cp = nv_getval(sh_scoped(&sh,PS2NOD));
+			cp = nv_getval(sh_scoped(PS2NOD));
 			stakset(savestackptr, savestacktop);
 			break;
 		}
 		case 3:
-			cp = nv_getval(sh_scoped(&sh,PS3NOD));
+			cp = nv_getval(sh_scoped(PS3NOD));
 			break;
 		default:
 			goto done;
@@ -2452,7 +2452,7 @@ void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
 	register char **arg;
 	int nrow, ncol=1, ndigits=1;
 	int fldsize, wsize = ed_window();
-	char *cp = nv_getval(sh_scoped(&sh,LINES));
+	char *cp = nv_getval(sh_scoped(LINES));
 	nrow = (cp?1+2*((int)strtol(cp, (char**)0, 10)/3):NROW);
 	for(i=argn;i >= 10;i /= 10)
 		ndigits++;

@@ -98,8 +98,8 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		UNREACHABLE();
 	}
 	oldpwd = path_pwd(shp,0);
-	opwdnod = sh_scoped(shp,OLDPWDNOD);
-	pwdnod = sh_scoped(shp,PWDNOD);
+	opwdnod = sh_scoped(OLDPWDNOD);
+	pwdnod = sh_scoped(PWDNOD);
 	if(oldpwd == e_dot && pwdnod->nvalue.cp)
 		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
@@ -140,7 +140,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
-		if((dp=sh_scoped(&sh,CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)shp->cdpathlist))
+		if((dp=sh_scoped(CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)shp->cdpathlist))
 		{
 			if(cdpath=path_addpath(shp,(Pathcomp_t*)0,dp,PATH_CDPATH))
 			{

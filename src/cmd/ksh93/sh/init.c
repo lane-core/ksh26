@@ -295,9 +295,9 @@ static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	register const char *cp, *name=nv_name(np);
 	register int	newopt=0;
-	if(*name=='E' && nv_getval(sh_scoped(&sh,VISINOD)))
+	if(*name=='E' && nv_getval(sh_scoped(VISINOD)))
 		goto done;
-	if(!(cp=val) && (*name=='E' || !(cp=nv_getval(sh_scoped(&sh,EDITNOD)))))
+	if(!(cp=val) && (*name=='E' || !(cp=nv_getval(sh_scoped(EDITNOD)))))
 		goto done;
 	/* turn on vi or emacs option if editor name is either */
 	cp = path_basename(cp);

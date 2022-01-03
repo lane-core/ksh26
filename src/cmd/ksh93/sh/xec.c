@@ -403,7 +403,7 @@ static int p_comarg(register struct comnod *com)
 	return(n);
 }
 
-extern void sh_optclear(Shell_t*, void*);
+extern void sh_optclear(void*);
 
 static int sh_tclear(register Shnode_t *t)
 {
@@ -1321,7 +1321,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(argp)
 						{
 							scope++;
-							sh_scope(shp,argp,0);
+							sh_scope(argp,0);
 						}
 						opt_info.index = opt_info.offset = 0;
 						opt_info.disc = 0;
@@ -1425,7 +1425,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_onoption(SH_GMACS);
 #endif
 					if(scope)
-						sh_unscope(shp);
+						sh_unscope();
 					bp->ptr = (void*)save_ptr;
 					bp->data = (void*)save_data;
 					shp->redir0 = 0;
@@ -2137,7 +2137,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						shp->exitval = 1;
 						break;
 					}
-					if(!(val=nv_getval(sh_scoped(shp,REPLYNOD))))
+					if(!(val=nv_getval(sh_scoped(REPLYNOD))))
 						continue;
 					else
 					{
@@ -2179,7 +2179,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				flag &= ~OPTIMIZE_FLAG;
 				if(t->tre.tretyp&COMSCAN)
 				{
-					if((cp=nv_getval(sh_scoped(shp,REPLYNOD))) && *cp==0)
+					if((cp=nv_getval(sh_scoped(REPLYNOD))) && *cp==0)
 						refresh++;
 				}
 				else
@@ -2192,7 +2192,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 		endfor:
 			sh_popcontext(shp,buffp);
 			sh_tclear(t->for_.fortre);
-			sh_optclear(shp,optlist);
+			sh_optclear(optlist);
 			if(jmpval)
 				siglongjmp(*shp->jmplist,jmpval);
 #endif /* SHOPT_OPTIMIZE */
@@ -2266,7 +2266,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			sh_popcontext(shp,buffp);
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
-			sh_optclear(shp,optlist);
+			sh_optclear(optlist);
 			if(jmpval)
 				siglongjmp(*shp->jmplist,jmpval);
 #endif /* SHOPT_OPTIMIZE */
@@ -2797,7 +2797,7 @@ int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 		nl &= ~2;
 		/* make this trace atomic */
 		sfset(sfstderr,SF_SHARE|SF_PUBLIC,0);
-		if(!(cp=nv_getval(sh_scoped(shp,PS4NOD))))
+		if(!(cp=nv_getval(sh_scoped(PS4NOD))))
 			cp = "+ ";
 		else
 		{
@@ -3125,7 +3125,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	prevscope->save_tree = shp->var_tree;
 	n = dtvnext(prevscope->save_tree)!= (shp->namespace?shp->var_base:0);
-	sh_scope(shp,envlist,1);
+	sh_scope(envlist,1);
 	if(n)
 	{
 		struct Tdata tdata;
@@ -3219,7 +3219,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		UNREACHABLE();
 	}
 	sh_popcontext(shp,buffp);
-	sh_unscope(shp);
+	sh_unscope();
 	shp->namespace = nspace;
 	shp->var_tree = (Dt_t*)prevscope->save_tree;
 	sh_argreset(argsav,saveargfor);
@@ -3228,7 +3228,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh_sigreset(1);
 	shp->st = *prevscope;
 	shp->topscope = (Shscope_t*)prevscope;
-	nv_getval(sh_scoped(shp,IFSNOD));
+	nv_getval(sh_scoped(IFSNOD));
 	shp->end_fn = 0;
 	if(nsig)
 	{
@@ -3503,7 +3503,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(t->com.comset)
 		{
 			scope++;
-			sh_scope(shp,t->com.comset,0);
+			sh_scope(t->com.comset,0);
 		}
 		if(!strchr(path=argv[0],'/')) 
 		{
@@ -3610,7 +3610,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		sigreset(shp,1);	/* restore ignored signals */
 	if(scope)
 	{
-		sh_unscope(shp);
+		sh_unscope();
 		if(jmpval==SH_JMPSCRIPT)
 			nv_setlist(t->com.comset,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	}

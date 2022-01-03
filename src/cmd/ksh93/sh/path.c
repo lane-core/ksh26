@@ -250,14 +250,14 @@ char *path_pwd(Shell_t *shp,int flag)
 	if(shp->pwd)
 		return((char*)shp->pwd);
 	/* First see if PWD variable is correct */
-	pwdnod = sh_scoped(shp,PWDNOD);
+	pwdnod = sh_scoped(PWDNOD);
 	cp = nv_getval(pwdnod);
 	if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 	{
 		/* Check if $HOME is a path to the PWD; this ensures $PWD == $HOME
 		   at login, even if $HOME is a path that contains symlinks */
 		char tofree = 0;
-		cp = nv_getval(sh_scoped(shp,HOME));
+		cp = nv_getval(sh_scoped(HOME));
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
 			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
@@ -444,7 +444,7 @@ static void path_init(Shell_t *shp)
 {
 	const char *val;
 	Pathcomp_t *pp;
-	if(val=sh_scoped(shp,(PATHNOD))->nvalue.cp)
+	if(val=sh_scoped((PATHNOD))->nvalue.cp)
 	{
 		shp->pathlist = pp = (void*)path_addpath(shp,(Pathcomp_t*)shp->pathlist,val,PATH_PATH);
 	}
@@ -454,7 +454,7 @@ static void path_init(Shell_t *shp)
 			pp = defpath_init(shp);
 		shp->pathlist = (void*)path_dup(pp);
 	}
-	if(val=sh_scoped(shp,(FPATHNOD))->nvalue.cp)
+	if(val=sh_scoped((FPATHNOD))->nvalue.cp)
 	{
 		pp = (void*)path_addpath(shp,(Pathcomp_t*)shp->pathlist,val,PATH_FPATH);
 	}
@@ -474,7 +474,7 @@ Pathcomp_t *path_get(register Shell_t *shp,register const char *name)
 			path_init(shp);
 		pp = (Pathcomp_t*)shp->pathlist;
 	}
-	if(!pp && (!(sh_scoped(shp,PATHNOD)->nvalue.cp)) || sh_isstate(SH_DEFPATH))
+	if(!pp && (!(sh_scoped(PATHNOD)->nvalue.cp)) || sh_isstate(SH_DEFPATH))
 	{
 		if(!(pp=(Pathcomp_t*)shp->defpathlist))
 			pp = defpath_init(shp);
@@ -1687,7 +1687,7 @@ Pathcomp_t *path_addpath(Shell_t *shp,Pathcomp_t *first, register const char *pa
 				pp = defpath_init(shp);
 			first = path_dup(pp);
 		}
-		if(cp=(sh_scoped(shp,FPATHNOD))->nvalue.cp)
+		if(cp=(sh_scoped(FPATHNOD))->nvalue.cp)
 			first = (void*)path_addpath(shp,(Pathcomp_t*)first,cp,PATH_FPATH);
 		path_delete(old);
 	}

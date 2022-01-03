@@ -165,7 +165,7 @@ char *sh_mactrim(char *str, register int mode)
 		mp->assign = -mode;
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
 	mp->sp = 0;
-	if(mp->ifsp=nv_getval(sh_scoped(&sh,IFSNOD)))
+	if(mp->ifsp=nv_getval(sh_scoped(IFSNOD)))
 		mp->ifs = *mp->ifsp;
 	else
 		mp->ifs = ' ';
@@ -203,7 +203,7 @@ int sh_macexpand(register struct argnod *argp, struct argnod **arghead,int flag)
 	Stk_t		*stkp = sh.stk;
 	savemac = *mp;
 	mp->sp = 0;
-	if(mp->ifsp=nv_getval(sh_scoped(&sh,IFSNOD)))
+	if(mp->ifsp=nv_getval(sh_scoped(IFSNOD)))
 		mp->ifs = *mp->ifsp;
 	else
 		mp->ifs = ' ';
@@ -275,7 +275,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 	mp->sp = outfile;
 	mp->split = mp->assign = mp->pattern = mp->patfound = mp->lit = mp->arith = 0;
 	mp->quote = 1;
-	mp->ifsp = nv_getval(sh_scoped(&sh,IFSNOD));
+	mp->ifsp = nv_getval(sh_scoped(IFSNOD));
 	mp->ifs = ' ';
 	fcsave(&save);
 	if(infile)
@@ -2196,7 +2196,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 	if(was_verbose)
 		sh_onstate(SH_VERBOSE);
 	*mp = savemac;
-	np = sh_scoped(&sh,IFSNOD);
+	np = sh_scoped(IFSNOD);
 	nv_putval(np,mp->ifsp,NV_RDONLY);
 	mp->ifsp = nv_getval(np);
 	stkset(stkp,savptr,savtop);
@@ -2678,7 +2678,7 @@ static char *sh_tilde(register const char *string)
 	if((c = *string)==0)
 	{
 		static char	*username;
-		if(cp = nv_getval(sh_scoped(&sh, HOME)))
+		if(cp = nv_getval(sh_scoped(HOME)))
 			return(cp);
 		/* Fallback for unset HOME: get username and treat ~ like ~username */
 		if(!username && !((pw = getpwuid(getuid())) && (username = sh_strdup(pw->pw_name))))
@@ -2688,9 +2688,9 @@ static char *sh_tilde(register const char *string)
 	if((c=='-' || c=='+') && string[1]==0)
 	{
 		if(c=='+')
-			cp = nv_getval(sh_scoped(&sh,PWDNOD));
+			cp = nv_getval(sh_scoped(PWDNOD));
 		else
-			cp = nv_getval(sh_scoped(&sh,OLDPWDNOD));
+			cp = nv_getval(sh_scoped(OLDPWDNOD));
 		return(cp);
 	}
 #if _WINIX

@@ -1503,7 +1503,7 @@ const Namdisc_t *nv_discfun(int which)
 int nv_hasget(Namval_t *np)
 {
 	register Namfun_t	*fp;
-	if(np==sh_scoped(&sh,IFSNOD))
+	if(np==sh_scoped(IFSNOD))
 		return(0);	/* avoid BUG_IFSISSET: always return false for IFS */
 	for(fp=np->nvfun; fp; fp=fp->next)
 	{

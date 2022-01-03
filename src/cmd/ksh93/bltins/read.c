@@ -309,7 +309,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 	{
 		Namval_t *mp;
 		/* set up state table based on IFS */
-		ifs = nv_getval(mp=sh_scoped(shp,IFSNOD));
+		ifs = nv_getval(mp=sh_scoped(IFSNOD));
 		if((flags&R_FLAG) && shp->ifstable['\\']==S_ESC)
 			shp->ifstable['\\'] = 0;
 		else if(!(flags&R_FLAG) && shp->ifstable['\\']==0)
