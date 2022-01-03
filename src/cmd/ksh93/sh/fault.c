@@ -632,7 +632,7 @@ noreturn void sh_done(register int sig)
 		sh_chktrap();
 	}
 	nv_scan(sh.var_tree,array_notify,(void*)0,NV_ARRAY,NV_ARRAY);
-	sh_freeup(&sh);
+	sh_freeup();
 #if SHOPT_ACCT
 	sh_accend();
 #endif	/* SHOPT_ACCT */

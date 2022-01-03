@@ -155,7 +155,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		pp = (struct checkpt*)sh.jmplist;
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
-		sh_freeup(&sh);
+		sh_freeup();
 		path_exec(&sh,pname,argv,NIL(struct argnod*));
 	}
 	return(1);

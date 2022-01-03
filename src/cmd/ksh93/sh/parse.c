@@ -369,19 +369,20 @@ static Shnode_t	*makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
 void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 {
 	register Shnode_t	*t;
-	Lex_t			*lexp = (Lex_t*)shp->lex_context;
+	Lex_t			*lexp = (Lex_t*)sh.lex_context;
 	Fcin_t	sav_input;
 	struct argnod *sav_arg = lexp->arg;
-	int	sav_prompt = shp->nextprompt;
-	if(shp->binscript && (sffileno(iop)==shp->infd || (flag&SH_FUNEVAL)))
-		return((void*)sh_trestore(shp,iop));
+	int	sav_prompt = sh.nextprompt;
+	NOT_USED(shp);  /* keep for compat as sh_parse() is a documented interface */
+	if(sh.binscript && (sffileno(iop)==sh.infd || (flag&SH_FUNEVAL)))
+		return((void*)sh_trestore(&sh,iop));
 	fcsave(&sav_input);
-	shp->st.staklist = 0;
+	sh.st.staklist = 0;
 	lexp->noreserv = 0;
 	lexp->heredoc = 0;
-	lexp->inlineno = shp->inlineno;
-	lexp->firstline = shp->st.firstline;
-	shp->nextprompt = 1;
+	lexp->inlineno = sh.inlineno;
+	lexp->firstline = sh.st.firstline;
+	sh.nextprompt = 1;
 	loop_level = 0;
 	label_list = label_last = 0;
 	if(sh_isoption(SH_VERBOSE))
@@ -405,16 +406,16 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 				errormsg(SH_DICT,ERROR_exit(1),e_lexversion);
 				UNREACHABLE();
 			}
-			if(sffileno(iop)==shp->infd || (flag&SH_FUNEVAL))
-				shp->binscript = 1;
+			if(sffileno(iop)==sh.infd || (flag&SH_FUNEVAL))
+				sh.binscript = 1;
 			sfgetc(iop);
-			t = sh_trestore(shp,iop);
+			t = sh_trestore(&sh,iop);
 			if(flag&SH_NL)
 			{
 				Shnode_t *tt;
 				while(1)
 				{
-					if(!(tt = sh_trestore(shp,iop)))
+					if(!(tt = sh_trestore(&sh,iop)))
 						break;
 					t =makelist(lexp,TLST, t, tt);
 				}
@@ -423,9 +424,9 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 		}
 	}
 	flag &= ~SH_FUNEVAL;
-	if((flag&SH_NL) && (shp->inlineno=error_info.line+shp->st.firstline)==0)
-		shp->inlineno=1;
-	shp->nextprompt = 2;
+	if((flag&SH_NL) && (sh.inlineno=error_info.line+sh.st.firstline)==0)
+		sh.inlineno=1;
+	sh.nextprompt = 2;
 	t = sh_cmd(lexp,(flag&SH_EOF)?EOFSYM:'\n',SH_SEMI|SH_EMPTY|(flag&SH_NL));
 	fcclose();
 	fcrestore(&sav_input);
@@ -437,13 +438,13 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 		if(sp)
 			sfclose(sp);
 	}
-	shp->nextprompt = sav_prompt;
+	sh.nextprompt = sav_prompt;
 	if(flag&SH_NL)
 	{
-		shp->st.firstline = lexp->firstline;
-		shp->inlineno = lexp->inlineno;
+		sh.st.firstline = lexp->firstline;
+		sh.inlineno = lexp->inlineno;
 	}
-	stkseek(shp->stk,0);
+	stkseek(sh.stk,0);
 	return((void*)t);
 }
 
@@ -496,11 +497,11 @@ Shnode_t *sh_dolparen(Lex_t* lp)
  * remove temporary files and stacks
  */
 
-void	sh_freeup(Shell_t *shp)
+void	sh_freeup(void)
 {
-	if(shp->st.staklist)
-		sh_funstaks(shp->st.staklist,-1);
-	shp->st.staklist = 0;
+	if(sh.st.staklist)
+		sh_funstaks(sh.st.staklist,-1);
+	sh.st.staklist = 0;
 }
 
 /*
@@ -776,7 +777,6 @@ static Shnode_t	*arithfor(Lex_t *lexp,register Shnode_t *tf)
 
 static Shnode_t *funct(Lex_t *lexp)
 {
-	Shell_t	*shp = &sh;
 	register Shnode_t *t;
 	register int flag;
 	struct slnod *volatile slp=0;
@@ -791,11 +791,11 @@ static Shnode_t *funct(Lex_t *lexp)
 	struct argnod *savelabel = label_last;
 	struct  checkpt buff;
 	int save_optget = opt_get;
-	void	*in_mktype = shp->mktype;
-	shp->mktype = 0;
+	void	*in_mktype = sh.mktype;
+	sh.mktype = 0;
 	opt_get = 0;
 	t = getnode(functnod);
-	t->funct.functline = shp->inlineno;
+	t->funct.functline = sh.inlineno;
 	t->funct.functtyp=TFUN;
 	t->funct.functargs = 0;
 	if(!(flag = (lexp->token==FUNCTSYM)))
@@ -809,12 +809,12 @@ static Shnode_t *funct(Lex_t *lexp)
 		fcfopen(iop);
 	}
 	t->funct.functloc = first = fctell();
-	if(!shp->st.filename || sffileno(iop)<0)
+	if(!sh.st.filename || sffileno(iop)<0)
 	{
 		if(fcfill() >= 0)
 			fcseek(-1);
-		if(sh_isstate(SH_HISTORY) && shp->gd->hist_ptr)
-			t->funct.functloc = sfseek(shp->gd->hist_ptr->histfp,(off_t)0,SEEK_CUR);
+		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
+			t->funct.functloc = sfseek(sh.gd->hist_ptr->histfp,(off_t)0,SEEK_CUR);
 		else
 		{
 			/* copy source to temporary file */
@@ -863,10 +863,10 @@ static Shnode_t *funct(Lex_t *lexp)
 			}
 			nargs = argv-argv0;
 			size += sizeof(struct dolnod)+(nargs+ARG_SPARE)*sizeof(char*);
-			if(shp->shcomp && memcmp(".sh.math.",t->funct.functnam,9)==0)
+			if(sh.shcomp && memcmp(".sh.math.",t->funct.functnam,9)==0)
 			{
-				Namval_t *np= nv_open(t->funct.functnam,shp->fun_tree,NV_ADD|NV_VARNAME);
-				np->nvalue.rp = new_of(struct Ufunction,shp->funload?sizeof(Dtlink_t):0);
+				Namval_t *np= nv_open(t->funct.functnam,sh.fun_tree,NV_ADD|NV_VARNAME);
+				np->nvalue.rp = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
 				memset((void*)np->nvalue.rp,0,sizeof(struct Ufunction));
 				np->nvalue.rp->argc = ((struct dolnod*)ac->comarg)->dolnum;
 			}
@@ -876,7 +876,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	if((flag && lexp->token!=LBRACE) || lexp->token==EOFSYM)
 		sh_syntax(lexp);
-	sh_pushcontext(shp,&buff,1);
+	sh_pushcontext(&sh,&buff,1);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
@@ -885,8 +885,8 @@ static Shnode_t *funct(Lex_t *lexp)
 		savstak = stakinstall(savstak, 0);
 		slp = (struct slnod*)stakalloc(sizeof(struct slnod)+sizeof(struct functnod));
 		slp->slchild = 0;
-		slp->slnext = shp->st.staklist;
-		shp->st.staklist = 0;
+		slp->slnext = sh.st.staklist;
+		sh.st.staklist = 0;
 		t->funct.functstak = (struct slnod*)slp;
 		/*
 		 * store the pathname of function definition file on stack
@@ -897,8 +897,8 @@ static Shnode_t *funct(Lex_t *lexp)
 		fp->functnam = 0;
 		fp->functargs = 0;
 		fp->functline = t->funct.functline;
-		if(shp->st.filename)
-			fp->functnam = stakcopy(shp->st.filename);
+		if(sh.st.filename)
+			fp->functnam = stakcopy(sh.st.filename);
 		loop_level = 0;
 		label_last = label_list;
 		if(size)
@@ -926,16 +926,16 @@ static Shnode_t *funct(Lex_t *lexp)
 		}
 		t->funct.functtre = item(lexp,SH_NOIO);
 	}
-	else if(shp->shcomp)
+	else if(sh.shcomp)
 		exit(1);
-	sh_popcontext(shp,&buff);
+	sh_popcontext(&sh,&buff);
 	loop_level = saveloop;
 	label_last = savelabel;
 	/* restore the old stack */
 	if(slp)
 	{
 		slp->slptr =  stakinstall(savstak,0);
-		slp->slchild = shp->st.staklist;
+		slp->slchild = sh.st.staklist;
 	}
 #if SHOPT_KIA
 	lexp->current = current;
@@ -944,16 +944,16 @@ static Shnode_t *funct(Lex_t *lexp)
 	{
 		if(slp && slp->slptr)
 		{
-			shp->st.staklist = slp->slnext;
+			sh.st.staklist = slp->slnext;
 			stakdelete(slp->slptr);
 		}
-		siglongjmp(*shp->jmplist,jmpval);
+		siglongjmp(*sh.jmplist,jmpval);
 	}
-	shp->st.staklist = (struct slnod*)slp;
+	sh.st.staklist = (struct slnod*)slp;
 	last = fctell();
 	fp->functline = (last-first);
 	fp->functtre = t;
-	shp->mktype = in_mktype;
+	sh.mktype = in_mktype;
 	if(sh.funlog)
 	{
 		if(fcfill()>0)
@@ -962,7 +962,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 #if 	SHOPT_KIA
 	if(lexp->kiafile)
-		kiaentity(lexp,t->funct.functnam,-1,'p',t->funct.functline,shp->inlineno-1,lexp->current,'p',0,"");
+		kiaentity(lexp,t->funct.functnam,-1,'p',t->funct.functline,sh.inlineno-1,lexp->current,'p',0,"");
 #endif /* SHOPT_KIA */
 	t->funct.functtyp |= opt_get;
 	opt_get = save_optget;

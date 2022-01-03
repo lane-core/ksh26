@@ -734,7 +734,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 		io_save = 0;
 	}
 
-	sh_freeup(shp);
+	sh_freeup();
 	shp->st.staklist = saveslp;
 	shp->fn_reset = 0;
 	if(jmpval>SH_JMPEVAL)
@@ -1801,7 +1801,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else if(com0)
 				{
 					sh_offoption(SH_ERREXIT);
-					sh_freeup(shp);
+					sh_freeup();
 					path_exec(shp,com0,com,t->com.comset);
 				}
 			done:

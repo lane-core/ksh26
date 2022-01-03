@@ -474,7 +474,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	while(1)
 	{
 		sh.nextprompt = 1;
-		sh_freeup(&sh);
+		sh_freeup();
 		stakset(NIL(char*),0);
 		sh_offstate(SH_STOPOK);
 		sh_offstate(SH_ERREXIT);

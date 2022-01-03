@@ -2189,7 +2189,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 	}
 	else
 		sp = sfopen(NIL(Sfio_t*),"","sr");
-	sh_freeup(&sh);
+	sh_freeup();
 	sh.st.staklist = saveslp;
 	if(was_history)
 		sh_onstate(SH_HISTORY);
