@@ -2183,7 +2183,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		{
 			if(type==2 && sh.subshell && !sh.subshare)
 				sh_subfork();	/* subshares within virtual subshells are broken, so fork first */
-			sp = sh_subshell(&sh,t,sh_isstate(SH_ERREXIT),type);
+			sp = sh_subshell(t,sh_isstate(SH_ERREXIT),type);
 		}
 		fcrestore(&save);
 	}

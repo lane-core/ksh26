@@ -1337,7 +1337,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->notify = 0;
 						bp->flags = (OPTIMIZE!=0);
 						if(shp->subshell && nv_isattr(np,BLT_NOSFIO))
-							sh_subtmpfile(shp);
+							sh_subtmpfile();
 						if(execflg && !shp->subshell &&
 							!shp->st.trapcom[0] && !shp->st.trap[SH_ERRTRAP] && shp->fn_depth==0 && !nv_isattr(np,BLT_ENV))
 						{
@@ -1554,7 +1554,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int pipes[3];
 			if(shp->subshell)
 			{
-				sh_subtmpfile(shp);
+				sh_subtmpfile();
 				if((type&(FAMP|TFORK))==(FAMP|TFORK))
 				{
 					if(shp->comsub && !(shp->fdstatus[1]&IONOSEEK))
@@ -1936,7 +1936,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 			}
 			else
-				sh_subshell(shp,t->par.partre,flags,0);
+				sh_subshell(t->par.partre,flags,0);
 			break;
 
 		    case TFIL:
@@ -1959,7 +1959,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(shp->subshell)
-				sh_subtmpfile(shp);
+				sh_subtmpfile();
 			shp->inpipe = pvo;
 			shp->outpipe = pvn;
 			pvo[1] = -1;

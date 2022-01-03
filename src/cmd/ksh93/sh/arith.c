@@ -556,14 +556,14 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 			if(sh_isstate(SH_INIT))
 				/*
 				 * Initializing means importing untrusted env vars. The string does not appear to be
-				 * a recognized numeric literal, so give up. We can't safely call strval(), because
+				 * a recognized numeric literal, so give up. We can't safely call arith_strval(), because
 				 * that allows arbitrary expressions, causing security vulnerability CVE-2019-14868.
 				 */
 				d = 0.0;
 			else
 			{
 				if(!last || *last!='.' || last[1]!='.')
-					d = strval(&sh,str,&last,arith,mode);
+					d = arith_strval(str,&last,arith,mode);
 				if(!ptr && *last && mode>0)
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*last,str);
@@ -588,7 +588,7 @@ void	*sh_arithcomp(register char *str)
 {
 	const char *ptr = str;
 	Arith_t *ep;
-	ep = arith_compile(&sh,str,(char**)&ptr,arith,ARITH_COMP|1);
+	ep = arith_compile(str,(char**)&ptr,arith,ARITH_COMP|1);
 	if(*ptr)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*ptr,str);

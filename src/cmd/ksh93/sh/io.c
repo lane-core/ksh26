@@ -1182,7 +1182,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 			if(iof&IOPUT)
 				ap->argflag = ARG_RAW;
 			else if(sh.subshell)
-				sh_subtmpfile(&sh);
+				sh_subtmpfile();
 			ap->argchn.ap = (struct argnod*)fname;
 			ap = sh_argprocsub(ap);
 			fname = ap->argval;
@@ -1250,7 +1250,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 					if(sh.subshell && dupfd==1)
 					{
 						if(sfset(sfstdout,0,0)&SF_STRING)
-							sh_subtmpfile(&sh);
+							sh_subtmpfile();
 						if(sh.comsub==1)
 							sh.subdup |= 1<<fn;
 						dupfd = sffileno(sfstdout);
