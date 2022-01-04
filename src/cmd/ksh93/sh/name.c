@@ -441,10 +441,10 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						if(arg->argflag&ARG_APPEND)
 							n = '+';
 						if(trap)
-							sh_debug(&sh,trap,name,(char*)0,argv,(arg->argflag&ARG_APPEND)|ARG_ASSIGN);
+							sh_debug(trap,name,(char*)0,argv,(arg->argflag&ARG_APPEND)|ARG_ASSIGN);
 						if(traceon)
 						{
-							sh_trace(&sh,NIL(char**),0);
+							sh_trace(NIL(char**),0);
 							sfputr(sfstderr,name,n);
 							sfwrite(sfstderr,"=( ",3);
 							while(cp= *argv++)
@@ -630,7 +630,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 			}
 			if(traceon)
 			{
-				sh_trace(&sh,NIL(char**),0);
+				sh_trace(NIL(char**),0);
 				nv_outname(sfstderr,name,-1);
 				if(sub)
 					sfprintf(sfstderr,"[%s]",sh_fmtq(sub));
@@ -646,7 +646,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					char *av[2];
 					av[0] = cp;
 					av[1] = 0;
-					sh_debug(&sh,trap,name,sub,av,append);
+					sh_debug(trap,name,sub,av,append);
 			}
 		}
 #if SHOPT_TYPEDEF
@@ -2254,14 +2254,11 @@ struct scan
 	void    *scandata;
 };
 
-static int scanfilter(Dt_t *dict, void *arg, void *data)
+static int scanfilter(Namval_t *np, struct scan *sp)
 {
-	register Namval_t *np = (Namval_t*)arg;
 	register int k=np->nvflag;
-	register struct scan *sp = (struct scan*)data;
 	register struct adata *tp = (struct adata*)sp->scandata;
 	char	*cp;
-	NOT_USED(dict);
 #if SHOPT_TYPEDEF
 	if(!is_abuiltin(np) && tp && tp->tp && nv_type(np)!=tp->tp)
 		return(0);
@@ -2321,19 +2318,17 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
 	Namval_t *np;
 	Dt_t *base=0;
 	struct scan sdata;
-	int (*hashfn)(Dt_t*, void*, void*);
 	sdata.scanmask = mask;
 	sdata.scanflags = flags&~NV_NOSCOPE;
 	sdata.scanfn = fn;
 	sdata.scancount = 0;
 	sdata.scandata = data;
-	hashfn = scanfilter;
 	if(flags&NV_NOSCOPE)
 		base = dtview((Dt_t*)root,0);
 	for(np=(Namval_t*)dtfirst(root);np; np=(Namval_t*)dtnext(root,np))
-		hashfn(root, np, &sdata);
+		scanfilter(np, &sdata);
 	if(base)
-		 dtview((Dt_t*)root,base);
+		dtview((Dt_t*)root,base);
 	return(sdata.scancount);
 }
 

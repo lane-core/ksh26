@@ -113,7 +113,7 @@ static pid_t pf_execve(const char *path, char *argv[],char *const envp[],int spa
 	if(spawn)
 	{
 		while((pid = vfork()) < 0)
-			_sh_fork(&sh,pid, 0, (int*)0);
+			_sh_fork(pid, 0, (int*)0);
 		if(pid)
 			return(pid);
 	}
@@ -1255,7 +1255,7 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 				if((pid=fork())>0)
 					return(pid);
 			}
-			while(_sh_fork(&sh,pid,0,(int*)0) < 0);
+			while(_sh_fork(pid,0,(int*)0) < 0);
 			((struct checkpt*)sh.jmplist)->mode = SH_JMPEXIT;
 		}
 		exscript(path,argv,envp);

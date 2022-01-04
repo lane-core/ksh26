@@ -542,7 +542,7 @@ void sh_exit(register int xno)
 		sh_offstate(SH_STOPOK);
 		sh.trapnote = 0;
 		sh.forked = 1;
-		if(sh_isstate(SH_INTERACTIVE) && (sig=sh_fork(&sh,0,NIL(int*))))
+		if(sh_isstate(SH_INTERACTIVE) && (sig=sh_fork(0,NIL(int*))))
 		{
 			job.curpgid = 0;
 			job.parent = (pid_t)-1;
