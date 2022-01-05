@@ -347,7 +347,7 @@ static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t
 	if(histopen)
 	{
 		if(val)
-			sh_histinit(&sh);
+			sh_histinit();
 		else
 			hist_close(histopen);
 	}
@@ -1217,7 +1217,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			sh.lim.child_max = CHILD_MAX;
 		if(sh.lim.clk_tck <=0)
 			sh.lim.clk_tck = CLK_TCK;
-		sh.ed_context = (void*)ed_open(&sh);
+		sh.ed_context = (void*)ed_open();
 		error_info.id = path_basename(argv[0]);
 	}
 	umask(sh.mask=umask(0));

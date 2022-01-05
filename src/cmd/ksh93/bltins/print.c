@@ -209,7 +209,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case 's':
 			/* print to history file */
-			if(!sh_histinit((void*)&sh))
+			if(!sh_histinit())
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_history);
 				UNREACHABLE();

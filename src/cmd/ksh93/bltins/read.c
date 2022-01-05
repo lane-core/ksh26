@@ -505,7 +505,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		timerdel(timeslot);
 	if((flags&S_FLAG) && !sh.hist_ptr)
 	{
-		sh_histinit((void*)&sh);
+		sh_histinit();
 		if(!sh.hist_ptr)
 			flags &= ~S_FLAG;
 	}

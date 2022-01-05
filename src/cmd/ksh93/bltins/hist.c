@@ -56,7 +56,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	Histloc_t location;
 	NOT_USED(argc);
 	NOT_USED(context);
-	if(!sh_histinit((void*)&sh))
+	if(!sh_histinit())
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_histopen);
 		UNREACHABLE();
