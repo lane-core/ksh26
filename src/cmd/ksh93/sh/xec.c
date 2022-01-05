@@ -2128,7 +2128,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					save_prompt = sh.nextprompt;
 					sh.nextprompt = 3;
 					sh.timeout = 0;
-					sh.exitval=sh_readline(&sh,&nullptr,0,1,(size_t)0,1000*sh.st.tmout);
+					sh.exitval=sh_readline(&nullptr,0,1,(size_t)0,1000*sh.st.tmout);
 					sh.nextprompt = save_prompt;
 					if(sh.exitval||sfeof(sfstdin)||sferror(sfstdin))
 					{
@@ -2669,7 +2669,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						argv[4] = 0;
 						sh_debug(trap,(char*)0,(char*)0,argv, 0);
 					}
-					n = test_unop(&sh,n,left);
+					n = test_unop(n,left);
 				}
 				else if(type&TBINARY)
 				{
@@ -2689,7 +2689,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						argv[5] = 0;
 						sh_debug(trap,(char*)0,(char*)0,argv, pattern);
 					}
-					n = test_binop(&sh,n,left,right);
+					n = test_binop(n,left,right);
 					if(traceon)
 					{
 						sfprintf(sfstderr,"%s %s ",sh_fmtq(left),op);

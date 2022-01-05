@@ -1200,7 +1200,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	{
 		beenhere = 1;
 #if SHOPT_REGRESS
-		sh_regress_init(&sh);
+		sh_regress_init();
 #endif
 		sh.current_pid = sh.pid = getpid();
 		sh.ppid = getppid();
@@ -1492,11 +1492,6 @@ int sh_reinit(char *argv[])
 	Shopt_t opt;
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
-	struct adata
-	{
-		Shell_t		*sh;
-		void		*extra[2];
-	} data;
 	for(np=dtfirst(sh.fun_tree);np;np=npnext)
 	{
 		if((dp=sh.fun_tree)->walk)
@@ -1523,10 +1518,8 @@ int sh_reinit(char *argv[])
 	}
 	/* remove locals */
 	sh_onstate(SH_INIT);
-	memset(&data,0,sizeof(data));
-	data.sh = &sh;
-	nv_scan(sh.var_tree,sh_envnolocal,(void*)&data,NV_EXPORT,0);
-	nv_scan(sh.var_tree,sh_envnolocal,(void*)&data,NV_ARRAY,NV_ARRAY);
+	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_EXPORT,0);
+	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_ARRAY,NV_ARRAY);
 	sh_offstate(SH_INIT);
 	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
 	memset((void*)&opt,0,sizeof(opt));

@@ -807,7 +807,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 			stakputs("b_");
 			stakputs(name);
 			stakputc(0);
-			if((addr = sh_getlib(&sh, stakptr(n), oldpp)) &&
+			if((addr = sh_getlib(stakptr(n), oldpp)) &&
 			   (np = sh_addbuiltin(stakptr(PATH_OFFSET),addr,NiL)) &&
 			   nv_isattr(np,NV_BLTINOPT))
 			{
@@ -860,7 +860,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 					return(oldpp);
 				}
 				if (dll = dllplugin(SH_ID, stakptr(m), NiL, SH_PLUGIN_VERSION, NiL, RTLD_LAZY, NiL, 0))
-					sh_addlib(&sh,dll,stakptr(m),oldpp);
+					sh_addlib(dll,stakptr(m),oldpp);
 				if(dll &&
 				   (addr=(Shbltin_f)dlllook(dll,stakptr(n))) &&
 				   (!(np = sh_addbuiltin(stakptr(PATH_OFFSET),NiL,NiL)) || np->nvalue.bfp!=(Nambfp_f)addr) &&
