@@ -1417,6 +1417,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	if(sh.sigflag[SIGCHLD]==SH_SIGOFF)
 		sh.sigflag[SIGCHLD] = SH_SIGFAULT;
 	siglongjmp(*sh.jmplist,SH_JMPSCRIPT);
+	UNREACHABLE();  /* silence warning on Haiku */
 }
 
 #if SHOPT_ACCT
