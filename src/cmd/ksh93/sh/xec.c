@@ -1688,6 +1688,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				struct ionod *iop;
 				int	rewrite=0;
 #if !SHOPT_DEVFD
+				char	*save_sh_fifo = sh.fifo;
 				if(sh.fifo_tree)
 				{
 					/* do not clean up process substitution FIFOs in child; parent handles this */
@@ -1727,8 +1728,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fn = sh_open(sh.fifo,fd?O_WRONLY:O_RDONLY);
 					save_errno = errno;
 					timerdel(fifo_timer);
-					unlink(sh.fifo);
-					free(sh.fifo);
 					sh.fifo = 0;
 					if(fn<0)
 					{
@@ -1803,6 +1802,13 @@ int sh_exec(register const Shnode_t *t, int flags)
 					path_exec(com0,com,t->com.comset);
 				}
 			done:
+#if !SHOPT_DEVFD
+				if(save_sh_fifo)
+				{
+					unlink(save_sh_fifo);
+					free(save_sh_fifo);
+				}
+#endif
 				sh_popcontext(&sh,buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
