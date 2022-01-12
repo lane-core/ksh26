@@ -228,6 +228,7 @@ const char sh_set[] =
 #endif
 #if SHOPT_HISTEXPAND
 		"[+histexpand?Equivalent to \b-H\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+histreedit?If a history expansion (see \bhistexpand\b) "
 			"fails, the command line is reloaded into the next "
 			"prompt's edit buffer, allowing corrections.]"
@@ -235,6 +236,7 @@ const char sh_set[] =
 			"\bhistexpand\b) are not immediately executed. "
 			"Instead, the expanded line is loaded into the next "
 			"prompt's edit buffer, allowing further changes.]"
+#endif
 #endif
 		"[+ignoreeof?Prevents an interactive shell from exiting on "
 			"reading an end-of-file.]"
@@ -244,8 +246,10 @@ const char sh_set[] =
 		"[+markdirs?A trailing \b/\b is appended to directories "
 			"resulting from pathname expansion.]"
 		"[+monitor?Equivalent to \b-m\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width.]"
+#endif
 		"[+noclobber?Equivalent to \b-C\b.]"
 		"[+noexec?Equivalent to \b-n\b.]"
 		"[+noglob?Equivalent to \b-f\b.]"

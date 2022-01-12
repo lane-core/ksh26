@@ -133,8 +133,17 @@ typedef union Shnode_u Shnode_t;
 #if SHOPT_BRACEPAT
 #define SH_BRACEEXPAND	42
 #endif
+#if SHOPT_HISTEXPAND
+#define SH_HISTEXPAND	43
+#if SHOPT_ESH || SHOPT_VSH
+#define SH_HISTREEDIT	44
+#define SH_HISTVERIFY	45
+#endif
+#endif
 #define SH_POSIX	46
+#if SHOPT_ESH || SHOPT_VSH
 #define SH_MULTILINE	47
+#endif
 #define SH_NOBACKSLCTRL	48
 #define SH_LOGIN_SHELL	67
 #define SH_NOUSRPROFILE	79	/* internal use only */

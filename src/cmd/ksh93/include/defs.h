@@ -103,12 +103,6 @@ extern char*	sh_setenviron(const char*);
 #define SH_TYPE_PROFILE		020
 #define SH_TYPE_RESTRICTED	040
 
-#if SHOPT_HISTEXPAND
-#   define SH_HISTEXPAND	43
-#   define SH_HISTREEDIT	61
-#   define SH_HISTVERIFY	62
-#endif
-
 #ifndef PIPE_BUF
 #   define PIPE_BUF		512
 #endif
