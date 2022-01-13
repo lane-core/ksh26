@@ -1517,4 +1517,9 @@ if builtin tail 2> /dev/null; then
 fi
 
 # ======
+# ksh93v- accidentally broke the sleep builtin's support for
+# using microseconds in the form of <num>U.
+got=$(sleep 1U 2>&1) || err_exit "sleep builtin cannot handle microseconds in the form of <num>U (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
