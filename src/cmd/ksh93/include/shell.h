@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -469,8 +469,7 @@ extern int 		sh_waitsafe(void);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*
- * As of 93u+m, direct access to sh is no longer obsolete, and
- * shgd ("global data") is no longer a separately allocated struct;
+ * As of 93u+m, direct access to sh is no longer obsolete;
  * sh_getinterp() is here for compatibility with the documented interface.
  */
 extern Shell_t		sh;
@@ -504,6 +503,5 @@ extern Shell_t		sh;
 #define SH_SIGSET	4
 #define SH_EXITSIG	0400	/* signal exit bit */
 #define SH_EXITMASK	(SH_EXITSIG-1)	/* normal exit status bits */
-#define SH_RUNPROG	-1022	/* needs to be negative and < 256 */
 
 #endif /* !shell_h_defined */

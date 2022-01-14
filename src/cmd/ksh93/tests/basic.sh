@@ -693,7 +693,7 @@ got=$(set +x; { "$SHELL" -c '
 	echo baz				# 7
 '; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Redirection in DEBUG trap corrupts the trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # The DEBUG trap crashed when re-trapping inside a subshell
 exp=$'trap -- \': main\' EXIT\ntrap -- \': main\' ERR\ntrap -- \': main\' KEYBD\ntrap -- \': main\' DEBUG'
@@ -707,7 +707,7 @@ got=$(set +x; { "$SHELL" -c '
 	done
 '; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Pseudosignal trap failed when re-trapping in subshell' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # Field splitting broke upon evaluating an unquoted expansion in a DEBUG trap
 exp=$'a\nb\nc'
@@ -720,7 +720,7 @@ got=$(set +x; { "$SHELL" -c '
 	printf "%s\n" "$@"
 '; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'Field splitting broke after executing DEBUG trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # The DEBUG trap had side effects on the exit status
 trap ':' DEBUG

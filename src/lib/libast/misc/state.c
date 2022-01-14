@@ -21,7 +21,7 @@
 *                                                                      *
 ***********************************************************************/
 
-static const char id[] = "\n@(#)$Id: ast (AT&T Research) 2012-05-28 $\0\n";
+static const char id[] = "\n@(#)$Id: ast (ksh 93u+m) $\0\n";
 
 #include <ast.h>
 
@@ -36,7 +36,7 @@ _Ast_info_t	_ast_info =
 	0,0,
 	1,		/* mb_cur_max */
 	0,0,0,0,0,0,0,
-	20100102	/* version */
+	AST_VERSION	/* version */
 };
 
 __EXTERN__(_Ast_info_t, _ast_info);

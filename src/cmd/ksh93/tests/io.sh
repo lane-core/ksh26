@@ -714,7 +714,7 @@ got=$(command -x cat <(command -x echo foo) 2>&1) || err_exit "process substitut
 	exit
 ' empty_redir_crash_test "$tmp"
 ((!(e = $?))) || err_exit 'crash on null-command redirection with DEBUG trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 # stdout was misdirected if an EXIT/ERR trap handler was defined in a -c script

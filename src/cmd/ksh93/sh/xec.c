@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -71,7 +71,6 @@ static void	coproc_init(int pipes[]);
 static void	*timeout;
 static char	nlock;
 static char	pipejob;
-static int	restorefd;
 
 struct funenv
 {
@@ -1325,7 +1324,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 							if(!sh.pwd)
 								path_pwd();
 							if(sh.pwd)
-								stat(".",&statb);
+								stat(e_dot,&statb);
 							sfsync(NULL);
 							share = sfset(sfstdin,SF_SHARE,0);
 							sh_onstate(SH_STOPOK);
@@ -1371,7 +1370,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->data = (void*)save_data;
 						if(sh.exitval && errno==EINTR && sh.lastsig)
 							sh.exitval = SH_EXITSIG|sh.lastsig;
-						else if(!nv_isattr(np,BLT_EXIT) && sh.exitval!=SH_RUNPROG)
+						else if(!nv_isattr(np,BLT_EXIT))
 							sh.exitval &= SH_EXITMASK;
 					}
 					else
@@ -1410,7 +1409,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(sh.pwd)
 						{
 							struct stat stata;
-							stat(".",&stata);
+							stat(e_dot,&stata);
 							/* restore directory changed */
 							if(statb.st_ino!=stata.st_ino || statb.st_dev!=stata.st_dev)
 								chdir(sh.pwd);
@@ -1614,7 +1613,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 #endif /* SHOPT_BGX */
 				nv_getval(RANDNOD);
-				restorefd = sh.topfd;
 				if(type&FCOOP)
 				{
 					pipes[2] = 0;
@@ -3402,20 +3400,6 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 		stakset(base,offset);
 	sh.prefix = prefix;
 	return(sh.exitval);
-}
-
-/*
- * This dummy routine is called by built-ins that do recursion
- * on the file system (chmod, chgrp, chown).  It causes
- * the shell to invoke the non-builtin version in this case
- */
-int cmdrecurse(int argc, char* argv[], int ac, char* av[])
-{
-	NOT_USED(argc);
-	NOT_USED(argv[0]);
-	NOT_USED(ac);
-	NOT_USED(av[0]);
-	return(SH_RUNPROG);
 }
 
 /*

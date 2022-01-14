@@ -319,7 +319,7 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 	if(last)
 		*last = 0;
 	else
-		path = ".";
+		path = (char*)e_dot;
 	r = stat(path,&statb);
 	if(last)
 		*last = '/';
@@ -1671,7 +1671,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, register const char *path,int type)
 		if(*cp==':')
 		{
 			if(type!=PATH_FPATH)
-				first = path_addcomp(first,old,".",type);
+				first = path_addcomp(first,old,e_dot,type);
 			while(*++path == ':');
 		}
 		else

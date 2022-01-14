@@ -2412,7 +2412,7 @@ default_setlocale(int category, const char* locale)
 
 /*
  * workaround for Solaris and FreeBSD systems
- * the call free() with addresses that look like the came from the stack
+ * they call free() with addresses that look like they came from the stack
  */
 
 extern int	_vmkeep(int);

@@ -1162,7 +1162,7 @@ then	got=$( { "$SHELL" -c '
 		done
 	'; } 2>&1)
 	((!(e = $?))) || err_exit 'crash with alarm and IFS' \
-		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 fi
 
 # ======
