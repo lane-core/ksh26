@@ -27,6 +27,7 @@ if tst note{ BSD (Free, Net, Open, et al) }end compile{
 		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !(BSD && !__APPLE__ && !__MACH__ && !NeXTBSD)  /* NeXT/macOS falsely claim to be BSD */
 		#error not BSD
 		#endif
@@ -34,6 +35,12 @@ if tst note{ BSD (Free, Net, Open, et al) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		/* No standards or features macro here. On BSD, everything is enabled by default */
 	}
@@ -53,6 +60,7 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !(__APPLE__ && __MACH__ && NeXTBSD)
 		#error not Darwin
 		#endif
@@ -60,6 +68,12 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#ifndef _DARWIN_C_SOURCE
 		#define _DARWIN_C_SOURCE 1
@@ -87,6 +101,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#include <limits.h>
 		#include <unistd.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !__sun
 		#error dark
 		#endif
@@ -94,6 +109,12 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#define _XPG7
 		#define	_XPG6
@@ -105,7 +126,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define	_XOPEN_SOURCE	9900
 		#undef _POSIX_C_SOURCE
 	}
-elif tst note{ GNU (glibc) }end compile{
+elif tst note{ GNU (glibc) or Cygwin }end compile{
 		/*
 		 * GNU (GNU's Not UNIX). From feature_test_macros(7) on a GNU/Linux system with glibc 2.32:
 		 *
@@ -120,19 +141,28 @@ elif tst note{ GNU (glibc) }end compile{
 		 *          Since glibc 2.19, defining _GNU_SOURCE also has the effect of implicitly defin‐
 		 *          ing _DEFAULT_SOURCE.  In glibc versions before 2.20, defining _GNU_SOURCE  also
 		 *          had the effect of implicitly defining _BSD_SOURCE and _SVID_SOURCE.
+		 *
+		 * Additionally, on Cygwin we must use _GNU_SOURCE to enable all features required by libast.
 		 */
 		#define _GNU_SOURCE	1
 		#include <limits.h>
 		#include <unistd.h>
 		#include <features.h>
 		#include <sys/types.h>
-		#if !__GLIBC__
-		#error not GNU
+		#include <wchar.h>
+		#if !__GLIBC__ && !__CYGWIN__
+		#error not GNU or Cygwin
 		#endif
 		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#ifndef _GNU_SOURCE
 		#define _GNU_SOURCE	1
