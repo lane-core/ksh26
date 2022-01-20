@@ -590,7 +590,13 @@ getsel:
 				{
 					/* preset old with match from !?string? */
 					if(!sb.str[0] && wm)
-						sb.str[0] = sh_strdup(sfsetbuf(wm, (void*)1, 0));
+					{
+						char *sbuf = sfsetbuf(wm, (void*)1, 0);
+						int n = sftell(wm);
+						sb.str[0] = sh_malloc(n + 1);
+						sb.str[0][n] = '\0';
+						memcpy(sb.str[0], sbuf, n);
+					}
 					cp = parse_subst(cp, &sb);
 				}
 
