@@ -340,7 +340,13 @@
 #endif
 
 #if _socket_peek
+#if __FreeBSD__ && __BSD_VISIBLE
+#undef __BSD_VISIBLE	/* Hide conflicting SF_SYNC definition. [Added 2022-01-20. TODO: review periodically] */
 #include	<sys/socket.h>
+#define	__BSD_VISIBLE	1
+#else
+#include	<sys/socket.h>
+#endif
 #endif
 
 /* to test for executable access mode of a file */
