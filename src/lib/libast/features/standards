@@ -155,8 +155,12 @@ elif tst note{ GNU (glibc) or Cygwin }end compile{
 			return 0;
 		}
 	}end {
+		#ifndef _GNU_SOURCE
 		#define _GNU_SOURCE	1
+		#endif
+		#ifndef _FILE_OFFSET_BITS
 		#define _FILE_OFFSET_BITS 64
+		#endif
 		#define basename	basename	/* avoid string.h defining this in conflict with AST basename(3) */
 	}
 elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{

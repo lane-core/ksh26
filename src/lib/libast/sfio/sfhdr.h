@@ -433,7 +433,7 @@
 
 #define SECOND		1000	/* millisecond units */
 
-/* macros do determine stream types from 'struct stat' data */
+/* macros to determine stream types from 'struct stat' data */
 #ifndef S_IFDIR
 #define S_IFDIR	0
 #endif

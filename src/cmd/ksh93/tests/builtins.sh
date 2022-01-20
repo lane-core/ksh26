@@ -31,7 +31,7 @@ if builtin getconf 2> /dev/null; then
 
 	# The -l option should convert all variable names to lowercase.
 	# https://github.com/att/ast/issues/1171
-	got=$(getconf -lq | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+	got=$(getconf -lq | LC_ALL=C sed -n '/[A-Z].*=/p')
 	[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
 		"(got $(printf %q "$got"))"
 
