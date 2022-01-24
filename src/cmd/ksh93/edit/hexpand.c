@@ -147,7 +147,7 @@ int hist_expand(const char *ln, char **xp)
 		*cp,	/* current char in ln */
 		*str,	/* search string */
 		*evp,	/* event/word designator string, for error msgs */
-		*cc=0,	/* copy of current line up to cp; temp ptr */
+		*cc=0,	/* copy of current line up to cp */
 		hc[3],	/* default histchars */
 		*qc="\'\"`";	/* quote characters */
 	Sfio_t	*ref=0,	/* line referenced by event designator */
@@ -471,8 +471,9 @@ getsel:
 
 			do
 			{
-				cc = strchr(qc, c);
-				q ^= cc ? 1<<(int)(cc - qc) : 0;
+				char	*tempcp;
+				tempcp = strchr(qc, c);
+				q ^= tempcp ? 1<<(int)(tempcp - qc) : 0;
 				if(p)
 					sfputc(tmp, c);
 			}
@@ -526,6 +527,7 @@ getsel:
 		/* selected line/words are now in buffer, now go for the modifiers */
 		while(*cp == ':' || (flag & HIST_QUICKSUBST))
 		{
+			char	*tempcp;
 			if(flag & HIST_QUICKSUBST)
 			{
 				flag &= ~HIST_QUICKSUBST;
@@ -544,8 +546,8 @@ getsel:
 				c = *++cp;
 			}
 
-			if(cc = strchr(modifiers, c))
-				flag |= mod_flags[cc - modifiers];
+			if(tempcp = strchr(modifiers, c))
+				flag |= mod_flags[tempcp - modifiers];
 			else
 			{
 				errormsg(SH_DICT, ERROR_ERROR, "%c: unrecognized history modifier", c);
@@ -619,14 +621,14 @@ getsel:
 				while(flag & HIST_SUBSTITUTE)
 				{
 					/* find string */
-					if(cc = strstr(str, sb.str[0]))
+					if(tempcp = strstr(str, sb.str[0]))
 					{	/* replace it */
-						c = *cc;
-						*cc = '\0';
+						c = *tempcp;
+						*tempcp = '\0';
 						sfputr(tmp2, str, -1);
 						sfputr(tmp2, sb.str[1], -1);
-						*cc = c;
-						str = cc + strlen(sb.str[0]);
+						*tempcp = c;
+						str = tempcp + strlen(sb.str[0]);
 					}
 					else if(!sftell(tmp2))
 					{	/* not successful */
@@ -640,7 +642,7 @@ getsel:
 						DONE();
 					}
 					/* loop if g modifier specified */
-					if(!cc || !(flag & HIST_GLOBALSUBST))
+					if(!tempcp || !(flag & HIST_GLOBALSUBST))
 						flag &= ~HIST_SUBSTITUTE;
 				}
 				/* output rest of line */
@@ -656,7 +658,6 @@ getsel:
 				tmp = tmp2;
 				tmp2 = 0;
 			}
-			cc = 0;
 			if(*cp)
 				cp++;
 		}
