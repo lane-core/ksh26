@@ -23,12 +23,18 @@ The options have the following defaults and meanings:
     2DMATCH      on  Two-dimensional ${.sh.match} for ${var//pat/str}.
 
     ACCT         off Shell accounting.
+                     Noted by "L" in the version string when enabled.
+                     See README-AUDIT.md.
 
     ACCTFILE     off Enable per user accounting info.
+                     See README-AUDIT.md.
 
-    AUDIT	 off For auditing specific users
+    AUDIT        on  For auditing specific users.
+                     Noted by "A" in the version string when enabled.
+                     See README-AUDIT.md.
 
-    AUDITFILE	 "/etc/ksh_audit"
+    AUDITFILE    "/etc/ksh_audit"
+                     See README-AUDIT.md.
 
     BGX          on  Enables background job extensions. Noted by "J" in the
                      version string when enabled. (1) JOBMAX=n limits the
