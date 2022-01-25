@@ -301,7 +301,6 @@ getline:
 		flag |= HIST_EVENT;
 		if(str)	/* !string or !?string? event designator */
 		{
-
 			/* search history for string */
 			hl = hist_find(sh.hist_ptr, str,
 				       sh.hist_ptr->histind,

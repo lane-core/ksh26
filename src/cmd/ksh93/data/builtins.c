@@ -372,7 +372,7 @@ const char sh_optalias[] =
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.  An alias "
 	"definition only affects scripts read by the current shell "
-	"environment.  It does not effect scripts run by this shell.]"
+	"environment.  It does not affect scripts run by this shell.]"
 "[p?Causes the output to be in the form of alias commands that can be used "
 	"as input to the shell to recreate the current aliases.]"
 "[t?Each \aname\a is looked up as a command in \b$PATH\b and its path is "

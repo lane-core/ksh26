@@ -2565,7 +2565,6 @@ void	_nv_unset(register Namval_t *np,int flags)
 		up = np->nvalue.up;
 	else if(nv_isref(np) && !nv_isattr(np,NV_EXPORT|NV_MINIMAL) && np->nvalue.nrp)
 	{
-
 		if(np->nvalue.nrp->root && Refdict)
 			dtdelete(Refdict,(void*)np->nvalue.nrp);
 		if(np->nvalue.nrp->sub)

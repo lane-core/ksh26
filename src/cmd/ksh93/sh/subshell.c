@@ -502,7 +502,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	}
 	sh.curenv = ++subenv;
 	savst = sh.st;
-	sh_pushcontext(&sh,&checkpoint,SH_JMPSUB);
+	sh_pushcontext(&checkpoint,SH_JMPSUB);
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
@@ -676,7 +676,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
 	{
 		subshell_data = sp->prev;
-		sh_popcontext(&sh,&checkpoint);
+		sh_popcontext(&checkpoint);
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*sh.jmplist,jmpval);
 		sh.exitval &= SH_EXITMASK;
@@ -881,7 +881,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.subshell--;			/* decrease level of virtual subshells */
 	sh.realsubshell--;		/* decrease ${.sh.subshell} */
 	subshell_data = sp->prev;
-	sh_popcontext(&sh,&checkpoint);
+	sh_popcontext(&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
 		sh_argfree(argsav,0);
 	if(sh.topfd != checkpoint.topfd)
