@@ -8,6 +8,16 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a crashing bug in history expansion that could occur when using the "&"
   modifier to repeat a substitution while there was no previous substitution.
 
+- History expansion is now documented in the ksh(1) manual page.
+
+- In history expansion, the history comment character '#' is now enabled by
+  default, as it is on bash.
+
+- In history expansion, the 'a' modifier is now a synonym for 'g', as on bash.
+
+- Fixed a bug in history expansion where the 'p' modifier had no effect if
+  the 'histverify' option is on.
+
 2022-01-20:
 
 - Disallow out-of-range event numbers in history expansion (-H/-o histexpand).

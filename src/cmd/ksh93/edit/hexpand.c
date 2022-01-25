@@ -154,7 +154,7 @@ int hist_expand(const char *ln, char **xp)
 		*tmp=0,	/* temporary line buffer */
 		*tmp2=0;/* temporary line buffer */
 	Histloc_t hl;	/* history location */
-	static Namval_t *np = 0;	/* histchars variable */
+	Namval_t *np;	/* histchars variable */
 	static struct subst	sb = {0,0};	/* substitution strings */
 	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
 
@@ -163,8 +163,8 @@ int hist_expand(const char *ln, char **xp)
 
 	hc[0] = '!';
 	hc[1] = '^';
-	hc[2] = 0;
-	if((np = nv_open("histchars",sh.var_tree,0)) && (cp = nv_getval(np)))
+	hc[2] = '#';
+	if((np = nv_open("histchars",sh.var_tree,NV_NOADD)) && (cp = nv_getval(np)))
 	{
 		if(cp[0])
 		{
@@ -540,7 +540,7 @@ getsel:
 			sfseek(tmp, 0, SEEK_SET);
 			tmp2 = sfopen(tmp2, NULL, "swr");
 
-			if(c == 'g') /* global substitution */
+			if(c == 'g' || c == 'a') /* global substitution */
 			{
 				flag |= HIST_GLOBALSUBST;
 				c = *++cp;
@@ -650,6 +650,8 @@ getsel:
 				if(*cp)
 					cp--;
 			}
+			else if(c == 'p')
+				flag &= ~HIST_EVENT;
 
 			if(sftell(tmp2))
 			{ /* if any substitutions done, swap buffers */
