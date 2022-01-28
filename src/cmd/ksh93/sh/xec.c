@@ -2496,7 +2496,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else
 				{
 					root = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(root,&sh,1);
 					nv_mount(np, (char*)0, root);
 					np->nvalue.cp = Empty;
 					dtview(root,sh.var_base);
@@ -2615,10 +2614,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(!sh.fpathdict)
 						sh.fpathdict = dtopen(&_Rpdisc,Dtobag);
 					if(sh.fpathdict)
-					{
-						dtuserdata(sh.fpathdict,&sh,1);
 						dtinsert(sh.fpathdict,rp);
-					}
 				}
 			}
 			else

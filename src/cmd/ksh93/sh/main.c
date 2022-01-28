@@ -174,7 +174,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				/* preset aliases for interactive non-POSIX ksh */
 				dtclose(sh.alias_tree);
 				sh.alias_tree = sh_inittree(shtab_aliases);
-				dtuserdata(sh.alias_tree,&sh,1);
 			}
 		}
 #if SHOPT_REMOTE

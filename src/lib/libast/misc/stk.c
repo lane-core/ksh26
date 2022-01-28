@@ -229,11 +229,9 @@ Sfio_t *stkopen(int flags)
 	if(flags&STK_NULL) sp->stkoverflow = 0;
 	else sp->stkoverflow = stkcur?stkcur->stkoverflow:overflow;
 	bsize = init+sizeof(struct frame);
-#ifndef USE_REALLOC
 	if(flags&STK_SMALL)
 		bsize = roundof(bsize,STK_FSIZE/16);
 	else
-#endif /* USE_REALLOC */
 		bsize = roundof(bsize,STK_FSIZE);
 	bsize -= sizeof(struct frame);
 	if(!(fp=newof((char*)0,struct frame, 1,bsize)))
@@ -279,9 +277,6 @@ Sfio_t *stkinstall(Sfio_t *stream, _stk_overflow_ oflow)
 		if(stream!=stkstd)
 			sfstack(stkstd,stream);
 		stkcur = sp;
-#ifdef USE_REALLOC
-		/*** someday ***/
-#endif /* USE_REALLOC */
 	}
 	else
 		sp = stkcur;
@@ -509,10 +504,8 @@ static char *stkgrow(register Sfio_t *stream, size_t size)
 	int nn=0,add=1;
 	n += (m + sizeof(struct frame)+1);
 	if(sp->stkflags&STK_SMALL)
-#ifndef USE_REALLOC
 		n = roundof(n,STK_FSIZE/16);
 	else
-#endif /* !USE_REALLOC */
 		n = roundof(n,STK_FSIZE);
 	/* see whether current frame can be extended */
 	if(stkptr(stream,0)==sp->stkbase+sizeof(struct frame))

@@ -1326,7 +1326,6 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	Dt_t		*oroot=tp->dict,*nroot=dtopen(&_Nvdisc,Dtoset);
 	if(!nroot)
 		return(0);
-	dtuserdata(nroot,dtuserdata(oroot,0,0),1);
 	memcpy((void*)ntp,(void*)fp,sizeof(struct table));
 	ntp->dict = nroot;
 	ntp->parent = nv_lastdict();

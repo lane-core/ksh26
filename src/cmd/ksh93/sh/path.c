@@ -1216,7 +1216,7 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 #endif /* SHELLMAGIC */
 #if __CYGWIN__
 	/*
-	 * On Cygwin, execve(2) happily executes shell scripts without a #! path with /bin/sh (which is bash --posix).
+	 * On Cygwin, execve(2) happily executes shell scripts without a #! path with bash (which violates POSIX).
 	 * However, ksh relies on execve(2) executing binaries or #! only, as it uses an ENOEXEC failure to decide
 	 * whether to fork and execute a #!-less shell script with a reinitialized copy of itself via exscript() below.
 	 * So, simulate that failure if the file is not a Windows executable or a script with a #! path.
