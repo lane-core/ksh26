@@ -7,7 +7,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed longstanding job control breakage that occurred on the interactive
   shell when suspending (Ctrl+Z) an external command invoked by a dot script
-  or POSIX shell function.
+  or POSIX shell function, or via 'eval'.
 
 2022-01-26:
 
