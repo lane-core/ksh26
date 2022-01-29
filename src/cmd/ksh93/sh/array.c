@@ -819,7 +819,7 @@ static struct index_array *array_grow(Namval_t *np, register struct index_array 
 		errormsg(SH_DICT,ERROR_exit(1),e_subscript, fmtbase((long)maxi,10,0));
 		UNREACHABLE();
 	}
-	i = (newsize-1)*sizeof(union Value*)+newsize;
+	i = (newsize-1)*sizeof(union Value)+newsize;
 	ap = new_of(struct index_array,i);
 	memset((void*)ap,0,sizeof(*ap)+i);
 	ap->maxi = newsize;
