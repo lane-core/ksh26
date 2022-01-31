@@ -4922,6 +4922,15 @@ Move cursor forward one word.
 editor's idea of a word is a string of characters
 consisting of only letters, digits and underscores.)
 .TP 10
+.BI M-[1;3C
+(Alt-Right arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-[1;5C
+(Ctrl-Right arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-[1;9C
+(iTerm2 Alt-Right arrow) Same as \fBM-f\fR.
+.TP 10
 .BI ^B
 Move cursor backward (left) one character.
 .TP 10
@@ -4931,11 +4940,26 @@ Move cursor backward (left) one character.
 .BI M-b
 Move cursor backward one word.
 .TP 10
+.BI M-[1;3D
+(Alt-Left arrow) Same as \fBM-b\fR.
+.TP 10
+.BI M-[1;5D
+(Ctrl-Left arrow) Same as \fBM-b\fR.
+.TP 10
+.BI M-[1;9D
+(iTerm2 Alt-Left arrow) Same as \fBM-b\fR.
+.TP 10
 .BI ^A
 Move cursor to start of line.
 .TP 10
 .BI M-[H
 (Home) Same as \fB^A\fR.
+.TP 10
+.BI M-[1~
+Same as \fB^A\fR.
+.TP 10
+.BI M-[7~
+Same as \fB^A\fR.
 .TP 10
 .BI ^E
 Move cursor to end of line.
@@ -4943,8 +4967,32 @@ Move cursor to end of line.
 .BI M-[F
 (End) Same as \fB^E\fR.
 .TP 10
+.BI M-[4~
+Same as \fB^E\fR.
+.TP 10
+.BI M-[8~
+Same as \fB^E\fR.
+.TP 10
 .BI M-[Y
 Same as \fB^E\fR.
+.TP 10
+.BI M-OA
+(Up Arrow) Same as \fBM-[A\fR.
+.TP 10
+.BI M-OB
+(Down Arrow) Same as \fBM-[B\fR.
+.TP 10
+.BI M-OC
+(Right Arrow) Same as \fBM-[C\fR.
+.TP 10
+.BI M-OD
+(Left Arrow) Same as \fBM-[D\fR.
+.TP 10
+.BI M-O5C
+(Ctrl-Right Arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-O5D
+(Ctrl-Left Arrow) Same as \fBM-b\fR.
 .TP 10
 .BI ^] char
 Move cursor forward to character
@@ -4986,6 +5034,9 @@ Delete current character.
 .TP 10
 .BI M-d
 Delete current word.
+.TP 10
+.BI M-[3;5~
+(Ctrl-Delete) Same as \fBM-d\fR.
 .TP 10
 .BI M-^H
 (Meta-backspace) Delete previous word.
@@ -5130,6 +5181,9 @@ is accessed.
 In this case a parameter of zero
 reverses the direction of the search.
 .TP 10
+.B ^G
+Exit reverse search mode.
+.TP 10
 .B ^O
 Operate \- Execute the current line and fetch
 the next line relative to current line from the
@@ -5246,6 +5300,9 @@ which is not subject to any shell option.
 .TP 10
 .B M-^V
 Display version of the shell.
+.TP 10
+.BI M-[2~
+(Insert) Escape the next character.
 .TP 10
 .B M-#
 If the line does not begin with a
@@ -5437,6 +5494,54 @@ Cursor to start of line.
 .B ^[[H
 (Home) Same as \f30\fP.
 .TP 10
+.B ^[[1~
+Same as \f30\fP.
+.TP 10
+.B ^[[7~
+Same as \f30\fP.
+.TP 10
+.B ^[[1;3D
+(Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;5D
+(Ctrl-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;9D
+(iTerm2 Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;3C
+(Alt-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[1;5C
+(Ctrl-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[1;9C
+(iTerm2 Alt-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[2~
+(Insert) Same as \f3i\fP.
+.TP 10
+.B ^[[3;5~
+(Ctrl-Delete) Same as \f3dw\fP.
+.TP 10
+.B ^[OA
+(Up Arrow) Same as \f3^[[A\fP.
+.TP 10
+.B ^[OB
+(Down Arrow) Same as \f3^[[B\fP.
+.TP 10
+.B ^[OC
+(Right Arrow) Same as \f3^[[C\fP.
+.TP 10
+.B ^[OD
+(Left Arrow) Same as \f3^[[D\fP.
+.TP 10
+.B ^[O5C
+(Ctrl-Right Arrow) Same as \f3w\fP.
+.TP 10
+.B ^[O5D
+(Ctrl-Left Arrow) Same as \f3b\fP.
+.TP 10
 .B ^
 Cursor to first non-blank character in line.
 .TP 10
@@ -5446,8 +5551,17 @@ Cursor to end of line.
 .B ^[[F
 (End) Same as \f3$\fP.
 .TP 10
+.B ^[[4~
+Same as \f3$\fP.
+.TP 10
+.B ^[[8~
+Same as \f3$\fP.
+.TP 10
 .B ^[[Y
 Same as \f3$\fP.
+.TP 10
+.B ^G
+Exit reverse search mode.
 .TP 10
 .B %
 Moves to balancing
