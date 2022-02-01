@@ -22,6 +22,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
     - In emacs mode, Insert escapes the next character.
     - In vi mode, Insert will switch the editor to insert mode (like in vim).
 
+- Fixed a bug in SIGINT handling: if a script ran an external command that
+  interrupted itself (and only itself, not the process group) with SIGINT,
+  the script that ran the command was also interrupted.
+
 2022-01-28:
 
 - Fixed longstanding job control breakage that occurred on the interactive
