@@ -1848,15 +1848,11 @@ If the
 .B
 .SM VISUAL
 variable is not set,
-the value of this variable will be checked for the patterns
-as described with
+the value of this variable will be checked for certain patterns
+and the corresponding editing option will be turned on as described with
 .B
 .SM VISUAL
-below and the corresponding editing option
-(see Special Command
-.B set
-below)
-will be turned on.
+below.
 .TP
 .SM
 .B ENV
@@ -2274,26 +2270,34 @@ for this value which cannot be exceeded.)
 .TP
 .B
 .SM VISUAL
-If the value of this variable matches the pattern
-.IR *[Vv][Ii]* ,
-then the
-.B vi
-option
-(see Special Command
-.B set
+The value of this variable is scanned when the shell is invoked
+and whenever its value is changed;
+if it is found to match certain patterns,
+the corresponding line editor
+(see
+.I In-line Editing Options
 below)
-is turned on.
-If the value matches the pattern
-.I *gmacs* ,
+is activated.
+If it matches the pattern
+.IR *[Vv][Ii]* ,
+the
+.B vi
+option is turned on;
+else if it matches the pattern
+.IR *gmacs* ,
 the
 .B gmacs
-option is turned on.
-If the value matches the pattern
+option is turned on;
+else if it matches the pattern
 .IR *macs* ,
-then the
+the
 .B emacs
-option
-will be turned on.
+option is turned on.
+If none of the patterns match,
+.B emacs
+is turned on by default upon initializing an interactive shell.
+If the value is changed by assignment and none of the patterns match,
+no options are changed.
 The value of
 .B
 .SM VISUAL
@@ -4710,7 +4714,7 @@ If either the
 or
 .B vi
 option is active, the user can edit the command line.
-To be in either of these edit modes
+To be in either of these edit modes,
 .B set
 the corresponding
 option.
@@ -4720,8 +4724,11 @@ An editing option is automatically selected each time the
 or
 .SM
 .B EDITOR
-variable is assigned a value ending in either of these
-option names.
+variable is assigned a value matching any of these editor names;
+for details, see
+.I Shell Variables
+above under
+.BR VISUAL .
 .PP
 The editing features require that the user's terminal
 accept `RETURN' as carriage return without line feed
@@ -4742,8 +4749,8 @@ at least 8 columns to enter input, the prompt is truncated from the
 left.
 If the line is longer than the window width minus two, a mark is
 displayed at the end of the window to notify the user.
-As the cursor moves and reaches the window boundaries the window will be
-centered about the cursor.
+As the cursor moves and reaches the window boundaries,
+the window will be centered about the cursor.
 The mark is a
 .BR > " (<" ,
 .BR * )
