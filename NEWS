@@ -9,6 +9,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   values. Previously, arithmetic $((var=1)) or conditional ${var:=value}
   assignments were not exported even with allexport on.
 
+- Fixed a memory leak that could occur when using traps.
+
+- Fixed a use after free issue that could occur when modifying or setting
+  a SIGCHLD trap.
+
 2022-02-01:
 
 - Upon invocation, the interactive shell no longer leaves the user without

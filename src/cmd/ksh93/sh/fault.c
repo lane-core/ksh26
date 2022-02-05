@@ -350,6 +350,8 @@ void	sh_sigreset(register int mode)
 		}
 		
 	}
+	if(sh.st.trapcom[0] && sh.st.trapcom[0] != Empty)
+		free(sh.st.trapcom[0]);
 	sh.st.trapcom[0] = 0;
 	if(mode)
 		sh.st.trapmax = 0;
@@ -411,7 +413,7 @@ void	sh_chktrap(void)
 		sh_timetraps();
 #if SHOPT_BGX
 	if((sh.sigflag[SIGCHLD]&SH_SIGTRAP) && sh.st.trapcom[SIGCHLD])
-		job_chldtrap(sh.st.trapcom[SIGCHLD],1);
+		job_chldtrap(1);
 #endif /* SHOPT_BGX */
 	while(--sig>=0)
 	{
