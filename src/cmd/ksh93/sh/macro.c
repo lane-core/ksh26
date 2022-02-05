@@ -1304,27 +1304,28 @@ retry1:
 			if(c=='=' || (c==':' && d=='='))
 				flag |= NV_ASSIGN;
 			flag &= ~NV_NOADD;
+			sh.cond_expan = 1;	/* tell nv_putsub() not to change value from null to empty */
+			np = nv_open(id,sh.var_tree,flag|NV_NOFAIL);
+			sh.cond_expan = 0;
 		}
 #if  SHOPT_FILESCAN
-		if(sh.cur_line && *id=='R' && strcmp(id,"REPLY")==0)
+		else if(sh.cur_line && strcmp(id,REPLYNOD->nvname)==0)
 		{
 			sh.argaddr=0;
 			np = REPLYNOD;
 		}
-		else
 #endif  /* SHOPT_FILESCAN */
+		else
 		{
 			if(sh.argaddr)
 				flag &= ~NV_NOADD;
-			/*
-			 * Get a node pointer (np) to the parameter, if any.
-			 */
 			np = nv_open(id,sh.var_tree,flag|NV_NOFAIL);
-			if(!np)
-			{
-				sfprintf(sh.strbuf,"%s%c",id,0);
-				id = sfstruse(sh.strbuf);
-			}
+		}
+		if(!np)
+		{
+			/* id points to stack, which will be overwritten; save it for error message */
+			sfputr(sh.strbuf,id,-1);
+			id = sfstruse(sh.strbuf);
 		}
 		if(isastchar(mode))
 			var = 0;

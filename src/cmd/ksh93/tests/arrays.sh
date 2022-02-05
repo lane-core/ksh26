@@ -784,4 +784,24 @@ got=$("$SHELL" -c '
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/383
+unset foo
+exp=bar
+got=$(echo "${foo[42]=bar}")
+[[ $got == "$exp" ]] || err_exit '${array[index]=value} does not assign value' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp=baz
+got=$(echo "${foo[42]:=baz}")
+[[ $got == "$exp" ]] || err_exit '${array[index]:=value} does not assign value' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp=': parameter not set'
+got=$(set +x; redirect 2>&1; : ${foo[42]?})
+[[ $got == *"$exp" ]] || err_exit '${array[index]?error} does not throw error' \
+	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+exp=': parameter null'
+got=$(set +x; redirect 2>&1; foo[42]=''; : ${foo[42]:?})
+[[ $got == *"$exp" ]] || err_exit '${array[index]:?error} does not throw error' \
+	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -1247,7 +1247,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 					nv_arraychild(np,mp,0);
 					nv_setvtree(mp);
 				}
-				else
+				else if(!sh.cond_expan)
 					ap->val[size].cp = Empty;
 				if(!sp && !array_covered(np,ap))
 					ap->header.nelem++;

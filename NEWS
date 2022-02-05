@@ -5,6 +5,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-02-05:
 
+- Fixed: for indexed arrays, given an unset array member a[i] with i > 0,
+  ${a[i]=value} failed to assign the value and ${v[i]?error} failed to throw
+  an error.
+
 - Fixed: the -a/--allexport shell option incorrectly exported some variables
   with names containing a dot to the environment. Note that the '-x' typeset
   attribute may still be set for them, but this will now not have any

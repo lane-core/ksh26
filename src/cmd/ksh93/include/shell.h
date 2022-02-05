@@ -354,6 +354,7 @@ struct Shell_s
 	void		*defpathlist;
 	void		*cdpathlist;
 	char		**argaddr;
+	char		cond_expan;	/* set while processing ${var=val}, ${var:=val}, ${var?err}, ${var:?err} */
 	void		*optlist;
 	struct sh_scoped global;
 	struct checkpt	checkbase;
