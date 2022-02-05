@@ -728,6 +728,13 @@ exp='typeset -x bar=2'
 got=$(typeset -p bar)
 [[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+.foo=
+.foo.bar=baz
+exp=''
+got=$(env | grep '^\.foo[.=]')
+[[ $got == "$exp" ]] || err_exit 'Variables with dots in name exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset .foo.bar .foo
 set +o allexport
 
 # ======

@@ -169,7 +169,7 @@ const struct shtable3 shtab_builtins[] =
 
 const char sh_set[] =
 "[a?All variables that are assigned a value while this option is on are "
-	"automatically exported.]"
+	"automatically exported, unless they have a dot in their name.]"
 "[b?The shell writes a message to standard error as soon it detects that "
 	"a background job completes rather than waiting until the next prompt.]"
 "[e?A simple command that has an non-zero exit status will cause the shell "

@@ -2197,10 +2197,15 @@ static void attstore(register Namval_t *np, void *data)
 	ap->attval = strcopy(++ap->attval,nv_name(np));
 }
 
+/*
+ * Called from sh_envgen() to push an individual variable to export
+ */
 static void pushnam(Namval_t *np, void *data)
 {
 	register char *value;
 	register struct adata *ap = (struct adata*)data;
+	if(strchr(np->nvname,'.'))
+		return;
 	ap->tp = 0;
 	if(nv_isattr(np,NV_IMPORT) && np->nvenv)
 		*ap->argnam++ = np->nvenv;
@@ -2213,7 +2218,6 @@ static void pushnam(Namval_t *np, void *data)
 /*
  * Generate the environment list for the child.
  */
-
 char **sh_envgen(void)
 {
 	register char **er;
