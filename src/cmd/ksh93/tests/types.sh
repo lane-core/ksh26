@@ -673,4 +673,53 @@ exp=': trap: is a special shell builtin'
 	"(expected match of *$(printf %q "$exp"); got $(printf %q "$got"))"
 
 # ======
+# Bugs involving scripts without a #! path
+# Hashbangless scripts are execeuted in a reinitialised fork of ksh, which is very bug-prone.
+# https://github.com/ksh93/ksh/issues/350
+# Some of these fixed bugs don't involve types at all, but the tests need to go somewhere.
+# Plus, invoking these from an environment with a bunch of types defined is an additional test.
+: >|foo1
+: >|foo2
+chmod +x foo1 foo2
+
+enum _foo1_t=(VERY BAD TYPE)
+_foo1_t foo=BAD
+normalvar=BAD2
+cat >|foo1 <<-'EOF'
+	# no hashbang path here
+	echo "normalvar=$normalvar"
+	echo "foo=$foo"
+	PATH=/dev/null
+	typeset -p .sh.type
+	_foo1_t --version
+EOF
+./foo1 >|foo1.out 2>&1
+got=$(<foo1.out)
+exp=$'normalvar=\nfoo=\nnamespace sh.type\n{\n\t:\n}\n*: _foo1_t: not found'
+[[ $got == $exp ]] || err_exit "types survive exec of hashbangless script" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+
+if	builtin basename 2>/dev/null
+then	cat >|foo1 <<-'EOF'
+		PATH=/dev/null
+		basename --version
+	EOF
+	./foo1 >|foo1.out 2>&1
+	got=$(<foo1.out)
+	exp=': basename: not found'
+	[[ $got == *"$exp" ]] || err_exit "builtins survive exec of hashbangless script" \
+		"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+echo $'echo start1\ntypeset -p a\n. ./foo2\necho end1' >| foo1
+echo $'echo start2\ntypeset -p a\necho end2' >| foo2
+unset a
+typeset -a a=(one two three)
+export a
+got=$(./foo1)
+exp=$'start1\ntypeset -x a=one\nstart2\ntypeset -x a=one\nend2\nend1'
+[[ $got == "$exp" ]] || err_exit 'exporting variable to #!-less script' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

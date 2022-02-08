@@ -5,6 +5,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-02-08:
 
+- Multiple bugs were fixed in the method that ksh uses to execute a shell
+  script without a #! path. Among other things, custom types and other
+  changes in built-in commands will no longer affect the invoked script.
+  The state of the 'posix' option is now inherited by the script.
+
 - To avoid an inconsistent state, the 'enum' and 'typeset -T' commands are
   no longer allowed to replace special built-in commands. For instance,
   'enum trap=(a b c)' is now an error because 'trap' is a special built-in.

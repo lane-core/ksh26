@@ -218,12 +218,14 @@ typedef struct _init_
 #endif /* _hdr_locale */
 } Init_t;
 
-static Init_t		*ip;
 static int		lctype;
-static int		nbltins;
+static int		nvars;
 static char		*env_init(void);
 static void		env_import_attributes(char*);
 static Init_t		*nv_init(void);
+#if SHOPT_STATS
+static void		stat_init(void);
+#endif
 static int		shlvl;
 static int		rand_shift;
 
@@ -779,7 +781,7 @@ static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
  */
 void sh_setmatch(const char *v, int vsize, int nmatch, regoff_t match[],int index)
 {
-	struct match	*mp = &ip->SH_MATCH_init;
+	struct match	*mp = &((Init_t*)sh.init_context)->SH_MATCH_init;
 	Namval_t	*np = (Namval_t*)(&(mp->node[0]));
 	register int	i,n,x;
 	unsigned int	savesub = sh.subshell;
@@ -1484,44 +1486,27 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 }
 
 /*
- * reinitialize before executing a script
+ * Reinitialize before executing a script without a #! path.
+ * This is done in a fork of the shell, so "exporting" is done by deleting all non-exported variables.
  */
 int sh_reinit(char *argv[])
 {
 	Shopt_t opt;
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
-	for(np=dtfirst(sh.fun_tree);np;np=npnext)
-	{
-		if((dp=sh.fun_tree)->walk)
-			dp = dp->walk;
-		npnext = (Namval_t*)dtnext(sh.fun_tree,np);
-		if(np>= sh.bltin_cmds && np < &sh.bltin_cmds[nbltins])
-			continue;
-		if(is_abuiltin(np) && nv_isattr(np,NV_EXPORT))
-			continue;
-		if(*np->nvname=='/')
-			continue;
-		nv_delete(np,dp,NV_NOFREE);
-	}
-	dtclose(sh.alias_tree);
-	sh.alias_tree = dtopen(&_Nvdisc,Dtoset);
+	int	nofree;
+	sh_onstate(SH_INIT);
+	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
+	sh.envlist = NIL(struct argnod*);
 	sh.last_root = sh.var_tree;
-	sh.inuse_bits = 0;
-	if(sh.userinit)
-		(*sh.userinit)(&sh, 1);
 	if(sh.heredocs)
 	{
 		sfclose(sh.heredocs);
 		sh.heredocs = 0;
 	}
-	/* remove locals */
-	sh_onstate(SH_INIT);
+	/* Remove non-exported variables, first pass (see sh_envnolocal() in name.c) */
 	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_EXPORT,0);
 	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_ARRAY,NV_ARRAY);
-	sh_offstate(SH_INIT);
-	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
-	memset((void*)&opt,0,sizeof(opt));
 #if SHOPT_NAMESPACE
 	if(sh.namespace)
 	{
@@ -1532,8 +1517,106 @@ int sh_reinit(char *argv[])
 		sh.namespace = 0;
 	}
 #endif /* SHOPT_NAMESPACE */
-	if(sh_isoption(SH_TRACKALL))
-		on_option(&opt,SH_TRACKALL);
+	/* Delete remaining non-exported, non-default variables; remove attributes from exported variables */
+	for(np = dtfirst(sh.var_tree); np; np = npnext)
+	{
+		if((dp = sh.var_tree)->walk)
+			dp = dp->walk;
+		npnext = (Namval_t*)dtnext(sh.var_tree,np);
+		/* skip default variables (already handled by sh_envnolocal()) */
+		if(np >= sh.bltin_nodes && np < &sh.bltin_nodes[nvars])
+			continue;
+		if(nv_isattr(np,NV_EXPORT))
+		{
+			if(sh_isoption(SH_POSIX))
+			{
+				char *cp = NIL(char*);
+				/* do not export attributes */
+				if(nv_isattr(np,NV_INTEGER))		/* any kind of numeric? */
+				{
+					cp = sh_strdup(nv_getval(np));	/* save string value */
+					_nv_unset(np,NV_RDONLY);	/* free numeric value */
+				}
+				nv_setattr(np,NV_EXPORT);		/* turn off everything except export */
+				if(cp)
+					np->nvalue.cp = cp;		/* replace by string value */
+			}
+			else
+			{
+				/* export all attributes except readonly */
+				nv_offattr(np,NV_RDONLY);
+			}
+			/* unset discipline */
+			if(np->nvfun && np->nvfun->disc)
+				np->nvfun->disc = NIL(const Namdisc_t*);
+		}
+		else
+		{
+			nofree = nv_isattr(np,NV_NOFREE);		/* note: returns bitmask, not boolean */
+			_nv_unset(np,NV_RDONLY);			/* also clears NV_NOFREE attr, if any */
+			nv_delete(np,dp,nofree);
+		}
+	}
+	/* Delete types */
+	for(np = dtfirst(sh.typedict); np; np = npnext)
+	{
+		if((dp = sh.typedict)->walk)
+			dp = dp->walk;
+		npnext = (Namval_t*)dtnext(sh.typedict,np);
+		nv_delete(np,dp,0);
+	}
+	/* Delete functions/built-ins. Note: fun_tree has a viewpath to bltin_tree */
+	for(np = dtfirst(sh.fun_tree); np; np = npnext)
+	{
+		if((dp = sh.fun_tree)->walk)
+			dp = dp->walk;
+		npnext = (Namval_t*)dtnext(sh.fun_tree,np);
+		nv_delete(np, dp, NV_NOFREE);
+	}
+	while(dp = dtview(sh.fun_tree, NIL(Dt_t*)))
+	{
+		dtclose(sh.fun_tree);
+		sh.fun_tree = dp;
+	}
+	dtclear(sh.fun_base = sh.fun_tree);
+	/* Re-init built-ins as per nv_init() */
+	free(sh.bltin_cmds);
+	sh.bltin_tree = sh_inittree((const struct shtable2*)shtab_builtins);
+	dtview(sh.fun_tree,sh.bltin_tree);
+	/* Delete aliases */
+	for(np = dtfirst(sh.alias_tree); np; np = npnext)
+	{
+		if((dp = sh.alias_tree)->walk)
+			dp = dp->walk;
+		npnext = (Namval_t*)dtnext(sh.alias_tree,np);
+		nofree = nv_isattr(np,NV_NOFREE);			/* note: returns bitmask, not boolean */
+		_nv_unset(np,NV_RDONLY);				/* also clears NV_NOFREE attr, if any */
+		nv_delete(np,dp,nofree);
+	}
+	/* Delete hash table entries */
+	for(np = dtfirst(sh.track_tree); np; np = npnext)
+	{
+		if((dp = sh.track_tree)->walk)
+			dp = dp->walk;
+		npnext = (Namval_t*)dtnext(sh.track_tree,np);
+		nofree = nv_isattr(np,NV_NOFREE);			/* note: returns bitmask, not boolean */
+		_nv_unset(np,NV_RDONLY);				/* also clears NV_NOFREE attr, if any */
+		nv_delete(np,dp,nofree);
+	}
+	while(dp = dtview(sh.track_tree, NIL(Dt_t*)))
+	{
+		dtclose(sh.track_tree);
+		sh.track_tree = dp;
+	}
+#if SHOPT_STATS
+	/* Reset statistics */
+	free(sh.stats);
+	stat_init();
+#endif
+	/* Reset shell options; inherit some */
+	memset((void*)&opt,0,sizeof(opt));
+	if(sh_isoption(SH_POSIX))
+		on_option(&opt,SH_POSIX);
 #if SHOPT_ESH
 	if(sh_isoption(SH_EMACS))
 		on_option(&opt,SH_EMACS);
@@ -1552,12 +1635,12 @@ int sh_reinit(char *argv[])
 		sh.arglist = sh_argcreate(argv);
 	if(sh.arglist)
 		sh_argreset(sh.arglist,NIL(struct dolnod*));
-	sh.envlist=0;
-	sh.curenv = 0;
 	sh.shname = error_info.id = sh_strdup(sh.st.dolv[0]);
 	sh_offstate(SH_FORKED);
-	sh.fn_depth = sh.dot_depth = 0;
+	/* Reset traps and signals */
+	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
 	sh_sigreset(0);
+	/* increase SHLVL */
 	if(!(SHLVL->nvalue.ip))
 	{
 		shlvl = 0;
@@ -1576,8 +1659,12 @@ int sh_reinit(char *argv[])
 	sh.errtrap = 0;
 	sh.end_fn = 0;
 	/* update ${.sh.pid}, $$, $PPID */
+	sh.ppid = sh.current_pid;
 	sh.current_pid = sh.pid = getpid();
-	sh.ppid = getppid();
+	/* call user init function, if any */
+	if(sh.userinit)
+		(*sh.userinit)(&sh, 1);
+	sh_offstate(SH_INIT);
 	return(1);
 }
 
@@ -1695,8 +1782,6 @@ static void stat_init(void)
 	sp->hdr.nofree = 1;
 	nv_setvtree(SH_STATS);
 }
-#else
-#   define stat_init(x)
 #endif /* SHOPT_STATS */
 
 /*
@@ -1705,7 +1790,7 @@ static void stat_init(void)
 static Init_t *nv_init(void)
 {
 	double d=0;
-	ip = sh_newof(0,Init_t,1,0);
+	Init_t *ip = sh_newof(0,Init_t,1,0);
 	sh.nvfun.last = (char*)&sh;
 	sh.nvfun.nofree = 1;
 	sh.var_base = sh.var_tree = sh_inittree(shtab_variables);
@@ -1841,13 +1926,13 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 	for(tp=name_vals;*tp->sh_name;tp++)
 		n++;
 	np = (Namval_t*)sh_calloc(n,sizeof(Namval_t));
-	if(!sh.bltin_nodes)
-		sh.bltin_nodes = np;
-	else if(name_vals==(const struct shtable2*)shtab_builtins)
+	if(name_vals==shtab_variables)
 	{
-		sh.bltin_cmds = np;
-		nbltins = n;
+		sh.bltin_nodes = np;
+		nvars = n;
 	}
+	else if(name_vals==(const struct shtable2*)shtab_builtins)
+		sh.bltin_cmds = np;
 	base_treep = treep = dtopen(&_Nvdisc,Dtoset);
 	treep->user = (void*)&sh;
 	for(tp=name_vals;*tp->sh_name;tp++,np++)

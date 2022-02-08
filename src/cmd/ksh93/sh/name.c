@@ -2383,8 +2383,8 @@ void sh_scope(struct argnod *envlist, int fun)
 
 void	sh_envnolocal (register Namval_t *np, void *data)
 {
+	char *cp = 0, was_export = nv_isattr(np,NV_EXPORT)!=0;
 	NOT_USED(data);
-	char *cp=0;
 	if(np==VERSIONNOD && nv_isref(np))
 		return;
 	if(np==L_ARGNOD)
@@ -2419,6 +2419,8 @@ void	sh_envnolocal (register Namval_t *np, void *data)
 		nv_putval(np,cp,0);
 		free((void*)cp);
 	}
+	if(was_export)
+		nv_onattr(np,NV_EXPORT);
 }
 
 /*

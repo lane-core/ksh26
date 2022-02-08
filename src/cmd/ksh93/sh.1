@@ -7588,9 +7588,10 @@ shells. At the moment that the \fBposix\fR option is turned on, it also turns
 on \fBletoctal\fR and turns off \fB\-B\fR/\fBbraceexpand\fR; the reverse is
 done when \fBposix\fR is turned back off. (These options can still be
 controlled independently in between.) Furthermore, the \fBposix\fR option
-is automatically turned on upon invocation if ksh is invoked as \fBsh\fR
-or \fBrsh\fR. In that case, or if the option is turned on by
-specifying \fB-o posix\fR on the invocation command line, the invoked shell
+is automatically turned on upon invocation if the shell is invoked as \fBsh\fR
+or \fBrsh\fR, or if \fB\-o posix\fR or \fB\-\-posix\fR is specified on the
+shell invocation command line, or when executing scripts without a \fB#!\fR path
+with this option active in the invoking shell. In that case, the invoked shell
 will not set the preset aliases even if interactive, and will not import type
 attributes for variables (such as integer or left/right justify)
 from the environment.
