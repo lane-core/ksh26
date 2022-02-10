@@ -77,16 +77,15 @@ struct adata
 	char		*attval;
 };
 
-#if SHOPT_TYPEDEF
-    struct sh_type
-    {
+/* for a 'typeset -T' type */
+struct sh_type
+{
 	void		*previous;
 	Namval_t	**nodes;
 	Namval_t	*rp;
 	short		numnodes;
 	short		maxnodes;
-    };
-#endif /* SHOPT_TYPEDEF */
+};
 
 #if NVCACHE
     struct Namcache
@@ -175,7 +174,9 @@ void nv_outname(Sfio_t *out, char *name, int len)
 	stakseek(offset);
 }
 
-#if SHOPT_TYPEDEF
+/*
+ * for 'typeset -T' types
+ */
 Namval_t *nv_addnode(Namval_t* np, int remove)
 {
 	register struct sh_type	*sp = (struct sh_type*)sh.mktype;
@@ -233,7 +234,6 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	sp->nodes[sp->numnodes++] = np;
 	return(np);
 }
-#endif /* SHOPT_TYPEDEF */
 
 /*
  * given a list of assignments, determine <name> is on the list
@@ -271,8 +271,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 	Namarr_t	*ap;
 	Namval_t	node;
 	struct Namref	nr;
-#if SHOPT_TYPEDEF
-	int		maketype = flags&NV_TYPE;
+	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
 	if(maketype)
 	{
@@ -283,7 +282,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		shtp.rp = 0;
 		shtp.nodes = (Namval_t**)sh_malloc(shtp.maxnodes*sizeof(Namval_t*));
 	}
-#endif /* SHOPT_TYPEDEF */
 #if SHOPT_NAMESPACE
 	if(sh.namespace && nv_dict(sh.namespace)==sh.var_tree)
 		flags |= NV_NOSCOPE;
@@ -344,7 +342,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 							stakputs(cp);
 							cp = stakfreeze(1);
 						}
-						nv_close(np);
 					}
 				}
 				np = nv_open(cp,sh.var_tree,flag|NV_ASSIGN);
@@ -378,11 +375,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					 nv_settype(np,typ,0);
 				}
 				if((flags&NV_STATIC) && !nv_isattr(np,NV_EXPORT) && !nv_isnull(np))
-#if SHOPT_TYPEDEF
 					goto check_type;
-#else
-					continue;
-#endif /* SHOPT_TYPEDEF */
 				ap=nv_arrayptr(np);
 #if SHOPT_FIXEDARRAY
 				if(ap && ap->fixed)
@@ -408,13 +401,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					}
 				}
 				if(array && tp->tre.tretyp!=TLST && !tp->com.comset && !tp->com.comarg)
-				{
-#if SHOPT_TYPEDEF
-						goto check_type;
-#else
-						continue;
-#endif /* SHOPT_TYPEDEF */
-				}
+					goto check_type;
 				/* check for array assignment */
 				if(tp->tre.tretyp!=TLST && tp->com.comarg && !tp->com.comset && ((array&NV_IARRAY) || !((mp=tp->com.comnamp) && nv_isattr(mp,BLT_DCL))))
 				{
@@ -422,14 +409,12 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					Dt_t	*last_root = sh.last_root;
 					char **argv = sh_argbuild(&argc,&tp->com,0);
 					sh.last_root = last_root;
-#if SHOPT_TYPEDEF
 					if(sh.mktype && sh.dot_depth==0 && np==((struct sh_type*)sh.mktype)->nodes[0])
 					{
 						sh.mktype = 0;
 						errormsg(SH_DICT,ERROR_exit(1),"%s: not a known type name",argv[0]);
 						UNREACHABLE();
 					}
-#endif /* SHOPT_TYPEDEF */
 					if(!(arg->argflag&ARG_APPEND))
 					{
 #if SHOPT_FIXEDARRAY
@@ -462,11 +447,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 							sfwrite(sfstderr,")\n",2);
 						}
 					}
-#if SHOPT_TYPEDEF
 					goto check_type;
-#else
-					continue;
-#endif /* SHOPT_TYPEDEF */
 				}
 				if((tp->tre.tretyp&COMMSK)==TFUN)
 					goto skip;
@@ -494,17 +475,11 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						sh.prefix = prefix;
 						if(tp->com.comset->argval[1]!='[')
 							 nv_setvtree(np);
-						nv_close(np);
-#if SHOPT_TYPEDEF
 						goto check_type;
-#else
-						continue;
-#endif /* SHOPT_TYPEDEF */
 					}
 					if(*cp!='.' && *cp!='[' && strchr(cp,'['))
 					{
 						cp = stakcopy(nv_name(np));
-						nv_close(np);
 						if(!(arg->argflag&ARG_APPEND))
 							flag &= ~NV_ARRAY;
 						sh.prefix_root = sh.first_root;
@@ -570,9 +545,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					L_ARGNOD->nvfun = 0;
 				}
 				sh_exec(tp,sh_isstate(SH_ERREXIT));
-#if SHOPT_TYPEDEF
 				if(sh.prefix)
-#endif
 				{
 					L_ARGNOD->nvalue.nrp = node.nvalue.nrp;
 					L_ARGNOD->nvflag = node.nvflag;
@@ -594,11 +567,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					if(tp->com.comarg || tp->com.comset)
 						np->nvfun->dsize = 0;
 				}
-#if SHOPT_TYPEDEF
 				goto check_type;
-#else
-				continue;
-#endif /* SHOPT_TYPEDEF */
 			}
 			cp = arg->argval;
 			mp = 0;
@@ -659,7 +628,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					sh_debug(trap,name,sub,av,append);
 			}
 		}
-#if SHOPT_TYPEDEF
 	check_type:
 		if(maketype)
 		{
@@ -678,7 +646,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 				L_ARGNOD->nvfun = node.nvfun;
 			}
 		}
-#endif /* SHOPT_TYPEDEF */
+		/* continue loop */
 	}
 }
 
@@ -1490,10 +1458,8 @@ nocache:
 	}
 	c = *cp;
 skip:
-#if SHOPT_TYPEDEF
 	if(np && sh.mktype)
 		np = nv_addnode(np,0);
-#endif /* SHOPT_TYPEDEF */
 	if(c=='=' && np && (flags&NV_ASSIGN))
 	{
 		cp++;
@@ -2271,10 +2237,8 @@ static int scanfilter(Namval_t *np, struct scan *sp)
 	register int k=np->nvflag;
 	register struct adata *tp = (struct adata*)sp->scandata;
 	char	*cp;
-#if SHOPT_TYPEDEF
 	if(!is_abuiltin(np) && tp && tp->tp && nv_type(np)!=tp->tp)
 		return(0);
-#endif /* SHOPT_TYPEDEF */
 	if(sp->scanmask==NV_TABLE && nv_isvtree(np))
 		k = NV_TABLE;
 	if(sp->scanmask?(k&sp->scanmask)==sp->scanflags:(!sp->scanflags || (k&sp->scanflags)))
@@ -2421,15 +2385,6 @@ void	sh_envnolocal (register Namval_t *np, void *data)
 	}
 	if(was_export)
 		nv_onattr(np,NV_EXPORT);
-}
-
-/*
- * Currently this is a dummy, but someday will be needed
- * for reference counting
- */
-void	nv_close(Namval_t *np)
-{
-	NOT_USED(np);
 }
 
 static void table_unset(register Dt_t *root, int flags, Dt_t *oroot)
@@ -3030,7 +2985,7 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 			np->nvflag |= newatts;
 			goto skip;
 		}
-#endif /* SHOPT_TYPEDEF */
+#endif /* SHOPT_FIXEDARRAY */
 	}
 	do
 	{
@@ -3113,7 +3068,7 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 	while(ap && nv_nextsub(np));
 #if SHOPT_FIXEDARRAY
 skip:
-#endif /* SHOPT_TYPEDEF */
+#endif /* SHOPT_FIXEDARRAY */
 	if(fp)
 		np->nvfun = fp;
 	if(ap)

@@ -587,9 +587,7 @@ void sh_exit(register int xno)
 	sh.arithrecursion = 0;
 	sh.intrace = 0;
 	sh.prefix = 0;
-#if SHOPT_TYPEDEF
 	sh.mktype = 0;
-#endif /* SHOPT_TYPEDEF */
 	if(job.in_critical)
 		job_unlock();
 	if(pp->mode == SH_JMPSCRIPT && !pp->prev) 

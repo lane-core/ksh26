@@ -36,16 +36,6 @@
 #include	"test.h"
 #include	"FEATURE/dynamic"
 #include	"FEATURE/externs"
-#if SHOPT_PFSH 
-#   ifdef _hdr_exec_attr
-#	include	<exec_attr.h>
-#   endif
-#   if     _lib_vfork
-#	include     <ast_vfork.h>
-#   else
-#	define vfork()      fork()
-#   endif
-#endif
 
 #define RW_ALL	(S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR|S_IWGRP|S_IWOTH)
 #define LIBCMD	"cmd"
@@ -86,60 +76,6 @@ static int ondefpath(const char *name)
 	}
 	return(0);
 }
-
-#if SHOPT_PFSH 
-int path_xattr(const char *path, char *rpath)
-{
-	char  resolvedpath[PATH_MAX + 1];
-	if (sh.user && *sh.user)
-	{
-		execattr_t *pf;
-		if(!rpath)
-			rpath = resolvedpath;
-		if (!realpath(path, resolvedpath))
-			return -1;
-		if(pf=getexecuser(sh.user, KV_COMMAND, resolvedpath, GET_ONE))
-		{
-			if (!pf->attr || pf->attr->length == 0)
-			{
-				free_execattr(pf);
-				return(0);
-			}
-			free_execattr(pf);
-			return(1);
-		}
-	}
-	errno = ENOENT;
-	return(-1);
-}
-
-static pid_t pf_execve(const char *path, char *argv[],char *const envp[],int spawn)
-{
-	char  resolvedpath[PATH_MAX + 1];
-	pid_t	pid;
-	if(spawn)
-	{
-		while((pid = vfork()) < 0)
-			_sh_fork(pid, 0, (int*)0);
-		if(pid)
-			return(pid);
-	}
-	if(!sh_isoption(SH_PFSH))
-		return(execve(path, argv, envp));
-	/* Solaris implements realpath(3C) using the resolvepath(2) */
-	/* system call so we can save us to call access(2) first */
-
-	/* we can exec the command directly instead of via pfexec(1) if */
-	/* there is a matching entry without attributes in exec_attr(4) */
-	if(!path_xattr(path,resolvedpath))
-		return(execve(path, argv, envp));
-	--argv;
-	argv[0] = argv[1];
-	argv[1] = resolvedpath;
-	return(execve("/usr/bin/pfexec", argv, envp));
-}
-#endif /* SHOPT_PFSH */
-
 
 static pid_t _spawnveg(const char *path, char* const argv[], char* const envp[], pid_t pgid)
 {
@@ -219,11 +155,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 				saveargs = 0;
 			}
 		}
-#if SHOPT_PFSH
-		else if(spawn && !sh_isoption(SH_PFSH))
-#else
 		else if(spawn)
-#endif
 		{
 			sh.xargexit = exitval;
 			if(saveargs)
@@ -234,11 +166,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 		{
 			if(saveargs)
 				free((void*)saveargs);
-#if SHOPT_PFSH
-			return(pf_execve(path,argv,envp,spawn));
-#else
 			return(execve(path,argv,envp));
-#endif
 		}
 	}
 	if(!spawn)
@@ -1242,17 +1170,10 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 	}
 	else
 #endif
-#if SHOPT_PFSH
-	if(spawn && !sh_isoption(SH_PFSH))
-		pid = _spawnveg(opath, &argv[0], envp, spawn>>1);
-	else
-		pid = pf_execve(opath, &argv[0], envp, spawn);
-#else
 	if(spawn)
 		pid = _spawnveg(opath, &argv[0], envp, spawn>>1);
 	else
 		pid = execve(opath, &argv[0], envp);
-#endif /* SHOPT_PFSH */
 	if(xp)
 		*xp = xval;
 #ifdef SHELLMAGIC
@@ -1365,7 +1286,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 		sh_close(sh.infd);
 	sh_setstate(sh_state(SH_FORKED));
 	sfsync(sfstderr);
-#if SHOPT_SUID_EXEC && !SHOPT_PFSH
+#if SHOPT_SUID_EXEC
 	/* check if file cannot open for read or script is setuid/setgid */
 	{
 		static char name[] = "/tmp/euidXXXXXXXXXX";
@@ -1401,11 +1322,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 		}
 		savet = *--argv;
 		*argv = path;
-#if SHOPT_PFSH
-		pf_execve(e_suidexec,argv,envp,0);
-#else
 		execve(e_suidexec,argv,envp);
-#endif
 	fail:
 		/*
 		 *  The following code is just for compatibility

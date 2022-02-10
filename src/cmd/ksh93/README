@@ -124,8 +124,6 @@ The options have the following defaults and meanings:
 
     OPTIMIZE     on  Optimize loop invariants for with for and while loops.
 
-    PFSH         off Compile with support for profile shell. (Solaris; obsolete)
-
     P_SUID       off If set, all real UIDs, greater than or equal to this
                      value will require the -p flag to run SUID/SGID scripts.
 
@@ -155,8 +153,6 @@ The options have the following defaults and meanings:
     TIMEOUT      off Set this to the number of seconds for timing out and
                      exiting the shell when you don't enter a command.  If
                      non-zero, TMOUT can not be set larger than this value.
-
-    TYPEDEF      on  Enable typeset type definitions.
 
     VSH          on  Compile with vi command line editing.  The original vi
                      line editor code was provided by Pat Sullivan at CB.

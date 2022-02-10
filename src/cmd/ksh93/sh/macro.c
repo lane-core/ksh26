@@ -91,7 +91,7 @@ typedef struct  _mac_
 #define M_NAMECOUNT	7	/* ${#var*}	*/
 #define M_TYPE		8	/* ${@var}	*/
 
-static noreturn void	mac_error(Namval_t*);
+static noreturn void	mac_error(void);
 static int	substring(const char*, size_t, const char*, int[], int);
 static void	copyto(Mac_t*, int, int);
 static void	comsubst(Mac_t*, Shnode_t*, int);
@@ -1128,13 +1128,11 @@ retry1:
 			{
 				if(c=='#')
 					type = M_SIZE;
-#if SHOPT_TYPEDEF
 				else if(c=='@')
 				{
 					type = M_TYPE;
 					goto retry1;
 				}
-#endif /* SHOPT_TYPEDEF */
 				else
 					type = M_VNAME;
 				mode = c;
@@ -1439,7 +1437,6 @@ retry1:
 				if(ap && !mp->dotdot && !(ap->nelem&ARRAY_UNDEF))
 					addsub = 1;
 			}
-#if SHOPT_TYPEDEF
 			else if(type==M_TYPE)
 			{
 				Namval_t *nq = nv_type(np);
@@ -1450,7 +1447,6 @@ retry1:
 					nv_attribute(np,sh.strbuf,"typeset",1);
 				v = sfstruse(sh.strbuf);
 			}
-#endif /* SHOPT_TYPEDEF */
 #if  SHOPT_FILESCAN
 			else if(sh.cur_line && np==REPLYNOD)
 				v = sh.cur_line;
@@ -1521,7 +1517,7 @@ retry1:
 	if(type>M_TREE)
 	{
 		if(c!=RBRACE)
-			mac_error(np);
+			mac_error();
 		if(type==M_NAMESCAN || type==M_NAMECOUNT)
 		{
 			sh.last_root = sh.var_tree;
@@ -1602,7 +1598,7 @@ retry1:
 		if(!isbracechar(c))
 		{
 			if(!nulflg)
-				mac_error(np);
+				mac_error();
 			fcseek(-LEN);
 			c = ':';
 		}
@@ -1781,7 +1777,7 @@ retry1:
 				vsize = v?strlen(v):0;
 		}
 		if(*ptr)
-			mac_error(np);
+			mac_error();
 		stkseek(stkp,offset);
 		argp = 0;
 	}
@@ -2022,7 +2018,7 @@ retry2:
 				goto retry2;
 			}
 		else
-			mac_error(np);
+			mac_error();
 		}
 	}
 	else if(var && sh_isoption(SH_NOUNSET) && type<=M_TREE && (!np  || nv_isnull(np) || (nv_isarray(np) && !np->nvalue.cp)))
@@ -2036,13 +2032,10 @@ retry2:
 			}
 			else
 				id = nv_name(np);
-			nv_close(np);
 		}
 		errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
 		UNREACHABLE();
 	}
-	if(np)
-		nv_close(np);
 	if(pattern)
 		free(pattern);
 	if(idx)
@@ -2056,9 +2049,8 @@ nosub:
 		return(1);
 	}
 	if(type)
-		mac_error(np);
+		mac_error();
 	fcseek(-1);
-	nv_close(np);
 	return(0);
 }
 
@@ -2798,10 +2790,8 @@ static char *special(register int c)
 /*
  * Handle macro expansion errors
  */
-static noreturn void mac_error(Namval_t *np)
+static noreturn void mac_error(void)
 {
-	if(np)
-		nv_close(np);
 	errormsg(SH_DICT,ERROR_exit(1),e_subst,fcfirst());
 	UNREACHABLE();
 }

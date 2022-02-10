@@ -803,7 +803,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		{
 			if(name)
 			{
-				nv_close(np);
 				np = nv_open(name,sh.var_tree,NV_NOASSIGN|NV_VARNAME);
 				name = *++names;
 			}
@@ -829,7 +828,6 @@ done:
 		sfset(iop,SF_WRITE,1);
 	if(!was_share)
 		sfset(iop,SF_SHARE,0);
-	nv_close(np);
 	if((sh.fdstatus[fd]&IOTTY) && !keytrap)
 		tty_cooked(fd);
 	if(flags&S_FLAG)

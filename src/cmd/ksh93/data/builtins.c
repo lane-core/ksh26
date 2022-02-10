@@ -1595,9 +1595,6 @@ const char sh_optksh[] =
 #endif
 	"\b${ENV-$HOME/.kshrc}\b, if it exists, as a profile. "
 	"On by default for interactive shells; use \b+E\b to disable.]"
-#if SHOPT_PFSH
-"[P?Invoke the shell as a profile shell.  See \bpfexec\b(1).]"
-#endif
 #if SHOPT_KIA
 "[R]:[file?Do not execute the script, but create a cross-reference database "
 	"in \afile\a that can be used in a separate shell script browser. The "
@@ -1885,8 +1882,6 @@ const char sh_opttypeset[] =
 "[X]#?[n:=2*sizeof(long long)?Floating point number represented in hexadecimal "
 	"notation.  \an\a specifies the number of significant figures when the "
 	"value is expanded.]"
-
-#if SHOPT_TYPEDEF
 "[h]:[string?Used within a type definition to provide a help string  "
 	"for variable \aname\a.  Otherwise, it is ignored.]"
 "[S?Used with a type definition to indicate that the variable is shared by "
@@ -1894,7 +1889,6 @@ const char sh_opttypeset[] =
 	"with the \bfunction\b reserved word, the specified variables "
 	"will have function static scope.  Otherwise, the variable is "
 	"unset prior to processing the assignment list.]"
-#endif
 "[T]:?[tname?\atname\a is the name of a type name given to each \aname\a.]"
 "[Z]#?[n?Zero fill.  If \an\a is given it represents the field width.]"
 "\n"

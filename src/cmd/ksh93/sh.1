@@ -1697,8 +1697,8 @@ element stores the
 submatch.
 For
 .B //
-the array is two dimensional with the first subscript indicating the
-most recent match and subpattern match and the second script indicating
+the array is two-dimensional, with the first subscript indicating the
+most recent match and subpattern match, and the second subscript indicating
 which match with
 .B 0
 representing the first match.
@@ -2498,7 +2498,7 @@ that directory.
 If no file name is found that matches the pattern, then
 that component of the filename is left unchanged unless
 the pattern is prefixed with
-.B \(ap(N)\fP
+.BR \(ap(N)\fP ,
 in which case it is removed as described below.
 The special traversal names
 .B .
@@ -2525,8 +2525,7 @@ will be ignored unless the first character of the pattern
 corresponding to this component is the character
 .BR .
 itself.
-Note, that for other
-uses of pattern matching the
+Note that, for uses of pattern matching other than pathname expansion, the
 .B /
 and
 .B .
@@ -2541,7 +2540,7 @@ When used for filename expansion,
 if the
 .B globstar
 option is on, an isolated pattern of two adjacent
-.BR * 's
+.BR * s
 will match all files and zero or more directories
 and subdirectories.
 If followed by a
@@ -2562,7 +2561,7 @@ If the first character following the opening
 is a
 .B !
 or
-.B ^
+.BR ^ ,
 then any character not enclosed is matched.
 A
 .B \-
@@ -2574,9 +2573,9 @@ Within
 and
 .BR \*(CK\^ ,
 character classes can be specified with the syntax
-\f3[:\fP\f2class\fP\f3:]\fP
-where class is one of the following classes defined in the ANSI C standard:
-(Note that \f3word\fP is equivalent to \f3alnum\fP plus the character \f3_\fP.)
+\f3[:\fP\f2class\fP\f3:]\fP,
+where \f2class\fP is one of the following classes defined in the ANSI C standard
+(note that \f3word\fP is equivalent to \f3alnum\fP plus the character \f3_\fP):
 .br
 .B
 .if n alnum alpha blank cntrl digit graph lower print punct space upper word xdigit
@@ -2599,6 +2598,7 @@ and
 matches the collating symbol \f2symbol\fP.
 .RE
 .PD
+.PP
 A
 .I pattern-list
 is a list of one or more patterns separated from each other
@@ -2630,7 +2630,7 @@ Matches \f2n\^\fP occurrences of the given patterns.
 \f3{\fP\f2m\^\fP\f3,\fP\f2n\^\fP\f3}\fP(\fP\f2pattern-list\^\fP\f3)\fP
 Matches from \f2m\^\fP to \f2n\^\fP occurrences of the given patterns.
 If \f2m\^\fP is omitted, \f30\fP will be used.  If \f2n\^\fP
-is omitted at least \f2m\^\fP occurrences will be matched.
+is omitted, at least \f2m\^\fP occurrences will be matched.
 .TP
 \f3\&@\&(\fP\f2pattern-list\^\fP\f3)\fP
 Matches exactly one of the given patterns.
@@ -2640,19 +2640,19 @@ Matches exactly one of the given patterns.
 Matches anything except one of the given patterns.
 .PD
 .RE
-By default, each pattern, or subpattern will match the
+By default, each pattern or subpattern will match the
 longest string possible consistent with generating
 the longest overall match.  If more than one match is
 possible, the one starting closest to the beginning
 of the string will be chosen.   However, for each of the above
-compound patterns a \f3\-\fP can be inserted in front of the \f3(\fP
+compound patterns, a \f3\-\fP can be inserted in front of the \f3(\fP
 to cause the shortest match to the specified \f2pattern-list\^\fP
 to be used.
 .PP
 When \f2pattern-list\^\fP is contained within parentheses,
 the backslash character \f3\e\fP is treated specially even
 when inside a character class.   All ANSI C character escapes are
-recognized and match the specified character.  In addition
+recognized and match the specified character.  In addition,
 the following escape sequences are recognized:
 .PD 0
 .RS
@@ -2683,7 +2683,7 @@ is a subpattern that
 can be used to match nested character expressions.
 Each
 .I pattern-pair\^
-is a two character sequence which cannot contain
+is a two-character sequence that cannot contain
 .B &
 or
 .BR | .
@@ -2696,7 +2696,7 @@ represents the beginning and ending characters of a nested group that
 will be skipped over when counting starting and ending character matches.
 The behavior is unspecified when the first character of a
 .I pattern-pair\^
-is alphanumeric
+is alphanumeric,
 except for the following:
 .PD 0
 .RS
@@ -2709,11 +2709,11 @@ finding a match.
 Causes the ending character to be interpreted as an escape character.
 .TP
 .B L
-Causes the ending character to be interpreted as a quote character
+Causes the ending character to be interpreted as a quote character,
 causing all characters to be ignored when looking for a match.
 .TP
 .B Q
-Causes the ending character to be interpreted as a quote character
+Causes the ending character to be interpreted as a quote character,
 causing all characters other than any escape character to be ignored
 when looking for a match.
 .PD
@@ -2724,14 +2724,14 @@ matches characters starting at
 .B {
 until the matching
 .B }
-is found not counting any
+is found, not counting any
 .B {
 or
 .B }
-that is inside a double quoted string or preceded by the escape character
+that is inside a double-quoted string or preceded by the escape character
 .BR \e .
 Without the
-.B {\^}
+.BR {\^} ,
 this pattern matches any C language string.
 .PP
 Each subpattern in a composite pattern is numbered,
@@ -2739,10 +2739,10 @@ starting at 1, by the location of the \f3(\fP within
 the pattern.
 The sequence \f3\e\fP\f2n\^\fP, where \f2n\^\fP
 is a single digit and \f3\e\fP\f2n\^\fP comes after
-the \f2n\fP-th. subpattern,
+the \f2n\fPth subpattern,
 matches the same string as the subpattern itself.
 .PP
-Finally a pattern can contain subpatterns of the form
+Finally, a pattern can contain subpatterns of the form
 \f3\(ap(\fP\f2options\^\fP\f3:\fP\f2pattern-list\^\fP\f3)\fP,
 where either \f2options\^\fP or \f3:\fP\f2pattern-list\^\fP
 can be omitted.  Unlike the other compound patterns,
@@ -2750,7 +2750,7 @@ these subpatterns are not counted in the numbered subpatterns.
 \f3:\fP\f2pattern-list\^\fP must be omitted for options
 .BR F ,
 .BR G ,
-.B N ,
+.BR N ,
 and
 .B V
 below.
@@ -2768,33 +2768,41 @@ Disable the following options.
 .B E
 The remainder of the pattern uses extended regular expression syntax
 like the
-.IR egrep (1)
+.B \-E
+option of the
+.IR grep (1)
 command.
 .TP
 .B F
-The remainder of the pattern uses
-.IR fgrep (1)
-expression syntax.
+The remainder of the pattern uses the fixed pattern syntax of the
+.B \-F
+option of the
+.IR grep (1)
+command.
 .TP
 .B G
 The remainder of the pattern uses basic regular expression syntax
 like the
 .IR grep (1)
-command.
+command without options.
 .TP
 .B K
 The remainder of the pattern uses shell pattern syntax.
 This is the default.
 .TP
 .B N
-This is ignored.  However, when it is the first letter and is
+When it is the first letter and is
 used with pathname expansion, and no matches occur,
-the file pattern expands to the empty string.
+the file pattern expands to the empty string
+instead of remaining unexpanded.
+Otherwise, it is ignored.
 .TP
 .B X
 The remainder of the pattern uses augmented regular expression syntax
 like the
-.IR xgrep (1)
+.B \-X
+option of the AT&T AST version of the
+.IR grep (1)
 command.
 .TP
 .B P
@@ -2815,12 +2823,12 @@ shell option.
 File the longest match (greedy).  This is the default.
 .TP
 .B l
-Left anchor the pattern.  This is the default for
+Left-anchor the pattern.  This is the default for
 .B K
 style patterns.
 .TP
 .B r
-Right anchor the pattern.  This is the default for
+Right-anchor the pattern.  This is the default for
 .B K
 style patterns.
 .PD

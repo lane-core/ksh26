@@ -99,9 +99,6 @@ typedef union Shnode_u Shnode_t;
 #define SH_NOUNSET	9
 #define SH_NOGLOB	10
 #define SH_ALLEXPORT	11
-#if SHOPT_PFSH
-#define SH_PFSH		12
-#endif
 #define SH_IGNOREEOF	13
 #define SH_NOCLOBBER	14
 #define SH_MARKDIRS	15
