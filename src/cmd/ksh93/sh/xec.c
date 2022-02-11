@@ -1821,6 +1821,22 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
+			if(sh.subshell && !sh.subshare && t->fork.forkio)
+			{
+				/* Subshell forking workaround for https://github.com/ksh93/ksh/issues/161
+				 * Check each redirection for >&- or <&-
+				 * TODO: find the elusive real fix */
+				struct ionod *i = t->fork.forkio;
+				do
+				{
+					if((i->iofile & ~(IOUFD|IOPUT)) == (IOMOV|IORAW) && !strcmp(i->ioname,"-"))
+					{
+						sh_subfork();
+						break;
+					}
+				}
+				while(i = i->ionxt);
+			}
 			sh_pushcontext(buffp,SH_JMPIO);
 			if(type&FPIN)
 			{

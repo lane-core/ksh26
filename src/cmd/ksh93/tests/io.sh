@@ -766,7 +766,7 @@ got=$(export tmp; "$SHELL" -ec \
 # ======
 # Redirections of the form {varname}>file stopped working if brace expansion was turned off
 ((SHOPT_BRACEPAT)) && set +B
-{ redirect {v}>$tmp/v.out && echo ok >&$v; } 2>/dev/null && redirect {v}>&-
+(redirect {v}>$tmp/v.out && echo ok >&$v && redirect {v}>&-) 2>/dev/null
 ((SHOPT_BRACEPAT)) && set -B
 [[ -r $tmp/v.out && $(<$tmp/v.out) == ok ]] || err_exit '{varname}>file not working with brace expansion turned off'
 
@@ -923,6 +923,36 @@ then	kill "$!"  # the sleep process
 		"(expected 'ok $pid', got $(printf %q "$(<out)"))"
 else	err_exit "comsub hangs after fork with stdout redirection"
 fi
+
+# ======
+# https://github.com/ksh93/ksh/issues/161
+got=$(
+	set +x
+	redirect 2>&1 9>&1
+	( { redirect 9>&1; } 6<&2 9<&- )
+	echo "test" >&9 # => 9: cannot open [Bad file descriptor]
+)
+[[ $got == 'test' ]] || err_exit "File descriptor is unexpectedly closed after exec in subshell" \
+	"(expected 'test', got $(printf %q "$got"))"
+got=$(
+	set +x
+	exec 2>&1 9>&1
+	exec 9>&-
+	v=$( { exec 9>&1; } )
+	echo "test" >&9
+)
+exp=': 9: cannot open ['
+[[ $got == *"$exp"* ]] || err_exit "issue 161 hypothetical bug 1" \
+	"(expected match of *$(printf %q "$exp")*, got $(printf %q "$got"))"
+got=$(
+	set +x
+	exec 2>&1
+	openfd() { exec 6>&1; }
+	openfd
+	echo "test" >&6
+)
+[[ $got == 'test' ]] || err_exit "issue 161 hypothetical bug 2" \
+	"(expected 'test', got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
