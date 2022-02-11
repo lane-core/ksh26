@@ -212,7 +212,7 @@ int sh_macexpand(register struct argnod *argp, struct argnod **arghead,int flag)
 	mp->arith = ((flag&ARG_ARITH)!=0);
 	mp->split = !(flag&ARG_ASSIGN);
 	mp->assign = !mp->split;
-	mp->pattern = mp->split && !(flag&ARG_NOGLOB) && !sh_isoption(SH_NOGLOB);
+	mp->pattern = mp->split && !(flag&ARG_NOGLOB) && (!sh_isoption(SH_NOGLOB) || sh_isstate(SH_COMPLETE) || sh_isstate(SH_FCOMPLETE));
 	mp->arrayok = mp->arith || (flag&ARG_ARRAYOK);
 	str = argp->argval;
 	fcsopen(str);

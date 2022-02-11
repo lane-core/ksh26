@@ -5,6 +5,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-02-11:
 
+- On the interactive shell, tab/esc completion is no longer disabled as a side
+  effect of turning off pathname expansion with 'set -f' or 'set -o noglob'.
+
 - Fixed a bug in which a >&- or <&- redirection could persist past a
   subshell in certain corner cases involving 'exec' or 'redirect'.
 

@@ -952,13 +952,16 @@ w exit
 
 touch "$tmp/foo bar"
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<!
-L tab completion with space in string
+L tab completion with space in string and -o noglob on
 # https://github.com/ksh93/ksh/pull/413
+# Amended to test that completion keeps working after -o noglob
 
 d 15
 p :test-1:
+w set -o noglob
+p :test-2:
 w echo $tmp/foo\\\\ \\t
-r ^:test-1: echo $tmp/foo\\\\ bar \\r\\n$
+r ^:test-2: echo $tmp/foo\\\\ bar \\r\\n$
 r ^$tmp/foo bar\\r\\n$
 !
 
