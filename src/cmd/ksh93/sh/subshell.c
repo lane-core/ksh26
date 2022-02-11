@@ -442,7 +442,7 @@ int sh_subsavefd(register int fd)
 {
 	register struct subshell *sp = subshell_data;
 	register int old=0;
-	if(sp)
+	if(sh.subshell && !sh.subshare)
 	{
 		old = !(sp->fdsaved&(1<<fd));
 		sp->fdsaved |= (1<<fd);

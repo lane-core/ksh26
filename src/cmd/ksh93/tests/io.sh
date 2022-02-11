@@ -953,6 +953,13 @@ got=$(
 )
 [[ $got == 'test' ]] || err_exit "issue 161 hypothetical bug 2" \
 	"(expected 'test', got $(printf %q "$got"))"
+got=$(
+	exec 4>&1
+	foo=${ { redirect 4>&1; } 6<&2 4<&-; }
+	echo "test" >&4 # => 4: cannot open [Bad file descriptor]
+)
+[[ $got == 'test' ]] || err_exit "File descriptor is unexpectedly closed after exec in shared-state command substitution" \
+	"(expected 'test', got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
