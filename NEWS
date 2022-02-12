@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-02-12:
+
+- In multibyte locales such as UTF-8, shell input is no longer corrupted when
+  a KEYBD trap is active. However, the KEYBD trap is not yet multibyte ready
+  and is now only triggered for ASCII characters (1-127) in a multibyte locale.
+
 2022-02-11:
 
 - On the interactive shell, tab/esc completion is no longer disabled as a side
