@@ -381,8 +381,7 @@ static void pathinit(void)
 	}
 	else
 	{
-		if(!(pp=(Pathcomp_t*)sh.defpathlist))
-			pp = defpathinit();
+		pp = defpathinit();
 		sh.pathlist = (void*)path_dup(pp);
 	}
 	if(val=sh_scoped((FPATHNOD))->nvalue.cp)
@@ -407,8 +406,7 @@ Pathcomp_t *path_get(const char *name)
 	}
 	if(!pp && (!(sh_scoped(PATHNOD)->nvalue.cp)) || sh_isstate(SH_DEFPATH))
 	{
-		if(!(pp=(Pathcomp_t*)sh.defpathlist))
-			pp = defpathinit();
+		pp = defpathinit();
 	}
 	return(pp);
 }
@@ -630,12 +628,7 @@ int	path_search(register const char *name,Pathcomp_t **oldpp, int flag)
 		stakputc(0);
 		return(0);
 	}
-	if(sh_isstate(SH_DEFPATH))
-	{
-		if(!sh.defpathlist)
-			defpathinit();
-	}
-	else if(!sh.pathlist)
+	if(!sh_isstate(SH_DEFPATH) && !sh.pathlist)
 		pathinit();
 	if(flag)
 	{
@@ -663,8 +656,8 @@ int	path_search(register const char *name,Pathcomp_t **oldpp, int flag)
 	}
 	if(flag==0 || !pp || (pp->flags&PATH_FPATH))
 	{
-		if(!pp)
-			pp=sh_isstate(SH_DEFPATH)?sh.defpathlist:sh.pathlist;
+		if(!pp && !sh_isstate(SH_DEFPATH))
+			pp = sh.pathlist;
 		if(pp && strlen(name)<256 && strmatch(name,e_alphanum) && (fno=opentype(name,pp,1))>=0)
 		{
 			if(flag >= 2)
@@ -1635,12 +1628,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, register const char *path,int type)
 	if(old)
 	{
 		if(!first && !path)
-		{
-			Pathcomp_t *pp = (Pathcomp_t*)sh.defpathlist;
-			if(!pp)
-				pp = defpathinit();
-			first = path_dup(pp);
-		}
+			first = path_dup(defpathinit());
 		if(cp=(sh_scoped(FPATHNOD))->nvalue.cp)
 			first = (void*)path_addpath((Pathcomp_t*)first,cp,PATH_FPATH);
 		path_delete(old);
