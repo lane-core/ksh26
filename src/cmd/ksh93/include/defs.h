@@ -62,8 +62,6 @@
 #define Empty			((char*)(e_sptbnl+3))
 
 #define	env_change()		(++ast.env_serial)
-#define sh_envput(e,p)	env_change()
-#define env_delete(e,p)	env_change()
 
 extern char*	sh_getenv(const char*);
 extern char*	sh_setenviron(const char*);

@@ -1604,7 +1604,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			nv_local=1;
 			nv_putv(np,sp,flags,np->nvfun);
 			if(sp && ((flags&NV_EXPORT) || nv_isattr(np,NV_EXPORT)))
-				sh_envput(sh.env,np);
+				env_change();
 			return;
 		}
 		/* called from disc, assign the actual value */
@@ -2012,7 +2012,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			free((void*)tofree);
 	}
 	if(!was_local && ((flags&NV_EXPORT) || nv_isattr(np,NV_EXPORT)))
-		sh_envput(sh.env,np);
+		env_change();
 	return;
 }
 
@@ -2409,7 +2409,7 @@ static void table_unset(register Dt_t *root, int flags, Dt_t *oroot)
 				np->nvfun = 0;
 			}
 			if(nv_isattr(nq,NV_EXPORT))
-				sh_envput(sh.env,nq);
+				env_change();
 		}
 		sh.last_root = root;
 		sh.last_table = 0;
@@ -2556,7 +2556,7 @@ done:
 		if(!nv_isattr(np,NV_MINIMAL) || nv_isattr(np,NV_EXPORT))
 		{
 			if(nv_isattr(np,NV_EXPORT) && !strchr(np->nvname,'['))
-				env_delete(sh.env,nv_name(np));
+				env_change();
 			if(!(flags&NV_EXPORT) ||  nv_isattr(np,NV_EXPORT))
 				np->nvenv = 0;
 			nv_setattr(np,0);
@@ -2942,13 +2942,13 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 		{
 			/* EXPORT exists on old attributes therefore not on new */
 			nv_offattr(np,NV_EXPORT);
-			env_delete(sh.env,nv_name(np));
+			env_change();
 		}
 		else
 		{ 
 			/* EXPORT is now turned on for new attributes */
 			nv_onattr(np,NV_EXPORT);
-			sh_envput(sh.env,np);
+			env_change();
 		}
 		if((n^newatts)==NV_EXPORT && !trans)
 			/* Only EXPORT attribute has changed and thus all work has been done. */

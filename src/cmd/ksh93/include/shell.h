@@ -343,7 +343,6 @@ struct Shell_s
 	int		xargexit;
 	int		nenv;
 	mode_t		mask;
-	void		*env;		/* environment */
 	void		*init_context;
 	void		*mac_context;
 	void		*lex_context;
