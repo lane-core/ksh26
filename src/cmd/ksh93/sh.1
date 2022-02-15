@@ -497,6 +497,44 @@ may be used in place of
 to negate
 the loop termination test.
 .TP
+.PD 0
+\f3while\fP \f2inputredirection\^\fP \f3;do\fP \f2list\^\fP \f3;done\fP
+.PD
+Filescan loop. This is defined by a lone input redirection following
+.B while
+(see
+.I Input/Output
+below).
+It is faster than using the
+.B read
+built-in command in a regular
+.B while
+loop.
+The shell reads lines from the file or stream opened by
+.I inputredirection\^
+until the end is reached or the loop is broken.
+For each line read,
+the command
+.I list\^
+is executed with the line's contents assigned to the
+.B REPLY
+variable and the line's fields split into the positional parameters
+(see
+.I Field Splitting\^
+and
+.I Positional Parameters\^
+below).
+Within the
+.IR list\^ ,
+standard input is redirected to
+.BR /dev/null .
+If the
+.B posix
+compatibility shell option is on,
+this loop type is disabled and
+.I inputredirection\^
+is processed like a lone redirection in any other context.
+.TP
 \f3((\fP\f2expression\^\fP\f3))\fP
 .br
 The
@@ -7620,6 +7658,9 @@ processes to import;
 causes file descriptors > 2 to be left open when invoking another program;
 .IP \[bu]
 disables the \fB&>\fR redirection shorthand;
+.IP \[bu]
+disables fast filescan loops of type
+\f3while\fP \f2inputredirection\^\fP \f3;do\fP \f2list\^\fP \f3;done\fP;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;

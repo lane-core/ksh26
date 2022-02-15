@@ -962,4 +962,16 @@ got=$(
 	"(expected 'test', got $(printf %q "$got"))"
 
 # ======
+# Test positional parameters in filescan loop
+# In 93u+, "$@" wrongly acted like "$*"; fix was backported from 93v- beta
+if ((SHOPT_FILESCAN))
+then
+	echo 'one/two/three' >foo
+	got=$(IFS=/; while <foo; do printf '[%s] ' "$REPLY" "$#" "$1" "$2" "$3" "$*" "$@" $* $@; done)
+	exp='[one/two/three] [3] [one] [two] [three] [one/two/three] [one] [two] [three] [one] [two] [three] [one] [two] [three] '
+	[[ $got == "$exp" ]] || err_exit '$REPLY or positional parameters incorrect in filescan loop' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

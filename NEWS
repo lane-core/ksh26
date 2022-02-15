@@ -3,6 +3,25 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-02-15:
+
+- A bug was fixed in fast filescan loops (like 'while <file; do ...; done',
+  enabled by default by the SHOPT_FILESCAN compile-time option) in which
+  "$@" incorrectly acted like "$*" within the do...done block.
+
+- Improved sanity check for filescan loops: they are now only recognised if
+  'while' is followed by a single input redirection without any command
+  name/arguments or variable assignments.
+
+- As SHOPT_FILESCAN has been enabled by default since ksh 93l 2001-06-01,
+  the fast filescan loop is now documented in the manual page and the
+  compile-time option is no longer considered experimental.
+
+- Filescan loops are now disabled at runtime if the --posix option is active
+  as they break a portable use case: POSIXly, 'while <file; do stuff; done'
+  repeatedly excutes 'stuff' while 'file' can successfully be opened for
+  reading, without actually reading from 'file'.
+
 2022-02-12:
 
 - In multibyte locales such as UTF-8, shell input is no longer corrupted when

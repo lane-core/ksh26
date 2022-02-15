@@ -835,13 +835,14 @@ static void unset_instance(Namval_t *nq, Namval_t *node, struct Namref *nr,long 
 #if SHOPT_FILESCAN
     static Sfio_t *openstream(struct ionod *iop, int *save)
     {
-	int savein, fd = sh_redirect(iop,3);
+	int err = errno, savein, fd = sh_redirect(iop,3);
 	Sfio_t	*sp;
 	savein = dup(0);
 	if(fd==0)
 		fd = savein;
 	sp = sfnew(NULL,NULL,SF_UNBOUND,fd,SF_READ);
-	close(0);
+	while(close(0)<0 && errno==EINTR)
+		errno = err;
 	open(e_devnull,O_RDONLY);
 	sh.offsets[0] = -1;
 	sh.offsets[1] = 0;
@@ -2242,11 +2243,17 @@ int sh_exec(register const Shnode_t *t, int flags)
 				goto endwhile;
 #endif /* SHOPT_OPTIMIZE */
 #if SHOPT_FILESCAN
-			if(type==TWH && tt->tre.tretyp==TCOM && !tt->com.comarg && tt->com.comio)
+			/* Recognize filescan loop for a lone input redirection following 'while' */
+			if(type==TWH					/* 'while' (not 'until') */
+			&& tt->tre.tretyp==TCOM 			/* one simple command follows 'while'... */
+			&& !tt->com.comarg				/* ...with no command name or arguments... */
+			&& !tt->com.comset				/* ...and no variable assignments list... */
+			&& tt->com.comio				/* ...and one I/O redirection... */
+			&& !tt->com.comio->ionxt			/* ...but not more than one... */
+			&& !(tt->com.comio->iofile & (IOPUT|IOAPP))	/* ...and not > or >> */
+			&& !sh_isoption(SH_POSIX))			/* not in POSIX compilance mode */
 			{
 				iop = openstream(tt->com.comio,&savein);
-				if(tt->com.comset)
-					nv_setlist(tt->com.comset,NV_IDENT|NV_ASSIGN,0);
 			}
 #endif /* SHOPT_FILESCAN */
 			sh.st.loopcnt++;
@@ -2291,8 +2298,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 #if SHOPT_FILESCAN
 			if(iop)
 			{
+				int err=errno;
 				sfclose(iop);
-				close(0);
+				while(close(0)<0 && errno==EINTR)
+					errno = err;
 				dup(savein);
 				sh.cur_line = 0;
 			}

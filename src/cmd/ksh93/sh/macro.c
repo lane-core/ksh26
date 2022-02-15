@@ -1156,8 +1156,13 @@ retry1:
 #if  SHOPT_FILESCAN
 			if(sh.cur_line)
 			{
-				v = getdolarg(1,(int*)0);
 				dolmax = MAX_ARGN;
+				v = getdolarg(1,&vsize);
+				if(c=='*' || !mp->quoted)
+				{
+					dolmax = 1;
+					vsize = -1;
+				}
 			}
 			else
 #endif  /* SHOPT_FILESCAN */
@@ -1914,8 +1919,6 @@ retry2:
 #if  SHOPT_FILESCAN
 				if(sh.cur_line)
 				{
-					if(dolmax==MAX_ARGN && isastchar(mode))
-						break;
 					if(!(v=getdolarg(dolg,&vsize)))
 					{
 						dolmax = dolg;

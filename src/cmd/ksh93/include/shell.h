@@ -357,7 +357,6 @@ struct Shell_s
 	Shinit_f	userinit;
 	Shbltin_f	bltinfun;
 	Shbltin_t	bltindata;
-	char		*cur_line;
 	int		offsets[10];
 	Sfio_t		**sftable;
 	unsigned char	*fdstatus;
@@ -384,6 +383,9 @@ struct Shell_s
 	char 		exittrap;
 	char 		errtrap;
 	char 		end_fn;
+#if SHOPT_FILESCAN
+	char		*cur_line;
+#endif
 #if !SHOPT_DEVFD
 	char		*fifo;		/* FIFO name for current process substitution */
 	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */

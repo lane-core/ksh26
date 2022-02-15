@@ -74,9 +74,10 @@ The options have the following defaults and meanings:
     ESH          on  Compile with emacs command line editing.  The original
                      emacs line editor code was provided by Mike Veach at IH.
 
-    FILESCAN     on  Experimental option that allows fast reading of files
-                     using while < file;do ...; done and allowing fields in
-                     each line to be accessed as positional parameters.
+    FILESCAN     on  Allows fast reading of files using:
+                         while < file; do ...; done
+                     Each line is stored in $REPLY and fields in each
+                     line can be accessed as positional parameters.
 
     FIXEDARRAY   on  When using typeset, a name in the format NAME[N]
                      creates a fixed-size array and any attempt to access a
