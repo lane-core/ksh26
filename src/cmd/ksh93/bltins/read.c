@@ -62,7 +62,7 @@ struct read_save
 int	b_read(int argc,char *argv[], Shbltin_t *context)
 {
 	Sfdouble_t sec;
-	register char *name;
+	char *prompt;
 	register int r, flags=0, fd=0;
 	ssize_t	len=0;
 	long timeout = 1000*sh.st.tmout;
@@ -82,7 +82,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		timeout = rp->timeout;
 		fd = rp->fd;
 		argv = rp->argv;
-		name = rp->prompt;
+		prompt = rp->prompt;
 		r = rp->plen;
 		goto bypass;
 	}
@@ -107,6 +107,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		}
 		break;
 	    case 'p':
+	    coprocess:
 		if((fd = sh.cpipe[0])<=0)
 		{
 			errormsg(SH_DICT,ERROR_exit(1),e_query);
@@ -129,13 +130,10 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		flags |= SS_FLAG;
 		break;
 	    case 'u':
-		fd = (int)opt_info.num;
-		if(opt_info.num<0 || opt_info.num>INT_MAX || (fd>=sh.lim.open_max && !sh_iovalidfd(fd)))
-		{
-			errormsg(SH_DICT,ERROR_exit(1),e_file,opt_info.arg); /* reject invalid file descriptors */
-			UNREACHABLE();
-		}
-		if(sh_inuse(fd))
+		if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
+			goto coprocess;
+		fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
+		if(*opt_info.arg || !sh_iovalidfd(fd) || sh_inuse(fd))
 			fd = -1;
 		break;
 	    case 'v':
@@ -162,8 +160,8 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	/* look for prompt */
-	if((name = *argv) && (name=strchr(name,'?')) && (r&IOTTY))
-		r = strlen(name++);
+	if((prompt = *argv) && (prompt=strchr(prompt,'?')) && (r&IOTTY))
+		r = strlen(prompt++);
 	else
 		r = 0;
 	if(argc==fixargs)
@@ -174,7 +172,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		rp->flags = flags;
 		rp->timeout = timeout;
 		rp->argv = argv;
-		rp->prompt = name;
+		rp->prompt = prompt;
 		rp->plen = r;
 		rp->len = len;
 	}
@@ -182,7 +180,7 @@ bypass:
 	sh.prompt = default_prompt;
 	if(r && (sh.prompt=(char*)sfreserve(sfstderr,r,SF_LOCKR)))
 	{
-		memcpy(sh.prompt,name,r);
+		memcpy(sh.prompt,prompt,r);
 		sfwrite(sfstderr,sh.prompt,r-1);
 	}
 	sh.timeout = 0;

@@ -7152,8 +7152,7 @@ or
 formats, separates groups of digits with the grouping delimiter
 .RB  ( ,
 on groups of 3 in the C locale).
-.PD
-.TP
+.PP
 The \f3\-v\fP option assigns the output directly to a variable instead of
 writing it to standard output. This is faster than capturing the output using a
 command substitution and avoids the latter's stripping of final linefeed
@@ -7161,6 +7160,7 @@ characters (\fB\\n\fR). The \f2vname\fP argument should be a valid variable
 name, optionally with one or more array subscripts in square brackets.
 Note that square brackets should be quoted to avoid pathname expansion.
 .RE
+
 .TP
 \f3pwd\fP \*(OK \f3\-LP\fP \*(CK
 Outputs the value of the current working
@@ -7179,7 +7179,7 @@ or
 on the command line
 determines which method is used.
 .TP
-\f3read\fP \*(OK \f3\-ACSprsv\^\fP \*(CK \*(OK \f3\-d\fP \f2delim \^\fP\*(CK \*(OK \f3\-n\fP \f2n \^\fP\*(CK \*(OK \*(OK \f3\-N\fP \f2n \^\fP\*(CK \*(OK \f3\-t\fP \f2timeout \^\fP\*(CK \*(OK \f3\-u\fP \f2unit \^\fP\*(CK \*(OK \f2vname\f3?\f2prompt\^\f1 \*(CK \*(OK \f2vname\^\fP .\|.\|. \*(CK
+\f3read\fP \*(OK \f3\-ACSaprsv\^\fP \*(CK \*(OK \f3\-d\fP \f2delim \^\fP\*(CK \*(OK \f3\-n\fP \f2n \^\fP\*(CK \*(OK \f3\-N\fP \f2n \^\fP\*(CK \*(OK \f3\-t\fP \f2timeout \^\fP\*(CK \*(OK \f3\-u\fP \f2unit \^\fP\*(CK \*(OK \f2vname\f3?\f2prompt\^\f1 \*(CK \*(OK \f2vname\^\fP .\|.\|. \*(CK
 The shell input mechanism.
 One line is read and
 is broken up into fields using the characters in
@@ -7190,32 +7190,6 @@ The escape character,
 .BR \e ,
 is used to remove any special meaning for the next
 character and for line continuation.
-The
-.B \-d
-option
-causes the read to continue to the first character of
-.I delim\^
-rather than new-line.
-The
-.B \-n
-option causes at most
-.I n\^
-bytes to read rather a full line
-but will return when reading from a slow device
-as soon as any characters have been read.
-The
-.B \-N
-option causes exactly
-.I n\^
-to be read unless an end-of-file has been encountered or
-the read times out because of the
-.B \-t
-option.
-In raw mode,
-.B \-r,
-the
-.B \e
-character is not treated specially.
 The first
 field is assigned to the first
 .IR vname ,
@@ -7223,6 +7197,13 @@ the second field
 to the second
 .IR vname ,
 etc., with leftover fields assigned to the last
+.IR vname .
+If
+.I vname\^
+is omitted, then
+.SM
+.B REPLY
+is used as the default
 .IR vname .
 When
 .IR vname
@@ -7232,78 +7213,113 @@ or
 .B \-N
 is specified, the bytes that are read are stored directly
 into the variable.
-If the
-.B \-v
-is specified, then the value of the first
-.I vname\^
-will be used as a default value when reading from a terminal device.
-The
+If you append \f3?\fP\f2prompt\fP to the first
+.IR vname\^ ,
+then
+.B read\^
+will display
+.I prompt\^
+on standard error before reading if standard input is a terminal or pipe; the
+.B ?\^
+should be quoted to protect it from pathname expansion.
+The exit status is 0 unless an end-of-file is encountered or
+.B read
+has timed out.
+The options for the
+.B read\^
+command have meaning as follows:
+.RS
+.PD 0
+.TP 8
 .B \-A
-option causes the variable
+Causes the variable
 .I vname\^
 to be unset and each field that is read to be stored in
 successive elements of the indexed array
 .IR vname.
-The
+.TP 8
 .B \-C
-option causes the variable
+Causes the variable
 .I vname\^
 to be read as a compound variable.  Blanks will be ignored when
 finding the beginning open parenthesis.
-The
+.TP 8
+.B \-N
+Causes
+.I n\^
+bytes to be read unless an end-of-file has been encountered or
+the read times out because of the
+.B \-t
+option.
+.TP 8
 .B \-S
-option causes the line to be treated like a record in a
+Causes the line to be treated like a record in a
 .B .csv
 format file so that double quotes can be used to allow the delimiter
 character and the new-line character to appear within a field.
-The
+.TP 8
+.B \-a
+Same as
+.BR \-A .
+.TP 8
+.B \-d
+Causes the read to continue to the first character of
+.I delim\^
+instead of the newline control character.
+.TP 8
+.B \-n
+Causes at most
+.I n\^
+bytes to be read instead of a full line,
+but will return when reading from a slow device
+as soon as any characters have been read.
+.TP 8
 .B \-p
-option causes the input line
-to be taken from the input pipe
-of a process spawned by the shell
-using
-.BR |& .
-If the
+Input is read from the current co-process spawned by the shell using
+.BR \(bv& .
+An end-of-file causes
+.B read\^
+to disconnect the co-process so that another can be created.
+.TP 8
+.B \-r
+Raw mode. The
+.B \e
+character is not treated specially.
+.TP 8
 .B \-s
-option is present,
-the input will be saved as a command in the history file.
-The option
+The input will be saved as a command in the history file.
+.TP 8
+.B \-t
+Used to specify a timeout in
+seconds when reading from a terminal or pipe.
+.TP 8
 .B \-u
-can be used to specify a one digit file
+This option can be used to specify a one-digit file
 descriptor unit
 .I unit\^
 to read from.
 The file descriptor can be opened with the
 .B exec\^
-special built-in command.
-The default value of unit
-.I n\^
-is 0.
-The option
-.B \-t
-is used to specify a timeout in
-seconds when reading from a terminal or pipe.
-If
-.I vname\^
-is omitted, then
-.SM
-.B REPLY
-is used as the default
-.IR vname .
-An end-of-file with the
-.B \-p
-option causes cleanup for this process
-so that another can be spawned.
-If the first argument contains a
-.BR ? ,
-the remainder of this word is used as a
-.I prompt\^
-on standard error
-when the shell is interactive.
-The exit status is 0 unless an end-of-file is encountered
 or
-.B read
-has timed out.
+.B redirect\^
+built-in command.
+If
+.I unit\^
+is
+.BR p ,
+input is read from the current co-process as with the
+.B \-p
+option.
+The default value of
+.I unit\^
+is 0.
+.TP 8
+.B \-v
+The value of the first
+.I vname\^
+will be used as a default value when reading from a terminal device.
+.RE
+
 .TP
 \(dg\(dd \f3readonly\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK \*(CK .\|.\|.
 If
@@ -7332,6 +7348,7 @@ does not create a function-local scope and the given
 are marked globally read-only by default.
 When defining a type, if the value of a read-only subvariable is not defined,
 the value is required when creating each instance.
+
 .TP
 \f3redirect\fP
 This command only accepts input/output redirections.
@@ -7350,6 +7367,7 @@ When invoking another program, file descriptors greater than
 that were opened with this mechanism are only passed on if they are explicitly
 redirected to themselves as part of the invocation (e.g. \fB4>&4\fR)
 or if the \fBposix\fR option is set.
+
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
 Causes a shell function, dot script (see \f3\|.\fP and \f3source\fP),
@@ -7368,6 +7386,7 @@ If
 is invoked while not in a function, dot script, or profile script,
 then it behaves the same as
 .BR exit .
+
 .TP
 \(dg \f3set\fP \*(OK \f3\(+-BCGHabefhkmnprstuvx\fP \*(CK \*(OK \f3\(+-o\fP \*(OK \f2option\^\fP \*(CK \*(CK .\|.\|. \*(OK \f3\(+-A\fP \f2vname\^\fP \*(CK  \*(OK \f2arg\^\fP .\|.\|. \*(CK
 The options for this command have meaning as follows:
