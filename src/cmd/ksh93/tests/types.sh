@@ -621,7 +621,6 @@ function main
 	for ((i=2 ; i < 8 ; i++ )) ; do
 		pawn_t c.board[1][$i]
 	done
-	
 }
 main 2> /dev/null && err_exit 'type assignment to compound array instance should generate an error'
 
@@ -722,6 +721,17 @@ export a
 got=$(./foo1)
 exp=$'start1\ntypeset -x a=one\nstart2\ntypeset -x a=one\nend2\nend1'
 [[ $got == "$exp" ]] || err_exit 'exporting variable to #!-less script' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Backported regression test from ksh93v- 2013-08-07 for
+# short integer arrays in types.
+got=$("$SHELL" 2>&1 <<- \EOF
+       typeset -T X_t=(typeset -si -a arr=(7 8) )
+       X_t x
+       print -r -- $((x.arr[1]))
+EOF) || err_exit "short integer arrays in types fails (got exit status $?)"
+exp=8
+[[ $got == $exp ]] || err_exit "short integer arrays in types isn't working correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
