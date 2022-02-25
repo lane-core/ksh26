@@ -1556,9 +1556,7 @@ make test
 		prev ksh
 		make tests/shtests
 		done tests/shtests
-		exec - silent cmp 2>/dev/null -s ${INSTALLROOT}/bin/ksh ksh 2>/dev/null ||
-		exec - echo "make install to run the tests on the latest ksh" >&2
-		exec - cd
-		exec - SHELL=${INSTALLROOT}/bin/ksh ${INSTALLROOT}/bin/ksh shtests
+		exec - cd "$PACKAGEROOT/src/cmd/ksh93/tests"
+		exec - SHELL=$INSTALLROOT/bin/ksh "$INSTALLROOT/bin/ksh" ./shtests
 	done test.ksh virtual
 done test dontcare virtual

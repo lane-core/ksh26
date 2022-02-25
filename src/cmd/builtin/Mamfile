@@ -67,3 +67,5 @@ make install
 		exec - fi
 	done ${INSTALLROOT}/bin virtual
 done install virtual
+make test
+done test dontcare virtual

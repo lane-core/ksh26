@@ -109,7 +109,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-01-02 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-02-24 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -215,11 +215,14 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             must contain an \begrep\b(1) expression of result lines to be
             ignored. \bfailed\b lists failures only and \bpath\b lists the
             results file path name only.]
-        [+test\b [ \aargument\a ... ]]?Run the regression tests for
-            \bksh\b. If the standard output is a terminal then the
+        [+test\b [ \b\adir\a\b ]]\b?Run all available default regression tests.
+            If the optional \adir\a argument (such as \bsrc/cmd/ksh93\b) is given,
+            only the tests in that directory are run.
+            If the standard output is a terminal then the
             output is also captured in \b$INSTALLROOT/lib/package/gen/test.out\b.
-            \bksh\b must be made before it can be tested.
-            All \aargument\as following \atest\a are passed to \bbin/shtests\b.
+            Programs must be made before they can be tested.
+            For \bksh\b, a separate \bshtests\b command is available that allows
+            passing arguments to select and tune the regression tests.
             See \bbin/shtests --man\b for more information.]
         [+use\b [ \auid\a | \apackage\a | . [ 32 | 64 ]] | 32 | 64 | - ]] [ command ...]]?Run
             \acommand\a, or an interactive shell if \acommand\a is omitted,
@@ -471,12 +474,15 @@ DESCRIPTION
           $HOME/.pkgresults, if it exists, must contain an egrep(1) expression
           of result lines to be ignored. failed lists failures only and path
           lists the results file path name only.
-    test [ argument ... ]
-          Run the regression tests for ksh. If the standard output is a
-          terminal then the output is also captured in
-          $INSTALLROOT/lib/package/gen/test.out. ksh must be made before it can
-          be tested. All arguments following test are passed to bin/shtests.
-          See bin/shtests --man for more information.
+    test [ dir ]
+          Run all available default regression tests. If the optional dir
+          argument (such as src/cmd/ksh93) is given, only the tests in that
+          directory are run. If the standard output is a terminal then the
+          output is also captured in $INSTALLROOT/lib/package/gen/test.out.
+          Programs must be made before they can be tested. For ksh, a separate
+          shtests command is available that allows passing arguments to select
+          and tune the regression tests. See bin/shtests --man for more
+          information.
     use [ uid | package | . [ 32 | 64 ] | 32 | 64 | - ] [ command ...]
           Run command, or an interactive shell if command is omitted, with the
           environment initialized for using the package (can you say shared
@@ -532,7 +538,7 @@ SEE ALSO
   mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2022-01-02
+  version         package (ksh 93u+m) 2022-02-24
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -3522,8 +3528,9 @@ results)set '' $target
 	esac
 	;;
 
-test)	# pass control to ksh 93u+m test script
-	capture "$SHELL" "$PACKAGEROOT/bin/shtests" $args
+test)	# run all available default regression tests
+	cd "$INSTALLROOT/src" || err_out "run '$0 make' first"
+	capture mamake test
 	;;
 
 use)	# finalize the environment

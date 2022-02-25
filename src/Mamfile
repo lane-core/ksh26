@@ -9,8 +9,10 @@ note * documented in Glenn Fowler's paper "A Make Abstract Machine":
 note * http://web.archive.org/web/20041227143022/http://www2.research.att.com/~gsf/mam/mam.html
 note *
 note source level :MAKE: equivalent
-make install
-	make all
-		exec - ${MAMAKE} -r '*/*' ${MAMAKEARGS}
-	done all virtual
-done install virtual
+make test
+	make install
+		make all
+			exec - ${MAMAKE} -r '*/*' ${MAMAKEARGS}
+		done all virtual
+	done install virtual
+done test virtual

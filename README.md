@@ -108,6 +108,11 @@ Many other commands in this repo self-document via the `--help`, `--man` and
 ### Test
 
 After compiling, you can run the regression tests.
+To run the default test sets for ksh and the build system, use:
+```sh
+bin/package test
+```
+For ksh, use the `shtests` command direclty to control the regression test runs.
 Start by reading the information printed by:
 ```sh
 bin/shtests --man
