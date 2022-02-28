@@ -3529,7 +3529,10 @@ results)set '' $target
 	;;
 
 test)	# run all available default regression tests
-	cd "$INSTALLROOT/src" || err_out "run '$0 make' first"
+	cd "$INSTALLROOT" || err_out "run '$0 make' first"
+	set -f
+	set -- ${args:-src}
+	cd "$1" || exit
 	capture mamake test
 	;;
 
