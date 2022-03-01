@@ -212,9 +212,8 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/sum.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev sum.h
-		exec - if cmp 2>/dev/null -s sum.h ${PACKAGE_ast_INCLUDE}/sum.h
-		exec - then :
-		exec - else ${STDCP} sum.h ${PACKAGE_ast_INCLUDE}/sum.h
+		exec - if ! cmp -s sum.h ${PACKAGE_ast_INCLUDE}/sum.h
+		exec - then ${STDCP} sum.h ${PACKAGE_ast_INCLUDE}/sum.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/sum.h generated
 done install virtual

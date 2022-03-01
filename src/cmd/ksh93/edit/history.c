@@ -357,7 +357,6 @@ retry:
 /*
  * close the history file and free the space
  */
-
 void hist_close(register History_t *hp)
 {
 	sfclose(hp->histfp);
@@ -405,7 +404,6 @@ static int hist_clean(int fd)
 /*
  * Copy the last <n> commands to a new file and make this the history file
  */
-
 static History_t* hist_trim(History_t *hp, int n)
 {
 	register char *cp;
@@ -571,7 +569,6 @@ begin:
  * unless it is followed by 0.  If followed by 0 then it cancels
  * the previous command.
  */
-
 void hist_eof(register History_t *hp)
 {
 	register char *cp,*first,*endbuff;
@@ -685,7 +682,6 @@ again:
 /*
  * This routine will cause the previous command to be cancelled
  */
-
 void hist_cancel(register History_t *hp)
 {
 	register int c;
@@ -702,7 +698,6 @@ void hist_cancel(register History_t *hp)
 /*
  * flush the current history command
  */
-
 void hist_flush(register History_t *hp)
 {
 	register char *buff;
@@ -730,7 +725,6 @@ void hist_flush(register History_t *hp)
  * When called from hist_flush(), trailing newlines are deleted and
  * a zero byte.  Line sequencing is added as required
  */
-
 static ssize_t hist_write(Sfio_t *iop,const void *buff,register size_t insize,Sfdisc_t* handle)
 {
 	register History_t *hp = (History_t*)handle;
@@ -821,7 +815,6 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,register size_t insize,Sf
  * Put history sequence number <n> into buffer <buff>
  * The buffer must be large enough to hold HIST_MARKSZ chars
  */
-
 static void hist_marker(register char *buff,register long cmdno)
 {
 	*buff++ = HIST_CMDNO;
@@ -855,7 +848,6 @@ off_t hist_seek(register History_t *hp, int n)
  * if character <last> appears before newline it is deleted
  * each new-line character is replaced with string <nl>.
  */
-
 void hist_list(register History_t *hp,Sfio_t *outfile, off_t offset,int last, char *nl)
 {
 	register int oldc=0;
@@ -880,13 +872,12 @@ void hist_list(register History_t *hp,Sfio_t *outfile, off_t offset,int last, ch
 	}
 	return;
 }
-		 
+
 /*
  * find index for last line with given string
  * If flag==0 then line must begin with string
  * direction < 1 for backwards search
 */
-
 Histloc_t hist_find(register History_t*hp,char *string,register int index1,int flag,int direction)
 {
 	register int index2;
@@ -944,7 +935,6 @@ Histloc_t hist_find(register History_t*hp,char *string,register int index1,int f
  * If coffset==0 then line must begin with string
  * returns the line number of the match if successful, otherwise -1
  */
-
 int hist_match(register History_t *hp,off_t offset,char *string,int *coffset)
 {
 	register unsigned char *first, *cp;
@@ -985,7 +975,6 @@ int hist_match(register History_t *hp,off_t offset,char *string,int *coffset)
  * line < 0 for full command copy
  * -1 returned if there is no history file
  */
-
 int hist_copy(char *s1,int size,int command,int line)
 {
 	register int c;
@@ -1026,7 +1015,6 @@ int hist_copy(char *s1,int size,int command,int line)
 /*
  * return word number <word> from command number <command>
  */
-
 char *hist_word(char *string,int size,int word)
 {
 	register int c;
@@ -1081,7 +1069,6 @@ char *hist_word(char *string,int size,int word)
  * and number of lines back or forward,
  * compute the new command and line number.
  */
-
 Histloc_t hist_locate(History_t *hp,register int command,register int line,int lines)
 {
 	Histloc_t next;

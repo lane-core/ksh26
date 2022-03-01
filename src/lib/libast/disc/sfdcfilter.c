@@ -94,7 +94,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 }
 
 static ssize_t filterwrite(Sfio_t*	f,	/* stream writing to */
-			   void*	buf,	/* buffer to write into */
+			   const void*	buf,	/* buffer to write into */
 			   size_t	n,	/* number of bytes requested */
 			   Sfdisc_t*	disc)	/* discipline */
 {

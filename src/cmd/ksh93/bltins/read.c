@@ -212,7 +212,6 @@ static void timedout(void *handle)
  *  <flags> is union of -A, -r, -s, and contains delimiter if not '\n'
  *  <timeout> is the number of milliseconds until timeout
  */
-
 int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long timeout)
 {
 	register ssize_t	c;

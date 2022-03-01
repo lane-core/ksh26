@@ -45,7 +45,6 @@
  *  <table> is searched for string <sp> and corresponding value is returned
  *  This is only used for small tables and is used to save non-shareable memory
  */
-
 const Shtable_t *sh_locate(register const char *sp,const Shtable_t *table,int size)
 {
 	register int			first;
@@ -230,7 +229,6 @@ found:
  * TRIM(sp)
  * Remove escape characters from characters in <sp> and eliminate quoted nulls.
  */
-
 void	sh_trim(register char *sp)
 /*@
 	assume sp!=NULL;
@@ -267,7 +265,6 @@ void	sh_trim(register char *sp)
  * <str2> must be big enough to hold <str1>
  * <str1> and <str2> may point to the same place.
  */
-
 void sh_utol(register char const *str1,register char *str2)
 /*@
 	assume str1!=0 && str2!=0

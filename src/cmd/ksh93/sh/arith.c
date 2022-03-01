@@ -511,7 +511,6 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		}
 		return(r);
 	    }
-
 	    case MESSAGE:
 		sfsync(NIL(Sfio_t*));
 		if(lvalue->emode&ARITH_COMP)
@@ -527,7 +526,6 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
  * ptr is set to the last character processed
  * if mode>0, an error will be fatal with value <mode>
  */
-
 Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 {
 	register Sfdouble_t d;

@@ -380,7 +380,6 @@ void	sh_sigclear(register int sig)
 /*
  * check for traps
  */
-
 void	sh_chktrap(void)
 {
 	register int 	sig=sh.st.trapmax;
@@ -606,7 +605,6 @@ static void array_notify(Namval_t *np, void *data)
 /*
  * This is the exit routine for the shell
  */
-
 noreturn void sh_done(register int sig)
 {
 	register char *t;

@@ -2338,7 +2338,6 @@ void sh_scope(struct argnod *envlist, int fun)
  * of nnod. This includes any strings representing the value(s) of the
  * node, as well as its dope vector, if it is an array.
  */
-
 void	sh_envnolocal (register Namval_t *np, void *data)
 {
 	char *cp = 0, was_export = nv_isattr(np,NV_EXPORT)!=0;
@@ -2695,7 +2694,6 @@ void sh_optclear(void *old)
  *
  *   If <np> has no value, 0 is returned.
  */
-
 char *nv_getval(register Namval_t *np)
 {
 	register union Value *up= &np->nvalue;

@@ -132,7 +132,6 @@ void sh_regress_init(void)
 /*
  * regress info trace output
  */
-
 void sh_regress(unsigned int index, const char* intercept, const char* info, unsigned int line, const char* file)
 {
 	char*	name;
@@ -148,7 +147,6 @@ void sh_regress(unsigned int index, const char* intercept, const char* info, uns
 /*
  * EGID intercepts
  */
-
 static gid_t	intercept_sgid = 0;
 static gid_t	intercept_egid = -1;
 static gid_t	intercept_rgid = -1;
@@ -191,7 +189,6 @@ int setgid(gid_t gid)
 /*
  * EUID intercepts
  */
-
 static uid_t	intercept_suid = 0;
 static uid_t	intercept_euid = -1;
 static uid_t	intercept_ruid = -1;
@@ -234,7 +231,6 @@ int setuid(uid_t uid)
 /*
  * p_suid intercept
  */
-
 static uid_t	intercept_p_suid = 0x7fffffff;
 
 uid_t sh_regress_p_suid(unsigned int line, const char* file)
@@ -246,7 +242,6 @@ uid_t sh_regress_p_suid(unsigned int line, const char* file)
 /*
  * p_suid intercept
  */
-
 static char*	intercept_etc = 0;
 
 char* sh_regress_etc(const char* path, unsigned int line, const char* file)
@@ -258,7 +253,6 @@ char* sh_regress_etc(const char* path, unsigned int line, const char* file)
 /*
  * __regress__ builtin
  */
-
 int b___regress__(int argc, char** argv, Shbltin_t *context)
 {
 	int			n;

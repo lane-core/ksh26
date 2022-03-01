@@ -163,7 +163,6 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
  * argc==0 when called from echo
  * argc==-1 when called from printf
  */
-
 int    b_print(int argc, char *argv[], Shbltin_t *context)
 {
 	register Sfio_t *outfile;
@@ -397,7 +396,6 @@ printf_v:
  * if <raw> is non-zero then \ is not a special character.
  * returns 0 for \c otherwise 1.
  */
-
 static int echolist(Sfio_t *outfile, int raw, char *argv[])
 {
 	register char	*cp;
@@ -1054,7 +1052,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
  * Otherwise, puts null-terminated result on stack, but doesn't freeze it
  * returns length of output.
  */
-
 static int fmtvecho(const char *string, struct printf *pp)
 {
 	register const char *cp = string, *cpmax;

@@ -22,8 +22,7 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # regression tests for compound variables
-Command=${0##*/}
-integer Errors=0
+
 Point=(
 	float x=1. y=0.
 )

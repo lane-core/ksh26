@@ -1192,7 +1192,7 @@ int sh_type(register const char *path)
 				continue;
 			}
 		}
-		if (!(t & (SH_TYPE_PROFILE|SH_TYPE_RESTRICTED)))
+		if (!(t & SH_TYPE_RESTRICTED))
 		{
 			if (*s == 'r')
 			{
@@ -1222,7 +1222,7 @@ int sh_type(register const char *path)
 		if (!isalnum(*s))
 			return t;
 	}
-	return t & ~(SH_TYPE_KSH|SH_TYPE_PROFILE|SH_TYPE_RESTRICTED);
+	return t & ~(SH_TYPE_KSH|SH_TYPE_RESTRICTED);
 }
 
 
@@ -1948,7 +1948,6 @@ static Init_t *nv_init(void)
 /*
  * initialize name-value pairs
  */
-
 Dt_t *sh_inittree(const struct shtable2 *name_vals)
 {
 	register Namval_t *np;
@@ -2006,7 +2005,6 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
  *
  * Returns pointer to A__z env var from which to import attributes, or 0.
  */
-
 static char *env_init(void)
 {
 	register char		*cp;

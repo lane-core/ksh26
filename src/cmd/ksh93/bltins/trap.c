@@ -316,7 +316,6 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 /*
  * Given the name or number of a signal return the signal number
  */
-
 static int sig_number(const char *string)
 {
 	const Shtable_t	*tp;

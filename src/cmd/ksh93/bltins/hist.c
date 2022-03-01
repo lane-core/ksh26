@@ -297,7 +297,6 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
  * given a file containing a command and a string of the form old=new,
  * execute the command with the string old replaced by new
  */
-
 static void hist_subst(const char *command,int fd,char *replace)
 {
 	register char *newp=replace;

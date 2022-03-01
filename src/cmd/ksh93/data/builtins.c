@@ -1448,7 +1448,7 @@ const char sh_optread[] =
 "\n[var?prompt] [var ...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-	"[+0? Successful completion.]"
+	"[+0?Successful completion.]"
 	"[+>0?End of file was detected or an error occurred.]"
 "}"
 "[+SEE ALSO?\bprint\b(1), \bprintf\b(1), \bcat\b(1)]"

@@ -482,7 +482,6 @@ int	path_open(const char *name, register Pathcomp_t *pp)
 /*
  * given a pathname return the base name
  */
-
 char	*path_basename(register const char *name)
 {
 	register const char *start = name;
@@ -612,7 +611,6 @@ static void funload(int fno, const char *name)
  *   if the matching $PATH entry is '.' or empty, the simple name is written without prefixing the PWD
  * - nothing executable was found
  */
-
 int	path_search(register const char *name,Pathcomp_t **oldpp, int flag)
 {
 	register Namval_t *np;
@@ -927,7 +925,6 @@ err:
 /*
  * Return path relative to present working directory
  */
-
 char *path_relative(register const char* file)
 {
 	register const char *pwd;
@@ -1269,7 +1266,6 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
  * File is executable but not machine code.
  * Assume file is a shell script and execute it.
  */
-
 static noreturn void exscript(register char *path,register char *argv[],char **envp)
 {
 	register Sfio_t *sp;
@@ -1387,8 +1383,8 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	SHACCT = getenv("SHACCT");
     }
     /*
-    * suspend accounting until turned on by sh_accbegin()
-    */
+     * suspend accounting until turned on by sh_accbegin()
+     */
     void sh_accsusp(void)
     {
 	shaccton=0;
@@ -1458,8 +1454,6 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	return((exp<<13) + t);
     }
 #endif	/* SHOPT_ACCT */
-
-
 
 /*
  * add a path component to the path search list and eliminate duplicates

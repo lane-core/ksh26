@@ -39,7 +39,7 @@ typedef struct _skable_s
 } Seek_t;
 
 static ssize_t skwrite(Sfio_t*		f,	/* stream involved */
-		       void*		buf,	/* buffer to read into */
+		       const void*	buf,	/* buffer to read into */
 		       size_t		n,	/* number of bytes to read */
 		       Sfdisc_t*	disc)	/* discipline */
 {

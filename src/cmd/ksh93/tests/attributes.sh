@@ -499,6 +499,10 @@ export foo
 
 # ======
 # unset exported readonly variables, combined with all other possible attributes
+(
+### begin subshell
+ulimit -t unlimited 2>/dev/null # run in forked subshell to be crash-proof
+Errors=0
 typeset -A expect=(
 	[a]='typeset -x -r -a foo'
 	[b]='typeset -x -r -b foo'
@@ -552,7 +556,13 @@ do	unset foo
 			"expected $(printf %q "${expect[$flag]}"), got $(printf %q "$actual")"
 	fi
 done
-unset expect
+exit "$Errors"
+### end subshell
+)
+if let "(e=$?) > 128"
+then	err_exit "typeset -x -r test crashed with SIG$(kill -l "$e")"
+else	let "Errors += e"
+fi
 
 unset base
 for base in 0 1 65
@@ -592,6 +602,10 @@ got=$(< $tmpfile)
 # Combining -u with -F or -E caused an incorrect variable type
 # https://github.com/ksh93/ksh/pull/163
 # Allow the last numeric type to win out
+(
+### begin subshell
+ulimit -t unlimited 2>/dev/null # run in forked subshell to be crash-proof
+Errors=0
 typeset -A expect=(
 	[uF]='typeset -F a=2.0000000000'
 	[Fu]='typeset -F a=2.0000000000'
@@ -631,6 +645,14 @@ done
 unset expect
 
 [[ $(typeset -iX12 -s a=2; typeset -p a) == 'typeset -X 12 a=0x1.000000000000p+1' ]] || err_exit "typeset -iX12 -s failed to become typeset -X 12 a=0x1.000000000000p+1."
+
+exit "$Errors"
+### end subshell
+)
+if let "(e=$?) > 128"
+then	err_exit "typeset int+float test crashed with SIG$(kill -l "$e")"
+else	let "Errors += e"
+fi
 
 # ======
 # Bug introduced in 0e4c4d61: could not alter the size of an existing justified string attribute

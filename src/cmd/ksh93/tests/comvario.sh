@@ -22,10 +22,7 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-# "nounset" disabled for now
-#set -o nounset
-Command=${0##*/}
-integer Errors=0 HAVE_signbit=0
+typeset -is HAVE_signbit=0
 
 if	typeset -f .sh.math.signbit >/dev/null && (( signbit(-NaN) ))
 then	HAVE_signbit=1

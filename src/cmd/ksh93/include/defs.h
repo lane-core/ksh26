@@ -98,7 +98,6 @@ extern char*	sh_setenviron(const char*);
 #define SH_TYPE_KSH		002
 #define SH_TYPE_POSIX		004
 #define SH_TYPE_LOGIN		010
-#define SH_TYPE_PROFILE		020
 #define SH_TYPE_RESTRICTED	040
 
 #ifndef PIPE_BUF

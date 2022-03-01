@@ -211,7 +211,6 @@ static int	onintr(struct addrinfo*);
  * return <protocol>/<host>/<service> fd
  * If called with flags==O_NONBLOCK return 1 if protocol is supported
  */
-
 static int
 inetopen(const char* path, int flags)
 {
@@ -1927,7 +1926,7 @@ static ssize_t piperead(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 		errno = EINTR;
 		return(-1);
 	}
-	if(sh_isstate(SH_INTERACTIVE) && sffileno(iop)==0 && io_prompt(iop,sh.nextprompt)<0 && errno==EIO)
+	if(sh_isstate(SH_INTERACTIVE) && fd==0 && io_prompt(iop,sh.nextprompt)<0 && errno==EIO)
 		return(0);
 	sh_onstate(SH_TTYWAIT);
 	if(!(sh.fdstatus[fd]&IOCLEX) && (sfset(iop,0,0)&SF_SHARE))
@@ -1983,7 +1982,7 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 			return(0);
 		if(sh.timeout)
 			timeout = (void*)sh_timeradd(sh_isstate(SH_GRACE)?1000L*TGRACE:1000L*sh.timeout,0,time_grace,&sh);
-		rsize = (*readf)(sh.ed_context, sffileno(iop), (char*)buff, size, reedit);
+		rsize = (*readf)(sh.ed_context, fno, (char*)buff, size, reedit);
 		if(timeout)
 			timerdel(timeout);
 		timeout=0;
@@ -2040,7 +2039,6 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 /*
  * check and return the attributes for a file descriptor
  */
-
 int sh_iocheckfd(register int fd)
 {
 	register int flags, n;
@@ -2117,7 +2115,6 @@ int sh_iocheckfd(register int fd)
 /*
  * Display prompt PS<flag> on standard error
  */
-
 static int	io_prompt(Sfio_t *iop,register int flag)
 {
 	register char *cp;
@@ -2319,7 +2316,6 @@ struct eval
 /*
  * Create a stream consisting of a space separated argv[] list 
  */
-
 Sfio_t *sh_sfeval(register char *argv[])
 {
 	register Sfio_t *iop;
@@ -2345,7 +2341,6 @@ Sfio_t *sh_sfeval(register char *argv[])
 /*
  * This code gets called whenever an end of string is found with eval
  */
-
 static int eval_exceptf(Sfio_t *iop,int type, void *data, Sfdisc_t *handle)
 {
 	register struct eval *ep = (struct eval*)handle;
@@ -2385,7 +2380,6 @@ static int eval_exceptf(Sfio_t *iop,int type, void *data, Sfdisc_t *handle)
  * the stream <sp> starting at offset <offset>
  * The stream can be read with the normal stream operations
  */
-
 static Sfio_t *subopen(Sfio_t* sp, off_t offset, long size)
 {
 	register struct subfile *disp;
@@ -2604,7 +2598,6 @@ mode_t	sh_umask(mode_t m)
  * <fd> must be a non-negative number ofr SH_IOCOPROCESS or SH_IOHISTFILE. 
  * returns NULL on failure and may set errno.
  */
-
 Sfio_t *sh_iogetiop(int fd, int mode)
 {
 	int n;

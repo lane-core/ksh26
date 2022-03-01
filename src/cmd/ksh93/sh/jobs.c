@@ -794,7 +794,6 @@ static void job_reset(register struct process *pw)
 /*
  * wait built-in command
  */
-
 void job_bwait(char **jobs)
 {
 	register char *jp;
@@ -826,7 +825,6 @@ void job_bwait(char **jobs)
 /*
  * execute function <fun> for each job
  */
-
 int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[])
 {
 	register struct process *pw;
@@ -894,7 +892,6 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
  * flag JOB_NFLAG for list only jobs marked for notification
  * flag JOB_PFLAG for process ID(s) only
  */
-
 int job_list(struct process *pw,register int flag)
 {
 	register struct process *px = pw;
@@ -1002,7 +999,6 @@ static struct process *job_bystring(register char *ajob)
 /*
  * Kill a job or process
  */
-
 int job_kill(register struct process *pw,register int sig)
 {
 	register pid_t pid;
@@ -1127,7 +1123,6 @@ int job_hup(struct process *pw, int sig)
 /*
  * Get process structure from first letters of jobname
  */
-
 static struct process *job_byname(char *name)
 {
 	register struct process *pw = job.pwlist;
@@ -1163,7 +1158,6 @@ static struct process *job_byname(char *name)
 /*
  * Initialize the process posting array
  */
-
 void	job_clear(void)
 {
 	register struct process *pw, *px;
@@ -1207,7 +1201,6 @@ void	job_clear(void)
  * put the process <pid> on the process list and return the job number
  * if non-zero, <join> is the process ID of the job to join
  */
-
 int job_post(pid_t pid, pid_t join)
 {
 	register struct process *pw;
@@ -1332,7 +1325,6 @@ int job_post(pid_t pid, pid_t join)
 /*
  * Returns a process structure give a process ID
  */
-
 static struct process *job_bypid(pid_t pid)
 {
 	register struct process  *pw, *px;
@@ -1348,7 +1340,6 @@ static struct process *job_bypid(pid_t pid)
 /*
  * return a pointer to a job given the job ID
  */
-
 static struct process *job_byjid(int jobid)
 {
 	register struct process *pw;
@@ -1388,7 +1379,6 @@ static void job_prmsg(register struct process *pw)
  * pid=1 to wait for at least one process to complete
  * pid=-1 to wait for all running processes
  */
-
 int	job_wait(register pid_t pid)
 {
 	register struct process *pw=0,*px;
@@ -1588,7 +1578,6 @@ done:
  * move job to background if bgflag == 'b'
  * disown job if bgflag == 'd'
  */
-
 int job_switch(register struct process *pw,int bgflag)
 {
 	register const char *msg;
@@ -1652,7 +1641,6 @@ int job_switch(register struct process *pw,int bgflag)
 /*
  * Set the foreground group associated with a job
  */
-
 static void job_fgrp(register struct process *pw, int newgrp)
 {
 	for(; pw; pw=pw->p_nxtproc)
@@ -1662,7 +1650,6 @@ static void job_fgrp(register struct process *pw, int newgrp)
 /*
  * turn off STOP state of a process group and send CONT signals
  */
-
 static void job_unstop(register struct process *px)
 {
 	register struct process *pw;
@@ -1691,7 +1678,6 @@ static void job_unstop(register struct process *px)
  * pwlist is reset if the first job is removed
  * if <notify> is non-zero, then jobs with pending notifications are unposted
  */
-
 static struct process *job_unpost(register struct process *pwtop,int notify)
 {
 	register struct process *pw;
@@ -1769,7 +1755,6 @@ static void job_unlink(register struct process *pw)
  * get an unused job number
  * freejobs is a bit vector, 0 is unused
  */
-
 static int job_alloc(void)
 {
 	register int j=0;
@@ -1800,7 +1785,6 @@ static int job_alloc(void)
 /*
  * return a job number
  */
-
 static void job_free(register int n)
 {
 	register int j = (--n)/CHAR_BIT;

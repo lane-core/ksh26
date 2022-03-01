@@ -30,7 +30,7 @@ make install
 						done features/standards
 						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/standards
 					done FEATURE/standards generated
-					exec - cmp 2>/dev/null -s FEATURE/standards ast_standards.h || { rm -f ast_standards.h; ${STDCP} FEATURE/standards ast_standards.h; }
+					exec - cmp -s FEATURE/standards ast_standards.h || { rm -f ast_standards.h; ${STDCP} FEATURE/standards ast_standards.h; }
 				done ast_standards.h generated
 				make FEATURE/lib
 					meta FEATURE/lib features/%>FEATURE/% features/lib lib
@@ -54,7 +54,7 @@ make install
 							make ast_common.h implicit
 								prev FEATURE/common
 								exec - sed '/define _def_map_ast/d' < FEATURE/common > 1.${COTEMP}.x
-								exec - if cmp 2>/dev/null -s ast_common.h 1.${COTEMP}.x
+								exec - if cmp -s ast_common.h 1.${COTEMP}.x
 								exec - then rm -f 1.${COTEMP}.x
 								exec - else mv 1.${COTEMP}.x ast_common.h
 								exec - fi
@@ -97,7 +97,7 @@ make install
 										done features/map.c
 										exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I.  ${LDFLAGS}" run features/map.c
 									done FEATURE/map generated
-									exec - cmp 2>/dev/null -s FEATURE/map ast_map.h || { rm -f ast_map.h; silent test -d . || mkdir .; ${STDCP} FEATURE/map ast_map.h; }
+									exec - cmp -s FEATURE/map ast_map.h || { rm -f ast_map.h; silent test -d . || mkdir .; ${STDCP} FEATURE/map ast_map.h; }
 								done ast_map.h dontcare generated
 							done ast_common.h dontcare generated
 						done std/bytesex.h dontcare
@@ -177,7 +177,7 @@ make install
 						done features/limits.c
 						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/limits.c
 					done FEATURE/limits generated
-					exec - cmp 2>/dev/null -s FEATURE/limits ast_limits.h || { rm -f ast_limits.h; silent test -d . || mkdir .; ${STDCP} FEATURE/limits ast_limits.h; }
+					exec - cmp -s FEATURE/limits ast_limits.h || { rm -f ast_limits.h; silent test -d . || mkdir .; ${STDCP} FEATURE/limits ast_limits.h; }
 				done ast_limits.h generated
 				make ast_stdio.h
 					make FEATURE/stdio
@@ -191,7 +191,7 @@ make install
 							make include/regex.h implicit
 								make ast_api.h implicit
 									prev FEATURE/api
-									exec - cmp 2>/dev/null -s FEATURE/api ast_api.h || { rm -f ast_api.h; silent test -d . || mkdir .; ${STDCP} FEATURE/api ast_api.h; }
+									exec - cmp -s FEATURE/api ast_api.h || { rm -f ast_api.h; silent test -d . || mkdir .; ${STDCP} FEATURE/api ast_api.h; }
 								done ast_api.h dontcare generated
 								make ast_wchar.h implicit
 									make FEATURE/wchar
@@ -212,7 +212,7 @@ make install
 														prev ast_wchar.h implicit
 													done std/wchar.h dontcare
 												done FEATURE/wctype generated
-												exec - cmp 2>/dev/null -s FEATURE/wctype ast_wctype.h || { rm -f ast_wctype.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wctype ast_wctype.h; }
+												exec - cmp -s FEATURE/wctype ast_wctype.h || { rm -f ast_wctype.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wctype ast_wctype.h; }
 											done ast_wctype.h dontcare generated
 										done std/wctype.h dontcare
 										make std/stdio.h implicit
@@ -221,7 +221,7 @@ make install
 										prev std/stdio.h implicit
 										prev ast_common.h implicit
 									done FEATURE/wchar generated
-									exec - cmp 2>/dev/null -s FEATURE/wchar ast_wchar.h || { rm -f ast_wchar.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wchar ast_wchar.h; }
+									exec - cmp -s FEATURE/wchar ast_wchar.h || { rm -f ast_wchar.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wchar ast_wchar.h; }
 									prev std/stdio.h implicit
 									prev ast_common.h implicit
 								done ast_wchar.h dontcare generated
@@ -245,7 +245,7 @@ make install
 									done features/botch.c
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/botch.c
 								done FEATURE/botch generated
-								exec - cmp 2>/dev/null -s FEATURE/botch ast_botch.h || { rm -f ast_botch.h; silent test -d . || mkdir .; ${STDCP} FEATURE/botch ast_botch.h; }
+								exec - cmp -s FEATURE/botch ast_botch.h || { rm -f ast_botch.h; silent test -d . || mkdir .; ${STDCP} FEATURE/botch ast_botch.h; }
 							done ast_botch.h dontcare generated
 							prev ast_limits.h implicit
 							make ast_fcntl.h implicit
@@ -270,26 +270,26 @@ make install
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/fcntl.c
 									make ast_fs.h implicit
 										prev FEATURE/fs
-										exec - cmp 2>/dev/null -s FEATURE/fs ast_fs.h || { rm -f ast_fs.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fs ast_fs.h; }
+										exec - cmp -s FEATURE/fs ast_fs.h || { rm -f ast_fs.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fs ast_fs.h; }
 									done ast_fs.h dontcare generated
 								done FEATURE/fcntl generated
-								exec - cmp 2>/dev/null -s FEATURE/fcntl ast_fcntl.h || { rm -f ast_fcntl.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fcntl ast_fcntl.h; }
+								exec - cmp -s FEATURE/fcntl ast_fcntl.h || { rm -f ast_fcntl.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fcntl ast_fcntl.h; }
 								prev ast_fs.h implicit
 							done ast_fcntl.h dontcare generated
 							prev include/ast_getopt.h implicit
 							make ast_sys.h implicit
 								prev FEATURE/sys
-								exec - cmp 2>/dev/null -s FEATURE/sys ast_sys.h || { rm -f ast_sys.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sys ast_sys.h; }
+								exec - cmp -s FEATURE/sys ast_sys.h || { rm -f ast_sys.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sys ast_sys.h; }
 							done ast_sys.h dontcare generated
 							make ast_lib.h implicit
 								prev FEATURE/lib
-								exec - cmp 2>/dev/null -s FEATURE/lib ast_lib.h || { rm -f ast_lib.h; silent test -d . || mkdir .; ${STDCP} FEATURE/lib ast_lib.h; }
+								exec - cmp -s FEATURE/lib ast_lib.h || { rm -f ast_lib.h; silent test -d . || mkdir .; ${STDCP} FEATURE/lib ast_lib.h; }
 							done ast_lib.h dontcare generated
 							prev ast_common.h implicit
 							prev ast_standards.h implicit
 						done include/ast_std.h dontcare
 					done FEATURE/stdio generated
-					exec - cmp 2>/dev/null -s FEATURE/stdio ast_stdio.h || { rm -f ast_stdio.h; silent test -d . || mkdir .; ${STDCP} FEATURE/stdio ast_stdio.h; }
+					exec - cmp -s FEATURE/stdio ast_stdio.h || { rm -f ast_stdio.h; silent test -d . || mkdir .; ${STDCP} FEATURE/stdio ast_stdio.h; }
 					prev include/sfio_s.h implicit
 					prev include/ast_std.h implicit
 				done ast_stdio.h dontcare generated
@@ -300,7 +300,7 @@ make install
 						done features/nl_types
 						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/nl_types
 					done FEATURE/nl_types generated
-					exec - cmp 2>/dev/null -s FEATURE/nl_types ast_nl_types.h || { rm -f ast_nl_types.h; silent test -d . || mkdir .; ${STDCP} FEATURE/nl_types ast_nl_types.h; }
+					exec - cmp -s FEATURE/nl_types ast_nl_types.h || { rm -f ast_nl_types.h; silent test -d . || mkdir .; ${STDCP} FEATURE/nl_types ast_nl_types.h; }
 				done ast_nl_types.h generated
 				prev ast_wchar.h
 				prev ast_wctype.h
@@ -404,7 +404,7 @@ make install
 						done direntry.h dontcare virtual
 						make ast_param.h implicit
 							prev FEATURE/param
-							exec - cmp 2>/dev/null -s FEATURE/param ast_param.h || { rm -f ast_param.h; silent test -d . || mkdir .; ${STDCP} FEATURE/param ast_param.h; }
+							exec - cmp -s FEATURE/param ast_param.h || { rm -f ast_param.h; silent test -d . || mkdir .; ${STDCP} FEATURE/param ast_param.h; }
 						done ast_param.h dontcare generated
 						make std/dirent.h implicit
 							make ast_dirent.h implicit
@@ -415,7 +415,7 @@ make install
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/dirent
 									prev include/ast_std.h implicit
 								done FEATURE/dirent generated
-								exec - cmp 2>/dev/null -s FEATURE/dirent ast_dirent.h || { rm -f ast_dirent.h; silent test -d . || mkdir .; ${STDCP} FEATURE/dirent ast_dirent.h; }
+								exec - cmp -s FEATURE/dirent ast_dirent.h || { rm -f ast_dirent.h; silent test -d . || mkdir .; ${STDCP} FEATURE/dirent ast_dirent.h; }
 								prev include/ast_std.h implicit
 							done ast_dirent.h dontcare generated
 						done std/dirent.h dontcare
@@ -433,7 +433,7 @@ make install
 									done features/mode.c
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Iinclude -Istd  ${LDFLAGS}" run features/mode.c
 								done FEATURE/mode generated
-								exec - cmp 2>/dev/null -s FEATURE/mode ast_mode.h || { rm -f ast_mode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mode ast_mode.h; }
+								exec - cmp -s FEATURE/mode ast_mode.h || { rm -f ast_mode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mode ast_mode.h; }
 							done ast_mode.h dontcare generated
 							prev ast_fs.h implicit
 							prev include/ast_std.h implicit
@@ -660,7 +660,7 @@ make install
 								done features/ccode
 								exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/ccode
 							done FEATURE/ccode generated
-							exec - cmp 2>/dev/null -s FEATURE/ccode ast_ccode.h || { rm -f ast_ccode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ccode ast_ccode.h; }
+							exec - cmp -s FEATURE/ccode ast_ccode.h || { rm -f ast_ccode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ccode ast_ccode.h; }
 						done ast_ccode.h dontcare generated
 						prev ast_common.h implicit
 					done include/ccode.h
@@ -965,7 +965,7 @@ make install
 								done features/time
 								exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/time
 							done FEATURE/time generated
-							exec - cmp 2>/dev/null -s FEATURE/time ast_time.h || { rm -f ast_time.h; silent test -d . || mkdir .; ${STDCP} FEATURE/time ast_time.h; }
+							exec - cmp -s FEATURE/time ast_time.h || { rm -f ast_time.h; silent test -d . || mkdir .; ${STDCP} FEATURE/time ast_time.h; }
 						done ast_time.h dontcare generated
 						prev include/ast.h implicit
 					done include/times.h
@@ -1001,11 +1001,11 @@ make install
 							make port/lc.tab
 							done port/lc.tab
 							exec - ./lcgen ${COTEMP}.1 ${COTEMP}.2 < port/lc.tab
-							exec - if cmp 2>/dev/null -s ${COTEMP}.1 lc.h
+							exec - if cmp -s ${COTEMP}.1 lc.h
 							exec - then rm ${COTEMP}.1
 							exec - else mv ${COTEMP}.1 lc.h
 							exec - fi
-							exec - if cmp 2>/dev/null -s ${COTEMP}.2 lctab.c
+							exec - if cmp -s ${COTEMP}.2 lctab.c
 							exec - then rm ${COTEMP}.2
 							exec - else mv ${COTEMP}.2 lctab.c
 							exec - fi
@@ -1054,7 +1054,7 @@ make install
 							done features/preroot.sh
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/preroot.sh
 						done FEATURE/preroot generated
-						exec - cmp 2>/dev/null -s FEATURE/preroot preroot.h || { rm -f preroot.h; silent test -d . || mkdir .; ${STDCP} FEATURE/preroot preroot.h; }
+						exec - cmp -s FEATURE/preroot preroot.h || { rm -f preroot.h; silent test -d . || mkdir .; ${STDCP} FEATURE/preroot preroot.h; }
 					done preroot.h generated
 					prev include/ast.h implicit
 				done path/pathkey.c
@@ -1118,7 +1118,7 @@ make install
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/tv
 							prev include/ast.h implicit
 						done FEATURE/tv generated
-						exec - cmp 2>/dev/null -s FEATURE/tv tv.h || { rm -f tv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tv tv.h; }
+						exec - cmp -s FEATURE/tv tv.h || { rm -f tv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tv tv.h; }
 						prev include/ast.h implicit
 					done tv.h generated
 					prev include/ls.h implicit
@@ -1400,7 +1400,7 @@ make install
 							done features/sig.sh
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sig.sh
 						done FEATURE/sig generated
-						exec - cmp 2>/dev/null -s FEATURE/sig sig.h || { rm -f sig.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sig sig.h; }
+						exec - cmp -s FEATURE/sig sig.h || { rm -f sig.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sig sig.h; }
 					done sig.h generated
 					prev include/ast.h implicit
 				done misc/signal.c
@@ -1518,7 +1518,7 @@ make install
 								prev include/ccode.h implicit
 								prev ast_common.h implicit
 							done FEATURE/iconv generated
-							exec - cmp 2>/dev/null -s FEATURE/iconv ast_iconv.h || { rm -f ast_iconv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/iconv ast_iconv.h; }
+							exec - cmp -s FEATURE/iconv ast_iconv.h || { rm -f ast_iconv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/iconv ast_iconv.h; }
 							prev include/ccode.h implicit
 							prev ast_common.h implicit
 						done ast_iconv.h generated
@@ -1604,7 +1604,7 @@ make install
 						prev include/ls.h implicit
 						make ast_tty.h implicit
 							prev FEATURE/tty
-							exec - cmp 2>/dev/null -s FEATURE/tty ast_tty.h || { rm -f ast_tty.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tty ast_tty.h; }
+							exec - cmp -s FEATURE/tty ast_tty.h || { rm -f ast_tty.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tty ast_tty.h; }
 						done ast_tty.h dontcare generated
 						prev ast_time.h implicit
 						prev include/ast.h implicit
@@ -1893,7 +1893,7 @@ make install
 							prev tv.h implicit
 							prev include/tm.h implicit
 						done FEATURE/tmx generated
-						exec - cmp 2>/dev/null -s FEATURE/tmx tmx.h || { rm -f tmx.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tmx tmx.h; }
+						exec - cmp -s FEATURE/tmx tmx.h || { rm -f tmx.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tmx tmx.h; }
 						prev tv.h implicit
 						prev include/tm.h implicit
 					done tmx.h generated
@@ -1993,7 +1993,7 @@ make install
 							done features/align.c
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I.  ${LDFLAGS}" run features/align.c
 						done FEATURE/align generated
-						exec - cmp 2>/dev/null -s FEATURE/align align.h || { rm -f align.h; silent test -d . || mkdir .; ${STDCP} FEATURE/align align.h; }
+						exec - cmp -s FEATURE/align align.h || { rm -f align.h; silent test -d . || mkdir .; ${STDCP} FEATURE/align align.h; }
 					done align.h generated
 					prev include/ast.h implicit
 					prev include/sfio_t.h implicit
@@ -2093,7 +2093,7 @@ make install
 									done features/wait
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/wait
 								done FEATURE/wait generated
-								exec - cmp 2>/dev/null -s FEATURE/wait ast_wait.h || { rm -f ast_wait.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wait ast_wait.h; }
+								exec - cmp -s FEATURE/wait ast_wait.h || { rm -f ast_wait.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wait ast_wait.h; }
 							done ast_wait.h dontcare generated
 							prev include/ast.h implicit
 						done include/wait.h dontcare
@@ -2983,7 +2983,7 @@ make install
 							done features/vfork
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/vfork
 						done FEATURE/vfork generated
-						exec - cmp 2>/dev/null -s FEATURE/vfork ast_vfork.h || { rm -f ast_vfork.h; silent test -d . || mkdir .; ${STDCP} FEATURE/vfork ast_vfork.h; }
+						exec - cmp -s FEATURE/vfork ast_vfork.h || { rm -f ast_vfork.h; silent test -d . || mkdir .; ${STDCP} FEATURE/vfork ast_vfork.h; }
 					done ast_vfork.h dontcare generated
 					prev ast_tty.h implicit
 					prev sig.h implicit
@@ -3501,7 +3501,7 @@ make install
 						make comp/syslog.h implicit
 							make ast_namval.h implicit
 								prev include/namval.h
-								exec - cmp 2>/dev/null -s include/namval.h ast_namval.h || { rm -f ast_namval.h; silent test -d . || mkdir .; ${STDCP} include/namval.h ast_namval.h; }
+								exec - cmp -s include/namval.h ast_namval.h || { rm -f ast_namval.h; silent test -d . || mkdir .; ${STDCP} include/namval.h ast_namval.h; }
 							done ast_namval.h dontcare generated
 						done comp/syslog.h dontcare
 					done comp/sysloglib.h dontcare
@@ -5492,7 +5492,7 @@ make install
 					prev include/ls.h implicit
 					make ast_mmap.h implicit
 						prev FEATURE/mmap
-						exec - cmp 2>/dev/null -s FEATURE/mmap ast_mmap.h || { rm -f ast_mmap.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mmap ast_mmap.h; }
+						exec - cmp -s FEATURE/mmap ast_mmap.h || { rm -f ast_mmap.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mmap ast_mmap.h; }
 					done ast_mmap.h generated
 					prev include/ast.h implicit
 				done port/astcopy.c
@@ -6382,606 +6382,521 @@ make install
 	make ${INSTALLROOT}/include/ast/ast_common.h
 		prev ${INSTALLROOT}/include/ast
 		prev ast_common.h
-		exec - if cmp 2>/dev/null -s ast_common.h ${INSTALLROOT}/include/ast/ast_common.h
-		exec - then :
-		exec - else ${STDCP} ast_common.h ${INSTALLROOT}/include/ast/ast_common.h
+		exec - if ! cmp -s ast_common.h ${INSTALLROOT}/include/ast/ast_common.h
+		exec - then ${STDCP} ast_common.h ${INSTALLROOT}/include/ast/ast_common.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_common.h generated
 	make ${INSTALLROOT}/include/ast/ast.h
 		prev include/ast.h
-		exec - if cmp 2>/dev/null -s include/ast.h ${INSTALLROOT}/include/ast/ast.h
-		exec - then :
-		exec - else ${STDCP} include/ast.h ${INSTALLROOT}/include/ast/ast.h
+		exec - if ! cmp -s include/ast.h ${INSTALLROOT}/include/ast/ast.h
+		exec - then ${STDCP} include/ast.h ${INSTALLROOT}/include/ast/ast.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast.h generated
 	make ${INSTALLROOT}/include/ast/ast_dir.h
 		prev include/ast_dir.h
-		exec - if cmp 2>/dev/null -s include/ast_dir.h ${INSTALLROOT}/include/ast/ast_dir.h
-		exec - then :
-		exec - else ${STDCP} include/ast_dir.h ${INSTALLROOT}/include/ast/ast_dir.h
+		exec - if ! cmp -s include/ast_dir.h ${INSTALLROOT}/include/ast/ast_dir.h
+		exec - then ${STDCP} include/ast_dir.h ${INSTALLROOT}/include/ast/ast_dir.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_dir.h generated
 	make ${INSTALLROOT}/include/ast/ast_getopt.h
 		prev include/ast_getopt.h
-		exec - if cmp 2>/dev/null -s include/ast_getopt.h ${INSTALLROOT}/include/ast/ast_getopt.h
-		exec - then :
-		exec - else ${STDCP} include/ast_getopt.h ${INSTALLROOT}/include/ast/ast_getopt.h
+		exec - if ! cmp -s include/ast_getopt.h ${INSTALLROOT}/include/ast/ast_getopt.h
+		exec - then ${STDCP} include/ast_getopt.h ${INSTALLROOT}/include/ast/ast_getopt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_getopt.h generated
 	make ${INSTALLROOT}/include/ast/ast_std.h
 		prev include/ast_std.h
-		exec - if cmp 2>/dev/null -s include/ast_std.h ${INSTALLROOT}/include/ast/ast_std.h
-		exec - then :
-		exec - else ${STDCP} include/ast_std.h ${INSTALLROOT}/include/ast/ast_std.h
+		exec - if ! cmp -s include/ast_std.h ${INSTALLROOT}/include/ast/ast_std.h
+		exec - then ${STDCP} include/ast_std.h ${INSTALLROOT}/include/ast/ast_std.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_std.h generated
 	make ${INSTALLROOT}/include/ast/ast_namval.h
 		prev ast_namval.h
-		exec - if cmp 2>/dev/null -s ast_namval.h ${INSTALLROOT}/include/ast/ast_namval.h
-		exec - then :
-		exec - else ${STDCP} ast_namval.h ${INSTALLROOT}/include/ast/ast_namval.h
+		exec - if ! cmp -s ast_namval.h ${INSTALLROOT}/include/ast/ast_namval.h
+		exec - then ${STDCP} ast_namval.h ${INSTALLROOT}/include/ast/ast_namval.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_namval.h generated
 	make ${INSTALLROOT}/include/ast/ast_windows.h
 		prev include/ast_windows.h
-		exec - if cmp 2>/dev/null -s include/ast_windows.h ${INSTALLROOT}/include/ast/ast_windows.h
-		exec - then :
-		exec - else ${STDCP} include/ast_windows.h ${INSTALLROOT}/include/ast/ast_windows.h
+		exec - if ! cmp -s include/ast_windows.h ${INSTALLROOT}/include/ast/ast_windows.h
+		exec - then ${STDCP} include/ast_windows.h ${INSTALLROOT}/include/ast/ast_windows.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_windows.h generated
 	make ${INSTALLROOT}/include/ast/ccode.h
 		prev include/ccode.h
-		exec - if cmp 2>/dev/null -s include/ccode.h ${INSTALLROOT}/include/ast/ccode.h
-		exec - then :
-		exec - else ${STDCP} include/ccode.h ${INSTALLROOT}/include/ast/ccode.h
+		exec - if ! cmp -s include/ccode.h ${INSTALLROOT}/include/ast/ccode.h
+		exec - then ${STDCP} include/ccode.h ${INSTALLROOT}/include/ast/ccode.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ccode.h generated
 	make ${INSTALLROOT}/include/ast/cdt.h
 		prev include/cdt.h
-		exec - if cmp 2>/dev/null -s include/cdt.h ${INSTALLROOT}/include/ast/cdt.h
-		exec - then :
-		exec - else ${STDCP} include/cdt.h ${INSTALLROOT}/include/ast/cdt.h
+		exec - if ! cmp -s include/cdt.h ${INSTALLROOT}/include/ast/cdt.h
+		exec - then ${STDCP} include/cdt.h ${INSTALLROOT}/include/ast/cdt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/cdt.h generated
 	make ${INSTALLROOT}/include/ast/cdtlib.h
 		prev cdt/cdtlib.h
-		exec - if cmp 2>/dev/null -s cdt/cdtlib.h ${INSTALLROOT}/include/ast/cdtlib.h
-		exec - then :
-		exec - else ${STDCP} cdt/cdtlib.h ${INSTALLROOT}/include/ast/cdtlib.h
+		exec - if ! cmp -s cdt/cdtlib.h ${INSTALLROOT}/include/ast/cdtlib.h
+		exec - then ${STDCP} cdt/cdtlib.h ${INSTALLROOT}/include/ast/cdtlib.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/cdtlib.h generated
 	make ${INSTALLROOT}/include/ast/cmdarg.h
 		prev include/cmdarg.h
-		exec - if cmp 2>/dev/null -s include/cmdarg.h ${INSTALLROOT}/include/ast/cmdarg.h
-		exec - then :
-		exec - else ${STDCP} include/cmdarg.h ${INSTALLROOT}/include/ast/cmdarg.h
+		exec - if ! cmp -s include/cmdarg.h ${INSTALLROOT}/include/ast/cmdarg.h
+		exec - then ${STDCP} include/cmdarg.h ${INSTALLROOT}/include/ast/cmdarg.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/cmdarg.h generated
 	make ${INSTALLROOT}/include/ast/debug.h
 		prev include/debug.h
-		exec - if cmp 2>/dev/null -s include/debug.h ${INSTALLROOT}/include/ast/debug.h
-		exec - then :
-		exec - else ${STDCP} include/debug.h ${INSTALLROOT}/include/ast/debug.h
+		exec - if ! cmp -s include/debug.h ${INSTALLROOT}/include/ast/debug.h
+		exec - then ${STDCP} include/debug.h ${INSTALLROOT}/include/ast/debug.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/debug.h generated
 	make ${INSTALLROOT}/include/ast/dt.h
 		prev include/dt.h
-		exec - if cmp 2>/dev/null -s include/dt.h ${INSTALLROOT}/include/ast/dt.h
-		exec - then :
-		exec - else ${STDCP} include/dt.h ${INSTALLROOT}/include/ast/dt.h
+		exec - if ! cmp -s include/dt.h ${INSTALLROOT}/include/ast/dt.h
+		exec - then ${STDCP} include/dt.h ${INSTALLROOT}/include/ast/dt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/dt.h generated
 	make ${INSTALLROOT}/include/ast/error.h
 		prev include/error.h
-		exec - if cmp 2>/dev/null -s include/error.h ${INSTALLROOT}/include/ast/error.h
-		exec - then :
-		exec - else ${STDCP} include/error.h ${INSTALLROOT}/include/ast/error.h
+		exec - if ! cmp -s include/error.h ${INSTALLROOT}/include/ast/error.h
+		exec - then ${STDCP} include/error.h ${INSTALLROOT}/include/ast/error.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/error.h generated
 	make ${INSTALLROOT}/include/ast/find.h
 		prev include/find.h
-		exec - if cmp 2>/dev/null -s include/find.h ${INSTALLROOT}/include/ast/find.h
-		exec - then :
-		exec - else ${STDCP} include/find.h ${INSTALLROOT}/include/ast/find.h
+		exec - if ! cmp -s include/find.h ${INSTALLROOT}/include/ast/find.h
+		exec - then ${STDCP} include/find.h ${INSTALLROOT}/include/ast/find.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/find.h generated
 	make ${INSTALLROOT}/include/ast/ftw.h
 		prev comp/ftw.h
-		exec - if cmp 2>/dev/null -s comp/ftw.h ${INSTALLROOT}/include/ast/ftw.h
-		exec - then :
-		exec - else ${STDCP} comp/ftw.h ${INSTALLROOT}/include/ast/ftw.h
+		exec - if ! cmp -s comp/ftw.h ${INSTALLROOT}/include/ast/ftw.h
+		exec - then ${STDCP} comp/ftw.h ${INSTALLROOT}/include/ast/ftw.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ftw.h generated
 	make ${INSTALLROOT}/include/ast/ftwalk.h
 		prev include/ftwalk.h
-		exec - if cmp 2>/dev/null -s include/ftwalk.h ${INSTALLROOT}/include/ast/ftwalk.h
-		exec - then :
-		exec - else ${STDCP} include/ftwalk.h ${INSTALLROOT}/include/ast/ftwalk.h
+		exec - if ! cmp -s include/ftwalk.h ${INSTALLROOT}/include/ast/ftwalk.h
+		exec - then ${STDCP} include/ftwalk.h ${INSTALLROOT}/include/ast/ftwalk.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ftwalk.h generated
 	make ${INSTALLROOT}/include/ast/fts.h
 		prev include/fts.h
-		exec - if cmp 2>/dev/null -s include/fts.h ${INSTALLROOT}/include/ast/fts.h
-		exec - then :
-		exec - else ${STDCP} include/fts.h ${INSTALLROOT}/include/ast/fts.h
+		exec - if ! cmp -s include/fts.h ${INSTALLROOT}/include/ast/fts.h
+		exec - then ${STDCP} include/fts.h ${INSTALLROOT}/include/ast/fts.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/fts.h generated
 	make ${INSTALLROOT}/include/ast/getopt.h
 		prev comp/getopt.h
-		exec - if cmp 2>/dev/null -s comp/getopt.h ${INSTALLROOT}/include/ast/getopt.h
-		exec - then :
-		exec - else ${STDCP} comp/getopt.h ${INSTALLROOT}/include/ast/getopt.h
+		exec - if ! cmp -s comp/getopt.h ${INSTALLROOT}/include/ast/getopt.h
+		exec - then ${STDCP} comp/getopt.h ${INSTALLROOT}/include/ast/getopt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/getopt.h generated
 	make ${INSTALLROOT}/include/ast/glob.h
 		prev include/glob.h
-		exec - if cmp 2>/dev/null -s include/glob.h ${INSTALLROOT}/include/ast/glob.h
-		exec - then :
-		exec - else ${STDCP} include/glob.h ${INSTALLROOT}/include/ast/glob.h
+		exec - if ! cmp -s include/glob.h ${INSTALLROOT}/include/ast/glob.h
+		exec - then ${STDCP} include/glob.h ${INSTALLROOT}/include/ast/glob.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/glob.h generated
 	make ${INSTALLROOT}/include/ast/hash.h
 		prev include/hash.h
-		exec - if cmp 2>/dev/null -s include/hash.h ${INSTALLROOT}/include/ast/hash.h
-		exec - then :
-		exec - else ${STDCP} include/hash.h ${INSTALLROOT}/include/ast/hash.h
+		exec - if ! cmp -s include/hash.h ${INSTALLROOT}/include/ast/hash.h
+		exec - then ${STDCP} include/hash.h ${INSTALLROOT}/include/ast/hash.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/hash.h generated
 	make ${INSTALLROOT}/include/ast/hashkey.h
 		prev include/hashkey.h
-		exec - if cmp 2>/dev/null -s include/hashkey.h ${INSTALLROOT}/include/ast/hashkey.h
-		exec - then :
-		exec - else ${STDCP} include/hashkey.h ${INSTALLROOT}/include/ast/hashkey.h
+		exec - if ! cmp -s include/hashkey.h ${INSTALLROOT}/include/ast/hashkey.h
+		exec - then ${STDCP} include/hashkey.h ${INSTALLROOT}/include/ast/hashkey.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/hashkey.h generated
 	make ${INSTALLROOT}/include/ast/hashpart.h
 		prev include/hashpart.h
-		exec - if cmp 2>/dev/null -s include/hashpart.h ${INSTALLROOT}/include/ast/hashpart.h
-		exec - then :
-		exec - else ${STDCP} include/hashpart.h ${INSTALLROOT}/include/ast/hashpart.h
+		exec - if ! cmp -s include/hashpart.h ${INSTALLROOT}/include/ast/hashpart.h
+		exec - then ${STDCP} include/hashpart.h ${INSTALLROOT}/include/ast/hashpart.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/hashpart.h generated
 	make ${INSTALLROOT}/include/ast/ip6.h
 		prev include/ip6.h
-		exec - if cmp 2>/dev/null -s include/ip6.h ${INSTALLROOT}/include/ast/ip6.h
-		exec - then :
-		exec - else ${STDCP} include/ip6.h ${INSTALLROOT}/include/ast/ip6.h
+		exec - if ! cmp -s include/ip6.h ${INSTALLROOT}/include/ast/ip6.h
+		exec - then ${STDCP} include/ip6.h ${INSTALLROOT}/include/ast/ip6.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ip6.h generated
 	make ${INSTALLROOT}/include/ast/lc.h
 		prev lc.h
-		exec - if cmp 2>/dev/null -s lc.h ${INSTALLROOT}/include/ast/lc.h
-		exec - then :
-		exec - else ${STDCP} lc.h ${INSTALLROOT}/include/ast/lc.h
+		exec - if ! cmp -s lc.h ${INSTALLROOT}/include/ast/lc.h
+		exec - then ${STDCP} lc.h ${INSTALLROOT}/include/ast/lc.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/lc.h generated
 	make ${INSTALLROOT}/include/ast/ls.h
 		prev include/ls.h
-		exec - if cmp 2>/dev/null -s include/ls.h ${INSTALLROOT}/include/ast/ls.h
-		exec - then :
-		exec - else ${STDCP} include/ls.h ${INSTALLROOT}/include/ast/ls.h
+		exec - if ! cmp -s include/ls.h ${INSTALLROOT}/include/ast/ls.h
+		exec - then ${STDCP} include/ls.h ${INSTALLROOT}/include/ast/ls.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ls.h generated
 	make ${INSTALLROOT}/include/ast/magic.h
 		prev include/magic.h
-		exec - if cmp 2>/dev/null -s include/magic.h ${INSTALLROOT}/include/ast/magic.h
-		exec - then :
-		exec - else ${STDCP} include/magic.h ${INSTALLROOT}/include/ast/magic.h
+		exec - if ! cmp -s include/magic.h ${INSTALLROOT}/include/ast/magic.h
+		exec - then ${STDCP} include/magic.h ${INSTALLROOT}/include/ast/magic.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/magic.h generated
 	make ${INSTALLROOT}/include/ast/mc.h
 		prev include/mc.h
-		exec - if cmp 2>/dev/null -s include/mc.h ${INSTALLROOT}/include/ast/mc.h
-		exec - then :
-		exec - else ${STDCP} include/mc.h ${INSTALLROOT}/include/ast/mc.h
+		exec - if ! cmp -s include/mc.h ${INSTALLROOT}/include/ast/mc.h
+		exec - then ${STDCP} include/mc.h ${INSTALLROOT}/include/ast/mc.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/mc.h generated
 	make ${INSTALLROOT}/include/ast/mime.h
 		prev include/mime.h
-		exec - if cmp 2>/dev/null -s include/mime.h ${INSTALLROOT}/include/ast/mime.h
-		exec - then :
-		exec - else ${STDCP} include/mime.h ${INSTALLROOT}/include/ast/mime.h
+		exec - if ! cmp -s include/mime.h ${INSTALLROOT}/include/ast/mime.h
+		exec - then ${STDCP} include/mime.h ${INSTALLROOT}/include/ast/mime.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/mime.h generated
 	make ${INSTALLROOT}/include/ast/mnt.h
 		prev include/mnt.h
-		exec - if cmp 2>/dev/null -s include/mnt.h ${INSTALLROOT}/include/ast/mnt.h
-		exec - then :
-		exec - else ${STDCP} include/mnt.h ${INSTALLROOT}/include/ast/mnt.h
+		exec - if ! cmp -s include/mnt.h ${INSTALLROOT}/include/ast/mnt.h
+		exec - then ${STDCP} include/mnt.h ${INSTALLROOT}/include/ast/mnt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/mnt.h generated
 	make ${INSTALLROOT}/include/ast/modecanon.h
 		prev include/modecanon.h
-		exec - if cmp 2>/dev/null -s include/modecanon.h ${INSTALLROOT}/include/ast/modecanon.h
-		exec - then :
-		exec - else ${STDCP} include/modecanon.h ${INSTALLROOT}/include/ast/modecanon.h
+		exec - if ! cmp -s include/modecanon.h ${INSTALLROOT}/include/ast/modecanon.h
+		exec - then ${STDCP} include/modecanon.h ${INSTALLROOT}/include/ast/modecanon.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/modecanon.h generated
 	make ${INSTALLROOT}/include/ast/modex.h
 		prev include/modex.h
-		exec - if cmp 2>/dev/null -s include/modex.h ${INSTALLROOT}/include/ast/modex.h
-		exec - then :
-		exec - else ${STDCP} include/modex.h ${INSTALLROOT}/include/ast/modex.h
+		exec - if ! cmp -s include/modex.h ${INSTALLROOT}/include/ast/modex.h
+		exec - then ${STDCP} include/modex.h ${INSTALLROOT}/include/ast/modex.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/modex.h generated
 	make ${INSTALLROOT}/include/ast/namval.h
 		prev include/namval.h
-		exec - if cmp 2>/dev/null -s include/namval.h ${INSTALLROOT}/include/ast/namval.h
-		exec - then :
-		exec - else ${STDCP} include/namval.h ${INSTALLROOT}/include/ast/namval.h
+		exec - if ! cmp -s include/namval.h ${INSTALLROOT}/include/ast/namval.h
+		exec - then ${STDCP} include/namval.h ${INSTALLROOT}/include/ast/namval.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/namval.h generated
 	make ${INSTALLROOT}/include/ast/option.h
 		prev include/option.h
-		exec - if cmp 2>/dev/null -s include/option.h ${INSTALLROOT}/include/ast/option.h
-		exec - then :
-		exec - else ${STDCP} include/option.h ${INSTALLROOT}/include/ast/option.h
+		exec - if ! cmp -s include/option.h ${INSTALLROOT}/include/ast/option.h
+		exec - then ${STDCP} include/option.h ${INSTALLROOT}/include/ast/option.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/option.h generated
 	make ${INSTALLROOT}/include/ast/proc.h
 		prev include/proc.h
-		exec - if cmp 2>/dev/null -s include/proc.h ${INSTALLROOT}/include/ast/proc.h
-		exec - then :
-		exec - else ${STDCP} include/proc.h ${INSTALLROOT}/include/ast/proc.h
+		exec - if ! cmp -s include/proc.h ${INSTALLROOT}/include/ast/proc.h
+		exec - then ${STDCP} include/proc.h ${INSTALLROOT}/include/ast/proc.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/proc.h generated
 	make ${INSTALLROOT}/include/ast/re_comp.h
 		prev comp/re_comp.h
-		exec - if cmp 2>/dev/null -s comp/re_comp.h ${INSTALLROOT}/include/ast/re_comp.h
-		exec - then :
-		exec - else ${STDCP} comp/re_comp.h ${INSTALLROOT}/include/ast/re_comp.h
+		exec - if ! cmp -s comp/re_comp.h ${INSTALLROOT}/include/ast/re_comp.h
+		exec - then ${STDCP} comp/re_comp.h ${INSTALLROOT}/include/ast/re_comp.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/re_comp.h generated
 	make ${INSTALLROOT}/include/ast/recfmt.h
 		prev include/recfmt.h
-		exec - if cmp 2>/dev/null -s include/recfmt.h ${INSTALLROOT}/include/ast/recfmt.h
-		exec - then :
-		exec - else ${STDCP} include/recfmt.h ${INSTALLROOT}/include/ast/recfmt.h
+		exec - if ! cmp -s include/recfmt.h ${INSTALLROOT}/include/ast/recfmt.h
+		exec - then ${STDCP} include/recfmt.h ${INSTALLROOT}/include/ast/recfmt.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/recfmt.h generated
 	make ${INSTALLROOT}/include/ast/regex.h
 		prev include/regex.h
-		exec - if cmp 2>/dev/null -s include/regex.h ${INSTALLROOT}/include/ast/regex.h
-		exec - then :
-		exec - else ${STDCP} include/regex.h ${INSTALLROOT}/include/ast/regex.h
+		exec - if ! cmp -s include/regex.h ${INSTALLROOT}/include/ast/regex.h
+		exec - then ${STDCP} include/regex.h ${INSTALLROOT}/include/ast/regex.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/regex.h generated
 	make ${INSTALLROOT}/include/ast/regexp.h
 		prev comp/regexp.h
-		exec - if cmp 2>/dev/null -s comp/regexp.h ${INSTALLROOT}/include/ast/regexp.h
-		exec - then :
-		exec - else ${STDCP} comp/regexp.h ${INSTALLROOT}/include/ast/regexp.h
+		exec - if ! cmp -s comp/regexp.h ${INSTALLROOT}/include/ast/regexp.h
+		exec - then ${STDCP} comp/regexp.h ${INSTALLROOT}/include/ast/regexp.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/regexp.h generated
 	make ${INSTALLROOT}/include/ast/sfio.h
 		prev include/sfio.h
-		exec - if cmp 2>/dev/null -s include/sfio.h ${INSTALLROOT}/include/ast/sfio.h
-		exec - then :
-		exec - else ${STDCP} include/sfio.h ${INSTALLROOT}/include/ast/sfio.h
+		exec - if ! cmp -s include/sfio.h ${INSTALLROOT}/include/ast/sfio.h
+		exec - then ${STDCP} include/sfio.h ${INSTALLROOT}/include/ast/sfio.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/sfio.h generated
 	make ${INSTALLROOT}/include/ast/sfio_s.h
 		prev include/sfio_s.h
-		exec - if cmp 2>/dev/null -s include/sfio_s.h ${INSTALLROOT}/include/ast/sfio_s.h
-		exec - then :
-		exec - else ${STDCP} include/sfio_s.h ${INSTALLROOT}/include/ast/sfio_s.h
+		exec - if ! cmp -s include/sfio_s.h ${INSTALLROOT}/include/ast/sfio_s.h
+		exec - then ${STDCP} include/sfio_s.h ${INSTALLROOT}/include/ast/sfio_s.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/sfio_s.h generated
 	make ${INSTALLROOT}/include/ast/sfio_t.h
 		prev include/sfio_t.h
-		exec - if cmp 2>/dev/null -s include/sfio_t.h ${INSTALLROOT}/include/ast/sfio_t.h
-		exec - then :
-		exec - else ${STDCP} include/sfio_t.h ${INSTALLROOT}/include/ast/sfio_t.h
+		exec - if ! cmp -s include/sfio_t.h ${INSTALLROOT}/include/ast/sfio_t.h
+		exec - then ${STDCP} include/sfio_t.h ${INSTALLROOT}/include/ast/sfio_t.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/sfio_t.h generated
 	make ${INSTALLROOT}/include/ast/sfdisc.h
 		prev include/sfdisc.h
-		exec - if cmp 2>/dev/null -s include/sfdisc.h ${INSTALLROOT}/include/ast/sfdisc.h
-		exec - then :
-		exec - else ${STDCP} include/sfdisc.h ${INSTALLROOT}/include/ast/sfdisc.h
+		exec - if ! cmp -s include/sfdisc.h ${INSTALLROOT}/include/ast/sfdisc.h
+		exec - then ${STDCP} include/sfdisc.h ${INSTALLROOT}/include/ast/sfdisc.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/sfdisc.h generated
 	make ${INSTALLROOT}/include/ast/shcmd.h
 		prev include/shcmd.h
-		exec - if cmp 2>/dev/null -s include/shcmd.h ${INSTALLROOT}/include/ast/shcmd.h
-		exec - then :
-		exec - else ${STDCP} include/shcmd.h ${INSTALLROOT}/include/ast/shcmd.h
+		exec - if ! cmp -s include/shcmd.h ${INSTALLROOT}/include/ast/shcmd.h
+		exec - then ${STDCP} include/shcmd.h ${INSTALLROOT}/include/ast/shcmd.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/shcmd.h generated
 	make ${INSTALLROOT}/include/ast/stack.h
 		prev include/stack.h
-		exec - if cmp 2>/dev/null -s include/stack.h ${INSTALLROOT}/include/ast/stack.h
-		exec - then :
-		exec - else ${STDCP} include/stack.h ${INSTALLROOT}/include/ast/stack.h
+		exec - if ! cmp -s include/stack.h ${INSTALLROOT}/include/ast/stack.h
+		exec - then ${STDCP} include/stack.h ${INSTALLROOT}/include/ast/stack.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/stack.h generated
 	make ${INSTALLROOT}/include/ast/stak.h
 		prev include/stak.h
-		exec - if cmp 2>/dev/null -s include/stak.h ${INSTALLROOT}/include/ast/stak.h
-		exec - then :
-		exec - else ${STDCP} include/stak.h ${INSTALLROOT}/include/ast/stak.h
+		exec - if ! cmp -s include/stak.h ${INSTALLROOT}/include/ast/stak.h
+		exec - then ${STDCP} include/stak.h ${INSTALLROOT}/include/ast/stak.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/stak.h generated
 	make ${INSTALLROOT}/include/ast/stk.h
 		prev include/stk.h
-		exec - if cmp 2>/dev/null -s include/stk.h ${INSTALLROOT}/include/ast/stk.h
-		exec - then :
-		exec - else ${STDCP} include/stk.h ${INSTALLROOT}/include/ast/stk.h
+		exec - if ! cmp -s include/stk.h ${INSTALLROOT}/include/ast/stk.h
+		exec - then ${STDCP} include/stk.h ${INSTALLROOT}/include/ast/stk.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/stk.h generated
 	make ${INSTALLROOT}/include/ast/swap.h
 		prev include/swap.h
-		exec - if cmp 2>/dev/null -s include/swap.h ${INSTALLROOT}/include/ast/swap.h
-		exec - then :
-		exec - else ${STDCP} include/swap.h ${INSTALLROOT}/include/ast/swap.h
+		exec - if ! cmp -s include/swap.h ${INSTALLROOT}/include/ast/swap.h
+		exec - then ${STDCP} include/swap.h ${INSTALLROOT}/include/ast/swap.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/swap.h generated
 	make ${INSTALLROOT}/include/ast/tar.h
 		make include/tar.h
 		done include/tar.h
-		exec - if cmp 2>/dev/null -s include/tar.h ${INSTALLROOT}/include/ast/tar.h
-		exec - then :
-		exec - else ${STDCP} include/tar.h ${INSTALLROOT}/include/ast/tar.h
+		exec - if ! cmp -s include/tar.h ${INSTALLROOT}/include/ast/tar.h
+		exec - then ${STDCP} include/tar.h ${INSTALLROOT}/include/ast/tar.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/tar.h generated
 	make ${INSTALLROOT}/include/ast/times.h
 		prev include/times.h
-		exec - if cmp 2>/dev/null -s include/times.h ${INSTALLROOT}/include/ast/times.h
-		exec - then :
-		exec - else ${STDCP} include/times.h ${INSTALLROOT}/include/ast/times.h
+		exec - if ! cmp -s include/times.h ${INSTALLROOT}/include/ast/times.h
+		exec - then ${STDCP} include/times.h ${INSTALLROOT}/include/ast/times.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/times.h generated
 	make ${INSTALLROOT}/include/ast/tm.h
 		prev include/tm.h
-		exec - if cmp 2>/dev/null -s include/tm.h ${INSTALLROOT}/include/ast/tm.h
-		exec - then :
-		exec - else ${STDCP} include/tm.h ${INSTALLROOT}/include/ast/tm.h
+		exec - if ! cmp -s include/tm.h ${INSTALLROOT}/include/ast/tm.h
+		exec - then ${STDCP} include/tm.h ${INSTALLROOT}/include/ast/tm.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/tm.h generated
 	make ${INSTALLROOT}/include/ast/tok.h
 		prev include/tok.h
-		exec - if cmp 2>/dev/null -s include/tok.h ${INSTALLROOT}/include/ast/tok.h
-		exec - then :
-		exec - else ${STDCP} include/tok.h ${INSTALLROOT}/include/ast/tok.h
+		exec - if ! cmp -s include/tok.h ${INSTALLROOT}/include/ast/tok.h
+		exec - then ${STDCP} include/tok.h ${INSTALLROOT}/include/ast/tok.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/tok.h generated
 	make ${INSTALLROOT}/include/ast/usage.h
 		make include/usage.h
 		done include/usage.h
-		exec - if cmp 2>/dev/null -s include/usage.h ${INSTALLROOT}/include/ast/usage.h
-		exec - then :
-		exec - else ${STDCP} include/usage.h ${INSTALLROOT}/include/ast/usage.h
+		exec - if ! cmp -s include/usage.h ${INSTALLROOT}/include/ast/usage.h
+		exec - then ${STDCP} include/usage.h ${INSTALLROOT}/include/ast/usage.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/usage.h generated
 	make ${INSTALLROOT}/include/ast/vdb.h
 		make include/vdb.h
 		done include/vdb.h
-		exec - if cmp 2>/dev/null -s include/vdb.h ${INSTALLROOT}/include/ast/vdb.h
-		exec - then :
-		exec - else ${STDCP} include/vdb.h ${INSTALLROOT}/include/ast/vdb.h
+		exec - if ! cmp -s include/vdb.h ${INSTALLROOT}/include/ast/vdb.h
+		exec - then ${STDCP} include/vdb.h ${INSTALLROOT}/include/ast/vdb.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/vdb.h generated
 	make ${INSTALLROOT}/include/ast/vecargs.h
 		prev include/vecargs.h
-		exec - if cmp 2>/dev/null -s include/vecargs.h ${INSTALLROOT}/include/ast/vecargs.h
-		exec - then :
-		exec - else ${STDCP} include/vecargs.h ${INSTALLROOT}/include/ast/vecargs.h
+		exec - if ! cmp -s include/vecargs.h ${INSTALLROOT}/include/ast/vecargs.h
+		exec - then ${STDCP} include/vecargs.h ${INSTALLROOT}/include/ast/vecargs.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/vecargs.h generated
 	make ${INSTALLROOT}/include/ast/vmalloc.h
 		prev include/vmalloc.h
-		exec - if cmp 2>/dev/null -s include/vmalloc.h ${INSTALLROOT}/include/ast/vmalloc.h
-		exec - then :
-		exec - else ${STDCP} include/vmalloc.h ${INSTALLROOT}/include/ast/vmalloc.h
+		exec - if ! cmp -s include/vmalloc.h ${INSTALLROOT}/include/ast/vmalloc.h
+		exec - then ${STDCP} include/vmalloc.h ${INSTALLROOT}/include/ast/vmalloc.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/vmalloc.h generated
 	make ${INSTALLROOT}/include/ast/wait.h
 		prev include/wait.h
-		exec - if cmp 2>/dev/null -s include/wait.h ${INSTALLROOT}/include/ast/wait.h
-		exec - then :
-		exec - else ${STDCP} include/wait.h ${INSTALLROOT}/include/ast/wait.h
+		exec - if ! cmp -s include/wait.h ${INSTALLROOT}/include/ast/wait.h
+		exec - then ${STDCP} include/wait.h ${INSTALLROOT}/include/ast/wait.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/wait.h generated
 	make ${INSTALLROOT}/include/ast/wordexp.h
 		prev comp/wordexp.h
-		exec - if cmp 2>/dev/null -s comp/wordexp.h ${INSTALLROOT}/include/ast/wordexp.h
-		exec - then :
-		exec - else ${STDCP} comp/wordexp.h ${INSTALLROOT}/include/ast/wordexp.h
+		exec - if ! cmp -s comp/wordexp.h ${INSTALLROOT}/include/ast/wordexp.h
+		exec - then ${STDCP} comp/wordexp.h ${INSTALLROOT}/include/ast/wordexp.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/wordexp.h generated
 	make ${INSTALLROOT}/include/ast/bytesex.h
 		prev std/bytesex.h
-		exec - if cmp 2>/dev/null -s std/bytesex.h ${INSTALLROOT}/include/ast/bytesex.h
-		exec - then :
-		exec - else ${STDCP} std/bytesex.h ${INSTALLROOT}/include/ast/bytesex.h
+		exec - if ! cmp -s std/bytesex.h ${INSTALLROOT}/include/ast/bytesex.h
+		exec - then ${STDCP} std/bytesex.h ${INSTALLROOT}/include/ast/bytesex.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/bytesex.h generated
 	make ${INSTALLROOT}/include/ast/endian.h
 		prev std/endian.h
-		exec - if cmp 2>/dev/null -s std/endian.h ${INSTALLROOT}/include/ast/endian.h
-		exec - then :
-		exec - else ${STDCP} std/endian.h ${INSTALLROOT}/include/ast/endian.h
+		exec - if ! cmp -s std/endian.h ${INSTALLROOT}/include/ast/endian.h
+		exec - then ${STDCP} std/endian.h ${INSTALLROOT}/include/ast/endian.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/endian.h generated
 	make ${INSTALLROOT}/include/ast/fnmatch.h
 		prev comp/fnmatch.h
-		exec - if cmp 2>/dev/null -s comp/fnmatch.h ${INSTALLROOT}/include/ast/fnmatch.h
-		exec - then :
-		exec - else ${STDCP} comp/fnmatch.h ${INSTALLROOT}/include/ast/fnmatch.h
+		exec - if ! cmp -s comp/fnmatch.h ${INSTALLROOT}/include/ast/fnmatch.h
+		exec - then ${STDCP} comp/fnmatch.h ${INSTALLROOT}/include/ast/fnmatch.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/fnmatch.h generated
 	make ${INSTALLROOT}/include/ast/magicid.h
 		make include/magicid.h
 			prev ast_common.h implicit
 		done include/magicid.h
-		exec - if cmp 2>/dev/null -s include/magicid.h ${INSTALLROOT}/include/ast/magicid.h
-		exec - then :
-		exec - else ${STDCP} include/magicid.h ${INSTALLROOT}/include/ast/magicid.h
+		exec - if ! cmp -s include/magicid.h ${INSTALLROOT}/include/ast/magicid.h
+		exec - then ${STDCP} include/magicid.h ${INSTALLROOT}/include/ast/magicid.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/magicid.h generated
 	make ${INSTALLROOT}/include/ast/fnv.h
 		prev include/fnv.h
-		exec - if cmp 2>/dev/null -s include/fnv.h ${INSTALLROOT}/include/ast/fnv.h
-		exec - then :
-		exec - else ${STDCP} include/fnv.h ${INSTALLROOT}/include/ast/fnv.h
+		exec - if ! cmp -s include/fnv.h ${INSTALLROOT}/include/ast/fnv.h
+		exec - then ${STDCP} include/fnv.h ${INSTALLROOT}/include/ast/fnv.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/fnv.h generated
 	make ${INSTALLROOT}/include/ast/aso.h
 		prev include/aso.h
-		exec - if cmp 2>/dev/null -s include/aso.h ${INSTALLROOT}/include/ast/aso.h
-		exec - then :
-		exec - else ${STDCP} include/aso.h ${INSTALLROOT}/include/ast/aso.h
+		exec - if ! cmp -s include/aso.h ${INSTALLROOT}/include/ast/aso.h
+		exec - then ${STDCP} include/aso.h ${INSTALLROOT}/include/ast/aso.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/aso.h generated
 	make ${INSTALLROOT}/include/ast/dirent.h
 		prev std/dirent.h
-		exec - if cmp 2>/dev/null -s std/dirent.h ${INSTALLROOT}/include/ast/dirent.h
-		exec - then :
-		exec - else ${STDCP} std/dirent.h ${INSTALLROOT}/include/ast/dirent.h
+		exec - if ! cmp -s std/dirent.h ${INSTALLROOT}/include/ast/dirent.h
+		exec - then ${STDCP} std/dirent.h ${INSTALLROOT}/include/ast/dirent.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/dirent.h generated
 	make ${INSTALLROOT}/include/ast/iconv.h
 		prev std/iconv.h
-		exec - if cmp 2>/dev/null -s std/iconv.h ${INSTALLROOT}/include/ast/iconv.h
-		exec - then :
-		exec - else ${STDCP} std/iconv.h ${INSTALLROOT}/include/ast/iconv.h
+		exec - if ! cmp -s std/iconv.h ${INSTALLROOT}/include/ast/iconv.h
+		exec - then ${STDCP} std/iconv.h ${INSTALLROOT}/include/ast/iconv.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/iconv.h generated
 	make ${INSTALLROOT}/include/ast/nl_types.h
 		prev std/nl_types.h
-		exec - if cmp 2>/dev/null -s std/nl_types.h ${INSTALLROOT}/include/ast/nl_types.h
-		exec - then :
-		exec - else ${STDCP} std/nl_types.h ${INSTALLROOT}/include/ast/nl_types.h
+		exec - if ! cmp -s std/nl_types.h ${INSTALLROOT}/include/ast/nl_types.h
+		exec - then ${STDCP} std/nl_types.h ${INSTALLROOT}/include/ast/nl_types.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/nl_types.h generated
 	make ${INSTALLROOT}/include/ast/stdio.h
 		prev std/stdio.h
-		exec - if cmp 2>/dev/null -s std/stdio.h ${INSTALLROOT}/include/ast/stdio.h
-		exec - then :
-		exec - else ${STDCP} std/stdio.h ${INSTALLROOT}/include/ast/stdio.h
+		exec - if ! cmp -s std/stdio.h ${INSTALLROOT}/include/ast/stdio.h
+		exec - then ${STDCP} std/stdio.h ${INSTALLROOT}/include/ast/stdio.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/stdio.h generated
 	make ${INSTALLROOT}/include/ast/wchar.h
 		prev std/wchar.h
-		exec - if cmp 2>/dev/null -s std/wchar.h ${INSTALLROOT}/include/ast/wchar.h
-		exec - then :
-		exec - else ${STDCP} std/wchar.h ${INSTALLROOT}/include/ast/wchar.h
+		exec - if ! cmp -s std/wchar.h ${INSTALLROOT}/include/ast/wchar.h
+		exec - then ${STDCP} std/wchar.h ${INSTALLROOT}/include/ast/wchar.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/wchar.h generated
 	make ${INSTALLROOT}/include/ast/wctype.h
 		prev std/wctype.h
-		exec - if cmp 2>/dev/null -s std/wctype.h ${INSTALLROOT}/include/ast/wctype.h
-		exec - then :
-		exec - else ${STDCP} std/wctype.h ${INSTALLROOT}/include/ast/wctype.h
+		exec - if ! cmp -s std/wctype.h ${INSTALLROOT}/include/ast/wctype.h
+		exec - then ${STDCP} std/wctype.h ${INSTALLROOT}/include/ast/wctype.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/wctype.h generated
 	make ${INSTALLROOT}/include/ast/align.h
 		prev align.h
-		exec - if cmp 2>/dev/null -s align.h ${INSTALLROOT}/include/ast/align.h
-		exec - then :
-		exec - else ${STDCP} align.h ${INSTALLROOT}/include/ast/align.h
+		exec - if ! cmp -s align.h ${INSTALLROOT}/include/ast/align.h
+		exec - then ${STDCP} align.h ${INSTALLROOT}/include/ast/align.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/align.h generated
 	make ${INSTALLROOT}/include/ast/preroot.h
 		prev preroot.h
-		exec - if cmp 2>/dev/null -s preroot.h ${INSTALLROOT}/include/ast/preroot.h
-		exec - then :
-		exec - else ${STDCP} preroot.h ${INSTALLROOT}/include/ast/preroot.h
+		exec - if ! cmp -s preroot.h ${INSTALLROOT}/include/ast/preroot.h
+		exec - then ${STDCP} preroot.h ${INSTALLROOT}/include/ast/preroot.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/preroot.h generated
 	make ${INSTALLROOT}/include/ast/sig.h
 		prev sig.h
-		exec - if cmp 2>/dev/null -s sig.h ${INSTALLROOT}/include/ast/sig.h
-		exec - then :
-		exec - else ${STDCP} sig.h ${INSTALLROOT}/include/ast/sig.h
+		exec - if ! cmp -s sig.h ${INSTALLROOT}/include/ast/sig.h
+		exec - then ${STDCP} sig.h ${INSTALLROOT}/include/ast/sig.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/sig.h generated
 	make ${INSTALLROOT}/include/ast/tmx.h
 		prev tmx.h
-		exec - if cmp 2>/dev/null -s tmx.h ${INSTALLROOT}/include/ast/tmx.h
-		exec - then :
-		exec - else ${STDCP} tmx.h ${INSTALLROOT}/include/ast/tmx.h
+		exec - if ! cmp -s tmx.h ${INSTALLROOT}/include/ast/tmx.h
+		exec - then ${STDCP} tmx.h ${INSTALLROOT}/include/ast/tmx.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/tmx.h generated
 	make ${INSTALLROOT}/include/ast/tv.h
 		prev tv.h
-		exec - if cmp 2>/dev/null -s tv.h ${INSTALLROOT}/include/ast/tv.h
-		exec - then :
-		exec - else ${STDCP} tv.h ${INSTALLROOT}/include/ast/tv.h
+		exec - if ! cmp -s tv.h ${INSTALLROOT}/include/ast/tv.h
+		exec - then ${STDCP} tv.h ${INSTALLROOT}/include/ast/tv.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/tv.h generated
 	make ${INSTALLROOT}/include/ast/ast_api.h
 		prev ast_api.h
-		exec - if cmp 2>/dev/null -s ast_api.h ${INSTALLROOT}/include/ast/ast_api.h
-		exec - then :
-		exec - else ${STDCP} ast_api.h ${INSTALLROOT}/include/ast/ast_api.h
+		exec - if ! cmp -s ast_api.h ${INSTALLROOT}/include/ast/ast_api.h
+		exec - then ${STDCP} ast_api.h ${INSTALLROOT}/include/ast/ast_api.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_api.h generated
 	make ${INSTALLROOT}/include/ast/ast_botch.h
 		prev ast_botch.h
-		exec - if cmp 2>/dev/null -s ast_botch.h ${INSTALLROOT}/include/ast/ast_botch.h
-		exec - then :
-		exec - else ${STDCP} ast_botch.h ${INSTALLROOT}/include/ast/ast_botch.h
+		exec - if ! cmp -s ast_botch.h ${INSTALLROOT}/include/ast/ast_botch.h
+		exec - then ${STDCP} ast_botch.h ${INSTALLROOT}/include/ast/ast_botch.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_botch.h generated
 	make ${INSTALLROOT}/include/ast/ast_ccode.h
 		prev ast_ccode.h
-		exec - if cmp 2>/dev/null -s ast_ccode.h ${INSTALLROOT}/include/ast/ast_ccode.h
-		exec - then :
-		exec - else ${STDCP} ast_ccode.h ${INSTALLROOT}/include/ast/ast_ccode.h
+		exec - if ! cmp -s ast_ccode.h ${INSTALLROOT}/include/ast/ast_ccode.h
+		exec - then ${STDCP} ast_ccode.h ${INSTALLROOT}/include/ast/ast_ccode.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_ccode.h generated
 	make ${INSTALLROOT}/include/ast/ast_fcntl.h
 		prev ast_fcntl.h
-		exec - if cmp 2>/dev/null -s ast_fcntl.h ${INSTALLROOT}/include/ast/ast_fcntl.h
-		exec - then :
-		exec - else ${STDCP} ast_fcntl.h ${INSTALLROOT}/include/ast/ast_fcntl.h
+		exec - if ! cmp -s ast_fcntl.h ${INSTALLROOT}/include/ast/ast_fcntl.h
+		exec - then ${STDCP} ast_fcntl.h ${INSTALLROOT}/include/ast/ast_fcntl.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_fcntl.h generated
 	make ${INSTALLROOT}/include/ast/ast_float.h
 		make ast_float.h
 			prev FEATURE/float
-			exec - cmp 2>/dev/null -s FEATURE/float ast_float.h || { rm -f ast_float.h; silent test -d . || mkdir .; ${STDCP} FEATURE/float ast_float.h; }
+			exec - cmp -s FEATURE/float ast_float.h || { rm -f ast_float.h; silent test -d . || mkdir .; ${STDCP} FEATURE/float ast_float.h; }
 			prev ast_common.h implicit
 		done ast_float.h generated
-		exec - if cmp 2>/dev/null -s ast_float.h ${INSTALLROOT}/include/ast/ast_float.h
-		exec - then :
-		exec - else ${STDCP} ast_float.h ${INSTALLROOT}/include/ast/ast_float.h
+		exec - if ! cmp -s ast_float.h ${INSTALLROOT}/include/ast/ast_float.h
+		exec - then ${STDCP} ast_float.h ${INSTALLROOT}/include/ast/ast_float.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_float.h generated
 	make ${INSTALLROOT}/include/ast/ast_fs.h
 		prev ast_fs.h
-		exec - if cmp 2>/dev/null -s ast_fs.h ${INSTALLROOT}/include/ast/ast_fs.h
-		exec - then :
-		exec - else ${STDCP} ast_fs.h ${INSTALLROOT}/include/ast/ast_fs.h
+		exec - if ! cmp -s ast_fs.h ${INSTALLROOT}/include/ast/ast_fs.h
+		exec - then ${STDCP} ast_fs.h ${INSTALLROOT}/include/ast/ast_fs.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_fs.h generated
 	make ${INSTALLROOT}/include/ast/ast_lib.h
 		prev ast_lib.h
-		exec - if cmp 2>/dev/null -s ast_lib.h ${INSTALLROOT}/include/ast/ast_lib.h
-		exec - then :
-		exec - else ${STDCP} ast_lib.h ${INSTALLROOT}/include/ast/ast_lib.h
+		exec - if ! cmp -s ast_lib.h ${INSTALLROOT}/include/ast/ast_lib.h
+		exec - then ${STDCP} ast_lib.h ${INSTALLROOT}/include/ast/ast_lib.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_lib.h generated
 	make ${INSTALLROOT}/include/ast/ast_map.h
 		prev ast_map.h
-		exec - if cmp 2>/dev/null -s ast_map.h ${INSTALLROOT}/include/ast/ast_map.h
-		exec - then :
-		exec - else ${STDCP} ast_map.h ${INSTALLROOT}/include/ast/ast_map.h
+		exec - if ! cmp -s ast_map.h ${INSTALLROOT}/include/ast/ast_map.h
+		exec - then ${STDCP} ast_map.h ${INSTALLROOT}/include/ast/ast_map.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_map.h generated
 	make ${INSTALLROOT}/include/ast/ast_mmap.h
 		prev ast_mmap.h
-		exec - if cmp 2>/dev/null -s ast_mmap.h ${INSTALLROOT}/include/ast/ast_mmap.h
-		exec - then :
-		exec - else ${STDCP} ast_mmap.h ${INSTALLROOT}/include/ast/ast_mmap.h
+		exec - if ! cmp -s ast_mmap.h ${INSTALLROOT}/include/ast/ast_mmap.h
+		exec - then ${STDCP} ast_mmap.h ${INSTALLROOT}/include/ast/ast_mmap.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_mmap.h generated
 	make ${INSTALLROOT}/include/ast/ast_mode.h
 		prev ast_mode.h
-		exec - if cmp 2>/dev/null -s ast_mode.h ${INSTALLROOT}/include/ast/ast_mode.h
-		exec - then :
-		exec - else ${STDCP} ast_mode.h ${INSTALLROOT}/include/ast/ast_mode.h
+		exec - if ! cmp -s ast_mode.h ${INSTALLROOT}/include/ast/ast_mode.h
+		exec - then ${STDCP} ast_mode.h ${INSTALLROOT}/include/ast/ast_mode.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_mode.h generated
 	make ${INSTALLROOT}/include/ast/ast_ndbm.h
@@ -6993,67 +6908,58 @@ make install
 				exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/ndbm
 				prev std/stdio.h implicit
 			done FEATURE/ndbm generated
-			exec - cmp 2>/dev/null -s FEATURE/ndbm ast_ndbm.h || { rm -f ast_ndbm.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ndbm ast_ndbm.h; }
+			exec - cmp -s FEATURE/ndbm ast_ndbm.h || { rm -f ast_ndbm.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ndbm ast_ndbm.h; }
 		done ast_ndbm.h generated
-		exec - if cmp 2>/dev/null -s ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
-		exec - then :
-		exec - else ${STDCP} ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
+		exec - if ! cmp -s ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
+		exec - then ${STDCP} ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_ndbm.h generated
 	make ${INSTALLROOT}/include/ast/ast_param.h
 		prev ast_param.h
-		exec - if cmp 2>/dev/null -s ast_param.h ${INSTALLROOT}/include/ast/ast_param.h
-		exec - then :
-		exec - else ${STDCP} ast_param.h ${INSTALLROOT}/include/ast/ast_param.h
+		exec - if ! cmp -s ast_param.h ${INSTALLROOT}/include/ast/ast_param.h
+		exec - then ${STDCP} ast_param.h ${INSTALLROOT}/include/ast/ast_param.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_param.h generated
 	make ${INSTALLROOT}/include/ast/ast_sys.h
 		prev ast_sys.h
-		exec - if cmp 2>/dev/null -s ast_sys.h ${INSTALLROOT}/include/ast/ast_sys.h
-		exec - then :
-		exec - else ${STDCP} ast_sys.h ${INSTALLROOT}/include/ast/ast_sys.h
+		exec - if ! cmp -s ast_sys.h ${INSTALLROOT}/include/ast/ast_sys.h
+		exec - then ${STDCP} ast_sys.h ${INSTALLROOT}/include/ast/ast_sys.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_sys.h generated
 	make ${INSTALLROOT}/include/ast/ast_time.h
 		prev ast_time.h
-		exec - if cmp 2>/dev/null -s ast_time.h ${INSTALLROOT}/include/ast/ast_time.h
-		exec - then :
-		exec - else ${STDCP} ast_time.h ${INSTALLROOT}/include/ast/ast_time.h
+		exec - if ! cmp -s ast_time.h ${INSTALLROOT}/include/ast/ast_time.h
+		exec - then ${STDCP} ast_time.h ${INSTALLROOT}/include/ast/ast_time.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_time.h generated
 	make ${INSTALLROOT}/include/ast/ast_tty.h
 		prev ast_tty.h
-		exec - if cmp 2>/dev/null -s ast_tty.h ${INSTALLROOT}/include/ast/ast_tty.h
-		exec - then :
-		exec - else ${STDCP} ast_tty.h ${INSTALLROOT}/include/ast/ast_tty.h
+		exec - if ! cmp -s ast_tty.h ${INSTALLROOT}/include/ast/ast_tty.h
+		exec - then ${STDCP} ast_tty.h ${INSTALLROOT}/include/ast/ast_tty.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_tty.h generated
 	make ${INSTALLROOT}/include/ast/ast_vfork.h
 		prev ast_vfork.h
-		exec - if cmp 2>/dev/null -s ast_vfork.h ${INSTALLROOT}/include/ast/ast_vfork.h
-		exec - then :
-		exec - else ${STDCP} ast_vfork.h ${INSTALLROOT}/include/ast/ast_vfork.h
+		exec - if ! cmp -s ast_vfork.h ${INSTALLROOT}/include/ast/ast_vfork.h
+		exec - then ${STDCP} ast_vfork.h ${INSTALLROOT}/include/ast/ast_vfork.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_vfork.h generated
 	make ${INSTALLROOT}/include/ast/ast_wait.h
 		prev ast_wait.h
-		exec - if cmp 2>/dev/null -s ast_wait.h ${INSTALLROOT}/include/ast/ast_wait.h
-		exec - then :
-		exec - else ${STDCP} ast_wait.h ${INSTALLROOT}/include/ast/ast_wait.h
+		exec - if ! cmp -s ast_wait.h ${INSTALLROOT}/include/ast/ast_wait.h
+		exec - then ${STDCP} ast_wait.h ${INSTALLROOT}/include/ast/ast_wait.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_wait.h generated
 	make ${INSTALLROOT}/include/ast/ast_limits.h
 		prev ast_limits.h
-		exec - if cmp 2>/dev/null -s ast_limits.h ${INSTALLROOT}/include/ast/ast_limits.h
-		exec - then :
-		exec - else ${STDCP} ast_limits.h ${INSTALLROOT}/include/ast/ast_limits.h
+		exec - if ! cmp -s ast_limits.h ${INSTALLROOT}/include/ast/ast_limits.h
+		exec - then ${STDCP} ast_limits.h ${INSTALLROOT}/include/ast/ast_limits.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_limits.h generated
 	make ${INSTALLROOT}/include/ast/ast_standards.h
 		prev ast_standards.h
-		exec - if cmp 2>/dev/null -s ast_standards.h ${INSTALLROOT}/include/ast/ast_standards.h
-		exec - then :
-		exec - else ${STDCP} ast_standards.h ${INSTALLROOT}/include/ast/ast_standards.h
+		exec - if ! cmp -s ast_standards.h ${INSTALLROOT}/include/ast/ast_standards.h
+		exec - then ${STDCP} ast_standards.h ${INSTALLROOT}/include/ast/ast_standards.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_standards.h generated
 	make ${INSTALLROOT}/include/ast/ast_sizeof.h
@@ -7064,53 +6970,46 @@ make install
 				done features/sizeof
 				exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sizeof
 			done FEATURE/sizeof generated
-			exec - cmp 2>/dev/null -s FEATURE/sizeof ast_sizeof.h || { rm -f ast_sizeof.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sizeof ast_sizeof.h; }
+			exec - cmp -s FEATURE/sizeof ast_sizeof.h || { rm -f ast_sizeof.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sizeof ast_sizeof.h; }
 		done ast_sizeof.h generated
-		exec - if cmp 2>/dev/null -s ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
-		exec - then :
-		exec - else ${STDCP} ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
+		exec - if ! cmp -s ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
+		exec - then ${STDCP} ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_sizeof.h generated
 	make ${INSTALLROOT}/include/ast/ast_dirent.h
 		prev ast_dirent.h
-		exec - if cmp 2>/dev/null -s ast_dirent.h ${INSTALLROOT}/include/ast/ast_dirent.h
-		exec - then :
-		exec - else ${STDCP} ast_dirent.h ${INSTALLROOT}/include/ast/ast_dirent.h
+		exec - if ! cmp -s ast_dirent.h ${INSTALLROOT}/include/ast/ast_dirent.h
+		exec - then ${STDCP} ast_dirent.h ${INSTALLROOT}/include/ast/ast_dirent.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_dirent.h generated
 	make ${INSTALLROOT}/include/ast/ast_iconv.h
 		prev ast_iconv.h
-		exec - if cmp 2>/dev/null -s ast_iconv.h ${INSTALLROOT}/include/ast/ast_iconv.h
-		exec - then :
-		exec - else ${STDCP} ast_iconv.h ${INSTALLROOT}/include/ast/ast_iconv.h
+		exec - if ! cmp -s ast_iconv.h ${INSTALLROOT}/include/ast/ast_iconv.h
+		exec - then ${STDCP} ast_iconv.h ${INSTALLROOT}/include/ast/ast_iconv.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_iconv.h generated
 	make ${INSTALLROOT}/include/ast/ast_nl_types.h
 		prev ast_nl_types.h
-		exec - if cmp 2>/dev/null -s ast_nl_types.h ${INSTALLROOT}/include/ast/ast_nl_types.h
-		exec - then :
-		exec - else ${STDCP} ast_nl_types.h ${INSTALLROOT}/include/ast/ast_nl_types.h
+		exec - if ! cmp -s ast_nl_types.h ${INSTALLROOT}/include/ast/ast_nl_types.h
+		exec - then ${STDCP} ast_nl_types.h ${INSTALLROOT}/include/ast/ast_nl_types.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_nl_types.h generated
 	make ${INSTALLROOT}/include/ast/ast_stdio.h
 		prev ast_stdio.h
-		exec - if cmp 2>/dev/null -s ast_stdio.h ${INSTALLROOT}/include/ast/ast_stdio.h
-		exec - then :
-		exec - else ${STDCP} ast_stdio.h ${INSTALLROOT}/include/ast/ast_stdio.h
+		exec - if ! cmp -s ast_stdio.h ${INSTALLROOT}/include/ast/ast_stdio.h
+		exec - then ${STDCP} ast_stdio.h ${INSTALLROOT}/include/ast/ast_stdio.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_stdio.h generated
 	make ${INSTALLROOT}/include/ast/ast_wchar.h
 		prev ast_wchar.h
-		exec - if cmp 2>/dev/null -s ast_wchar.h ${INSTALLROOT}/include/ast/ast_wchar.h
-		exec - then :
-		exec - else ${STDCP} ast_wchar.h ${INSTALLROOT}/include/ast/ast_wchar.h
+		exec - if ! cmp -s ast_wchar.h ${INSTALLROOT}/include/ast/ast_wchar.h
+		exec - then ${STDCP} ast_wchar.h ${INSTALLROOT}/include/ast/ast_wchar.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_wchar.h generated
 	make ${INSTALLROOT}/include/ast/ast_wctype.h
 		prev ast_wctype.h
-		exec - if cmp 2>/dev/null -s ast_wctype.h ${INSTALLROOT}/include/ast/ast_wctype.h
-		exec - then :
-		exec - else ${STDCP} ast_wctype.h ${INSTALLROOT}/include/ast/ast_wctype.h
+		exec - if ! cmp -s ast_wctype.h ${INSTALLROOT}/include/ast/ast_wctype.h
+		exec - then ${STDCP} ast_wctype.h ${INSTALLROOT}/include/ast/ast_wctype.h
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_wctype.h generated
 	make ${INSTALLROOT}/lib/file
@@ -7128,15 +7027,13 @@ make install
 	prev ast_lib.h
 	exec - case ${mam_cc_HOSTTYPE} in
 	exec - win32.*)
-	exec - if cmp 2>/dev/null -s comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
-	exec - then :
-	exec - else ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
+	exec - if ! cmp -s comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
+	exec - then ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
 	exec - fi
 	exec - ;;
 	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_fmtmsg' ast_lib.h > /dev/null || {
-	exec - if cmp 2>/dev/null -s comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
-	exec - then :
-	exec - else ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
+	exec - if ! cmp -s comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
+	exec - then ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
 	exec - fi
 	exec - }
 	exec - ;;
@@ -7145,15 +7042,13 @@ make install
 	prev ast_lib.h
 	exec - case ${mam_cc_HOSTTYPE} in
 	exec - win32.*)
-	exec - if cmp 2>/dev/null -s comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
-	exec - then :
-	exec - else ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
+	exec - if ! cmp -s comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
+	exec - then ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
 	exec - fi
 	exec - ;;
 	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_libgen' ast_lib.h > /dev/null || {
-	exec - if cmp 2>/dev/null -s comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
-	exec - then :
-	exec - else ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
+	exec - if ! cmp -s comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
+	exec - then ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
 	exec - fi
 	exec - }
 	exec - ;;
@@ -7162,15 +7057,13 @@ make install
 	prev ast_lib.h
 	exec - case ${mam_cc_HOSTTYPE} in
 	exec - win32.*)
-	exec - if cmp 2>/dev/null -s comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
-	exec - then :
-	exec - else ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
+	exec - if ! cmp -s comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
+	exec - then ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
 	exec - fi
 	exec - ;;
 	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_syslog' ast_lib.h > /dev/null || {
-	exec - if cmp 2>/dev/null -s comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
-	exec - then :
-	exec - else ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
+	exec - if ! cmp -s comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
+	exec - then ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
 	exec - fi
 	exec - }
 	exec - ;;

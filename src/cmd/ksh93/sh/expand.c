@@ -144,7 +144,6 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
  * generate the list of files found by adding an suffix to end of name
  * The number of matches is returned
  */
-
 int path_complete(const char *name,register const char *suffix, struct argnod **arghead)
 {
 	sufstr = suffix;

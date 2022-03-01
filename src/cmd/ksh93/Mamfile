@@ -1501,23 +1501,20 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/nval.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev include/nval.h
-		exec - if cmp 2>/dev/null -s include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
-		exec - then :
-		exec - else ${STDCP} include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
+		exec - if ! cmp -s include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
+		exec - then ${STDCP} include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/nval.h generated
 	make ${PACKAGE_ast_INCLUDE}/shell.h
 		prev include/shell.h
-		exec - if cmp 2>/dev/null -s include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
-		exec - then :
-		exec - else ${STDCP} include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
+		exec - if ! cmp -s include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
+		exec - then ${STDCP} include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/shell.h generated
 	make ${PACKAGE_ast_INCLUDE}/history.h
 		prev include/history.h
-		exec - if cmp 2>/dev/null -s include/history.h ${PACKAGE_ast_INCLUDE}/history.h
-		exec - then :
-		exec - else ${STDCP} include/history.h ${PACKAGE_ast_INCLUDE}/history.h
+		exec - if ! cmp -s include/history.h ${PACKAGE_ast_INCLUDE}/history.h
+		exec - then ${STDCP} include/history.h ${PACKAGE_ast_INCLUDE}/history.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/history.h generated
 	make ${INSTALLROOT}/bin/suid_exec

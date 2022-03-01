@@ -564,7 +564,6 @@ static int gettok(register struct vars *vp)
 /*   
  * evaluate a subexpression with precedence
  */
-
 static int expr(register struct vars *vp,register int precedence)
 {
 	register int	c, op;
@@ -943,7 +942,6 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
  *
  * NOTE: (*convert)() may call arith_strval()
  */
-
 Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const char**,struct lval*,int,Sfdouble_t), int emode)
 {
 	Arith_t *ep;

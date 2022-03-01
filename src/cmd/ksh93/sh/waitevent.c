@@ -26,8 +26,6 @@
  *  waiting for job completion.
  *  The previous waitevent hook function is returned
  */
-
-
 void	*sh_waitnotify(int(*newevent)(int,long,int))
 {
 	int (*old)(int,long,int);

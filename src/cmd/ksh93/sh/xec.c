@@ -2797,7 +2797,6 @@ int sh_run(int argn, char *argv[])
 /*
  * print out the command line if set -x is on
  */
-
 int sh_trace(register char *argv[], register int nl)
 {
 	if(sh_isoption(SH_XTRACE))
@@ -2862,7 +2861,6 @@ int sh_trace(register char *argv[], register int nl)
  * Traps are reset by the child
  * The process-id of the child is returned to the parent, 0 to the child.
  */
-
 static void timed_out(void *handle)
 {
 	NOT_USED(handle);

@@ -27,7 +27,6 @@
  *
  */
 
-
 #include	"defs.h"
 #include	<error.h>
 #include	<ls.h>
@@ -560,7 +559,6 @@ int test_binop(register int op,const char *left,const char *right)
 /*
  * returns the modification time of f1 - modification time of f2
  */
-
 static time_t test_time(const char *file1,const char *file2)
 {
 	Time_t t1, t2;
@@ -582,7 +580,6 @@ static time_t test_time(const char *file1,const char *file2)
 /*
  * return true if inode of two files are the same
  */
-
 int test_inode(const char *file1,const char *file2)
 {
 	struct stat stat1,stat2;
@@ -597,7 +594,6 @@ int test_inode(const char *file1,const char *file2)
  * This version of access checks against the effective UID/GID
  * The static buffer statb is shared with test_mode.
  */
-
 int sh_access(register const char *name, register int mode)
 {
 	struct stat statb;
@@ -685,7 +681,6 @@ skip:
  * If <file> is null, then the previous stat buffer is used.
  * The mode bits are zero if the file doesn't exist.
  */
-
 static int test_mode(register const char *file)
 {
 	struct stat statb;

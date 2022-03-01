@@ -376,7 +376,6 @@ static Shnode_t	*makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
  * entry to shell parser
  * Flag can be the union of SH_EOF|SH_NL
  */
-
 void	*sh_parse(Sfio_t *iop, int flag)
 {
 	register Shnode_t	*t;
@@ -507,7 +506,6 @@ Shnode_t *sh_dolparen(Lex_t* lp)
 /*
  * remove temporary files and stacks
  */
-
 void	sh_freeup(void)
 {
 	if(sh.st.staklist)
@@ -520,7 +518,6 @@ void	sh_freeup(void)
  * decrease reference count for each stack in function list when flag<=0
  * stack is freed when reference count is zero
  */
-
 void sh_funstaks(register struct slnod *slp,int flag)
 {
 	register struct slnod *slpold;
@@ -542,7 +539,6 @@ void sh_funstaks(register struct slnod *slp,int flag)
  *	list & [ cmd ]
  *	list [ ; cmd ]
  */
-
 static Shnode_t	*sh_cmd(Lex_t *lexp, register int sym, int flag)
 {
 	register Shnode_t	*left, *right;
@@ -1199,7 +1195,6 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
  *	case ... in ... esac
  *	begin ... end
  */
-
 static Shnode_t	*item(Lex_t *lexp,int flag)
 {
 	register Shnode_t	*t;
@@ -1896,7 +1891,6 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 /*
  * convert argument chain to argument list when no special arguments
  */
-
 static struct argnod *qscan(struct comnod *ac,int argn)
 {
 	register char **cp;

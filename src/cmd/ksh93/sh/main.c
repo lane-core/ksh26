@@ -85,7 +85,6 @@ static char	beenhere = 0;
  * search for file and exfile() it if it exists
  * 1 returned if file found, 0 otherwise
  */
-
 static int sh_source(Sfio_t *iop, const char *file)
 {
 	char*	oid;
@@ -373,7 +372,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
  * iop is not null when the input is a string
  * fdin is the input file descriptor 
  */
-
 static void	exfile(register Sfio_t *iop,register int fno)
 {
 	time_t curtime;

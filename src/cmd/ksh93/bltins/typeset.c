@@ -1024,7 +1024,6 @@ static int		maxlib;
  * always move to head of search list
  * return: 0: already loaded 1: first load
  */
-
 int sh_addlib(void* dll, char* name, Pathcomp_t* pp)
 {
 	register int	n;
@@ -1391,7 +1390,6 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 					sh_subfork();	/* avoid affecting the parent shell's alias table */
 				nv_delete(np,troot,nofree_attr);
 			}
-
 		}
 		else if(troot==sh.alias_tree)
 			r = 1;
@@ -1404,7 +1402,6 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 /*
  * print out the name and value of a name-value pair <np>
  */
-
 static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, struct tdata *tp)
 {
 	register char *cp;
@@ -1549,7 +1546,6 @@ static void	print_attribute(register Namval_t *np,void *data)
  * print the nodes in tree <root> which have attributes <flag> set
  * if <option> is non-zero, no subscript or value is printed
  */
-
 static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tdata *tp)
 {
 	register char **argv;
@@ -1616,7 +1612,6 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 /*
  * add the name of the node to the argument list argnam
  */
-
 static void pushname(Namval_t *np,void *data)
 {
 	struct tdata *tp = (struct tdata*)data;

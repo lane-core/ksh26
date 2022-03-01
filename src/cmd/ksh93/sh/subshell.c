@@ -471,7 +471,6 @@ void sh_subjobcheck(pid_t pid)
  * If comsub is not null, the return value will be a stream consisting of
  * output of command <t>.  Otherwise, NULL will be returned.
  */
-
 Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 {
 	struct subshell sub_data;

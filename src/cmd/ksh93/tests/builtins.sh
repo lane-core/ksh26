@@ -867,6 +867,7 @@ PATH=$save_PATH
 
 # ======
 # These are the regression tests for the whence builtin's '-t' flag
+((.sh.version >= 20211227)) &&
 for w in 'whence -t' 'type -t' 'whence -t -v'; do
 	exp=file
 	got=$($w $SHELL)
@@ -1428,6 +1429,7 @@ got="$($SHELL -i "$hist_error_leak" 2>&1)"
 
 # ======
 # printf -v works as of 2021-11-18
+((.sh.version >= 20211118)) && {
 integer ver=.sh.version
 exp=ok$'\f'0000$ver$'\n'
 printf -v got 'ok\f%012d\n' $ver 2>/dev/null
@@ -1438,6 +1440,7 @@ printf -v 'got[1][two][3]' 'ok\f%012d\n' $ver 2>/dev/null
 [[ ${got[1]["two"][3]} == "$exp" ]] || err_exit "printf -v not working with array subscripts" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 unset got ver
+}
 
 # ======
 # The rm builtin's -d option should remove files and empty directories without
@@ -1491,45 +1494,63 @@ fi
 # ======
 # These are regression tests for the cd command's -e and -P flags
 mkdir -p "$tmp/failpwd"
-ln -s "$tmp/failpwd" "$tmp/failpwd1"
-cd "$tmp/failpwd1"
-rm ../failpwd1
+cd "$tmp/failpwd"
+"$SHELL" -c 'cd /; exec rmdir "$1"' x "$tmp/failpwd"
 cd -P .
 got=$?; exp=0
 (( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
-cd -eP .
-got=$?; exp=1
-(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+if ((.sh.version >= 20211205))
+then
+	cd -eP .
+	got=$?; exp=1
+	(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+fi
+
 cd "$tmp"
 cd -P "$tmp/notadir" >/dev/null 2>&1
 got=$?; exp=1
 (( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
-cd -eP "$tmp/notadir" >/dev/null 2>&1
-got=$?; exp=2
-(( got == exp )) || err_exit "cd -eP fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+if ((.sh.version >= 20211205))
+then
+	cd -eP "$tmp/notadir" >/dev/null 2>&1
+	got=$?; exp=2
+	(( got == exp )) || err_exit "cd -eP fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+fi
+
 OLDPWD="$tmp/baddir"
 cd -P - >/dev/null 2>&1
 got=$?; exp=1
 (( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
-cd -eP - >/dev/null 2>&1
-got=$?; exp=2
-(( got == exp )) || err_exit "cd -eP fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+if ((.sh.version >= 20211205))
+then
+	cd -eP - >/dev/null 2>&1
+	got=$?; exp=2
+	(( got == exp )) || err_exit "cd -eP fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+fi
 cd "$tmp" || err_exit "couldn't change directory from nonexistent dir"
+
 (set -o restricted; cd -P /) >/dev/null 2>&1
 got=$?; exp=1
 (( got == exp )) || err_exit "cd -P in restricted shell has wrong exit status (expected $exp, got $got)"
-(set -o restricted; cd -eP /) >/dev/null 2>&1
-got=$?; exp=2
-(( got == exp )) || err_exit "cd -eP in restricted shell has wrong exit status (expected $exp, got $got)"
-(set -o restricted; cd -?) >/dev/null 2>&1
+if ((.sh.version >= 20211205))
+then
+	(set -o restricted; cd -eP /) >/dev/null 2>&1
+	got=$?; exp=2
+	(( got == exp )) || err_exit "cd -eP in restricted shell has wrong exit status (expected $exp, got $got)"
+fi
+(set -o restricted; cd -\?) >/dev/null 2>&1
 got=$?; exp=1
-(( got == exp )) || err_exit "cd -? shows usage info in restricted shell and has wrong exit status (expected $exp, got $got)"
+(( got == exp )) || err_exit "cd -\\? shows usage info in restricted shell and has wrong exit status (expected $exp, got $got)"
+
 (cd -P '') >/dev/null 2>&1
 got=$?; exp=1
 (( got == exp )) || err_exit "cd -P to empty string has wrong exit status (expected $exp, got $got)"
-(cd -eP '') >/dev/null 2>&1
-got=$?; exp=2
-(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
+if ((.sh.version >= 20211205))
+then
+	(cd -eP '') >/dev/null 2>&1
+	got=$?; exp=2
+	(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
+fi
 
 # ======
 # The head and tail builtins should work on files without newlines

@@ -25,7 +25,9 @@
  * AT&T Labs
  */
 
-#if SHOPT_MKSERVICE
+#if !SHOPT_MKSERVICE
+void _STUB_b_mkservice(){}
+#else
 
 static const char mkservice_usage[] =
 "[-?\n@(#)$Id: mkservice (AT&T Research) 2001-06-13 $\n]"

@@ -1750,7 +1750,6 @@ void sh_lexskip(Lex_t *lp,int close, register int copy, int  state)
  * noted with the IOQUOTE flag
  * returns 1 for complete here-doc, 0 for EOF
  */
-
 static int here_copy(Lex_t *lp,register struct ionod *iop)
 {
 	register const char	*state;
@@ -2071,7 +2070,6 @@ static char	*fmttoken(Lex_t *lp, register int sym)
 /*
  * print a bad syntax message
  */
-
 noreturn void sh_syntax(Lex_t *lp)
 {
 	register const char *cp = sh_translate(e_unexpected);

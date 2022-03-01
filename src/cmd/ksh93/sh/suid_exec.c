@@ -258,7 +258,6 @@ exec:
 /*
  * return true if shell ends in sh or ksh
  */
-
 static int endsh(register const char *shell)
 {
 	while(*shell)
@@ -276,7 +275,6 @@ static int endsh(register const char *shell)
 /*
  * return true if shell is in <dir> directory
  */
-
 static int in_dir(register const char *dir,register const char *shell)
 {
 	while(*dir)
@@ -298,7 +296,6 @@ static void error_exit(const char *message)
 /*
  * This version of access checks against effective UID and effective GID
  */
-
 int eaccess(register const char *name, register int mode)
 {	
 	struct stat statb;
@@ -374,7 +371,6 @@ static void setids(int mode,int owner,int group)
  * Finally, the clone is exec'd.  This file is unlinked by a grandchild
  * of this program, who waits around until the text is free.
  */
-
 static void setids(int mode,uid_t owner,gid_t group)
 {
 	register int n,m;
@@ -485,7 +481,6 @@ static void setids(int mode,uid_t owner,gid_t group)
 /*
  * create a unique name into the <template>
  */
-
 static void maketemp(char *template)
 {
 	register char *cp = template;
@@ -503,7 +498,6 @@ static void maketemp(char *template)
 /*
  *  copy THISPROG into the open file number <fdo> and close <fdo>
  */
-
 static int mycopy(int fdi, int fdo)
 {
 	char buffer[BLKSIZE];
