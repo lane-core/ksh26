@@ -20,21 +20,33 @@
 ***********************************************************************/
 #include	"defs.h"
 
-#define ENUM_ID "enum (ksh 93u+m) 2021-12-17"
+#define ENUM_ID "enum (ksh 93u+m) 2022-03-05"
 
 const char sh_optenum[] =
 "[-?@(#)$Id: " ENUM_ID " $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?enum - create an enumeration type]"
-"[+DESCRIPTION?\benum\b is a declaration command that creates an enumeration "
-    "type \atypename\a that can only store any one of the values in the indexed "
-    "array variable \atypename\a.]"
+"[+DESCRIPTION?\benum\b is a declaration command that creates one or more "
+	"enumeration type declaration commands named \atypename\a. Variables "
+	"of the created type can only store any one of the \avalue\as given. "
+	"For example, \benum bool=(false true)\b creates a Boolean variable "
+	"type of which variables may be declared like \bbool x=true y=false\b.]"
 "[+?If the list of \avalue\as is omitted, then \atypename\a must name an "
     "indexed array variable with at least two elements.]" 
-"[+?For more information, see \atypename\a \b--man\b.]"
+"[+?For more information, create a type, then use \atypename\a \b--man\b.]"
+"[+USE IN ARITHMETIC EXPRESSIONS?When an enumeration variable is used in an "
+	"arithmetic expression, its value is the index into the array that "
+	"defined it, starting from 0. Taking the \bbool\b type from the "
+	"example above, if a variable of this type is used in an arithmetic "
+	"expression, \bfalse\b translates to 0 and \btrue\b to 1.]"
+"[+?Enumeration values may also be used directly in an arithmetic expression "
+	"that refers to a variable of an enumeration type. "
+	"To continue our example, for a \bbool\b variable \bv\b, "
+	"\b((v==true))\b is the same as \b((v==1))\b and "
+	"if a variable named \btrue\b exists, it is ignored.]"
 "[i:ignorecase?The values are case insensitive.]"
 "\n"
-"\n\atypename\a[\b=(\b \avalue\a ... \b)\b]\n"
+"\n\atypename\a[\b=(\b \avalue\a ... \b)\b] ...\n"
 "\n"
 "[+EXIT STATUS]"
     "{"
@@ -234,7 +246,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || !*argv || *(argv + 1))
+	if (error_info.errors || !*argv)
 	{
 		error(ERROR_USAGE|2, "%s", optusage(NiL));
 		return 1;

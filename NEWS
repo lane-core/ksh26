@@ -3,6 +3,10 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-03-05:
+
+- The 'enum' command can now create more than one type per invocation.
+
 2022-02-23:
 
 - When reading input from the keyboard, ksh now turns off nonblocking I/O

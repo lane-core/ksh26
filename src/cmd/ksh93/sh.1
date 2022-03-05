@@ -6392,10 +6392,13 @@ See
 .IR echo (1)
 for usage and description.
 .TP
-\(dd \f3enum\fP \*(OK \f3\-i\fP  \*(CK \f2type\^\fP\*(OK=(\f2value\^\fP .\|.\|.) \*(CK
-Creates a declaration command named \f2type\^\fP that
-allows one of the specified \f2value\fPs as
-enumeration names.  If \f3=(\fP\f2value\^\ .\|.\|.\|\fP\f3)\fP is
+\(dd \f3enum\fP \*(OK \f3\-i\fP \*(CK \f2type\^\fP\*(OK=(\f2value\^\fP .\|.\|.) \*(CK .\|.\|.
+Creates, for each \f2type\^\fP specified,
+an enumeration type declaration command named \f2type\^\fP.
+Variables of the created type can only store any one of the \f2value\fPs given.
+For example, \f3enum bool=(false true)\fP creates a Boolean variable
+type of which variables may be declared like \f3bool x=true y=false\fP.
+If \f3=(\fP\f2value\^\ .\|.\|.\|\fP\f3)\fP is
 omitted, then \f2type\^\fP must be an indexed array variable with at
 least two elements and the values are taken from this array variable.
 If
@@ -6412,6 +6415,14 @@ Within arithmetic expressions (see
 above), enumeration type values translate to index numbers between 0 and the
 number of defined values minus 1. It is an error for an arithmetic expression
 to assign a value outside of that range. Decimal fractions are ignored.
+Taking the \f3bool\fP type from the example above,
+if a variable of this type is used in an arithmetic expression,
+\f3false\fP translates to 0 and \f3true\fP to 1.
+Enumeration values may also be used directly in an arithmetic expression
+that refers to a variable of an enumeration type.
+To continue our example, for a \f3bool\fP variable \f3v\fP,
+\f3((v==true))\fP is the same as \f3((v==1))\fP
+and if a variable named \f3true\fP exists, it is ignored.
 .RE
 .TP
 \(dg \f3eval\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
