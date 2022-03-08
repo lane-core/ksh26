@@ -245,6 +245,7 @@ int sh_argopts(int argc,register char *argv[])
 				off_option(&newflags,SH_BRACEEXPAND);
 #endif
 				on_option(&newflags,SH_LETOCTAL);
+				sh_invalidate_ifs();
 			}
 			on_option(&newflags,o);
 			off_option(&sh.offoptions,o);
@@ -262,6 +263,7 @@ int sh_argopts(int argc,register char *argv[])
 				on_option(&newflags,SH_BRACEEXPAND);
 #endif
 				off_option(&newflags,SH_LETOCTAL);
+				sh_invalidate_ifs();
 			}
 			if(o==SH_XTRACE)
 				trace = 0;

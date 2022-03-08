@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - The 'enum' command can now create more than one type per invocation.
 
+- The POSIX compatibility mode has been amended to disable the special handling
+  of a repeated $IFS whitespace character as non-whitespace.
+
 2022-02-23:
 
 - When reading input from the keyboard, ksh now turns off nonblocking I/O

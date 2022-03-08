@@ -2033,7 +2033,7 @@ Each single occurrence of
 an
 .SM
 .B IFS
-character in the string to be split,
+character in the string to be split
 that is not in the \f2isspace\^\fP character class, and any
 adjacent characters in
 .SM
@@ -2043,13 +2043,16 @@ One or more
 characters in
 .SM
 .B IFS
-that belong to the \f2isspace\^\fP character class,
+that belong to the \f2isspace\^\fP character class
 delimit a field.
 In addition, if the same \f2isspace\^\fP character appears
 consecutively inside
-.BR IFS ,
+.B IFS
+and the
+.B posix
+shell option is not on,
 this character is treated as if it were not in the \f2isspace\^\fP
-class, so that if
+class - for exmaple, if
 .BR IFS
 consists of two
 .B tab
@@ -7684,6 +7687,12 @@ In addition, while on, the \fBposix\fR option
 .IP \[bu] 3
 disables exporting variable type attributes to the environment for other ksh
 processes to import;
+.IP \[bu]
+disables the special handling of repeated
+.I isspace
+class characters in the
+.B IFS
+variable;
 .IP \[bu]
 causes file descriptors > 2 to be left open when invoking another program;
 .IP \[bu]

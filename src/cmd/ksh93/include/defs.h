@@ -127,6 +127,7 @@ extern Sfdouble_t	sh_arith(const char*);
 extern void		*sh_arithcomp(char*);
 extern pid_t 		sh_fork(int,int*);
 extern pid_t		_sh_fork(pid_t, int ,int*);
+extern void		sh_invalidate_ifs(void);
 extern char 		*sh_mactrim(char*,int);
 extern int 		sh_macexpand(struct argnod*,struct argnod**,int);
 extern int		sh_macfun(const char*,int);

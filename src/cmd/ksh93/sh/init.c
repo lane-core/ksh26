@@ -549,6 +549,18 @@ static void put_ifs(register Namval_t* np,const char *val,int flags,Namfun_t *fp
 	}
 }
 
+/* Invalidate IFS state table */
+void sh_invalidate_ifs(void)
+{
+	Namval_t *np = sh_scoped(IFSNOD);
+	if(np)
+	{
+		struct ifs *ip = (struct ifs*)np->nvfun;
+		if(ip)
+			ip->ifsnp = 0;
+	}
+}
+
 /*
  * This is the lookup function for IFS
  * It keeps the sh.ifstable up to date
@@ -574,7 +586,8 @@ static char* get_ifs(register Namval_t* np, Namfun_t *fp)
 					continue;
 				}
 				n = S_DELIM;
-				if(c== *cp)
+				/* Treat a repeated char as S_DELIM even if whitespace, unless --posix is on */
+				if(c==*cp && !sh_isoption(SH_POSIX))
 					cp++;
 				else if(c=='\n')
 					n = S_NL;
