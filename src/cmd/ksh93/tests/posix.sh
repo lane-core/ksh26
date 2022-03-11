@@ -41,8 +41,8 @@ let "017 == 15" || err_exit "--posix does not turn on letoctal"
 (set {1..4}; let "$# == 1") || err_exit "--posix does not turn off braceexpand"
 if ((SHOPT_BRACEPAT)); then
 	(set -B; eval 'set {1..4}'; let "$# == 4") || err_exit "--posix does not allow independent control of braceexpand"
+	(set --noposix; eval 'set {1..4}'; let "$# == 4") || err_exit "--noposix does not turn on braceexpand"
 fi
-(set --noposix; eval 'set {1..4}'; let "$# == 4") || err_exit "--noposix does not turn on braceexpand"
 (set --noposix; ((SHOPT_BRACEPAT)) && set +B; eval 'set {1..4}'; let "$# == 1") || err_exit "--noposix does not allow independent control of braceexpand"
 
 # Furthermore, the posix option is automatically turned on upon invocation if the shell is invoked as sh or rsh,
