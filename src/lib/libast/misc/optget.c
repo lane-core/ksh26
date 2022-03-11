@@ -2157,6 +2157,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 								break;
 						}
 					}
+					pop(psp);
 					return s;
 				}
 				s++;

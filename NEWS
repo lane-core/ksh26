@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed another corner case bug in the 'test'/'[' command.
 
+- A memory leak was fixed in the --man self-documentation options
+  of built-in commands.
+
 2022-03-05:
 
 - The 'enum' command can now create more than one type per invocation.
