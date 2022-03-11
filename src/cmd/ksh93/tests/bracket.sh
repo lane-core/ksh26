@@ -359,19 +359,6 @@ x=10
 ([[ x -eq 10 ]]) 2> /dev/null || err_exit 'x -eq 10 fails in [[...]] with x=10'
 
 # ======
-# The POSIX mode should disable the ancient 'test -t' compatibility hack.
-if	[[ -o ?posix ]]
-then	# need 'eval' in first test, as it's a parser hack, and ksh normally parses ahead of execution
-	(set -o posix; eval '[ -t ] && test -t') >/dev/null \
-	|| err_exit "posix mode fails to disable 'test -t' compat hack"
-	# the compound command variant of the hack is in the 'test' builtin itself; no 'eval' needed
-	expect=$'*: argument expected\n*: argument expected'
-	actual=$(set -o posix; [ -n X -a -t ] 2>&1; test -n X -a -t 2>&1)
-	[[ $actual == $expect ]] || err_exit "posix mode fails to disable 'test -t' compat hack (compound expression)" \
-		"(expected output matching $(printf %q "$expect"), got $(printf %q "$actual"))"
-fi
-
-# ======
 # POSIX specifies that on error, test builtin should always return status > 1
 expect=$': test: 123x: arithmetic syntax error\nExit status: 2'
 actual=$(test 123 -eq 123x 2>&1; echo "Exit status: $?")
@@ -425,17 +412,6 @@ foo=10
 [ ! ! -n x ] && ! [ ! ! ! -n x ] && [ ! ! ! ! -n x ] && ! [ ! ! ! ! ! -n x ] \
 && [ ! ! -n x -a ! ! ! ! -n x -a ! ! ! ! ! ! -n x ] \
 || err_exit '! does not negate ! in [ ... ]'
-
-# ======
-# https://github.com/ksh93/ksh/issues/330
-if	(set -o posix) 2>/dev/null
-then	set -o posix -o trackall
-	test ! -a "" && err_exit "POSIX test/[: binary -a operator does not work with '!' as left-hand expression"
-	test \( -a \) 2>/dev/null || err_exit "POSIX test/[: binary -a operator does not work with '(' as left-hand expression"
-	test ! -o trackall || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
-	test \( -o \) 2>/dev/null || err_exit "POSIX test/[: binary -o operator does not work with '(' as left-hand expression"
-	set +o posix
-fi
 
 # ======
 # test should support '<' as well as '>'; before 2021-11-13, ksh supported

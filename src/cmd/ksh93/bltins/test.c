@@ -334,14 +334,8 @@ static int e3(struct test *tp)
 	if(*arg=='-' && arg[2]==0)
 	{
 		op = arg[1];
-		if(!cp)
-		{
-			/* for backward compatibility with new flags */
-			if(op==0 || !strchr(test_opchars+10,op))
-				return(1);
-			errormsg(SH_DICT,ERROR_exit(2),e_argument);
-			UNREACHABLE();
-		}
+		if(!cp)					/* no further argument: */
+			return(1);			/* treat as nonempty string instead of unary op, so return true */
 		if(strchr(test_opchars,op))
 			return(test_unop(op,cp));
 	}
