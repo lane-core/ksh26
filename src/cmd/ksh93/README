@@ -279,7 +279,7 @@ failures (crashes, and/or important functionality does not work).
 *	NetBSD 9.2 on x86_64
 *	OpenBSD 6.8 on x86_64
 	OpenBSD 7.0 on x86_64
-**	QNX 6.5.0 on i386
+*	QNX Neutrino 6.5.0 on i386
 *	Solaris 11.4 (gcc) on x86_64
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
 *	UnixWare 7.1.4 on x86
