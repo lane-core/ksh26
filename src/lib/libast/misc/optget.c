@@ -2140,7 +2140,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 								}
 							}
 						}
-						else if (!*s)
+						else if (*s != OG)
 						{
 							if (!(tsp = psp))
 								break;
@@ -2148,8 +2148,6 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 							psp = psp->next;
 							free(tsp);
 						}
-						else if (*s != OG)
-							break;
 						else
 						{
 							s++;
@@ -2157,7 +2155,6 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 								break;
 						}
 					}
-					pop(psp);
 					return s;
 				}
 				s++;
