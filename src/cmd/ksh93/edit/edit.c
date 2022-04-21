@@ -772,7 +772,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		register int shift = 7-ep->e_wsize;
 		ep->e_wsize = 7;
 		pp = ep->e_prompt+1;
-		strcpy(pp,pp+shift);
+		strcopy(pp,pp+shift);
 		ep->e_plen -= shift;
 		last[-ep->e_plen-2] = '\r';
 	}
@@ -819,11 +819,11 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #error no tput method
 #endif
 			if((pp = nv_getval(SH_SUBSCRNOD)) && strlen(pp) < sizeof(CURSOR_UP))
-				strcpy(CURSOR_UP,pp);
+				strcopy(CURSOR_UP,pp);
 			else
 				CURSOR_UP[0] = '\0';  /* no escape sequence is better than a faulty one */
 			nv_unset(SH_SUBSCRNOD);
-			strcpy(ep->e_termname,term);
+			strcopy(ep->e_termname,term);
 			sh.options = o;
 			sigrelease(SIGINT);
 		}
@@ -1493,7 +1493,7 @@ int	ed_external(const genchar *src, char *dest)
 #ifdef _lib_wcscpy
 		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
 #else
-		strcpy(dest,buffer);
+		strcopy(dest,buffer);
 #endif
 		return(c);
 	}
@@ -1662,7 +1662,7 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 		nv_unset(ED_CHRNOD);
 	else if(bufsize>0)
 	{
-		strncpy(inbuff,cp,bufsize);
+		strncopy(inbuff,cp,bufsize);
 		inbuff[bufsize-1]='\0';
 		insize = strlen(inbuff);
 	}

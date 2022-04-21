@@ -67,8 +67,8 @@
 #   define isalph(v)	_isalph(virtual[v])
 #else
     static genchar	_c;
-#   define gencpy(a,b)	strcpy((char*)(a),(char*)(b))
-#   define genncpy(a,b,n) strncpy((char*)(a),(char*)(b),n)
+#   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
+#   define genncpy(a,b,n) strncopy((char*)(a),(char*)(b),n)
 #   define genlen(str)	strlen(str)
 #   define isalph(v)	((_c=virtual[v])=='_'||isalnum(_c))
 #   undef  isblank
@@ -908,7 +908,7 @@ static int cntlmode(Vi_t *vp)
 				hist_copy((char*)virtual, MAXLINE, curhline,-1);
 			else
 			{
-				strcpy((char*)virtual,(char*)vp->u_space);
+				strcopy((char*)virtual,(char*)vp->u_space);
 #if SHOPT_MULTIBYTE
 				ed_internal((char*)vp->u_space,vp->u_space);
 #endif /* SHOPT_MULTIBYTE */
@@ -1634,7 +1634,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 #if SHOPT_MULTIBYTE
 				ed_external(virtual,lsearch+1);
 #else
-				strcpy(lsearch+1,virtual);
+				strcopy(lsearch+1,virtual);
 #endif /* SHOPT_MULTIBYTE */
 				*lsearch = '^';
 				vp->direction = -2;
@@ -2362,7 +2362,7 @@ static int search(register Vi_t* vp,register int mode)
 	{
 		/*** user wants repeat of last search ***/
 		del_line(vp,BAD);
-		strcpy( ((char*)virtual)+1, lsearch);
+		strcopy( ((char*)virtual)+1, lsearch);
 #if SHOPT_MULTIBYTE
 		*((char*)virtual) = '/';
 		ed_internal((char*)virtual,virtual);
@@ -2394,7 +2394,7 @@ static int search(register Vi_t* vp,register int mode)
 		location = hist_find(sh.hist_ptr,((char*)virtual)+1, curhline, 1, new_direction);
 	}
 	cur_virt = i;
-	strncpy(lsearch, ((char*)virtual)+1, SEARCHSIZE-1);
+	strncopy(lsearch, ((char*)virtual)+1, SEARCHSIZE-1);
 	lsearch[SEARCHSIZE-1] = 0;
 	if( (curhline=location.hist_command) >=0 )
 	{

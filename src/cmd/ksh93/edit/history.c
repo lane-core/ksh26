@@ -1057,7 +1057,7 @@ char *hist_word(char *string,int size,int word)
 	*cp = 0;
 	if(s1 != string)
 		/* We can't use strcpy() because the two buffers may overlap. */
-		memmove(string,s1,strlen(s1)+1);
+		strcopy(string,s1);
 	return(string);
 }
 

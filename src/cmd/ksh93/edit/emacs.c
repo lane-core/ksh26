@@ -90,8 +90,8 @@ One line screen editor for any program
 #   define digit(c)	((c&~STRIP)==0 && isdigit(c))
 
 #else
-#   define gencpy(a,b)	strcpy((char*)(a),(char*)(b))
-#   define genncpy(a,b,n)	strncpy((char*)(a),(char*)(b),n)
+#   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
+#   define genncpy(a,b,n)	strncopy((char*)(a),(char*)(b),n)
 #   define genlen(str)	strlen(str)
 #   define print(c)	isprint(c)
 #   define isword(c)	(isalnum(out[c]) || (out[c]=='_'))
@@ -1425,7 +1425,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 #if SHOPT_MULTIBYTE
 		ed_external(string,(char*)string);
 #endif /* SHOPT_MULTIBYTE */
-		strncpy(lstring,((char*)string)+2,SEARCHSIZE-1);
+		strncopy(lstring,((char*)string)+2,SEARCHSIZE-1);
 		lstring[SEARCHSIZE-1] = 0;
 		ep->prevdirection = direction;
 	}
