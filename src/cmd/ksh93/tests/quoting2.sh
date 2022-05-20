@@ -291,4 +291,9 @@ got="${var:+'}text between expansions${var:+'}"
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/352
+got=$(eval 'foo="`: "^Exec(\[[^]=]*])?="`"' 2>&1) || err_exit "Backtick command substitutions can't nest double quotes" \
+	"(got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -772,8 +772,19 @@ int sh_lex(Lex_t* lp)
 				{
 					if(sh.inlineno > lp->lastline)
 						lp->lex.last_quote = c;
-					mode = oldmode(lp);
-					poplevel(lp);
+					/*
+					 * At this point, we know that the previous skipping of characters was done
+					 * according to the ST_QUOTE state table. We also know that the character that
+					 * stopped the skipping is also the ending character for the current level. If
+					 * that character was " and if we are in a `...` statement, then don't switch
+					 * to the old mode, as we are actually at the innermost section of a "`"..."`"
+					 * statement, which should be skipped again using the ST_QUOTE state table.
+					 */
+					if(c!='"' || !ingrave)
+					{
+						mode = oldmode(lp);
+						poplevel(lp);
+					}
 				}
 				else if(c=='"' && n==RBRACE)
 					mode = ST_QNEST;
