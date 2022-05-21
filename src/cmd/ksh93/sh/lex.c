@@ -671,8 +671,8 @@ int sh_lex(Lex_t* lp)
 				if(mode==ST_BEGIN)
 				{
 				do_reg:
-					/* skip new-line joining */
-					if(c=='\\' && fcpeek(0)=='\n')
+					/* skip new-line joining if not called from comsub() */
+					if(c=='\\' && fcpeek(0)=='\n' && !lp->lexd.dolparen)
 					{
 						sh.inlineno++;
 						fcseek(1);

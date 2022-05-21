@@ -296,4 +296,27 @@ got=$(eval 'foo="`: "^Exec(\[[^]=]*])?="`"' 2>&1) || err_exit "Backtick command 
 	"(got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/367
+exp='one twothree'
+got=$(
+echo one two\
+three
+)
+[[ $got == "$exp" ]] || err_exit "Line continuation broken within standard command substitution" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=${
+echo one two\
+three
+}
+[[ $got == "$exp" ]] || err_exit "Line continuation broken within shared-state command substitution" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# backticks did not have this bug but let's test them anyway
+got=`
+echo one two\
+three
+`
+[[ $got == "$exp" ]] || err_exit "Line continuation broken within backtick command substitution" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
