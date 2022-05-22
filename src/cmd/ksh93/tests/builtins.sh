@@ -1493,17 +1493,12 @@ fi
 
 # ======
 # These are regression tests for the cd command's -e and -P flags
-mkdir -p "$tmp/failpwd"
-cd "$tmp/failpwd"
-"$SHELL" -c 'cd /; exec rmdir "$1"' x "$tmp/failpwd"
-cd -P .
-got=$?; exp=0
-(( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
 if ((.sh.version >= 20211205))
 then
-	cd -eP .
-	got=$?; exp=1
-	(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+	mkdir -p "$tmp/failpwd"
+	cd "$tmp/failpwd"
+	"$SHELL" -c 'cd /; exec rmdir "$1"' x "$tmp/failpwd"
+	cd -eP . 2>/dev/null && err_exit "cd -eP doesn't fail if \$PWD doesn't exist"
 fi
 
 cd "$tmp"
