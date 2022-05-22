@@ -1219,7 +1219,7 @@ make install
 							make data/math.tab implicit
 							done data/math.tab
 						done features/math.sh dontcare
-						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/math.sh ${PACKAGEROOT}/src/cmd/ksh93/data/math.tab
+						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} -lm : run features/math.sh ${PACKAGEROOT}/src/cmd/ksh93/data/math.tab
 						make ${PACKAGE_ast_INCLUDE}/ast_standards.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast_standards.h dontcare
 						make ${INSTALLROOT}/src/lib/libast/FEATURE/float implicit
@@ -1386,7 +1386,7 @@ make install
 		prev +li
 		prev ${mam_libsocket}
 		prev ${mam_libsecdb}
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o ksh pmain.o ${mam_libshell} ${mam_libnsl} ${mam_libast}
+		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o ksh pmain.o ${mam_libshell} ${mam_libnsl} ${mam_libast} -lm
 	done ksh generated
 	make shcomp
 		make shcomp.o
@@ -1408,7 +1408,7 @@ make install
 		prev +li
 		prev ${mam_libsocket}
 		prev ${mam_libsecdb}
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o shcomp shcomp.o ${mam_libshell} ${mam_libnsl} ${mam_libast}
+		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o shcomp shcomp.o ${mam_libshell} ${mam_libnsl} ${mam_libast} -lm
 	done shcomp generated
 	make suid_exec
 		make suid_exec.o
@@ -1429,7 +1429,7 @@ make install
 		prev +li
 		prev ${mam_libsocket}
 		prev ${mam_libsecdb}
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} -lm ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o suid_exec suid_exec.o ${mam_libast} ${mam_libnsl} ${mam_libast}
+		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o suid_exec suid_exec.o ${mam_libast} ${mam_libnsl} ${mam_libast} -lm
 	done suid_exec generated
 	make shell
 		prev libshell.a archive
