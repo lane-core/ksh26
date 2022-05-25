@@ -677,6 +677,21 @@ exp=$'00000\n000\n0000000'
 [[ $got == "$exp" ]] || err_exit 'failed to zero-fill zero' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# Bug in versions 2021-02-20 to 2022-05-21: incorrect output for
+# typeset -L/-R/-Z when the variable had leading or trailing spaces
+# https://github.com/ksh93/ksh/issues/476
+exp='22/02/09'
+got=$(typeset -L8 s_date1=" 22/02/09 08:25:01"; echo "$s_date1")
+[[ $got == "$exp" ]] || err_exit 'incorrect output for typeset -L8' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='9 08:25:01'
+got=$(typeset -R10 s_date1="22/02/09 08:25:01 "; echo "$s_date1")
+[[ $got == "$exp" ]] || err_exit 'incorrect output for typeset -R10' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(typeset -Z10 s_date1="22/02/09 08:25:01 "; echo "$s_date1")
+[[ $got == "$exp" ]] || err_exit 'incorrect output for typeset -Z10' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 # Applying the readonly attribute to an existing variable having a non-numeric attribute with a
 # size such as -L, -R, or -Z would be set to 0 when it should have maintained the old size unless

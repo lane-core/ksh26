@@ -2991,36 +2991,8 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 				if(!*sp) sp--;		/* if number was 0, leave one zero */
 			}
 			n = strlen(sp);
-			if(size==0 || (newatts&(NV_INTEGER|NV_BINARY)))
-			{
-				/* allocate to match existing value for numerics and auto length assignment for -L/R/Z */
-				cp = (char*)sh_malloc((size_t)n + 1);
-				strcpy(cp, sp);
-			}
-			else if(size>=n)
-			{
-				/* growing string */
-				cp = (char*)sh_malloc((size_t)size + 1);
-				strcpy(cp, sp);
-			}
-			else
-			{
-				/* shrinking string */
-				cp = (char*)sh_malloc((size_t)size + 1);
-				if(newatts&NV_RJUST)
-					strncpy(cp, n - size + sp, size);
-				else
-				{
-					/* NV_LJUST and the rest */
-					if(newatts&NV_ZFILL)
-					{
-						while(*sp=='0') sp++;	/* skip initial zeros */
-						if(!*sp) sp--;		/* if number was 0, leave one zero */
-					}
-					strncpy(cp, sp, size);
-				}
-				cp[size] = '\0';
-			}
+			cp = (char*)sh_malloc((n >= (unsigned)size ? n : (unsigned)size) + 1);
+			strcpy(cp, sp);
 			if(sp && (mp=nv_opensub(np)))
 			{
 				if(trans)
