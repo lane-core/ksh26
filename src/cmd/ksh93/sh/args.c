@@ -170,8 +170,14 @@ int sh_argopts(int argc,register char *argv[])
 			{
 				register const Shtable_t *tp;
 				for(tp=shtab_options; o = tp->sh_number; tp++)
+				{
 					if(!(o&SH_COMMANDLINE) && (o&=0xff)!=SH_RESTRICTED && is_option(&newflags,o))
+					{
 						off_option(&newflags,o);
+						if(o==SH_POSIX)
+							sh_invalidate_ifs();
+					}
+				}
 			}
 			defaultflag++;
 		    	continue;

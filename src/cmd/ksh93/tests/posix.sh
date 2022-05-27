@@ -113,6 +113,9 @@ got=$(set --noposix; set $val; echo "$#")
 exp=5
 [[ $got == "$exp" ]] || err_exit "repeated IFS whitespace char (noposix): incorrect number of fields" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set --default; set $val; echo "$#")
+[[ $got == "$exp" ]] || err_exit "repeated IFS whitespace char (default): incorrect number of fields" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 IFS=$' \t\n' # default
 
 # causes file descriptors > 2 to be left open when invoking another program;
