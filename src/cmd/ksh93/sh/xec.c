@@ -2487,6 +2487,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 				Namval_t *oldnspace = sh.namespace;
 				int offset = stktell(stkp);
 				int	flags=NV_NOASSIGN|NV_NOARRAY|NV_VARNAME;
+				struct checkpt *chkp = (struct checkpt*)stakalloc(sizeof(struct checkpt));
+				int jmpval;
 				if(cp)
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_ident,fname);
@@ -2506,8 +2508,15 @@ int sh_exec(register const Shnode_t *t, int flags)
 					dtview(root,sh.var_base);
 				}
 				oldnspace = enter_namespace(np);
-				sh_exec(t->for_.fortre,flags|sh_state(SH_ERREXIT));
+				/* make sure to restore oldnspace if a special builtin throws an error */
+				sh_pushcontext(chkp,SH_JMPCMD);
+				jmpval = sigsetjmp(chkp->buff,1);
+				if(!jmpval)
+					sh_exec(t->for_.fortre,flags|sh_state(SH_ERREXIT));
+				sh_popcontext(chkp);
 				enter_namespace(oldnspace);
+				if(jmpval)	/* error occurred */
+					sh_exit(sh.exitval);
 				break;
 			}
 #endif /* SHOPT_NAMESPACE */
