@@ -1342,4 +1342,43 @@ got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# 'typeset -g' should cause the active function scope to be ignored.
+# https://github.com/ksh93/ksh/issues/479#issuecomment-1140523291
+if	! command typeset -g x 2>/dev/null
+then
+	warning "shell does not have 'typeset -g'; skipping those tests"
+else
+	unset x arr a b c
+	# must specify the length for -X as the default is -X 24 on 32-bit systems and -X 32 on 64-bit systems
+	typeset -A exp=(
+		['x=123; function f { typeset -g x=456; }; function g { typeset x=789; f; }; g; typeset -p x']='x=456'
+		['x=123; function f { typeset -g -i x; }; f; typeset -p x']='typeset -i x=123'
+		['x=123; function f { typeset -g -F x; }; f; typeset -p x']='typeset -F x=123.0000000000'
+		['x=123; function f { typeset -g -E x; }; f; typeset -p x']='typeset -E x=123'
+		['x=123; function f { typeset -g -X24 x; }; f; typeset -p x']='typeset -X 24 x=0x1.ec0000000000000000000000p+6'
+		['x=aBc; function f { typeset -g -u x; }; f; typeset -p x']='typeset -u x=ABC'
+		['x=aBc; function f { typeset -g -l x; }; f; typeset -p x']='typeset -l x=abc'
+		['x=aBc; function f { typeset -g -L x; }; f; typeset -p x']='typeset -L 3 x=aBc'
+		['x=aBc; function f { typeset -g -R x; }; f; typeset -p x']='typeset -R 3 x=aBc'
+		['x=aBc; function f { typeset -g -Z x; }; f; typeset -p x']='typeset -Z 3 -R 3 x=aBc'
+		['x=aBc; function f { typeset -g -L2 x; }; f; typeset -p x']='typeset -L 2 x=aB'
+		['x=aBc; function f { typeset -g -R2 x; }; f; typeset -p x']='typeset -R 2 x=Bc'
+		['x=aBc; function f { typeset -g -Z2 x; }; f; typeset -p x']='typeset -Z 2 -R 2 x=Bc'
+		['x=8; function f { typeset -g -i2 x; }; f; typeset -p x']='typeset -i 2 x=2#1000'
+		['x=8; function f { typeset -g -i8 x; }; f; typeset -p x']='typeset -i 8 x=8#10'
+		['arr=(a b c); function f { typeset -g -i arr[1]=(1 2 3); }; f; typeset -p arr']='typeset -a -i arr=(0 (1 2 3) 0)'
+		['arr=(a b c); function f { typeset -g -F arr[1]=(1 2 3); }; f; typeset -p arr']='typeset -a -F arr=(0.0000000000 (1.0000000000 2.0000000000 3.0000000000) 0.0000000000)'
+		['arr=(a b c); function f { typeset -g -E arr[1]=(1 2 3); }; f; typeset -p arr']='typeset -a -E arr=(0 (1 2 3) 0)'
+		['arr=(a b c); function f { typeset -g -X24 arr[1]=(1 2 3); }; f; typeset -p arr']='typeset -a -X 24 arr=(0x0.000000000000000000000000p+0 (0x1.000000000000000000000000p+0 0x1.000000000000000000000000p+1 0x1.800000000000000000000000p+1) 0x0.000000000000000000000000p+0)'
+	)
+	for cmd in "${!exp[@]}"
+	do
+		got=$(set +x; eval "$cmd" 2>&1)
+		[[ $got == "${exp[$cmd]}" ]] || err_exit "typeset -g in $(printf %q "$cmd") failed to activate global" \
+			"scope from ksh function (expected $(printf %q "${exp[$cmd]}"), got $(printf %q "$got"))"
+	done
+	unset exp
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -8323,6 +8323,19 @@ format
 can be used to output the actual data in this buffer instead
 of the base64 encoding of the data.
 .TP
+.B \-g
+Forces variables to be created or modified at the global scope,
+even when
+.B typeset
+is executed in a function defined by the
+.B function
+.I name
+syntax (see
+.I Functions\^
+above) or in a name space (see
+.I Name Spaces\^
+above).
+.TP
 .B \-h
 Used within type definitions to add information when generating
 information about the subvariable on the man page.
@@ -8359,7 +8372,7 @@ Equivalent to
 .B "\-M tolower" .
 .TP
 .B \-m
-moves or renames the variable.
+Moves or renames the variable.
 The value is the name of a variable whose value will be moved to
 .IR vname\^ .
 The original variable will be unset.
@@ -8373,7 +8386,8 @@ defined by the value of variable
 .IR vname .
 This is usually used to reference a variable inside
 a function whose name has been passed as an argument.
-Cannot be used with any other options.
+Cannot be used with other options except
+.BR \-g .
 .TP
 .B \-p
 The name, attributes and values for the given

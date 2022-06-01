@@ -184,6 +184,7 @@ struct Namval
 #define NV_NOSCOPE	0x80000		/* look only in current scope */
 #define NV_NOFAIL	0x100000	/* return 0 on failure, no msg */
 #define NV_NODISC	NV_IDENT	/* ignore disciplines */
+#define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
 
 #define NV_FUNCT	NV_IDENT	/* option for nv_create */
 #define NV_BLTINOPT	NV_ZFILL	/* mark builtins in libcmd */

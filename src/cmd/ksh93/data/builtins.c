@@ -1776,7 +1776,7 @@ const char sh_opttrap[] =
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-12-17 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2022-06-01 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1833,6 +1833,7 @@ const char sh_opttypeset[] =
 	"encoding of the data. This option can be used with \b-Z\b to "
 	"specify fixed-size fields.]"
 "[f?Each of the options and \aname\as refers to a function.]"
+"[g?Forces variables to be created or modified at the global scope.]"
 "[i]#?[base:=10?An integer. \abase\a represents the arithmetic base "
 	"from 2 to 64.]"
 "[l?Without \b-i\b, sets character mapping to \btolower\b. When used "
@@ -1896,7 +1897,7 @@ const char sh_opttypeset[] =
 "\n[name[=value]...]\n"
 " -f [name...]\n"
 " -m [name=name...]\n"
-" -n [name=name...]\n"
+" -n [-g] [name=name...]\n"
 " -T [tname[=(type definition)]...]\n"
 "\n"
 "[+EXIT STATUS?]{"

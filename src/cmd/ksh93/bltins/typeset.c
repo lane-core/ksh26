@@ -424,6 +424,9 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				flag &= ~NV_VARNAME;
 				flag |= (NV_EXPORT|NV_IDENT);
 				break;
+			case 'g':
+				flag |= NV_GLOBAL;
+				break;
 			case ':':
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
 				break;
@@ -458,9 +461,9 @@ endargs:
 		errormsg(SH_DICT,2,e_optincompat1,"-m");
 		error_info.errors++;
 	}
-	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN)))
+	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_GLOBAL)))
 	{
-		errormsg(SH_DICT,2,e_optincompat1,"-n");
+		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -g");
 		error_info.errors++;
 	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
@@ -487,6 +490,11 @@ endargs:
 	if(sizeof(char*)<8 && tdata.argnum > SHRT_MAX)
 	{
 		errormsg(SH_DICT,ERROR_exit(2),"option argument cannot be greater than %d",SHRT_MAX);
+		UNREACHABLE();
+	}
+	if((flag&NV_GLOBAL) && sh.mktype)
+	{
+		errormsg(SH_DICT,ERROR_exit(2),"-g: type members cannot be global");
 		UNREACHABLE();
 	}
 	if(isfloat)
@@ -634,6 +642,17 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 	char *last = 0;
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
+	Dt_t *save_vartree;
+	Namval_t *save_namespace;
+	if(flag&NV_GLOBAL)
+	{
+		save_vartree = sh.var_tree;
+		troot = sh.var_tree = sh.var_base;
+#if SHOPT_NAMESPACE
+		save_namespace = sh.namespace;
+		sh.namespace = NIL(Namval_t*);
+#endif
+	}
 	if(!sh.prefix)
 	{
 		if(!tp->pflag)
@@ -1004,6 +1023,13 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 		r &= SH_EXITMASK;
 		if(r==0)
 			r = 1;  /* ensure the exit status is at least 1 */
+	}
+	if(flag&NV_GLOBAL)
+	{
+		sh.var_tree = save_vartree;
+#if SHOPT_NAMESPACE
+		sh.namespace = save_namespace;
+#endif
 	}
 	return(r);
 }

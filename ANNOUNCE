@@ -115,6 +115,9 @@ New features in built-in commands:
 
 - 'times' now gives high precision output in a POSIX compliant format.
 
+- 'typeset' has a new '-g' flag that forces variables to be created or
+  modified at the global scope regardless of context, as on bash 4.2+.
+
 - 'typeset' now gives an informative error message if an incompatible
   combination of options is given.
 

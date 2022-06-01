@@ -273,6 +273,19 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
+	Dt_t		*save_vartree;
+#if SHOPT_NAMESPACE
+	Namval_t	*save_namespace;
+#endif
+	if(flags&NV_GLOBAL)
+	{
+		save_vartree = sh.var_tree;
+		sh.var_tree = sh.var_base;
+#if SHOPT_NAMESPACE
+		save_namespace = sh.namespace;
+		sh.namespace = NIL(Namval_t*);
+#endif
+	}
 	if(maketype)
 	{
 		shtp.previous = sh.mktype;
@@ -645,6 +658,13 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 			}
 		}
 		/* continue loop */
+	}
+	if(flags&NV_GLOBAL)
+	{
+		sh.var_tree = save_vartree;
+#if SHOPT_NAMESPACE
+		sh.namespace = save_namespace;
+#endif
 	}
 }
 

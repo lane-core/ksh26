@@ -1068,6 +1068,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 							flgs |= NV_STATIC;
 						if(checkopt(com,'m'))
 							flgs |= NV_MOVE;
+						if(checkopt(com,'g'))
+							flgs |= NV_GLOBAL;
 						if(np==SYSNAMEREF || checkopt(com,'n'))
 							flgs |= NV_NOREF;
 						else if(argn>=3 && checkopt(com,'T'))
