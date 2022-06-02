@@ -133,11 +133,8 @@ set +o allexport
 # ======
 # A namespace's parent scope should be restored after an error occurs.
 # https://github.com/ksh93/ksh/issues/479#issuecomment-1140514159
-#
-# TODO: this test fails when run in a non-forking comsub: the trap
-# is not executed -- the zillionth bug with virtual subshells >:-/
 exp=$'123 456\n789 456'
-got=$(ulimit -t unlimited 2>/dev/null  # workaround: force fork
+got=$(
 	trap 'echo $x ${.test.x}; x=789; echo $x ${.test.x}' EXIT
 	x=123
 	namespace test

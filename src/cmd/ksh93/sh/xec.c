@@ -2518,7 +2518,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_popcontext(chkp);
 				enter_namespace(oldnspace);
 				if(jmpval)	/* error occurred */
-					sh_exit(sh.exitval);
+					siglongjmp(*sh.jmplist,jmpval);
 				break;
 			}
 #endif /* SHOPT_NAMESPACE */
