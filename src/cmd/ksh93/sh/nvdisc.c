@@ -1016,56 +1016,6 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	return(1);
 }
 
-/*
- *  The following discipline is for copy-on-write semantics
- */
-static char* clone_getv(Namval_t *np, Namfun_t *handle)
-{
-	return(np->nvalue.np?nv_getval(np->nvalue.np):0);
-}
-
-static Sfdouble_t clone_getn(Namval_t *np, Namfun_t *handle)
-{
-	return(np->nvalue.np?nv_getnum(np->nvalue.np):0);
-}
-
-static void clone_putv(Namval_t *np,const char* val,int flags,Namfun_t *handle)
-{
-	Namfun_t *dp = nv_stack(np,(Namfun_t*)0);
-	Namval_t *mp = np->nvalue.np;
-	if(!sh.subshell)
-		free((void*)dp);
-	if(val)
-		nv_clone(mp,np,NV_NOFREE);
-	np->nvalue.cp = 0;
-	nv_putval(np,val,flags);
-}
-
-static const Namdisc_t clone_disc =
-{
-	0,
-	clone_putv,
-	clone_getv,
-	clone_getn
-};
-
-Namval_t *nv_mkclone(Namval_t *mp)
-{
-	Namval_t *np;
-	Namfun_t *dp;
-	np = sh_newof(0,Namval_t,1,0);
-	np->nvflag = mp->nvflag;
-	np->nvsize = mp->nvsize;
-	np->nvname = mp->nvname;
-	np->nvalue.np = mp;
-	np->nvflag = mp->nvflag;
-	dp = sh_newof(0,Namfun_t,1,0);
-	dp->disc = &clone_disc;
-	nv_stack(np,dp);
-	dtinsert(nv_dict(sh.namespace),np);
-	return(np);
-}
-
 Namval_t *nv_search(const char *name, Dt_t *root, int mode)
 {
 	register Namval_t *np;

@@ -205,7 +205,6 @@ extern void		nv_dirclose(void*);
 extern char		*nv_getvtree(Namval_t*, Namfun_t*);
 extern void		nv_attribute(Namval_t*, Sfio_t*, char*, int);
 extern Namval_t		*nv_bfsearch(const char*, Dt_t*, Namval_t**, char**);
-extern Namval_t		*nv_mkclone(Namval_t*);
 extern Namval_t		*nv_mktype(Namval_t**, int);
 extern Namval_t		*nv_addnode(Namval_t*, int);
 extern Namval_t		*nv_parent(Namval_t*);
