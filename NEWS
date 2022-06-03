@@ -8,6 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a couple of bugs that caused floating point variables imported from
   a parent ksh through the environment to be corrupted.
 
+- Fixed a bug where invocation-local assignments preceding a built-in or
+  external command or ksh function call did not honour their pre-existing
+  attributes set by typeset (such as -i or -F) in certain cases.
+
 2022-06-01:
 
 - New 'typeset' feature inspired by bash (and zsh and mksh): the -g flag

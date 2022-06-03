@@ -1274,10 +1274,18 @@ got=$( { "$SHELL" -c 'PATH=/dev/null; function fn { unset -f fn; true; }; fn; fn
 # ======
 # Check if environment variables passed while invoking a function are exported
 # https://github.com/att/ast/issues/32
-unset foo
-function f2 { env | grep -q "^foo" || err_exit "Environment variable is not propagated from caller function"; }
-function f1 { f2; env | grep -q "^foo" || err_exit "Environment variable is not passed to a function"; }
-foo=bar f1
+# https://github.com/ksh93/ksh/issues/465
+exp='typeset -x -F 5 num=7.75000'
+exp=$exp$'\n'$exp$'\n'$exp
+got=$(
+	function f1 { typeset -p num; f2; }
+	function f2 { typeset -p num; f3; }
+	function f3 { typeset -p num; }
+	typeset -F5 num
+	num=3.25+4.5 f1
+)
+[[ $got == "$exp" ]] || err_exit 'assignment preceding ksh function call is not correctly exported or propagated' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Over-shifting in a POSIX function should terminate the script

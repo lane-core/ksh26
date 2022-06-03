@@ -3047,15 +3047,9 @@ pid_t sh_fork(int flags, int *jobid)
 static void  local_exports(register Namval_t *np, void *data)
 {
 	register Namval_t	*mp;
-	register char		*cp;
 	NOT_USED(data);
-	if(nv_isarray(np))
-		nv_putsub(np,NIL(char*),0);
-	if((cp = nv_getval(np)) && (mp = nv_search(nv_name(np), sh.var_tree, NV_ADD|HASH_NOSCOPE)) && nv_isnull(mp))
-	{
-		nv_putval(mp, cp, 0);
-		mp->nvflag = np->nvflag;
-	}
+	if(!nv_isnull(np) && (mp = nv_search(nv_name(np), sh.var_tree, NV_ADD|HASH_NOSCOPE)) && nv_isnull(mp))
+		nv_clone(np,mp,0);
 }
 
 /*

@@ -253,7 +253,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
-	Dt_t		*save_vartree;
+	Dt_t		*vartree, *save_vartree;
 #if SHOPT_NAMESPACE
 	Namval_t	*save_namespace;
 #endif
@@ -287,6 +287,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 	}
 	else
 		sh.prefix_root = sh.first_root = 0;
+	vartree = sh.prefix_root ? sh.prefix_root : sh.var_tree;
 	for(;arg; arg=arg->argnxt.ap)
 	{
 		sh.used_pos = 0;
@@ -474,8 +475,9 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						cp = stakcopy(nv_name(np));
 						if(!(arg->argflag&ARG_APPEND))
 							flag &= ~NV_ARRAY;
-						sh.prefix_root = sh.first_root;
-						np = nv_open(cp,sh.prefix_root?sh.prefix_root:sh.var_tree,flag);
+						if(sh.prefix_root = sh.first_root)
+							vartree = sh.prefix_root;
+						np = nv_open(cp,vartree,flag);
 					}
 					if(arg->argflag&ARG_APPEND)
 					{
@@ -563,20 +565,28 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 			cp = arg->argval;
 			mp = 0;
 		}
-		if(eqp = strchr(cp,'='))
+		/*
+		 * Check if parent scope attributes need to be copied to the
+		 * temporary local scope of an assignment preceding a command.
+		 * https://github.com/ksh93/ksh/issues/465
+		 */
+		if((flags&(NV_EXPORT|NV_NOSCOPE))==(NV_EXPORT|NV_NOSCOPE) && dtvnext(vartree) && (eqp = strchr(cp,'=')))
 		{
-			/* Check for read-only */
 			*eqp = '\0';
-			np = nv_search(cp,sh.var_tree,0);
-			*eqp = '=';
-			if(np && nv_isattr(np,NV_RDONLY))
+			if((np = nv_search(cp,dtvnext(vartree),0)) && np->nvflag)
 			{
-				errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
-				UNREACHABLE();
+				mp = nv_search(cp,vartree,NV_ADD|HASH_NOSCOPE);
+				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
+				mp->nvflag = np->nvflag;
+				mp->nvsize = np->nvsize;
+				mp->nvfun = np->nvfun;
 			}
-
+			*eqp = '=';
 		}
-		np = nv_open(cp,sh.prefix_root?sh.prefix_root:sh.var_tree,flags);
+		/*
+		 * Perform the assignment
+		 */
+		np = nv_open(cp,vartree,flags);
 		if(!np->nvfun && (flags&NV_NOREF))
 		{
 			if(sh.used_pos)

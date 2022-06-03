@@ -800,4 +800,15 @@ got=$(export LC_NUMERIC=debug; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p nu
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Check that assignments preceding commands correctly honour existing attributes
+# https://github.com/ksh93/ksh/issues/465
+exp='typeset -x -F 5 num=7.75000'
+got=$(typeset -F5 num; num=3.25+4.5 "$SHELL" -c 'typeset -p num')
+[[ $got == "$exp" ]] || err_exit 'assignment preceding external command call does not honour pre-set attributes' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(typeset -F5 num; num=3.25+4.5 command eval 'typeset -p num')
+[[ $got == "$exp" ]] || err_exit 'assignment preceding built-in command call does not honour pre-set attributes' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
