@@ -518,8 +518,8 @@ static void	print_times(struct timeval utime, struct timeval stime)
 	int st_min = stime.tv_sec / 60;
 	int st_sec = stime.tv_sec % 60;
 	int st_ms = stime.tv_usec / 1000;
-	char radix = GETDECIMAL(0);
-	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n", ut_min, ut_sec, radix, ut_ms, st_min, st_sec, radix, st_ms);
+	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n",
+		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
 }
 #if _lib_getrusage
 /* getrusage tends to have higher precision */

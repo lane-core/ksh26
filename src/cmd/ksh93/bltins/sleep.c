@@ -73,16 +73,16 @@ int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 			ns = 0;
 			if(*cp == 'P' || *cp == 'p')
 				ns = tmxdate(cp, &last, now);
-			else if(*last=='.' && sh.decomma && d==(unsigned long)d)
+			else if(*last=='.' && sh.radixpoint!='.' && d==(unsigned long)d)
 			{
-				*(pp=last) = ',';
+				*(pp=last) = sh.radixpoint;
 				if(!strchr(cp,'.'))
 					d = strtod(cp,&last);
 				*pp = '.';
 				if(*last==0)
 					goto skip;
 			}
-			else if(*last!='.' && *last!=',')
+			else if(*last!='.' && *last!=sh.radixpoint)
 			{
 				if(pp = sfprints("exact %s", cp))
 					ns = tmxdate(pp, &last, now);

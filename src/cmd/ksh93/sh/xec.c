@@ -238,7 +238,7 @@ static void l_time(Sfio_t *outfile,register clock_t t,int precision)
 	if(hr)
 		sfprintf(outfile,"%dh",hr);
 	if(precision)
-		sfprintf(outfile,"%dm%02d%c%0*ds",min,sec,GETDECIMAL(0),precision,frac);
+		sfprintf(outfile,"%dm%02d%c%0*ds",min,sec,sh.radixpoint,precision,frac);
 	else
 		sfprintf(outfile,"%dm%02ds",min,sec);
 }
@@ -337,7 +337,7 @@ static void p_time(Sfio_t *out, const char *format, clock_t *tm)
 			for(n = 3 + (3 - precision); n > 0; --n)
 				frac /= 10;
 			if(precision)
-				sfprintf(stkp, "%d%c%0*d", tvp->tv_sec, GETDECIMAL(0), precision, frac);
+				sfprintf(stkp, "%d%c%0*d", tvp->tv_sec, sh.radixpoint, precision, frac);
 			else
 				sfprintf(stkp, "%d", tvp->tv_sec);
 		}

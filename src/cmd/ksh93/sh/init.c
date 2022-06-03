@@ -428,6 +428,17 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 	sh.cdpathlist = (void*)path_addpath((Pathcomp_t*)sh.cdpathlist,val,PATH_CDPATH);
 }
 
+static void init_radixpoint(void)
+{
+#if _hdr_locale && _lib_localeconv
+	struct lconv *lp;
+	if((lp = localeconv()) && lp->decimal_point && *lp->decimal_point)
+		sh.radixpoint = *lp->decimal_point;
+	else
+#endif
+		sh.radixpoint = '.';
+}
+
 #ifdef _hdr_locale
     /* Trap for the LC_* and LANG variables */
     static void put_lang(Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -474,6 +485,8 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 		}
 	}
 	nv_putv(np, val, flags, fp);
+	if(type==LC_ALL || type==LC_NUMERIC)
+		init_radixpoint();
 	if(CC_NATIVE!=CC_ASCII && (type==LC_ALL || type==LC_LANG || type==LC_CTYPE))
 	{
 		if(sh_lexstates[ST_BEGIN]!=sh_lexrstates[ST_BEGIN])
@@ -1454,8 +1467,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		}
 		if(beenhere==1)
 		{
-			struct lconv*	lc;
-			sh.decomma = (lc=localeconv()) && lc->decimal_point && *lc->decimal_point==',';
+			init_radixpoint();
 			beenhere = 2;
 		}
 	}

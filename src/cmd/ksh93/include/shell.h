@@ -322,7 +322,7 @@ struct Shell_s
 	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */
 	char		toomany;	/* set when out of fd's */
 	char		instance;	/* in set_instance */
-	char		decomma;	/* decimal_point=',' */
+	char		radixpoint;	/* current radix point ('.' or ',') */
 	char		redir0;		/* redirect of 0 */
 	char		intrace;	/* set when trace expands PS4 */
 	char		*readscript;	/* set before reading a script */

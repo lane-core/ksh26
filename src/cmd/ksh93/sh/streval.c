@@ -34,7 +34,6 @@
 #include	<error.h>
 #include	<stak.h>
 #include	"FEATURE/externs"
-#include	"defs.h"	/* for sh.decomma */
 
 #ifndef ERROR_dictionary
 #   define ERROR_dictionary(s)	(s)
@@ -513,7 +512,7 @@ static int gettok(register struct vars *vp)
 			vp->nextchr--;
 			break;
 		    case A_COMMA:
-			if(sh.decomma && (c=peekchr(vp))>='0' && c<='9')
+			if(sh.radixpoint==',' && (c=peekchr(vp))>='0' && c<='9')
 			{
 				op = A_DIG;
 		    		goto keep;

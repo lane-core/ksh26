@@ -1080,7 +1080,6 @@ make install
 			done string.o generated
 			make streval.o
 				make sh/streval.c
-					prev include/defs.h implicit
 					prev FEATURE/externs implicit
 					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
