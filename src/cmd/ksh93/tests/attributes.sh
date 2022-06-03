@@ -809,6 +809,10 @@ got=$(typeset -F5 num; num=3.25+4.5 "$SHELL" -c 'typeset -p num')
 got=$(typeset -F5 num; num=3.25+4.5 command eval 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit 'assignment preceding built-in command call does not honour pre-set attributes' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='typeset -F 5 num=7.75000'
+got=$(typeset -F5 num; num=3.25+4.5 eval 'typeset -p num')
+[[ $got == "$exp" ]] || err_exit 'assignment preceding special built-in command call does not honour pre-set attributes' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

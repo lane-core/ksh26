@@ -128,7 +128,7 @@ struct Ufunction
 #define NV_TYPE		0x1000000
 #define NV_STATIC	0x2000000
 #define NV_COMVAR	0x4000000
-#define NV_UNJUST	0x800000		/* clear justify attributes */
+#define NV_UNATTR	0x800000		/* unset attributes before assignment */
 #define NV_FUNCTION	(NV_RJUST|NV_FUNCT)	/* value is shell function */
 #define NV_FPOSIX	NV_LJUST		/* POSIX function semantics */
 #define NV_FTMP		NV_ZFILL		/* function source in tmpfile */

@@ -1052,11 +1052,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 						else if(checkopt(com,'a'))
 							flgs |= NV_IARRAY;
 					}
-					if(np)
-						flgs |= NV_UNJUST;
 					if(np && np->nvalue.bfp==SYSTYPESET->nvalue.bfp)
 					{
 						/* command calls b_typeset(); treat as a typeset variant */
+						flgs |= NV_UNATTR;  /* unset previous attributes before assigning */
 						if(np < SYSTYPESET || np > SYSTYPESET_END)
 						{
 							sh.typeinit = np;

@@ -1287,6 +1287,18 @@ got=$(
 [[ $got == "$exp" ]] || err_exit 'assignment preceding ksh function call is not correctly exported or propagated' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+exp='typeset -F 5 num=7.75000'
+exp=$exp$'\n'$exp$'\n'$exp
+got=$(
+	f1() { typeset -p num; f2; }
+	f2() { typeset -p num; }
+	typeset -F5 num
+	num=3.25+4.5 f1
+	typeset -p num
+)
+[[ $got == "$exp" ]] || echo 'assignment preceding POSIX function call is not correctly exported or propagated' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 # Over-shifting in a POSIX function should terminate the script
 $SHELL <<- \EOF
