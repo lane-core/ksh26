@@ -788,4 +788,16 @@ got=${got/ -x/}
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Check import of float attribute/value from environment
+exp='typeset -x -F 5 num=7.75000'
+got=$(typeset -xF5 num=7.75; "$SHELL" -c 'typeset -p num')
+[[ $got == "$exp" ]] || err_exit "floating '.' attribute/value not imported correctly" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# try again with AST debug locale which has the comma as the radix point
+exp='typeset -x -F 5 num=7,75000'
+got=$(export LC_NUMERIC=debug; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p num')
+[[ $got == "$exp" ]] || err_exit "floating ',' attribute/value not imported correctly" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

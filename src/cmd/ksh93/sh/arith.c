@@ -540,9 +540,12 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 		d = strtonll(str,&last,&base,-1);
 		if(*last && sh_isstate(SH_INIT))
 		{
-			/* This call is to handle "base#value" literals if we're importing untrusted env vars. */
+			/* Handle floating point or "base#value" literals if we're importing untrusted env vars. */
 			errno = 0;
-			d = strtonll(str, &last, NIL(char*), -1);
+			if(*last==sh.radixpoint)
+				d = strtold(str,&last);
+			else
+				d = strtonll(str,&last,NIL(char*),-1);
 		}
 		if(*last || errno)
 		{
@@ -555,7 +558,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 				d = 0.0;
 			else
 			{
-				if(!last || *last!='.' || last[1]!='.')
+				if(!last || *last!=sh.radixpoint || last[1]!=sh.radixpoint)
 					d = arith_strval(str,&last,arith,mode);
 				if(!ptr && *last && mode>0)
 				{

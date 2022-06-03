@@ -2089,17 +2089,17 @@ static void env_import_attributes(char *next)
 				/* check for floating */
 				char *dp, *val = nv_getval(np);
 				strtol(val,&dp,10);
-				if(*dp=='.' || *dp=='e' || *dp=='E')
+				if(*dp==sh.radixpoint || *dp=='e' || *dp=='E')
 				{
 					char *lp;
 					flag |= NV_DOUBLE;
-					if(*dp=='.')
+					if(*dp==sh.radixpoint)
 					{
 						strtol(dp+1,&lp,10);
 						if(*lp)
 							dp = lp;
 					}
-					if(*dp && *dp!='.')
+					if(*dp && *dp!=sh.radixpoint)
 					{
 						flag |= NV_EXPNOTE;
 						size = dp-val;
