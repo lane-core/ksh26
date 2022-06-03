@@ -155,12 +155,10 @@ static void array_setptr(register Namval_t *np, struct index_array *old, struct 
 	register Namfun_t **fp = &np->nvfun;
 	while(*fp && *fp!= &old->header.hdr)
 		fp = &((*fp)->next);
-	if(*fp)
-	{
-		new->header.hdr.next = (*fp)->next;
-		*fp = &new->header.hdr;
-	}
-	else sfprintf(sfstderr,"discipline not replaced\n");
+	if(!*fp)
+		abort();
+	new->header.hdr.next = (*fp)->next;
+	*fp = &new->header.hdr;
 }
 
 /*

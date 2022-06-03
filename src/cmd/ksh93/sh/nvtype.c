@@ -610,10 +610,7 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	np = nv_open(cp=stakptr(offset), sh.var_tree, NV_NOADD|NV_VARNAME);
 	stakseek(offset);
 	if(!np)
-	{
-		sfprintf(sfstderr,"%s: no such variable\n",cp);
 		return(-1);
-	}
 	if(!(dp=(Namtype_t*)nv_hasdisc(np,&type_disc)))
 	{
 		Namfun_t *fp;
@@ -623,10 +620,7 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 				break;
 		}
 		if(!fp)
-		{
-			sfprintf(sfstderr,"%s: not a type\n",np->nvname);
 			return(-1);
-		}
 		if(strcmp(str,"other")==0)
 			return(0);
 		tp = fp->type;
@@ -762,14 +756,9 @@ found:
 			break;
 		}
 	}
-	if(np)
-	{
-		nv_onattr(mp,NV_NOFREE);
-		if(!nv_setdisc(np,cp, mp, (Namfun_t*)np))
-			sfprintf(sfstderr," nvsetdisc failed name=%s sp=%s cp=%s\n",np->nvname,sp,cp);
-	}
-	else
-		sfprintf(sfstderr,"can't set discipline %s cp=%s \n",sp,cp);
+	nv_onattr(mp,NV_NOFREE);
+	if(!np || !nv_setdisc(np, cp, mp, (Namfun_t*)np))
+		abort();
 	return(1);
 }
 
@@ -981,9 +970,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			if(j < k)
 			{
 				sp = nv_getval(np);
-				if(nv_isvtree(np))
-					sfprintf(sfstderr,"initialization not implemented\n");
-				else if(sp) 
+				if(!nv_isvtree(np) && sp)
 					nv_putval(nq,sp,0);
 				goto skip;
 			}
@@ -1118,7 +1105,6 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 					nq = nv_namptr(pp->nodes,++j);
 					if(strcmp(nq->nvname,cname)==0)
 					{
-						sfprintf(sfstderr,"%s found at k=%d\n",nq->nvname,k);
 						if(nq->nvalue.cp>=pp->data && nq->nvalue.cp< (char*)pp->names)
 							memcpy((char*)nq->nvalue.cp,np->nvalue.cp,nv_datasize(np,0));
 						break;
