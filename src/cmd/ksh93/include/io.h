@@ -72,7 +72,6 @@ extern void 	sh_iounsave(void);
 extern void	sh_iounpipe(void);
 extern int	sh_chkopen(const char*);
 extern int	sh_ioaccess(int,int);
-extern int	sh_devtofd(const char*);
 extern int	sh_isdevfd(const char*);
 
 /* the following are readonly */

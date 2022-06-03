@@ -156,8 +156,6 @@ extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
 extern int		sh_type(const char*);
 extern void             sh_unscope(void);
-extern void		sh_utol(const char*, char*);
-extern int 		sh_whence(char**,int);
 #if SHOPT_NAMESPACE
     extern Namval_t	*sh_fsearch(const char *,int);
 #endif /* SHOPT_NAMESPACE */

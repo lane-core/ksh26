@@ -236,26 +236,6 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 }
 
 /*
- * given a list of assignments, determine <name> is on the list
-   returns a pointer to the argnod on the list or NULL
- */
-struct argnod *nv_onlist(struct argnod *arg, const char *name)
-{
-	char *cp;
-	int len = strlen(name);
-	for(;arg; arg=arg->argnxt.ap)
-	{
-		if(*arg->argval==0 && arg->argchn.ap && !(arg->argflag&~(ARG_APPEND|ARG_QUOTED|ARG_MESSAGE))) 
-			cp = ((struct fornod*)arg->argchn.ap)->fornam;
-		else
-			cp = arg->argval;
-		if(memcmp(cp,name,len)==0 && (cp[len]==0 || cp[len]=='='))
-			return(arg);
-	}
-	return(0);
-}
-
-/*
  * Perform parameter assignment for a linked list of parameters
  * <flags> contains attributes for the parameters
  */

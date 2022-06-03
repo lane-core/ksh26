@@ -243,7 +243,6 @@ struct Namval
 /* prototype for array interface */
 extern Namarr_t	*nv_arrayptr(Namval_t*);
 extern Namarr_t	*nv_setarray(Namval_t*,void*(*)(Namval_t*,const char*,int));
-extern int	nv_arraynsub(Namarr_t*);
 extern void	*nv_associative(Namval_t*,const char*,int);
 extern int	nv_aindex(Namval_t*);
 extern int	nv_nextsub(Namval_t*);

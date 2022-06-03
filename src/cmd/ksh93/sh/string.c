@@ -261,28 +261,6 @@ void	sh_trim(register char *sp)
 }
 
 /*
- * copy <str1> to <str2> changing upper case to lower case
- * <str2> must be big enough to hold <str1>
- * <str1> and <str2> may point to the same place.
- */
-void sh_utol(register char const *str1,register char *str2)
-/*@
-	assume str1!=0 && str2!=0
-	return x satisfying strlen(in str1)==strlen(in str2);
-@*/ 
-{
-	register int c;
-	for(; c= *((unsigned char*)str1); str1++,str2++)
-	{
-		if(isupper(c))
-			*str2 = tolower(c);
-		else
-			*str2 = c;
-	}
-	*str2 = 0;
-}
-
-/*
  * format string as a csv field
  */
 static char	*sh_fmtcsv(const char *string)

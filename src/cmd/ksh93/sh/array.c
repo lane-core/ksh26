@@ -1633,11 +1633,6 @@ int nv_aindex(register Namval_t* np)
 	return(((struct index_array*)(ap))->cur&ARRAY_MASK);
 }
 
-int nv_arraynsub(register Namarr_t* ap)
-{
-	return(array_elem(ap));
-}
-
 int nv_aimax(register Namval_t* np)
 {
 	struct index_array *ap = (struct index_array*)nv_arrayptr(np);

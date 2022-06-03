@@ -809,51 +809,6 @@ Namfun_t *nv_hasdisc(Namval_t *np, const Namdisc_t *dp)
 	return(0);
 }
 
-struct notify
-{
-	Namfun_t	hdr;
-	char		**ptr;
-};
-
-static void put_notify(Namval_t* np,const char *val,int flags,Namfun_t *fp)
-{
-	struct notify *pp = (struct notify*)fp;
-	nv_putv(np,val,flags,fp);
-	nv_stack(np,fp);
-	nv_stack(np,(Namfun_t*)0);
-	*pp->ptr = 0;
-	if(!(fp->nofree&1))
-		free((void*)fp);
-}
-
-static const Namdisc_t notify_disc  = {  0, put_notify };
-
-int nv_unsetnotify(Namval_t *np, char **addr)
-{
-	register Namfun_t *fp;
-	for(fp=np->nvfun;fp;fp=fp->next)
-	{
-		if(fp->disc->putval==put_notify && ((struct notify*)fp)->ptr==addr)
-		{
-			nv_stack(np,fp);
-			nv_stack(np,(Namfun_t*)0);
-			if(!(fp->nofree&1))
-				free((void*)fp);
-			return(1);
-		}
-	}
-	return(0);
-}
-
-int nv_setnotify(Namval_t *np, char **addr)
-{
-	struct notify *pp = sh_newof(0,struct notify, 1,0);
-	pp->ptr = addr;
-	pp->hdr.disc = &notify_disc;
-	nv_stack(np,&pp->hdr);
-	return(1);
-}
-
 static void *newnode(const char *name)
 {
 	register int s;

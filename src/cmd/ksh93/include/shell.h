@@ -449,7 +449,6 @@ extern int		sh_fcntl(int, int, ...);
 extern Sfio_t		*sh_fd2sfio(int);
 extern int		(*sh_fdnotify(int(*)(int,int)))(int,int);
 extern int		sh_open(const char*, int, ...);
-extern int		sh_openmax(void);
 extern Sfio_t		*sh_pathopen(const char*);
 extern ssize_t 		sh_read(int, void*, size_t);
 extern ssize_t 		sh_write(int, const void*, size_t);
@@ -463,7 +462,6 @@ extern void		sh_sigcheck(void);
 extern unsigned long	sh_isoption(int);
 extern unsigned long	sh_onoption(int);
 extern unsigned long	sh_offoption(int);
-extern int 		sh_waitsafe(void);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*

@@ -1917,11 +1917,6 @@ void job_subrestore(void* ptr)
 	job_unlock();
 }
 
-int sh_waitsafe(void)
-{
-	return(job.waitsafe);
-}
-
 void job_fork(pid_t parent)
 {
 #ifdef DEBUG
