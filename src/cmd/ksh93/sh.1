@@ -7566,6 +7566,22 @@ style in-line editor for command entry.
 Same as
 .BR \-e .
 .TP 8
+.B functrace
+Causes the
+.B \-x
+option's state and the
+.B DEBUG
+trap action to be inherited by functions defined using the
+.B function
+keyword (see
+.I "Functions\^"
+above) instead of being reset to default.
+Changes made to them within the function
+do not propagate back to the parent scope.
+Similarly, this option also causes the
+.B DEBUG
+trap action to be inherited by subshells.
+.TP 8
 .B globcasedetect
 When this option is turned on, globbing (see
 .I "Pathname Expansion\^"

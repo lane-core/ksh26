@@ -797,8 +797,7 @@ trap - DEBUG  # bug compat
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Make sure the DEBUG trap still exits a POSIX function on exit status 255
-# TODO: same test for ksh function with -o functrace, once we add that option
-exp=$'one\ntwo'
+exp=$'one\ntwo\nEND'
 got=$(
 	myfn()
 	{
@@ -813,10 +812,73 @@ got=$(
 	}
 	trap '[[ ${.sh.command} == *three ]] && set255' DEBUG
 	myfn
+	echo END
 )
 trap - DEBUG  # bug compat
 [[ $got == "$exp" ]] || err_exit "DEBUG trap did not trigger return from POSIX function on status 255" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test the new --functrace option <https://github.com/ksh93/ksh/issues/162>
+if	! [[ -o ?functrace ]]
+then
+	warning 'shell does not have --functrace; skipping those tests'
+else
+	# Make sure the DEBUG trap is inherited by ksh functions if --functrace is on
+	exp=$'Debug 0\nDebug 1\nDebugLocal 1\nDebugLocal 2\nFunction\nDebugLocal 1\nDebug 0\nNofunction'
+	got=$(
+		function entryfn
+		{
+			trap 'echo DebugLocal ${.sh.level}' DEBUG
+			myfn
+			:
+		}
+		function myfn
+		{
+			echo Function
+		}
+		set --functrace
+		trap 'echo Debug ${.sh.level}' DEBUG
+		entryfn
+		echo Nofunction
+	)
+	[[ $got == "$exp" ]] || err_exit "DEBUG trap not inherited by ksh function with --functrace on" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Make sure the DEBUG trap exits a ksh function with --functrace on exit status 255
+	exp=$'one\ntwo\nEND'
+	got=$(
+		function myfn
+		{
+			echo one
+			echo two
+			echo three
+			echo four
+		}
+		function set255
+		{
+			return 255
+		}
+		set --functrace
+		trap '[[ ${.sh.command} == *three ]] && set255' DEBUG
+		myfn
+		echo END
+	)
+	[[ $got == "$exp" ]] || err_exit "DEBUG trap did not trigger return from POSIX function on status 255" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Make sure --functrace causes subshells to inherit the DEBUG trap
+	exp=$'[DEBUG] 1\nfoo:5\n[DEBUG] 2\nbar:6\n[DEBUG] 3\nbar:6a\n[DEBUG] 2\nbaz:7'
+	got=$(
+		typeset -i dbg=0
+		set --functrace
+		trap 'echo "[DEBUG] $((++dbg))"' DEBUG
+		echo foo:5
+		( echo bar:6; (echo bar:6a) )
+		echo baz:7
+	)
+	[[ $got == "$exp" ]] || err_exit "DEBUG trap not inherited by subshell" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # ======
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells

@@ -210,6 +210,9 @@ const char sh_set[] =
 		"[+emacs?Enables/disables \bemacs\b editing mode.]"
 #endif
 		"[+errexit?Equivalent to \b-e\b.]"
+		"[+functrace?Function scopes and subshells inherit the parent "
+		"environment's \bDEBUG\b trap action. Function scopes inherit "
+		"the \b-x\b option's state.]"
 #if SHOPT_GLOBCASEDET
 		"[+globcasedetect?Pathname expansion and file name completion "
 		"automatically become case-insensitive on file systems where "
@@ -1625,7 +1628,7 @@ const char sh_optksh[] =
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
 const char sh_optset[] =
-"+[-1c?\n@(#)$Id: set (AT&T Research) 1999-09-28 $\n]"
+"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2022-06-04 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?set - set/unset options and positional parameters]"
 "[+DESCRIPTION?\bset\b sets or unsets options and positional parameters.  "

@@ -3104,7 +3104,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	int			isig,jmpval;
 	volatile int		r = 0;
 	int			n;
-	char 			**savsig;
+	char 			**savsig, *save_debugtrap = 0;
 	struct funenv		*fp = 0;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
 	Namval_t		*nspace = sh.namespace;
@@ -3141,7 +3141,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh.st.save_tree = sh.var_tree;
 	if(!fun)
 	{
-		if(nv_isattr(fp->node,NV_TAGGED))
+		if(sh_isoption(SH_FUNCTRACE) && is_option(&options,SH_XTRACE) || nv_isattr(fp->node,NV_TAGGED))
 			sh_onoption(SH_XTRACE);
 		else
 			sh_offoption(SH_XTRACE);
@@ -3166,7 +3166,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 				savsig[isig] = NULL;
 		}
 	}
+	if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
+		save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 	sh_sigreset(0);
+	if(save_debugtrap)
+		sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 	argsav = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);

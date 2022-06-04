@@ -532,6 +532,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	if(!sh.subshare)
 	{
 		struct subshell *xp;
+		char *save_debugtrap = 0;
 #if _lib_fchdir
 		sp->pwdfd = -1;
 		for(xp=sp->prev; xp; xp=xp->prev) 
@@ -591,7 +592,11 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sp->coutpipe = sh.coutpipe;
 		sp->cpipe = sh.cpipe[1];
 		sh.cpid = 0;
+		if(sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
+			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 		sh_sigreset(0);
+		if(save_debugtrap)
+			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 	}
 	jmpval = sigsetjmp(checkpoint.buff,0);
 	if(jmpval==0)

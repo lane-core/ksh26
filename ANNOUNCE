@@ -142,6 +142,12 @@ New features in built-in commands:
 
 New features in shell options:
 
+- A new --functrace long-form shell option causes the -x/--xtrace option's
+  state and the DEBUG trap action to be inherited by function scopes instead
+  of being reset to default. Changes made to them within a function scope
+  still do not propagate back to the parent scope. Similarly, this option
+  also causes the DEBUG trap action to be inherited by subshells.
+
 - A new --globcasedetect shell option is added on OSs where we can
   check for a case-insensitive file system (currently Windows/Cygwin,
   macOS, Linux and QNX 7.0+). When this option is turned on, file name

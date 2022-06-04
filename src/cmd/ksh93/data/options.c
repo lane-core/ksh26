@@ -42,6 +42,7 @@ const Shtable_t shtab_options[] =
 #endif
 	"errexit",			SH_ERREXIT,
 	"noexec",			SH_NOEXEC,
+	"functrace",			SH_FUNCTRACE,
 	"noglob",			SH_NOGLOB,
 #if SHOPT_GLOBCASEDET
 	"globcasedetect",		SH_GLOBCASEDET,

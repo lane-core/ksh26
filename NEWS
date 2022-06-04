@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-06-04:
+
+- Added a new --functrace long-form shell option which causes the -x/--xtrace
+  option's state and the DEBUG trap action to be inherited by function scopes
+  instead of being reset to default. Changes made to them within a function
+  scope still do not propagate back to the parent scope. Similarly, this
+  option also causes the DEBUG trap action to be inherited by subshells.
+
 2022-06-03:
 
 - Fixed a couple of bugs that caused floating point variables imported from
