@@ -217,10 +217,7 @@ do
 	
 # TODO: The /bin/cat iteration of this test is known to hang intermittently on Debian and
 # derived systems (such as Ubuntu). See: https://github.com/ksh93/ksh/issues/132
-# It is temporarily disabled here to avoid Github CI failures due to this known issue
-# while we work on other things. Export DEBUG_COPROCESS to include it in the tests.
-if [[ $cat != "$bincat" || -v DEBUG_COPROCESS ]]; then
-	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 2 hung"' TERM
+	trap 'sleep_pid=; kill $pid; warning "$cat coprocess 2 hung (known issue, help us fix it at <https://github.com/ksh93/ksh/issues/132>)"' TERM
 	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
@@ -231,7 +228,6 @@ if [[ $cat != "$bincat" || -v DEBUG_COPROCESS ]]; then
 	wait $pid 2> /dev/null
 	trap - TERM
 	[[ $sleep_pid ]] && kill $sleep_pid
-fi
 	
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 3 hung"' TERM
 	{ sleep 5; kill $$; } &
