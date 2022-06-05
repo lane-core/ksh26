@@ -485,7 +485,7 @@ static void init_radixpoint(void)
 		}
 	}
 	nv_putv(np, val, flags, fp);
-	if(type==LC_ALL || type==LC_NUMERIC)
+	if(type==LC_ALL || type==LC_NUMERIC || type==LC_LANG)
 		init_radixpoint();
 	if(CC_NATIVE!=CC_ASCII && (type==LC_ALL || type==LC_LANG || type==LC_CTYPE))
 	{

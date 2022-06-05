@@ -416,4 +416,12 @@ then
 fi
 
 # ======
+(LANG=C_EU && LC_NUMERIC=C && let .5) || err_exit "radix point not updated by LC_NUMERIC"
+(LANG=C && LC_NUMERIC=C_EU && let ,5) || err_exit "radix point not updated by LC_NUMERIC"
+(LC_NUMERIC=C_EU && LC_ALL=C && let .5) || err_exit "radix point not updated by LC_ALL"
+(LC_NUMERIC=C  && LC_ALL=C_EU && let ,5) || err_exit "radix point not updated by LC_ALL"
+(LC_ALL=C_EU && unset LC_ALL && LANG=C && let .5) || err_exit "radix point not updated by LANG"
+(LC_ALL=C && unset LC_ALL && LANG=C_EU && let ,5) || err_exit "radix point not updated by LANG"
+
+# ======
 exit $((Errors<125?Errors:125))
