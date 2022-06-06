@@ -3,6 +3,16 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-06-06:
+
+- The 'time' reserved word now displays seconds with six digits after the
+  decimal point by default. Its TIMEFORMAT variable supports a new %C
+  specifier that yields the the total number of CPU seconds, i.e. the sum
+  of the time spent in user and system mode.
+
+- The 'times' special built-in command now displays seconds with six digits
+  after the decimal point.
+
 2022-06-05:
 
 - Fixed a bug where tab completion would spuriously execute a command

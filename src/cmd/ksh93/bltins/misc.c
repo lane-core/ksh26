@@ -510,19 +510,19 @@ int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 /*
  * times command
  */
+#if _lib_getrusage
+/* getrusage tends to have higher precision */
 static void	print_times(struct timeval utime, struct timeval stime)
 {
 	int ut_min = utime.tv_sec / 60;
 	int ut_sec = utime.tv_sec % 60;
-	int ut_ms = utime.tv_usec / 1000;
+	int ut_ms = utime.tv_usec;
 	int st_min = stime.tv_sec / 60;
 	int st_sec = stime.tv_sec % 60;
-	int st_ms = stime.tv_usec / 1000;
-	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n",
+	int st_ms = stime.tv_usec;
+	sfprintf(sfstdout, "%dm%02d%c%06ds %dm%02d%c%06ds\n",
 		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
 }
-#if _lib_getrusage
-/* getrusage tends to have higher precision */
 static void	print_cpu_times(void)
 {
 	struct rusage usage;
@@ -534,6 +534,17 @@ static void	print_cpu_times(void)
 	print_times(usage.ru_utime, usage.ru_stime);
 }
 #else  /* _lib_getrusage */
+static void	print_times(struct timeval utime, struct timeval stime)
+{
+	int ut_min = utime.tv_sec / 60;
+	int ut_sec = utime.tv_sec % 60;
+	int ut_ms = utime.tv_usec / 1000;
+	int st_min = stime.tv_sec / 60;
+	int st_sec = stime.tv_sec % 60;
+	int st_ms = stime.tv_usec / 1000;
+	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n",
+		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
+}
 static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;

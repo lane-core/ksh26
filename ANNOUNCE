@@ -38,7 +38,15 @@ See the TODO file in the top-level directory for a to-do list.
 
 MAIN CHANGES BETWEEN KSH 93U+M 1.0 AND 1.1
 
-- TODO
+New features in built-in commands:
+
+- The 'time' reserved word now displays seconds with six digits after the
+  decimal point by default. Its TIMEFORMAT variable supports a new %C
+  specifier that yields the the total number of CPU seconds, i.e. the sum
+  of the time spent in user and system mode.
+
+- The 'times' special built-in command now displays seconds with six digits
+  after the decimal point.
 
 MAIN CHANGES BETWEEN KSH 93U+ 2012-08-01 AND 93U+M 1.0
 

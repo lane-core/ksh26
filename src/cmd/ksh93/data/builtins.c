@@ -1948,7 +1948,7 @@ const char sh_optulimit[] =
 ;
 
 const char sh_opttimes[] =
-"[-1c?@(#)$Id: times (ksh 93u+m) 2020-07-14 $\n]"
+"[-1c?@(#)$Id: times (ksh 93u+m) 2022-06-06 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
