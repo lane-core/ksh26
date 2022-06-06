@@ -105,12 +105,17 @@ static char *overlaid(register char *str,register const char *newstr,int nocase)
 
 /*
  * returns pointer to beginning of expansion and sets type of expansion
+ *
+ * Detects variable expansions, command substitutions, and three quoting styles:
+ * 1. '...'	inquote=='\'', dollarquote==0; no special characters
+ * 2. $'...'	inquote=='\'', dollarquote==1; skips \.
+ * 3. "..."	inquote=='"',  dollarquote==0; skips \., $..., ${...}, $(...), `...`
  */
 static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 {
 	register char	*cp=outbuff, *bp, *xp;
-	register int 	c,inquote = 0, inassign=0;
-	int		mode=*type;
+	char		inquote = 0, dollarquote = 0, inassign = 0;
+	int		mode=*type, c;
 	bp = outbuff;
 	*type = 0;
 	mbinit();
@@ -127,10 +132,10 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 				break;
 			}
 			if(inquote==c)
-				inquote = 0;
+				inquote = dollarquote = 0;
 			break;
 		    case '\\':
-			if(inquote != '\'')
+			if(inquote != '\'' || dollarquote)
 				mbchar(cp);
 			break;
 		    case '$':
@@ -177,6 +182,8 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 				if(*(cp=xp)!=')')
 					bp = xp;
 			}
+			else if(c=='\'' && !inquote)
+				dollarquote = 1;
 			break;
 		    case '`':
 			if(inquote=='\'')
@@ -214,7 +221,11 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 		}
 	}
 	if(inquote && *bp==inquote)
-		*type = *bp++;
+	{
+		/* set special type -1 for $'...' */
+		*type = dollarquote ? -1 : inquote;
+		bp++;
+	}
 	return(bp);
 }
 
@@ -360,7 +371,11 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			com = sh_argbuild(&narg,comptr,0);
 			/* special handling for leading quotes */
 			if(begin>outbuff && (begin[-1]=='"' || begin[-1]=='\''))
-			begin--;
+			{
+				begin--;
+				if(var == -1)		/* $'...' */
+					begin--;	/* also remove initial dollar */
+			}
 		}
 		sh_offstate(SH_COMPLETE);
                 /* allow a search to be aborted */

@@ -821,11 +821,12 @@ r \thist -lnN 1\r\n$
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L tab completion while expanding ${.sh.*} variables
 # https://github.com/att/ast/issues/1461
+# also tests $'...' string: https://github.com/ksh93/ksh/issues/462
 
 d 15
 p :test-1:
-w test \$\{.sh.level\t
-r ^:test-1: test \$\{.sh.level\}\r\n$
+w test \$'foo\\'bar' \$\{.sh.level\t
+r ^:test-1: test \$'foo\\'bar' \$\{.sh.level\}\r\n$
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"

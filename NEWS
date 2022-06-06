@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   substitution after entering: '`something<TAB> or generate a spurious
   'end of file unexpected' syntax error after entering: '$(something<TAB>.
 
+- Fixed bug where tab completion stopped working for arguments following a
+  quoted string with an escaped backslash in the form $'foo\'bar'.
+
 2022-06-04:
 
 - Added a new --functrace long-form shell option which causes the -x/--xtrace
