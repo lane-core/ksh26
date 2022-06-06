@@ -831,6 +831,7 @@ r ^:test-1: test \$\{.sh.level\}\r\n$
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L tab completion executes command substitutions
 # https://github.com/ksh93/ksh/issues/268
+# https://github.com/ksh93/ksh/issues/462#issuecomment-1038482307
 
 d 15
 p :test-1:
@@ -839,6 +840,20 @@ r ^:test-1: \$\(echo true\)\r\n$
 p :test-2:
 w `echo true`\t
 r ^:test-2: `echo true`\r\n$
+p :test-3:
+w '`/dev\t
+r ^:test-3: '`/dev[[:blank:]]*\r\n$
+# escape from PS2 prompt with Ctrl+C
+r ^> $
+c \cC
+p :test-4:
+w '$(/dev\t
+r ^:test-4: '\$\(/dev[[:blank:]]*\r\n$
+r ^> $
+c \cC
+p :test-5:
+w $'`/dev\t
+r ^:test-5: \$'`/dev[[:blank:]]*\r\n$
 !
 
 ((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"

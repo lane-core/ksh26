@@ -135,7 +135,11 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 			break;
 		    case '$':
 			if(inquote == '\'')
+			{
+				*type = '\'';
+				bp = xp;
 				break;
+			}
 			c = *(unsigned char*)cp;
 			if(mode!='*' && (isaletter(c) || c=='{'))
 			{
@@ -176,11 +180,12 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 			break;
 		    case '`':
 			if(inquote=='\'')
-				break;
-			*type = mode;
-			xp = find_begin(cp,last,'`',type);
-			if(*(cp=xp)!='`')
+			{
+				*type = '\'';
 				bp = xp;
+			}
+			else
+				bp = cp;
 			break;
 		    case '=':
 			if(!inquote)
@@ -287,9 +292,15 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		c =  *(unsigned char*)out;
 		var = mode;
 		begin = out = find_begin(outbuff,last,0,&var);
-		/* addstar set to zero if * should not be added */
-		if(var=='$')
+		if(var=='\'' && (*begin=='$' || *begin=='`'))
 		{
+			/* avoid spurious expansion or comsub execution within '...' */
+			rval = -1;
+			goto done;
+		}
+		else if(var=='$')
+		{
+			/* expand ${!varname@} to complete variable name(s) */
 			stakputs("${!");
 			stakwrite(out,last-out);
 			stakputs("@}");
@@ -297,6 +308,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		}
 		else
 		{
+			/* addstar set to zero if * should not be added */
 			addstar = '*';
 			while(out < last)
 			{

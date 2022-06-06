@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-06-05:
+
+- Fixed a bug where tab completion would spuriously execute a command
+  substitution after entering: '`something<TAB> or generate a spurious
+  'end of file unexpected' syntax error after entering: '$(something<TAB>.
+
 2022-06-04:
 
 - Added a new --functrace long-form shell option which causes the -x/--xtrace
