@@ -735,4 +735,41 @@ exp=8
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Printing .sh.type should not crash or give variables a spurious -x attribute.
+# https://github.com/ksh93/ksh/issues/456
+
+got=$("$SHELL" -c 'typeset -p .sh.type
+typeset -Ttyp1 typ1=(
+	function get {
+	        .sh.value="'\''Sample'\''";
+	}
+)
+typeset -p .sh.type
+typ1
+command typ1 var11
+typ1
+print $var11
+print -v var11
+typeset -p .sh.type' 2>&1)
+
+exp='namespace sh.type
+{
+	:
+}
+namespace sh.type
+{
+	typeset -r typ1='\''Sample'\''
+}
+typ1 var11='\''Sample'\''
+'\''Sample'\''
+'\''Sample'\''
+namespace sh.type
+{
+	typeset -r typ1='\''Sample'\''
+}'
+
+[[ $got == "$exp" ]] || err_exit "'tyeset -p .sh.type' failed" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

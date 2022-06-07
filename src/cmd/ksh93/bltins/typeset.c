@@ -1432,6 +1432,7 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 {
 	register char *cp;
 	int	indent=tp->indent, outname=0, isfun;
+	char	tempexport=0;
 	sh_sigcheck();
 	if(flag)
 		flag = '\n';
@@ -1523,9 +1524,19 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 		print_value(file,np,tp);
 		return(0);
 	}
-	if(nv_isvtree(np))
+	if(nv_isvtree(np) && !nv_isattr(np,NV_EXPORT))
+	{
+		/*
+		 * Compound variable. Repurpose NV_EXPORT to tell walk_tree() in nvdisc.c not
+		 * to indent the nv_getval() output. Also turn it back off, or bugs will happen.
+		 */
 		nv_onattr(np,NV_EXPORT);
-	if(cp=nv_getval(np))
+		tempexport++;
+	}
+	cp = nv_getval(np);
+	if(tempexport)
+		nv_offattr(np,NV_EXPORT);
+	if(cp)
 	{
 		if(indent)
 			sfnputc(file,'\t',indent);
