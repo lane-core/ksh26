@@ -367,7 +367,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 done:
 	if(bp== &block)
 		block_done(bp);
-	if(nq && nq->nvalue.rp->running==1)
+	if(nq && nq->nvalue.rp && nq->nvalue.rp->running==1)
 	{
 		nq->nvalue.rp->running=0;
 		_nv_unset(nq,0);
