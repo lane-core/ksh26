@@ -772,4 +772,11 @@ namespace sh.type
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Check for correct error message when attempting to set a discipline function for a nonexistent type member
+exp=": foo.get: cannot set discipline for undeclared type member"
+got=$(set +x; redirect 2>&1; typeset -T _bad_disc_t=(typeset dummy; function foo.get { :; }); echo end_reached)
+let "(e=$?)==1" && [[ $got == *"$exp" ]] || err_exit "attempt to set disc for nonexistent type member not handled correctly" \
+	"(expected status 1, match of *$(printf %q "$exp"); got status $e, $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

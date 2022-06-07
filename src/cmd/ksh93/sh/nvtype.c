@@ -757,7 +757,12 @@ found:
 		}
 	}
 	nv_onattr(mp,NV_NOFREE);
-	if(!np || !nv_setdisc(np, cp, mp, (Namfun_t*)np))
+	if(!np)
+	{
+		errormsg(SH_DICT,ERROR_exit(1),"%s: cannot set discipline for undeclared type member",sp);
+		UNREACHABLE();
+	}
+	if(!nv_setdisc(np, cp, mp, (Namfun_t*)np))
 		abort();
 	return(1);
 }
