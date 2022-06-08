@@ -2494,7 +2494,8 @@ static void endfield(register Mac_t *mp,int split)
 		{
 			sh.argaddr = 0;
 #if SHOPT_BRACEPAT
-			if(sh_isoption(SH_BRACEEXPAND))
+			/* in POSIX mode, disallow brace expansion for unquoted expansions */
+			if(sh_isoption(SH_BRACEEXPAND) && !(sh_isoption(SH_POSIX) && mp->pattern==1))
 				count = path_generate(argp,mp->arghead);
 			else
 #endif /* SHOPT_BRACEPAT */

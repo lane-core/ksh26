@@ -45,6 +45,20 @@ if ((SHOPT_BRACEPAT)); then
 fi
 (set --noposix; ((SHOPT_BRACEPAT)) && set +B; eval 'set {1..4}'; let "$# == 1") || err_exit "--noposix does not allow independent control of braceexpand"
 
+# When brace expansion is turned back on in POSIX mode, the values of unquoted variable expansions are not subject to it.
+# (note that, in typical quirky ksh fashion, this only happens if pathname expansion is also on, i.e. -f/--noglob is off.)
+if	((SHOPT_BRACEPAT))
+then
+	got=$(set -B +f; a='x{1,2}'; print $a)
+	exp='x{1,2}'
+	[[ $got == "$exp" ]] || err_exit "posix braceexpand expands unquoted variable expansions" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	got=$(set --noposix +f; a='x{1,2}'; print $a)
+	exp='x1 x2'
+	[[ $got == "$exp" ]] || err_exit "non-posix braceexpand does not expand unquoted variable expansions" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
 # Furthermore, the posix option is automatically turned on upon invocation if the shell is invoked as sh or rsh,
 # or if -o posix or --posix is specified on the shell invocation command line, or when executing scripts
 # without a #! path with this option active in the invoking shell.

@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-06-08:
+
+- If -B/--braceexpand is turned on in --posix mode, it now only allows brace
+  expansion on literal strings and not on the values of unquoted expansions.
+  This behaviour is like bash and zsh, as well as compliant with a future
+  version of the POSIX standard that may specify brace expansion:
+  https://www.austingroupbugs.net/view.php?id=1193
+
 2022-06-07:
 
 - Fixed a bug in 'typeset' where compound variables could acquire a spurious
