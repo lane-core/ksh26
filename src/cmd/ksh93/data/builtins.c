@@ -29,6 +29,7 @@
 #include	"builtins.h"
 #include	"jobs.h"
 #include	"FEATURE/cmds"
+#include	"FEATURE/poll"
 #define	bltin(x)	(b_##x)
 /* The following is for builtins that do not accept -- options */
 #define	Bltin(x)	(B_##x)
@@ -1407,7 +1408,7 @@ const char sh_optpwd[] =
 ;
 
 const char sh_optread[] =
-"[-1c?\n@(#)$Id: read (ksh 93u+m) 2022-02-16 $\n]"
+"[-1c?\n@(#)$Id: read (ksh 93u+m) 2022-06-09 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?read - read a line from standard input]"
 "[+DESCRIPTION?\bread\b reads a line from standard input and breaks it "
@@ -1433,7 +1434,13 @@ const char sh_optread[] =
 	"the line starting at index 0.]"
 "[C?Unset \avar\a and read  \avar\a as a compound variable.]"
 "[d]:[delim?Read until delimiter \adelim\a instead of to the end of line.]"
-"[n]#[count?Read at most \acount\a characters or (for binary fields) bytes.]"
+"[n]#[count?Read at most \acount\a characters or (for binary fields) bytes."
+#if _pipe_socketpair
+	" When reading from a slow device, "
+	"will return as soon as any characters have been read, "
+	"unless the \bposix\b shell option is on."
+#endif
+	"]"
 "[N]#[count?Read exactly \acount\a characters or (for binary fields) bytes.]"
 "[p?Read from the current co-process instead of standard input. "
 	"An end-of-file causes \bread\b to disconnect the co-process "

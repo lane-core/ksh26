@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-06-09:
+
+- The POSIX mode has been amended to use a UNIX pipe(2) instead of a
+  socketpair(2) to connect commands in a pipeline, as the standard requires.
+  (When reading directly from a pipeline in posix mode, the <#pattern and
+  <##pattern redirection operators will not work and the -n option to the
+  read built-in will not return early when reading from a slow device.)
+
 2022-06-08:
 
 - If -B/--braceexpand is turned on in --posix mode, it now only allows brace

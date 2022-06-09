@@ -913,6 +913,10 @@ int sh_iomovefd(register int fdold)
 int	sh_pipe(register int pv[])
 {
 	int fd[2];
+#ifdef pipe
+	if(sh_isoption(SH_POSIX))
+		return(sh_rpipe(pv));
+#endif
 	if(pipe(fd)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_pipe);

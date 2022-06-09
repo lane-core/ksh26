@@ -1292,6 +1292,7 @@ make install
 			done aliases.o generated
 			make builtins.o
 				make data/builtins.c
+					prev FEATURE/poll implicit
 					prev FEATURE/cmds implicit
 					prev include/jobs.h implicit
 					prev include/builtins.h implicit
