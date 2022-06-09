@@ -73,7 +73,7 @@ const struct shtable3 shtab_builtins[] =
 	"[",		NV_BLTIN|BLT_ENV,		bltin(test),
 	"let",		NV_BLTIN|BLT_ENV,		bltin(let),
 	"export",	NV_BLTIN|BLT_ENV|BLT_SPC|BLT_DCL,bltin(readonly),
-	".",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(dot_cmd),
+	e_dot,		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(dot_cmd),
 	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
@@ -1898,7 +1898,7 @@ const char sh_opttypeset[] =
 "[Z]#?[n?Zero fill.  If \an\a is given it represents the field width.]"
 "\n"
 "\n[name[=value]...]\n"
-" -f [name...]\n"
+" -f [-tu] [name...]\n"
 " -m [name=name...]\n"
 " -n [-g] [name=name...]\n"
 " -T [tname[=(type definition)]...]\n"
@@ -1911,6 +1911,7 @@ const char sh_opttypeset[] =
 "[+SEE ALSO?\breadonly\b(1), \bexport\b(1)]"
 ;
 
+#ifndef _no_ulimit
 const char sh_optulimit[] =
 "[-1c?@(#)$Id: ulimit (ksh 93u+m) 2021-12-28 $\n]"
 "[--catalog?" SH_DICT "]"
@@ -1946,6 +1947,7 @@ const char sh_optulimit[] =
 
 "[+SEE ALSO?\bulimit\b(2), \bgetrlimit\b(2)]"
 ;
+#endif /* !_no_ulimit */
 
 const char sh_opttimes[] =
 "[-1c?@(#)$Id: times (ksh 93u+m) 2022-06-06 $\n]"

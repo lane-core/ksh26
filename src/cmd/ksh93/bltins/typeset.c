@@ -473,7 +473,7 @@ endargs:
 	}
 	if(troot==sh.fun_tree && ((isfloat || flag&~(NV_FUNCT|NV_TAGGED|NV_EXPORT|NV_LTOU))))
 	{
-		errormsg(SH_DICT,2,e_optincompat1,"-f");
+		errormsg(SH_DICT,2,e_optincompat2,"-f","other options except -t and -u");
 		error_info.errors++;
 	}
 	if(sflag && troot==sh.fun_tree)

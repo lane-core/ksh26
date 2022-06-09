@@ -60,6 +60,7 @@
 #endif
 
 #define Empty			((char*)(e_sptbnl+3))
+#define AltEmpty		((char*)(e_dot+1))	/* alternative pointer to empty string */
 
 #define	env_change()		(++ast.env_serial)
 
@@ -198,7 +199,9 @@ extern char		*sh_getcwd(void);
 #define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
 
 extern int32_t		sh_mailchk;
-extern const char	e_dict[];
+extern const char	e_dict[];	/* error message catalog */
+extern const char	e_sptbnl[];	/* default IFS: " \t\n" */
+extern const char	e_dot[];	/* default path & name of dot command: "." */
 
 /* sh_printopts() mode flags -- set --[no]option by default */
 

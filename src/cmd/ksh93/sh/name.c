@@ -36,7 +36,6 @@
 #define ATTR_TO_EXPORT	(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER)
 #define NVCACHE		8	/* must be a power of 2 */
 static char	*savesub = 0;
-static char	Null[1];
 static Namval_t	NullNode;
 static Dt_t	*Refdict;
 static Dtdisc_t	_Refdisc =
@@ -1971,12 +1970,12 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 			{
 				if(dot==0 && !nv_isattr(np,NV_LJUST|NV_RJUST))
 				{
-					cp = Null;
+					cp = AltEmpty;
 					nv_onattr(np,NV_NOFREE);
 				}
 				else
 				{
-					if(tofree && tofree!=Empty && tofree!=Null)
+					if(tofree && tofree!=Empty && tofree!=AltEmpty)
 					{
 						cp = (char*)sh_realloc((void*)tofree, dot+append+1);
 						tofree = 0;
@@ -2013,7 +2012,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 		}
 		if(flags&NV_APPEND)
 			stakseek(offset);
-		if(tofree && tofree!=Empty && tofree!=Null)
+		if(tofree && tofree!=Empty && tofree!=AltEmpty)
 			free((void*)tofree);
 	}
 	if(!was_local && ((flags&NV_EXPORT) || nv_isattr(np,NV_EXPORT)))
@@ -2548,7 +2547,7 @@ void	_nv_unset(register Namval_t *np,int flags)
 		up = &np->nvalue;
 	if(up && up->cp)
 	{
-		if(up->cp!=Empty && up->cp!=Null && !nv_isattr(np, NV_NOFREE))
+		if(up->cp!=Empty && up->cp!=AltEmpty && !nv_isattr(np, NV_NOFREE))
 			free((void*)up->cp);
 		up->cp = 0;
 	}

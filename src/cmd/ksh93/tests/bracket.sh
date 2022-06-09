@@ -325,15 +325,15 @@ x=abc
 [[ -v x[0] ]] || err_exit  'x[0] should be set'
 [[ ${x[0]+x} ]] || err_exit print  '${x[0]+x} should be x'
 [[ -v x[3] ]] && err_exit 'x[3] should not be set'
-[[ ${x[3]+x} ]] && err_exit  '${x[0]+x} should be Empty'
+[[ ${x[3]+x} ]] && err_exit '${x[0]+x} should be empty'
 unset x
-[[ ${x[@]+x} ]] && err_exit  '${x[@]+x} should be Empty'
+[[ ${x[@]+x} ]] && err_exit '${x[@]+x} should be empty'
 unset x y z foo bar
 
 { x=$($SHELL -c '[[ (( $# -eq 0 )) ]] && print ok') 2> /dev/null;}
 [[ $x == ok ]] || err_exit '((...)) inside [[ ... ]] not treated as nested ()'
 
-[[ -e /dev/fd/ ]] || err_exit '/dev/fd/ does not exits'
+[[ -e /dev/fd/ ]] || err_exit '/dev/fd/ does not exist'
 [[ -e /dev/tcp/ ]] || err_exit '/dev/tcp/ does not exist'
 [[ -e /dev/udp/ ]] || err_exit '/dev/udp/ does not exist'
 [[ -e /dev/xxx/ ]] &&  err_exit '/dev/xxx/ exists'

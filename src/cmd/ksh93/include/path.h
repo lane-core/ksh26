@@ -107,7 +107,6 @@ extern Shbltin_f	sh_getlib(char*,Pathcomp_t*);
 /* constant strings needed for whence */
 extern const char e_timeformat[];
 extern const char e_badtformat[];
-extern const char e_dot[];
 extern const char e_funload[];
 extern const char e_pwd[];
 extern const char e_logout[];

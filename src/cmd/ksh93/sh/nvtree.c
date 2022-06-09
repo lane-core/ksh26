@@ -926,7 +926,7 @@ static char **genvalue(char **argv, const char *prefix, int n, struct Walk *wp)
 		cp = (char*)prefix;
 		if(c=='.')
 			cp[m-1] = 0;
-		outval(".",prefix-n,wp);
+		outval((char*)e_dot,prefix-n,wp);
 		if(c=='.')
 			cp[m-1] = c;
 		if(wp->indent>0)

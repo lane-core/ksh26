@@ -139,8 +139,6 @@ static const Namdisc_t type_disc =
 	0,
 };
 
-static char *AltEmpty = "";
-
 size_t nv_datasize(Namval_t *np, size_t *offset)
 {
 	size_t s=0, a=0;

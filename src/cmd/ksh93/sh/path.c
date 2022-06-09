@@ -1373,7 +1373,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
     static struct tms buffer;
     static clock_t	before;
     static char *SHACCT; /* set to value of SHACCT environment variable */
-    static shaccton;	/* non-zero causes accounting record to be written */
+    static int shaccton; /* non-zero causes accounting record to be written */
     static int compress(time_t);
     /*
      *	initialize accounting, i.e., see if SHACCT variable set
@@ -1388,9 +1388,6 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
     void sh_accsusp(void)
     {
 	shaccton=0;
-#ifdef AEXPAND
-	sabuf.ac_flag |= AEXPND;
-#endif /* AEXPAND */
     }
 
     /*
