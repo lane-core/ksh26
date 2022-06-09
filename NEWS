@@ -11,6 +11,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   <##pattern redirection operators will not work and the -n option to the
   read built-in will not return early when reading from a slow device.)
 
+- An interactive shell initialized in POSIX mode now once again has the
+  preset aliases defined. This amends a change made on 2020-09-11.
+
 2022-06-08:
 
 - If -B/--braceexpand is turned on in --posix mode, it now only allows brace

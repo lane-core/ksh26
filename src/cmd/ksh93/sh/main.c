@@ -166,12 +166,9 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		{
 			sh_onoption(SH_BGNICE);
 			sh_onoption(SH_RC);
-			if(!sh_isoption(SH_POSIX))
-			{
-				/* preset aliases for interactive non-POSIX ksh */
-				dtclose(sh.alias_tree);
-				sh.alias_tree = sh_inittree(shtab_aliases);
-			}
+			/* preset aliases for interactive ksh/sh */
+			dtclose(sh.alias_tree);
+			sh.alias_tree = sh_inittree(shtab_aliases);
 		}
 #if SHOPT_REMOTE
 		/*

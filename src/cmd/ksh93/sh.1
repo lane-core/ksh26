@@ -811,11 +811,7 @@ definition command has to be executed before
 the command which references the alias is read.
 .PP
 The following aliases are automatically preset
-when the shell is invoked as an interactive shell,
-unless invoked in POSIX compliance mode
-(see
-.I Invocation\^
-below).
+when the shell is invoked as an interactive shell.
 Preset aliases can be unset or redefined.
 .RS 20
 .PD 0
@@ -7703,9 +7699,8 @@ is automatically turned on upon invocation if the shell is invoked as \fBsh\fR
 or \fBrsh\fR, or if \fB\-o posix\fR or \fB\-\-posix\fR is specified on the
 shell invocation command line, or when executing scripts without a \fB#!\fR path
 with this option active in the invoking shell. In that case, the invoked shell
-will not set the preset aliases even if interactive, and will not import type
-attributes for variables (such as integer or left/right justify)
-from the environment.
+will not import type attributes for variables (such as integer or left/right
+justify) from the environment.
 .RS 8
 .PP
 In addition, while on, the \fBposix\fR option
