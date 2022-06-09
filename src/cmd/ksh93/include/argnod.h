@@ -134,7 +134,6 @@ extern int		sh_argopts(int,char*[]);
 
 extern const char	e_heading[];
 extern const char	e_subst[];
-extern const char	e_option[];
 extern const char	e_exec[];
 extern const char	e_devfdNN[];
 extern const char	e_devfdstd[];

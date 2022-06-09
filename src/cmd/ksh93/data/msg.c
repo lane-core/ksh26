@@ -49,7 +49,6 @@ const char e_mailmsg[]		= "you have mail in $_";
 const char e_query[]		= "no query process";
 const char e_history[]		= "no history file";
 const char e_histopen[]		= "cannot open history file";
-const char e_option[]		= "%s: bad option(s)";
 const char e_optincompat1[]	= "%s cannot be used with other options";
 const char e_optincompat2[]	= "%s cannot be used with %s";
 const char e_toomany[]		= "open file limit exceeded";

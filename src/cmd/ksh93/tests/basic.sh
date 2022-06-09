@@ -905,7 +905,7 @@ done
 # ksh2020 regression: https://github.com/att/ast/issues/1284
 actual=$($SHELL --verson 2>&1)
 actual_status=$?
-expect=': verson: bad option(s)'
+expect=': verson: @(bad option(s)|unknown option)'
 expect_status=2
 [[ "$actual" == *${expect}* ]] || err_exit "failed to handle invalid flag" \
 	"(expected *$(printf %q "$expect")*, got $(printf %q "$actual"))"

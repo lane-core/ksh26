@@ -195,9 +195,13 @@ const char sh_set[] =
 	"their current settings to standard output. "
 	"A \b+o\b with no \aoption\a writes a command that the shell can run "
 	"to restore the current options state. "
-	"\b-o\b \aoption\a turns on \aoption\a and \b+o\b \aoption\a turns it "
+	"\b-o\b \aoption\a or \b--\b\aoption\a turns on \aoption\a "
+	"and \b+o\b \aoption\a or \b--no\b\aoption\a turns it "
 	"off. This can be repeated to enable/disable multiple options. "
-	"The value of \aoption\a must be one of the following:]{"
+	"The value of \aoption\a is case-sensitive but insensitive to \b-\b "
+	"and \b_\b, and may be abbreviated to a non-arbitrary string. "
+	"It must resolve to one of the following:]"
+	"{"
 		"[+allexport?Equivalent to \b-a\b.]"
 		"[+backslashctrl?The backslash character \b\\\b escapes the "
 			"next control character in the \bemacs\b built-in "
@@ -207,20 +211,24 @@ const char sh_set[] =
 #if SHOPT_BRACEPAT
 		"[+braceexpand?Equivalent to \b-B\b.] "
 #endif
+		"[+clobber?Opposite of \b-C\b.]"
 #if SHOPT_ESH
 		"[+emacs?Enables/disables \bemacs\b editing mode.]"
 #endif
 		"[+errexit?Equivalent to \b-e\b.]"
+		"[+exec?Opposite of \b-n\b.]"
 		"[+functrace?Function scopes and subshells inherit the parent "
-		"environment's \bDEBUG\b trap action. Function scopes inherit "
-		"the \b-x\b option's state.]"
+			"environment's \bDEBUG\b trap action. Function scopes "
+			"inherit the \b-x\b option's state.]"
+		"[+glob?Opposite of \b-f\b.]"
 #if SHOPT_GLOBCASEDET
 		"[+globcasedetect?Pathname expansion and file name completion "
-		"automatically become case-insensitive on file systems where "
-		"the difference between upper- and lowercase is ignored for "
-		"file names. Each slash-separated path name component pattern "
-		"\ap\a is treated as \b~(i:\b\ap\a\b)\b if its parent directory "
-		"exists on a case-insensitive file system.]"
+			"automatically become case-insensitive on file systems "
+			"where the difference between upper- and lowercase is "
+			"ignored for file names. Each slash-separated path name "
+			"component pattern \ap\a is treated as \b~(i:\b\ap\a\b)\b "
+			"if its parent directory exists on a case-insensitive "
+			"file system.]"
 #endif
 		"[+globstar?Equivalent to \b-G\b.]"
 #if SHOPT_ESH
@@ -231,11 +239,11 @@ const char sh_set[] =
 #if SHOPT_HISTEXPAND
 		"[+histexpand?Equivalent to \b-H\b.]"
 #if SHOPT_ESH || SHOPT_VSH
-		"[+histreedit?If a history expansion (see \bhistexpand\b) "
+		"[+histreedit?If a history expansion (see \b-H\b) "
 			"fails, the command line is reloaded into the next "
 			"prompt's edit buffer, allowing corrections.]"
 		"[+histverify?The results of a history expansion (see "
-			"\bhistexpand\b) are not immediately executed. "
+			"\b-H\b) are not immediately executed. "
 			"Instead, the expanded line is loaded into the next "
 			"prompt's edit buffer, allowing further changes.]"
 #endif
@@ -252,12 +260,8 @@ const char sh_set[] =
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width.]"
 #endif
-		"[+noclobber?Equivalent to \b-C\b.]"
-		"[+noexec?Equivalent to \b-n\b.]"
-		"[+noglob?Equivalent to \b-f\b.]"
-		"[+nolog?Obsolete; has no effect.]"
+		"[+log?Obsolete; has no effect.]"
 		"[+notify?Equivalent to \b-b\b.]"
-		"[+nounset?Equivalent to \b-u\b.]"
 		"[+pipefail?A pipeline will not complete until all components "
 			"of the pipeline have completed, and the exit status "
 			"of the pipeline will be the value of the last "
@@ -268,6 +272,7 @@ const char sh_set[] =
 		"[+showme?Simple commands preceded by a \b;\b will be traced "
 			"as if \b-x\b were enabled but not executed.]"
 		"[+trackall?Equivalent to \b-h\b.]"
+		"[+unset?Opposite of \b-u\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
 		"[+vi?Enables/disables \bvi\b editing mode.]"
@@ -275,16 +280,13 @@ const char sh_set[] =
 			"edit mode.]"
 #endif
 		"[+xtrace?Equivalent to \b-x\b.]"
-"}"
+	"}"
 /*
  * --posix is an AST optget(3) default option, so for ksh to use it, it must be listed
  * explicitly (and handled by sh_argopts() in sh/args.c) to stop optget(3) overriding it.
- * Since it must appear here, use it as an example to document how --option == -o option.
  */
-"[05:posix?For any \b-o\b option (such as \bposix\b), \b--posix\b is equivalent "
-	"to \b-o posix\b and \b--noposix\b is equivalent to \b+o posix\b. "
-	"However, option names with a \bno\b prefix "
-	"are turned on by omitting \bno\b.]"
+"[05:posix?Enable the \bposix\b option. When given at invocation time, "
+	"disables importing variable type attributes from the environment.]"
 "[p?Privileged mode.  Disabling \b-p\b sets the effective user ID to the "
 	"real user ID, and the effective group ID to the real group ID.  "
 	"Enabling \b-p\b restores the effective user and group IDs to their "

@@ -156,7 +156,7 @@ int sh_argopts(int argc,register char *argv[])
 			o = sh_lookopt(opt_info.arg,&f);
 			if(o<=0 || (setflag && (o&SH_COMMANDLINE)))
 			{
-				errormsg(SH_DICT,2, e_option, opt_info.arg);
+				errormsg(SH_DICT,2, "%s: %s option", opt_info.arg, o<0 ? "ambiguous" : "unknown");
 				error_info.errors++;
 			}
 			o &= 0xff;

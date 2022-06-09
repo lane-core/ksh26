@@ -14,6 +14,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - An interactive shell initialized in POSIX mode now once again has the
   preset aliases defined. This amends a change made on 2020-09-11.
 
+- If a long-form shell option name is abbreviated so it matches multiple
+  options, the error message from ksh or 'set' now reads "ambiguous option".
+
 2022-06-08:
 
 - If -B/--braceexpand is turned on in --posix mode, it now only allows brace

@@ -65,6 +65,12 @@ const Shtable_t *sh_locate(register const char *sp,const Shtable_t *table,int si
 
 /*
  *  shtab_options lookup routine
+ *
+ *  Long-form option names are case-sensitive but insensitive to '-' and '_', and may be abbreviated to a
+ *  non-arbitrary string. A no- prefix is skipped and inverts the meaning (special handling for 'notify').
+ *  The table must be sorted in ASCII order after skipping the no- prefix.
+ *
+ *  Returns 0 if not found, -1 if multiple found (ambiguous), or the number of the option found.
  */
 
 #define sep(c)		((c)=='-'||(c)=='_')
@@ -163,7 +169,7 @@ int sh_lookopt(register const char *sp, int *invert)
 	}
 	if(hit)
 		*invert ^= inv;
-	return(hit);
+	return(amb ? -1 : hit);
 }
 
 /*

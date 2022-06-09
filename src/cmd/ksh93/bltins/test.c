@@ -452,7 +452,7 @@ int test_unop(register int op,register const char *arg)
 		if(*arg=='?')
 			return(sh_lookopt(arg+1,&f)>0);
 		op = sh_lookopt(arg,&f);
-		return(op && (f==(sh_isoption(op)!=0)));
+		return(op>0 && (f==(sh_isoption(op)!=0)));
 	    case 't':
 	    {
 		char *last;
