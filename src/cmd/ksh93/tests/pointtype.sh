@@ -84,6 +84,14 @@ typeset -T Pt_t=(
 Pt_t p
 [[ ${p.y} == 6 ]] || err_exit '${p.y} != 6'
 (( p.len == 7 )) || err_exit '((p.len !=7))'
+# check for correct error message when failing to redefine a type
+exp=': Pt_t: type cannot be redefined'
+got=$(set +x; { typeset -T Pt_t=(float foo); } 2>&1);
+[[ $got != *$'\n'* && $got == *"$exp" ]] || err_exit "incorrect error on failing to redefine type" \
+	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; { typeset -T Pt_t=(float foo=1); } 2>&1);
+[[ $got != *$'\n'* && $got == *"$exp" ]] || err_exit "incorrect error on failing to redefine type" \
+	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
 
 z=()
 Pt_t -a z.p

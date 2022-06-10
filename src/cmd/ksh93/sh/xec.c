@@ -1105,9 +1105,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 					else
 						flgs |= NV_VARNAME;
 					/* execute the list of assignments */
-					if((!np || nv_isattr(np,BLT_SPC)) && !command)
+					if((!np || nv_isattr(np,BLT_SPC)) && !command || sh.mktype)
 					{
-						/* bare assignment(s) or special builtin, and no 'command' prefix: exit on error */
+						/* (bare assignment(s) or special builtin) and no 'command' prefix,
+						 * or we're inside a type definition: exit on error */
 						nv_setlist(argp,flgs,tp);
 					}
 					else
@@ -1230,7 +1231,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				/* check for builtins */
 				if(np && is_abuiltin(np) && !sh_isstate(SH_XARG))
 				{
-					volatile int scope=0, share=0;
+					volatile char scope=0, share=0, was_mktype=(sh.mktype!=NIL(void*));
 					volatile void *save_ptr;
 					volatile void *save_data;
 					int save_prompt;
@@ -1384,7 +1385,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(sh.bltinfun && (error_info.flags&ERROR_NOTIFY))
 							(*sh.bltinfun)(-2,com,(void*)bp);
 						/* failure on special built-ins fatal */
-						if(jmpval<=SH_JMPCMD  && (!nv_isattr(np,BLT_SPC) || command))
+						if(jmpval<=SH_JMPCMD && (!nv_isattr(np,BLT_SPC) || command) && !was_mktype)
 							jmpval=0;
 #if !SHOPT_DEVFD
 						fifo_cleanup();
