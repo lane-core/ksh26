@@ -1237,34 +1237,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					int save_prompt;
 					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
 					struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
-#if SHOPT_VSH
-					volatile unsigned long was_vi=0;
-#endif
-#if SHOPT_ESH
-					volatile unsigned long was_emacs=0, was_gmacs=0;
-#endif
 					struct stat statb;
 					bp = &sh.bltindata;
 					save_ptr = bp->ptr;
 					save_data = bp->data;
 					memset(&statb, 0, sizeof(struct stat));
-					if(strchr(nv_name(np),'/'))
-					{
-						/*
-						 * disable editors for built-in
-						 * versions of commands on PATH
-						 */
-#if SHOPT_VSH
-						was_vi = sh_isoption(SH_VI);
-						sh_offoption(SH_VI);
-#endif
-#if SHOPT_ESH
-						was_emacs = sh_isoption(SH_EMACS);
-						was_gmacs = sh_isoption(SH_GMACS);
-						sh_offoption(SH_EMACS);
-						sh_offoption(SH_GMACS);
-#endif
-					}
 					if(execflg)
 						sh_onstate(SH_NOFORK);
 					sh_pushcontext(buffp,SH_JMPCMD);
@@ -1423,17 +1400,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh.bltinfun = 0;
 					if(buffp->olist)
 						free_list(buffp->olist);
-#if SHOPT_VSH
-					if(was_vi)
-						sh_onoption(SH_VI);
-					else
-#endif
-#if SHOPT_ESH
-					     if(was_emacs)
-						sh_onoption(SH_EMACS);
-					else if(was_gmacs)
-						sh_onoption(SH_GMACS);
-#endif
 					if(scope)
 						sh_unscope();
 					bp->ptr = (void*)save_ptr;
