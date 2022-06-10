@@ -1325,15 +1325,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->flags = (OPTIMIZE!=0);
 						if(sh.subshell && nv_isattr(np,BLT_NOSFIO))
 							sh_subtmpfile();
-						if(execflg && !sh.subshell &&
-							!sh.st.trapcom[0] && !sh.st.trap[SH_ERRTRAP] && sh.fn_depth==0 && !nv_isattr(np,BLT_ENV))
-						{
-							/* do close-on-exec */
-							int fd;
-							for(fd=0; fd < sh.lim.open_max; fd++)
-								if((sh.fdstatus[fd]&IOCLEX)&&fd!=sh.infd)
-									sh_close(fd);
-						}
 						if(argn)
 							sh.exitval = (*sh.bltinfun)(argn,com,(void*)bp);
 						if(error_info.flags&ERROR_INTERACTIVE)
