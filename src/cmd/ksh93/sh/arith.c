@@ -24,6 +24,7 @@
  *   AT&T Labs
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"lexstates.h"
 #include	"name.h"

@@ -29,6 +29,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<stak.h>
 #include	<error.h>

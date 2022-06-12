@@ -26,6 +26,7 @@
  *
  */
 
+#include "shopt.h"
 #include "version.h"
 
 static const char usage[] =

@@ -20,6 +20,7 @@
 ***********************************************************************/
 
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"shtable.h"
 #include	<signal.h>

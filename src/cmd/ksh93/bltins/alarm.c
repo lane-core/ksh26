@@ -36,6 +36,7 @@
  * > it is blocked and it should return and then handle the trap.
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<error.h>
 #include	<stak.h>

@@ -31,6 +31,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"jobs.h"
 #include	"builtins.h"

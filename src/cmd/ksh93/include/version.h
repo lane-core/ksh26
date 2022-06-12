@@ -19,6 +19,8 @@
 *                                                                      *
 ***********************************************************************/
 
+#include <releaseflags.h>
+
 #define SH_RELEASE_FORK	"93u+m"		/* only change if you develop a new ksh93 fork */
 #define SH_RELEASE_SVER	"1.1.0-alpha"	/* semantic version number: https://semver.org */
 #define SH_RELEASE_DATE	"2022-06-09"	/* must be in this format for $((.sh.version)) */
@@ -26,7 +28,7 @@
 
 /* Scripts sometimes field-split ${.sh.version}, so don't change amount of whitespace. */
 /* Arithmetic $((.sh.version)) uses the last 10 chars, so the date must be at the end. */
-#if _AST_ksh_release
+#if _AST_release
 #  define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER " " SH_RELEASE_DATE
 #else
 #  ifdef _AST_git_commit

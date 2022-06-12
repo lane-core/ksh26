@@ -27,6 +27,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"variables.h"
 #include	<error.h>

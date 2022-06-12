@@ -8,11 +8,11 @@
 SHOPT ACCT=0				# accounting
 SHOPT ACCTFILE=0			# per-user accounting info
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE
-SHOPT AUDITFILE='\"/etc/ksh_audit\"'	# auditing file
+SHOPT AUDITFILE='"/etc/ksh_audit"'	# auditing file
 SHOPT BGX=1				# one SIGCHLD trap per completed job
 SHOPT BRACEPAT=1			# C-shell {...,...} expansions (, required)
 SHOPT CMDLIB_HDR=  # '<cmdlist.h>'	# custom -lcmd list for path-bound builtins
-SHOPT CMDLIB_DIR=  # '\"/opt/ast/bin\"'	# virtual directory prefix for path-bound builtins
+SHOPT CMDLIB_DIR=  # '"/opt/ast/bin"'	# virtual directory prefix for path-bound builtins
 SHOPT CRNL=				# accept MS Windows newlines (<cr><nl>) for <nl>
 SHOPT DEVFD=				# use /dev/fd instead of FIFOs for process substitutions
 SHOPT DYNAMIC=1				# dynamic loading for builtins

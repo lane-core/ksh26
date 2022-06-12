@@ -109,7 +109,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-02-24 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-06-12 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -672,45 +672,6 @@ esac
 case $CC in
 ''|cc)	;;
 *)	export CC ;;
-esac
-
-# Add build type flags via KSH_RELFLAGS, which is used in src/cmd/ksh93/Mamfile.
-# (Avoid using CCFLAGS; setting it would overwrite autodetected optimization flags.)
-ksh_relflags=
-case $(git branch 2>/dev/null) in
-'' | *\*\ [0-9]*.[0-9]*)
-	# If we're not on a git branch (tarball) or on a branch that starts
-	# with a number (release branch), then compile as a release version
-	ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_ksh_release" ;;
-*)	# Otherwise, add 8-character git commit hash if available, and if the working dir is clean
-	git_commit=$(git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD)
-	case $git_commit in
-	????????)
-		ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_git_commit=\\\"$git_commit\\\"" ;;
-	esac
-	unset git_commit ;;
-esac
-case $ksh_relflags in
-?*)	# add the extra flags as an argument to mamake
-	assign="${assign:+$assign }KSH_RELFLAGS=\"\$ksh_relflags\"" ;;
-esac
-
-# Add ksh compile-options via KSH_SHOPTFLAGS.
-SHOPT()
-{
-	case $1 in
-	*=?*)	ksh_shoptflags="${ksh_shoptflags:+$ksh_shoptflags }-DSHOPT_$1" ;;
-	esac
-}
-ksh_shoptflags=
-shopt_sh='src/cmd/ksh93/SHOPT.sh'	# this script calls SHOPT() to set options
-if	test -f "$shopt_sh"
-then	. "$shopt_sh"
-else	echo "WARNING: $shopt_sh is missing" >&2
-fi
-case $ksh_shoptflags in
-?*)	# add the extra flags as an argument to mamake
-	assign="${assign:+$assign }KSH_SHOPTFLAGS=\"\$ksh_shoptflags\"" ;;
 esac
 
 # grab action specific args
@@ -3149,7 +3110,7 @@ cat $j $k
 	# check against previous compiler and flags
 
 	err=
-	for	var in CC CCFLAGS CCLDFLAGS LDFLAGS KSH_RELFLAGS
+	for	var in CC CCFLAGS CCLDFLAGS LDFLAGS
 	do	store=$INSTALLROOT/lib/package/gen/$var
 		eval "new=\$$var"
 		if	test -f $store

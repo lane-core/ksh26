@@ -19,6 +19,7 @@
 *                                                                      *
 ***********************************************************************/
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"name.h"
 #include	"shtable.h"

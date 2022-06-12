@@ -25,6 +25,7 @@
 
 #define putenv	___putenv
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"variables.h"
 #include	"path.h"

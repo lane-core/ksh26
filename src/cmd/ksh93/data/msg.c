@@ -27,6 +27,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	<errno.h>
 #include	"defs.h"

@@ -23,6 +23,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<ast_wchar.h>
 #include	"lexstates.h"

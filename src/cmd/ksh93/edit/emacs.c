@@ -61,9 +61,12 @@ One line screen editor for any program
  *  but you can use them to separate features.
  */
 
+#include	"shopt.h"
+
 #if SHOPT_ESH
 
 #include	<ast.h>
+#include	<releaseflags.h>
 #include	"FEATURE/cmds"
 #include	"defs.h"
 #include	"io.h"
@@ -1313,7 +1316,7 @@ static void xcommands(register Emacs_t *ep,int count)
 				show_info(ep,hbuf);
 				return;
 			}
-#	if !_AST_ksh_release		/* debugging, modify as required */
+#	if !_AST_release		/* debugging, modify as required */
 		case cntl('D'):		/* ^X^D show debugging info */
 			{
 				char debugbuf[MAXLINE];

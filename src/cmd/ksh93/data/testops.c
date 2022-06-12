@@ -23,8 +23,8 @@
  * tables for the test builtin [[ ... ]] and [ ... ]
  */
 
+#include	"shopt.h"
 #include	<ast.h>
-
 #include	"defs.h"
 #include	"test.h"
 

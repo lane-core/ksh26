@@ -27,6 +27,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<stak.h>

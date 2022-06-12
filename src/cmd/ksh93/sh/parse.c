@@ -28,6 +28,7 @@
  *  This is the parser for a shell language
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<fcin.h>
 #include	<error.h>

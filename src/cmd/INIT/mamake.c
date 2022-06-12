@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1990-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 1990-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2021-01-21"
+#define RELEASE_DATE "2022-06-12"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -70,11 +70,8 @@ static const char usage[] =
 "[n:?Print actions but do not execute. Recursion actions (see \b-r\b) are still"
 "	executed. Use \b-N\b to disable recursion actions too.]"
 "[r:?Recursively make leaf directories matching \apattern\a. Only leaf"
-"	directories containing a makefile named \bNmakefile\b, \bnmakefile\b,"
-"	\bMakefile\b or \bmakefile\b are considered. The first makefile"
-"	found in each leaf directory is scanned for leaf directory"
-"	prerequisites; the recursion order is determined by a topological sort"
-"	of these prerequisites.]:[pattern]"
+"	directories containing a file named \bMamfile\b"
+"	are considered.]:[pattern]"
 "[C:?Do all work in \adirectory\a. All messages will mention"
 "	\adirectory\a.]:[directory]"
 "[D:?Set the debug trace level to \alevel\a. Higher levels produce more"
@@ -693,6 +690,7 @@ view(void)
 				{
 					p = state.pwd + strlen(state.pwd);
 					while (p > state.pwd)
+					{
 						if (*--p == '/')
 						{
 							if (p == state.pwd)
@@ -707,6 +705,7 @@ view(void)
 								break;
 							}
 						}
+					}
 					if (p <= state.pwd)
 						report(3, "cannot determine viewpath offset", s, (unsigned long)0);
 				}
@@ -873,8 +872,8 @@ substitute(Buf_t* buf, register char* s)
 				{
 					if (a && t[0] == 'm' && t[1] == 'a' && t[2] == 'm' && t[3] == '_' && t[4] == 'l' && t[5] == 'i' && t[6] == 'b')
 					{
-						for (t = v; *t == ' '; t++);
-						for (; *t && *t != ' '; t++);
+						for (t = v; isspace(*t); t++);
+						for (; *t && !isspace(*t); t++);
 						if (*t)
 							*t = 0;
 						else
@@ -990,6 +989,7 @@ find(Buf_t* buf, char* file, struct stat* st)
 		else
 			vp = vp->next;
 		if (vp)
+		{
 			do
 			{
 				if (node)
@@ -1013,6 +1013,7 @@ find(Buf_t* buf, char* file, struct stat* st)
 					return s;
 				}
 			} while (vp = vp->next);
+		}
 	}
 	return 0;
 }
@@ -1022,7 +1023,7 @@ find(Buf_t* buf, char* file, struct stat* st)
  */
 
 static unsigned long
-bind(Rule_t* r)
+bindfile(Rule_t* r)
 {
 	char*		s;
 	Buf_t*		buf;
@@ -1143,10 +1144,7 @@ input(void)
 	else if (*state.input && *(e = state.input + strlen(state.input) - 1) == '\n')
 		*e = 0;
 	state.sp->line++;
-	e = state.input;
-	while (isspace(*e))
-		e++;	/* allow indentation */
-	return e;
+	return state.input;
 }
 
 /*
@@ -1242,9 +1240,9 @@ run(Rule_t* r, register char* s)
 						i = 2;
 					else
 					{
-						for (i = 3; *(t + i) == ' ' || *(t + i) == '\t'; i++);
+						for (i = 3; isspace(*(t + i)); i++);
 						*s = c;
-						for (s = t + i; *s && *s != ' ' && *s != '\t' && *s != '\n'; s++);
+						for (s = t + i; *s && !isspace(*s); s++);
 						c = *s;
 						*s = 0;
 						append(buf, t + 2);
@@ -1315,7 +1313,7 @@ path(Buf_t* buf, char* s, int must)
 	int		o;
 	Stat_t		st;
 
-	for (e = s; *e && *e != ' ' && *e != '\t'; e++);
+	for (e = s; *e && !isspace(*e); e++);
 	t = *e;
 	if ((x = status(buf, 0, s, &st)) && (st.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)))
 		return x;
@@ -1416,30 +1414,46 @@ attributes(register Rule_t* r, register char* s)
 
 	for (;;)
 	{
-		for (; *s == ' '; s++);
-		for (t = s; *s && *s != ' '; s++);
+		int	flag = 0;
+		for (; isspace(*s); s++);
+		for (t = s; *s && !isspace(*s); s++);
 		if (!(n = s - t))
 			break;
 		switch (*t)
 		{
 		case 'd':
 			if (n == 8 && !strncmp(t, "dontcare", n))
-				r->flags |= RULE_dontcare;
+				flag = RULE_dontcare;
 			break;
 		case 'g':
 			if (n == 9 && !strncmp(t, "generated", n))
-				r->flags |= RULE_generated;
+				flag = RULE_generated;
 			break;
 		case 'i':
 			if (n == 6 && !strncmp(t, "ignore", n))
-				r->flags |= RULE_ignore;
+				flag = RULE_ignore;
 			else if (n == 8 && !strncmp(t, "implicit", n))
-				r->flags |= RULE_implicit;
+				flag = RULE_implicit;
 			break;
 		case 'v':
 			if (n == 7 && !strncmp(t, "virtual", n))
-				r->flags |= RULE_virtual;
+				flag = RULE_virtual;
 			break;
+		case 'a':
+			if (n == 7 && !strncmp(t, "archive", n))
+				flag = -1;	/* ignore (not implemented) */
+			break;
+		case 'j':
+			if (n == 5 && !strncmp(t, "joint", n))
+				flag = -1;	/* ignore (not implemented) */
+			break;
+		}
+		if(flag > 0)
+			r->flags |= flag;
+		else if(flag == 0)
+		{
+			t[n] = '\0';
+			report(3, "unknown attribute", t, (unsigned long)0);
 		}
 	}
 }
@@ -1521,13 +1535,13 @@ require(char* lib, int dontcare)
 		{
 			for (;;)
 			{
-				while ((c = fgetc(f)) == ' ' || c == '\t' || c == '\n');
+				while (isspace(c = fgetc(f)));
 				if (c == EOF)
 					break;
 				do
 				{
 					add(tmp, c);
-				} while ((c = fgetc(f)) != EOF && c != ' ' && c != '\t' && c != '\n');
+				} while ((c = fgetc(f)) != EOF && !isspace(c));
 				s = use(tmp);
 				if (s[0] && (s[0] != '-' || s[1]))
 				{
@@ -1591,7 +1605,7 @@ make(Rule_t* r)
 		state.active++;
 	if (*r->name)
 	{
-		z = bind(r);
+		z = bindfile(r);
 		state.indent++;
 		report(-1, r->name, "make", r->time);
 	}
@@ -1599,29 +1613,38 @@ make(Rule_t* r)
 		z = 0;
 	buf = buffer();
 	cmd = 0;
+	/*
+	 * Parse lines
+	 */
 	while (s = input())
 	{
-		for (; *s == ' '; s++);
-		for (; isdigit(*s); s++);
-		for (; *s == ' '; s++);
-		for (u = s; *s && *s != ' '; s++);
+		/* skip initial whitespace and empty line */
+		for (; isspace(*s); s++);
+		if (!*s)
+			continue;
+		/* isolate command name (u), argument word (t), and the operand string (v) */
+		for (u = s; *s && !isspace(*s); s++);
 		if (*s)
 		{
-			for (*s++ = 0; *s == ' '; s++);
-			for (t = s; *s && *s != ' '; s++);
+			for (*s++ = 0; isspace(*s); s++);
+			for (t = s; *s && !isspace(*s); s++);
 			if (*s)
-				for (*s++ = 0; *s == ' '; s++);
+				for (*s++ = 0; isspace(*s); s++);
 			v = s;
 		}
 		else
 			t = v = s;
+		/* enforce 4-letter lowercase command name */
+		if(u[0]<'a' || u[0]>'z' || u[1]<'a' || u[1]>'z' || u[2]<'a' || u[2]>'z' || u[3]<'a' || u[3]>'z' || u[4] && !isspace(u[4]))
+			report(3, "not a command name", u, (unsigned long)0);
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
 			if ((t[0] == '-' || t[0] == '+') && t[1] == 'l' && (s = require(t, !strcmp(v, "dontcare"))) && strncmp(r->name, "FEATURE/", 8) && strcmp(r->name, "configure.h"))
+			{
 				for (;;)
 				{
-					for (t = s; *s && *s != ' '; s++);
+					for (t = s; *s && !isspace(*s); s++);
 					if (*s)
 						*s = 0;
 					else
@@ -1630,7 +1653,7 @@ make(Rule_t* r)
 					{
 						q = rule(expand(buf, t));
 						attributes(q, v);
-						x = bind(q);
+						x = bindfile(q);
 						if (z < x)
 							z = x;
 						if (q->flags & RULE_error)
@@ -1638,12 +1661,13 @@ make(Rule_t* r)
 					}
 					if (!s)
 						break;
-					for (*s++ = ' '; *s == ' '; s++);
+					for (*s++ = ' '; isspace(*s); s++);
 				}
+			}
 			continue;
 		case KEY('d','o','n','e'):
 			q = rule(expand(buf, t));
-			if (q != r)
+			if (q != r && t[0] != '$')
 				report(2, "improper done statement", t, (unsigned long)0);
 			attributes(r, v);
 			if (cmd && state.active && (state.force || r->time < z || !r->time && !z))
@@ -1726,8 +1750,13 @@ make(Rule_t* r)
 				probe();
 			}
 			continue;
-		default:
+		case KEY('i','n','f','o'):
+		case KEY('n','o','t','e'):
+		case KEY('m','e','t','a'):
+			/* comment command */
 			continue;
+		default:
+			report(3, "unknown command", u, (unsigned long)0);
 		}
 		break;
 	}
@@ -1863,8 +1892,8 @@ scan(Dict_item_t* item, void* handle)
 				j = p = 0;
 				while (*s)
 				{
-					for (k = 1; (i = *s) == ' ' || i == '\t' || i == '"' || i == '\''; s++);
-					for (t = s; (i = *s) && i != ' ' && i != '\t' && i != '"' && i != '\'' && i != '\\' && i != ':'; s++)
+					for (k = 1; isspace(i = *s) || i == '"' || i == '\''; s++);
+					for (t = s; (i = *s) && !isspace(i) && i != '"' && i != '\'' && i != '\\' && i != ':'; s++)
 						if (i == '/')
 							t = s + 1;
 						else if (i == '.' && *(s + 1) != 'c' && *(s + 1) != 'C' && *(s + 1) != 'h' && *(s + 1) != 'H' && t[0] == 'l' && t[1] == 'i' && t[2] == 'b')
@@ -1892,7 +1921,7 @@ scan(Dict_item_t* item, void* handle)
 								t = use(buf);
 							}
 							if (i == ':')
-								while (*s && (*s == ' ' || *s == '\t'))
+								while (*s && isspace(*s))
 									s++;
 						}
 					}
@@ -1906,7 +1935,9 @@ scan(Dict_item_t* item, void* handle)
 							k = 0;
 						}
 						else
+						{
 							for (u = t; *u; u++)
+							{
 								if (isupper(*u))
 									*u = tolower(*u);
 								else if (!isalnum(*u))
@@ -1914,16 +1945,22 @@ scan(Dict_item_t* item, void* handle)
 									k = 0;
 									break;
 								}
+							}
+						}
 					}
 					else if (t[0] != 'l' || t[1] != 'i' || t[2] != 'b')
 						k = 0;
 					else
+					{
 						for (u = t + 3; *u; u++)
+						{
 							if (!isalnum(*u))
 							{
 								k = 0;
 								break;
 							}
+						}
+					}
 					if (k && ((q = (Rule_t*)search(state.leaf, t, NiL)) && q != r || *t++ == 'l' && *t++ == 'i' && *t++ == 'b' && *t && (q = (Rule_t*)search(state.leaf, t, NiL)) && q != r))
 					{
 						for (t = w = r->name; *w; w++)
@@ -2319,7 +2356,9 @@ main(int argc, char** argv)
 	 */
 
 	for (e = environ; s = *e; e++)
+	{
 		for (t = s; *t; t++)
+		{
 			if (*t == '=')
 			{
 				*t = 0;
@@ -2327,6 +2366,8 @@ main(int argc, char** argv)
 				*t = '=';
 				break;
 			}
+		}
+	}
 
 	/*
 	 * grab the command line targets and variable definitions
@@ -2335,6 +2376,7 @@ main(int argc, char** argv)
 	while (s = *argv++)
 	{
 		for (t = s; *t; t++)
+		{
 			if (*t == '=')
 			{
 				v = t + 1;
@@ -2351,6 +2393,7 @@ main(int argc, char** argv)
 				*t = c;
 				break;
 			}
+		}
 		if (!*t)
 		{
 			/*

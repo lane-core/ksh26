@@ -19,6 +19,7 @@
 *                                                                      *
 ***********************************************************************/
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	<sig.h>
 #include	<error.h>

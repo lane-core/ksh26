@@ -32,6 +32,7 @@
  */
 
 
+#include "shopt.h"
 #include "defs.h"
 #include "edit.h"
 

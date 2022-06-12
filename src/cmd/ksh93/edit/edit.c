@@ -27,6 +27,7 @@
  *   Coded April 1983.
  */
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	<errno.h>
 #include	<ccode.h>

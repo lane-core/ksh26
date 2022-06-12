@@ -48,6 +48,7 @@
 
 #include	<sfio.h>
 #include	<error.h>
+#include	"shopt.h"
 #include	"FEATURE/externs"
 #include	"FEATURE/options"
 #include	<cdt.h>

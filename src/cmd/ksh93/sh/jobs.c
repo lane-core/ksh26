@@ -50,6 +50,7 @@
  *     may be temporarily turned off without turning off the option.
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<wait.h>
 #include	"io.h"

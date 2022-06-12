@@ -26,7 +26,9 @@
  *
  */
 
+#include	"shopt.h"
 #include	<ast.h>
+#include	<releaseflags.h>
 #include	<stak.h>
 #include	<fcin.h>
 #include	<nval.h>
@@ -1410,7 +1412,7 @@ breakloop:
 						alt = ">=";  /* '-ge' --> '>=' */
 						break;
 					    default:
-#if _AST_ksh_release
+#if _AST_release
 						alt = NIL(char*);	/* output '(null)' (should never happen) */
 #else
 						abort();

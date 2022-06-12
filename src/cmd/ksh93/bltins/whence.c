@@ -28,6 +28,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<error.h>
 #include	"shtable.h"

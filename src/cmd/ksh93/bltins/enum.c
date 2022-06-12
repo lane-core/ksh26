@@ -18,6 +18,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
+#include	"shopt.h"
 #include	"defs.h"
 
 #define ENUM_ID "enum (ksh 93u+m) 2022-03-05"

@@ -29,6 +29,7 @@
  *   AT&T Research
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 
 #if SHOPT_REGRESS

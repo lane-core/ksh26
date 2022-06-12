@@ -23,6 +23,7 @@
  *
  */
 
+#include	"shopt.h"
 #include        "defs.h"
 #include        "variables.h"
 #include        "builtins.h"

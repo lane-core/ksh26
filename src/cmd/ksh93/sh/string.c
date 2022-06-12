@@ -23,6 +23,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	<ast_wchar.h>
 #include	"defs.h"

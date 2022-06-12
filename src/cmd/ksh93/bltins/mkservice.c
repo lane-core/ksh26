@@ -25,6 +25,7 @@
  * AT&T Labs
  */
 
+#include	"shopt.h"
 #if !SHOPT_MKSERVICE
 void _STUB_b_mkservice(){}
 #else

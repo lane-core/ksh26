@@ -19,6 +19,7 @@
 *                                                                      *
 ***********************************************************************/
 
+#include	"shopt.h"
 #include	<ast.h>
 #include	"FEATURE/options"
 #include	"FEATURE/dynamic"

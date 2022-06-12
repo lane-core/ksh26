@@ -18,6 +18,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
+#include	"shopt.h"
 #include	"defs.h"
 #include	"jobs.h"
 

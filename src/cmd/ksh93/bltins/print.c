@@ -27,6 +27,7 @@
  *   AT&T Labs
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	<error.h>
 #include	<stak.h>

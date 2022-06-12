@@ -605,6 +605,7 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 	 * argc should never be zero on init, but hopefully optimizers aren't that smart.
 	 */
 	#include <stdio.h>
+	#include "releaseflags.h"
 	void testfn(int a)
 	{
 		switch(a)
@@ -612,11 +613,11 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 		case 0:
 			__builtin_unreachable();
 		default:
-			printf("#if _AST_ksh_release\n");
+	#if _AST_release
 			printf("#   define UNREACHABLE()\t__builtin_unreachable()\n");
-			printf("#else\n");
+	#else
 			printf("#   define UNREACHABLE()\tabort()\n");
-			printf("#endif\n");
+	#endif
 		}
 	}
 	int main(int argc, char *argv[])
@@ -625,9 +626,5 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 		return 0;
 	}
 }end fail{
-	echo '#if _AST_ksh_release'
-	echo '#   define UNREACHABLE()	0'
-	echo '#else'
-	echo '#   define UNREACHABLE()	abort()'
-	echo '#endif'
+	echo '#define UNREACHABLE()	abort()'
 }end

@@ -27,6 +27,7 @@
  *
  */
 
+#include	"shopt.h"
 #include	"defs.h"
 #include	"path.h"
 #include	"jobs.h"

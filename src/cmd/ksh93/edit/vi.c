@@ -28,6 +28,8 @@
  *		cbosgd!pds
 -*/
 
+#include	"shopt.h"
+
 #if SHOPT_VSH
 
 #include	"defs.h"
