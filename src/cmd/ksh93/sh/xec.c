@@ -56,17 +56,16 @@
 #   include <sys/resource.h>
 #endif
 
-#if SHOPT_SPAWN && _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
+#undef _use_ntfork_tcpgrp
+#if defined(JOBS) && SHOPT_SPAWN && _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
 #define _use_ntfork_tcpgrp 1
 #endif
-
-#define SH_NTFORK	SH_TIMING
 
 #if _lib_nice
     extern int	nice(int);
 #endif /* _lib_nice */
 #if SHOPT_SPAWN
-    static pid_t sh_ntfork(const Shnode_t*,char*[],int*,int);
+    static pid_t sh_ntfork(const Shnode_t*,char*[],int*);
 #endif /* SHOPT_SPAWN */
 
 static void	sh_funct(Namval_t*, int, char*[], struct argnod*,int);
@@ -935,11 +934,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 		int 		execflg = (type&sh_state(SH_NOFORK));
 		int 		execflg2 = (type&sh_state(SH_FORKED));
 		int 		mainloop = (type&sh_state(SH_INTERACTIVE));
-#if SHOPT_SPAWN
-		int		ntflag = (type&sh_state(SH_NTFORK));
-#else
-		int		ntflag = 0;
-#endif
 		int		topfd = sh.topfd;
 		char 		*sav=stkfreeze(stkp,0);
 		char		*cp=0, **com=0, *comn;
@@ -1516,8 +1510,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_subfork();
 				}
 			}
-			no_fork = !ntflag
-			&& !(type&(FAMP|FPOU))
+			no_fork = !(type&(FAMP|FPOU))
 			&& !sh.subshell
 			&& !(sh.st.trapcom[SIGINT] && *sh.st.trapcom[SIGINT])
 			&& !sh.st.trapcom[0]
@@ -1557,7 +1550,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if(com && !job.jobcontrol)
 #endif /* _use_ntfork_tcpgrp */
 				{
-					parent = sh_ntfork(t,com,&jobid,ntflag);
+					parent = sh_ntfork(t,com,&jobid);
 					if(parent<0)
 					{
 						if(sh.topfd > topfd)
@@ -3412,12 +3405,11 @@ static void sigreset(int mode)
  * Incompatible with job control on interactive shells (job.jobcontrol) if
  * the system does not support posix_spawn_file_actions_addtcsetpgrp_np().
  */
-static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
+static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid)
 {
 	static pid_t	spawnpid;
-	static int	savetype;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
-	int		otype=0, jmpval,jobfork=0;
+	int		jmpval,jobfork=0;
 	volatile int	scope=0, sigwasset=0;
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
@@ -3425,22 +3417,12 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 #if _use_ntfork_tcpgrp
 	volatile int	jobwasset=0;
 #endif /* _use_ntfork_tcpgrp */
-	if(flag)
-	{
-		otype = savetype;
-		savetype=0;
-	}
 	sh_pushcontext(buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
-		if((otype&FINT) && !sh_isstate(SH_MONITOR))
-		{
-			signal(SIGQUIT,SIG_IGN);
-			signal(SIGINT,SIG_IGN);
-		}
 		spawnpid = -1;
 		if(t->com.comio)
 			sh_redirect(t->com.comio,0);
@@ -3498,19 +3480,15 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 			jobwasset++;
 		}
 #endif /* _use_ntfork_tcpgrp */
-#ifdef JOBS
 #if _use_ntfork_tcpgrp
-		if(sh_isstate(SH_MONITOR) && (job.jobcontrol || (otype&FAMP)))
-#else
-		if(sh_isstate(SH_MONITOR) && (otype&FAMP))
-#endif /* _use_ntfork_tcpgrp */
+		if(sh_isstate(SH_MONITOR) && job.jobcontrol)
 		{
-			if((otype&FAMP) || job.curpgid==0)
+			if(job.curpgid==0)
 				grp = 1;
 			else
 				grp = job.curpgid;
 		}
-#endif /* JOBS */
+#endif /* _use_ntfork_tcpgrp */
 
 		sfsync(NIL(Sfio_t*));
 		sigreset(0);	/* set signals to ignore */
@@ -3605,14 +3583,12 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		siglongjmp(*sh.jmplist,jmpval);
 	if(spawnpid>0)
 	{
-		_sh_fork(spawnpid,otype,jobid);
+		_sh_fork(spawnpid,0,jobid);
 		job_fork(spawnpid);
 #ifdef JOBS
 		if(grp==1)
 			job.curpgid = spawnpid;
 #endif /* JOBS */
-		if(otype)
-			return(0);
 	}
 	return(spawnpid);
 }
