@@ -1238,11 +1238,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 					int save_prompt;
 					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
 					struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
-					struct stat statb;
 					bp = &sh.bltindata;
 					save_ptr = bp->ptr;
 					save_data = bp->data;
-					memset(&statb, 0, sizeof(struct stat));
 					if(execflg)
 						sh_onstate(SH_NOFORK);
 					sh_pushcontext(buffp,SH_JMPCMD);
@@ -1294,10 +1292,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						}
 						if(!(nv_isattr(np,BLT_ENV)))
 						{
-							if(!sh.pwd)
-								path_pwd();
-							if(sh.pwd)
-								stat(e_dot,&statb);
 							sfsync(NULL);
 							share = sfset(sfstdin,SF_SHARE,0);
 							sh_onstate(SH_STOPOK);
@@ -1370,14 +1364,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sh_offstate(SH_NOFORK);
 					if(!(nv_isattr(np,BLT_ENV)))
 					{
-						if(sh.pwd)
-						{
-							struct stat stata;
-							stat(e_dot,&stata);
-							/* restore directory changed */
-							if(statb.st_ino!=stata.st_ino || statb.st_dev!=stata.st_dev)
-								chdir(sh.pwd);
-						}
 						sh_offstate(SH_STOPOK);
 						if(share&SF_SHARE)
 							sfset(sfstdin,SF_PUBLIC|SF_SHARE,1);
