@@ -197,6 +197,11 @@ let "017 == 15" || err_exit "leading octal zero not recognised in 'let' in --pos
 (set --noposix --letoctal; let "017 == 15") || err_exit "leading octal zero not recognised in --noposix --letoctal (1)"
 (set --noposix; set --letoctal; let "017 == 15") || err_exit "leading octal zero not recognised in --noposix --letoctal (2)"
 
+# disables zero-padding of seconds in the output of the time and times built-ins;
+exp=$'^user\t0m0.[0-9]{3}s\nsys\t0m0.[0-9]{3}s\n0m0.[0-9]{3}s 0m0.[0-9]{3}s\n0m0.000s 0m0.000s$'
+got=$("$SHELL" --posix -c '{ time; } 2>&1; times')
+[[ $got =~ $exp ]] || err_exit "POSIX time/times output: expected match of $(printf %q "$exp"), got $(printf %q "$got")"
+
 # stops the . command (but not source) from looking up functions defined with the function syntax;
 echo 'echo SCRIPT' >scrunction
 function scrunction { echo FUNCTION; }

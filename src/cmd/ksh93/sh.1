@@ -2292,17 +2292,20 @@ the number of fractional digits after a decimal point.
 A value of 0 causes no decimal point or fraction to be output.
 At most six places after the decimal point can be displayed;
 values of \fIp\fP greater than 6 are treated as 6.
-If \fIp\fP is not specified, the value 6 is used.
+If \fIp\fP is not specified, the value 3 is used.
 .IP
 The optional \fBl\fP specifies a longer format, including
 hours if greater than zero,
 minutes, and seconds of the form \fIHH\fPh\fIMM\fPm\fISS\fP.\fIFF\fPs.
 The value of \fIp\fP determines whether or not the fraction is
 included.
+Seconds are zero-padded unless the
+.B posix
+shell option is on.
 .IP
 All other characters are output without change and a trailing
 newline is added.
-If unset, the default value, \fB$'\enreal\et%6lR\enuser\et%6lU\ensys\et%6lS'\fP,
+If unset, the default value, \fB$'\enreal\et%3lR\enuser\et%3lU\ensys\et%3lS'\fP,
 is used.  If the value is null, no timing information is displayed.
 .TP
 .B
@@ -7750,6 +7753,12 @@ enables the recognition of a leading zero as introducing an octal number in
 all arithmetic evaluation contexts, except in the \fBlet\fR built-in while
 \fBletoctal\fR is off;
 .IP \[bu]
+disables zero-padding of seconds in the output of the
+.B time
+and
+.B times
+built-ins;
+.IP \[bu]
 stops the \fB.\fR command (but not \fBsource\fR) from looking up functions
 defined with the \fBfunction\fR syntax;
 .IP \[bu]
@@ -7990,6 +7999,9 @@ or
 Displays the accumulated user and system CPU times, one line with the times
 used by the shell and another with those used by all of the shell's child
 processes. No options are supported.
+Seconds are zero-padded unless the
+.B posix
+shell option is on.
 .TP
 \(dg \f3trap\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
 The

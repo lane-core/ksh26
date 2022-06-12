@@ -239,9 +239,9 @@ static void l_time(Sfio_t *outfile,register clock_t t,int precision)
 	if(hr)
 		sfprintf(outfile,"%dh",hr);
 	if(precision)
-		sfprintf(outfile,"%dm%02d%c%0*ds",min,sec,sh.radixpoint,precision,frac);
+		sfprintf(outfile, sh_isoption(SH_POSIX) ? "%dm%d%c%0*ds" : "%dm%02d%c%0*ds", min, sec, sh.radixpoint, precision, frac);
 	else
-		sfprintf(outfile,"%dm%02ds",min,sec);
+		sfprintf(outfile, sh_isoption(SH_POSIX) ? "%dm%ds" : "%dm%02ds", min, sec);
 }
 
 #define TM_REAL_IDX 0
@@ -2407,11 +2407,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 
 			if(t->par.partre)
 			{
-				Namval_t *np = nv_open("TIMEFORMAT",sh.var_tree,NV_NOADD);
-				if(np)
+				Namval_t *np;
+				if(np = nv_open("TIMEFORMAT",sh.var_tree,NV_NOADD))
 					format = nv_getval(np);
-				if(!format)
-					format = e_timeformat;
 			}
 			else
 				format = strchr(format+1,'\n')+1;

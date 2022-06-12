@@ -746,11 +746,11 @@ then
 fi
 
 # ======
-# 'times' builtin
+# 'time' keyword and 'times' builtin
 
-expect=$'0m00.0([0-9]){5}s 0m00.0([0-9]){5}s\n0m00.000000s 0m00.000000s'
-actual=$("$SHELL" -c times)
-[[ $actual =~ $expect ]] || err_exit "times output: expected match of $(printf %q "$expect"), got $(printf %q "$actual")"
+exp=$'^user\t0m00.[0-9]{3}s\nsys\t0m00.[0-9]{3}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$'
+got=$("$SHELL" -c '{ time; } 2>&1; times')
+[[ $got =~ $exp ]] || err_exit "times output: expected match of $(printf %q "$exp"), got $(printf %q "$got")"
 
 expect=$'*: times: too many operands'
 actual=$(set +x; eval 'times Extra Args' 2>&1)
