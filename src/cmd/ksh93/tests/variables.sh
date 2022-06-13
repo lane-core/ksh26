@@ -69,6 +69,7 @@ done
 (( rand1 == rand2 )) && err_exit "Test 3: \$RANDOM seed in subshell doesn't change" \
 	"(both results are $rand1)"
 # $RANDOM should be reseeded for the ( simple_command & ) optimization
+# (which was removed on 2022-06-13, but let's keep the test)
 for((i=0; i<N; i++))
 do	( echo $RANDOM & ) >|r1
 	( echo $RANDOM & ) >|r2

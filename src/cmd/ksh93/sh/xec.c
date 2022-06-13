@@ -1874,24 +1874,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh.exitval -= 128;
 				sh_done(0);
 			}
-			else if(((type=t->par.partre->tre.tretyp)&FAMP) && ((type&COMMSK)==TFORK)
-			&& !job.jobcontrol && !sh.subshell)
-			{
-				/* Optimize '( simple_command & )' */
-				pid_t	pid;
-				sfsync(NIL(Sfio_t*));
-				while((pid=fork())< 0)
-					_sh_fork(pid,0,0);
-				if(pid==0)
-				{
-					sh.current_pid = getpid();
-					sh_reseed_rand((struct rand*)RANDNOD->nvfun);
-					sh.realsubshell++;
-					sh_exec(t->par.partre,flags);
-					sh.st.trapcom[0]=0;
-					sh_done(0);
-				}
-			}
 			else
 				sh_subshell(t->par.partre,flags,0);
 			break;
