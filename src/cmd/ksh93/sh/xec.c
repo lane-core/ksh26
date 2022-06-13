@@ -1500,16 +1500,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int no_fork,jobid;
 			int pipes[3];
 			if(sh.subshell)
-			{
 				sh_subtmpfile();
-				if((type&(FAMP|TFORK))==(FAMP|TFORK))
-				{
-					if(sh.comsub && !(sh.fdstatus[1]&IONOSEEK))
-						unpipe = iousepipe();
-					if(!sh.subshare)
-						sh_subfork();
-				}
-			}
 			no_fork = !(type&(FAMP|FPOU))
 			&& !sh.subshell
 			&& !(sh.st.trapcom[SIGINT] && *sh.st.trapcom[SIGINT])
