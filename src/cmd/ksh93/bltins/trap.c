@@ -166,6 +166,13 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			}
 			else
 			{
+				/*
+				 * Trap or ignore a real signal. A virtual subshell needs to fork in
+				 * order to receive signals correctly and (because other commands
+				 * may cause a virtual subshell to fork) to ensure a persistent PID.
+				 */
+				if(sh.subshell && !sh.subshare)
+					sh_subfork();
 				if(sig >= sh.st.trapmax)
 					sh.st.trapmax = sig+1;
 				arg = sh.st.trapcom[sig];

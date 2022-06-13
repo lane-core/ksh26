@@ -273,22 +273,37 @@ PATH=${PATH#:}
 if	[[ ${SIG[USR1]} ]]
 then	float s=$SECONDS
 	exp=SIGUSR1
+
 	got=$(LC_ALL=C $SHELL -c '
 		trap "print SIGUSR1 ; exit 0" USR1
 		(trap "" USR1 ; exec kill -USR1 $$ & sleep .5)
 		print done')
 	[[ $got == "$exp" ]] || err_exit 'subshell ignoring signal does not send signal to parent' \
-		"(expected '$exp', got '$got')"
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	(( (SECONDS-s) < .4 )) && err_exit 'parent does not wait for child to complete before handling signal'
 	((s = SECONDS))
-	exp=SIGUSR1
+
+	: >out
+	trap 'echo SIGUSR1 >out; exit 0' USR1
+	(trap '' USR1; kill -USR1 $$)
+	got=$(<out)
+	[[ $got == "$exp" ]] || err_exit 'subshell ignoring signal does not send signal to parent [simple case]' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 	got=$(LC_ALL=C $SHELL -c '
 		trap "print SIGUSR1 ; exit 0" USR1
 		(trap "exit" USR1 ; exec kill -USR1 $$ & sleep .5)
 		print done')
 	[[ $got == "$exp" ]] || err_exit 'subshell catching signal does not send signal to parent' \
-		"(expected '$exp', got '$got')"
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	(( SECONDS-s < .4 )) && err_exit 'parent completes early'
+
+	: >out
+	trap 'echo SIGUSR1 >out; exit 0' USR1
+	(trap 'echo wrong' USR1; kill -USR1 $$)
+	got=$(<out)
+	[[ $got == "$exp" ]] || err_exit 'subshell catching signal does not send signal to parent [simple case]' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 yes() for ((;;)); do print y; done
