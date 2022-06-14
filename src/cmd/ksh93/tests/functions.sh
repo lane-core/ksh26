@@ -1401,4 +1401,99 @@ else
 fi
 
 # ======
+# funcname.ksh crashed
+# https://github.com/ksh93/ksh/issues/212
+cat >$tmp/funcname.ksh <<-'EOF'
+# tweaked version of funname.ksh by Daniel Douglas
+# https://gist.github.com/ormaaj/12874b68acd06ee98b59
+# Used by permission: "Consider all my gists MIT / do whatever."
+# https://github.com/ksh93/ksh/issues/212#issuecomment-807915937
+
+# run in subshell for additional regression testing
+(
+	IFS='-'  # element separator for "$*" etc., incl. "${FUNCNAME[*]}"
+	typeset -a FUNCNAME
+
+	function FUNCNAME.get {
+	    nameref self=${.sh.name}
+	    if (( .sh.subscript < .sh.level )); then
+		trap "(( .sh.level -= .sh.subscript + 1 )); eval '(( .sh.level = ${.sh.level} ))' \; _=\${.sh.fun}" DEBUG
+		trap - DEBUG;
+	    fi
+
+	    (( .sh.subscript < .sh.level - 2 )) && self[.sh.subscript + 1]=
+	}
+
+	function f {
+	    if (($1 < 10)); then
+		print -r -- "${FUNCNAME[*]}"
+		g $(($1 + 1))
+	    fi
+	    print -r -- "${FUNCNAME[*]}"
+	}
+
+	function g {
+	    if (($1 < 10)); then
+		print -r -- "${FUNCNAME[*]}"
+		f $(($1 + 1))
+	    fi
+	    print -r -- "${FUNCNAME[*]}"
+	}
+
+	#typeset -ft FUNCNAME.get f g
+	f 0
+)
+: do not optimize out the subshell
+EOF
+exp='f
+g-f
+f-g-f
+g-f-g-f
+f-g-f-g-f
+g-f-g-f-g-f
+f-g-f-g-f-g-f
+g-f-g-f-g-f-g-f
+f-g-f-g-f-g-f-g-f
+g-f-g-f-g-f-g-f-g-f
+f-g-f-g-f-g-f-g-f-g-f
+g-f-g-f-g-f-g-f-g-f-
+f-g-f-g-f-g-f-g-f--
+g-f-g-f-g-f-g-f---
+f-g-f-g-f-g-f----
+g-f-g-f-g-f-----
+f-g-f-g-f------
+g-f-g-f-------
+f-g-f--------
+g-f---------
+f----------'
+got=$(set +x; { "$SHELL" funcname.ksh ;} 2>&1)
+[[ $got == "$exp" ]] || err_exit 'funcname.ksh crash (direct run)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# dotting it slightly changes the output
+exp='f-
+g-f-
+f-g-f-
+g-f-g-f-
+f-g-f-g-f-
+g-f-g-f-g-f-
+f-g-f-g-f-g-f-
+g-f-g-f-g-f-g-f-
+f-g-f-g-f-g-f-g-f-
+g-f-g-f-g-f-g-f-g-f-
+f-g-f-g-f-g-f-g-f-g-f-
+g-f-g-f-g-f-g-f-g-f--
+f-g-f-g-f-g-f-g-f---
+g-f-g-f-g-f-g-f----
+f-g-f-g-f-g-f-----
+g-f-g-f-g-f------
+f-g-f-g-f-------
+g-f-g-f--------
+f-g-f---------
+g-f----------
+f-----------'
+got=$(set +x; { "$SHELL" -c '. ./funcname.ksh' ;} 2>&1)
+[[ $got == "$exp" ]] || err_exit 'funcname.ksh crash (dot)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -527,10 +527,16 @@ void sh_funstaks(register struct slnod *slp,int flag)
 		if(slp->slchild)
 			sh_funstaks(slp->slchild,flag);
 		slp = slp->slnext;
-		if(flag<=0)
-			stakdelete(slpold->slptr);
-		else
-			staklink(slpold->slptr);
+		if(slpold->slptr)
+		{
+			if(flag<=0)
+			{
+				stakdelete(slpold->slptr);
+				slpold->slptr = NIL(Stak_t*);
+			}
+			else
+				staklink(slpold->slptr);
+		}
 	}
 }
 /*
@@ -953,6 +959,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		{
 			sh.st.staklist = slp->slnext;
 			stakdelete(slp->slptr);
+			slp->slptr = NIL(Stak_t*);
 		}
 		siglongjmp(*sh.jmplist,jmpval);
 	}

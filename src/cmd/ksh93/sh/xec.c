@@ -1427,7 +1427,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 					/* increase refcnt for unset */
 					slp = (struct slnod*)np->nvenv;
 					sh_funstaks(slp->slchild,1);
-					staklink(slp->slptr);
+					if(slp->slptr)
+						staklink(slp->slptr);
 					if(nq)
 					{
 						Namval_t *mp=0;
@@ -1475,7 +1476,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(nq)
 						unset_instance(nq,&node,&nr,mode);
 					sh_funstaks(slp->slchild,-1);
-					stakdelete(slp->slptr);
+					if(slp->slptr)
+					{
+						stakdelete(slp->slptr);
+						slp->slptr = NIL(Stak_t*);
+					}
 					if(jmpval > SH_JMPFUN || (io && jmpval > SH_JMPIO))
 						siglongjmp(*sh.jmplist,jmpval);
 					goto setexit;
@@ -2486,7 +2491,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 				struct Ufunction *rp = np->nvalue.rp;
 				slp = (struct slnod*)np->nvenv;
 				sh_funstaks(slp->slchild,-1);
-				stakdelete(slp->slptr);
+				if(slp->slptr)
+				{
+					stakdelete(slp->slptr);
+					slp->slptr = NIL(Stak_t*);
+				}
 				if(rp->sdict)
 				{
 					Namval_t *mp, *nq;
@@ -2522,7 +2531,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 				struct comnod *ac = t->funct.functargs;
 				slp = t->funct.functstak;
 				sh_funstaks(slp->slchild,1);
-				staklink(slp->slptr);
+				if(slp->slptr)
+					staklink(slp->slptr);
 				np->nvenv = (char*)slp;
 				nv_funtree(np) = (int*)(t->funct.functtre);
 				np->nvalue.rp->hoffset = t->funct.functloc;

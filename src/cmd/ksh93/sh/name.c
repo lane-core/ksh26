@@ -2501,7 +2501,11 @@ void	_nv_unset(register Namval_t *np,int flags)
 				}
 				dtclose(rp->sdict);
 			}
-			stakdelete(slp->slptr);
+			if(slp->slptr)
+			{
+				stakdelete(slp->slptr);
+				slp->slptr = NIL(Stak_t*);
+			}
 			free((void*)np->nvalue.ip);
 			np->nvalue.ip = 0;
 		}
