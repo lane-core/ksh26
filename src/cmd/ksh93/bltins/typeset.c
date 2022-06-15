@@ -824,13 +824,15 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			}
 			if(troot==sh.var_tree)
 			{
-				if(sh.subshell)
+				if(sh.subshell && !sh.subshare)
 				{
 					/*
 					 * Create local scope for virtual subshell. Variables with discipline functions
 					 * (LC_*, LINENO, etc.) need to be cloned, as moving them will remove the discipline.
 					 */
-					if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
+					if((flag&NV_ARRAY) && !sh.envlist && !nv_isnull(np))
+						sh_subfork();	/* work around https://github.com/ksh93/ksh/issues/409 */
+					else if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
 						np=sh_assignok(np,2);
 					else
 						np=sh_assignok(np,0);

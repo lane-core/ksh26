@@ -795,6 +795,7 @@ v=$(printf $'%.28a\n' 64)
 # ======
 # Arbitrary command execution vulnerability in array subscripts in arithmetic expressions
 # https://github.com/ksh93/ksh/issues/152
+unset a
 
 exp='array_test_1: 1$(echo INJECTION >&2): arithmetic syntax error'
 got=$(set +x; var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a[$var]++)); typeset -p a' array_test_1 2>&1)

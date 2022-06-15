@@ -824,4 +824,11 @@ got=$(typeset -p foo)
 "$SHELL" -c 'a=(foo bar); [[ $(typeset -a) == *"a=("*")"* ]]' || err_exit "'typeset -a' doesn't work correctly"
 
 # ======
+# https://github.com/ksh93/ksh/issues/409
+got=$(typeset -a a=(1 2 3); (typeset -A a; typeset -p a); typeset -p a)
+exp=$'typeset -A a=([0]=1 [1]=2 [2]=3)\ntypeset -a a=(1 2 3)'
+[[ $got == "$exp" ]] || err_exit 'conversion of indexed array to associative fails in subshell' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
