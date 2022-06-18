@@ -928,4 +928,14 @@ AIX | SunOS)
 esac
 
 # ======
+(
+	ulimit -t unlimited 2>/dev/null
+	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+	"$SHELL" -c 'print "$$"'
+) >out
+pid1= pid2=
+{ read pid1 && read pid2; } <out && let "pid1 == pid2" \
+|| err_exit "last command in forked subshell not exec-optimized ($pid1 != $pid2)"
+
+# ======
 exit $((Errors<125?Errors:125))

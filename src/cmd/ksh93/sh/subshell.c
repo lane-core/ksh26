@@ -187,7 +187,6 @@ void sh_subfork(void)
 	else
 	{
 		/* this is the child part of the fork */
-		sh_onstate(SH_FORKED);
 		/*
 		 * $RANDOM is only reseeded when it's used in a subshell, so if $RANDOM hasn't
 		 * been reseeded yet set rp->rand_last to -2. This allows sh_save_rand_seed()
