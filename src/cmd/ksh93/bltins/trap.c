@@ -86,7 +86,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				 * if function semantics can be worked out then it
 				 * may merit a -d/--default option
 				 */
-				else if(*action=='+' && action[1]==0 && sh.st.self == &sh.global)
+				else if(*action=='+' && action[1]==0 && sh.st.self == &sh.global && !sh_isoption(SH_POSIX))
 				{
 					clear++;
 					dflag++;

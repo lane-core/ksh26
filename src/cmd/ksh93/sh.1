@@ -4713,7 +4713,9 @@ Remove all but the extension.
 \f3s/\fP\f2l\fP\f3/\fP\f2r\fP\f3/\fP
 Substitute \f2l\fP for \f2r\fP.
 \f2l\fP is simply a string like \f2r\fP,
-not a regular expression as in the eponymous \f2ed\fP(1) command.
+not a regular expression as in the eponymous
+.IR ed (1)
+command.
 Any character may be used as the delimiter in place of \f3/\fP;
 a \f3\\\fP can be used to quote the delimiter inside \f2l\fP and \f2r\fP.
 The character \f3&\fP in the \f2r\fP is replaced by \f2l\fP;
@@ -5955,7 +5957,8 @@ section from their manual page, and
 .B \-?
 as a request to print a brief usage message.
 All these are processed as error messages, so they are written on standard
-error (file descriptor 2) and to pipe them into a pager such as \fBmore\fR(1)
+error (file descriptor 2) and to pipe them into a pager such as
+.IR more (1)
 you need to add a \fB2>&1\fR redirection before the \fB|\fR. The display of
 boldface text depends on whether standard error is on a terminal, so is
 disabled when using a pager. Exporting the \fBERROR_OPTIONS\fR environment
@@ -9137,41 +9140,41 @@ file when the real and effective user or group ID do not match.
 .B /dev/null
 NULL device
 .SH SEE ALSO
-cat(1),
-cd(1),
-chmod(1),
-cut(1),
-date(1),
-egrep(1),
-echo(1),
-emacs(1),
-env(1),
-fgrep(1),
-gmacs(1),
-grep(1),
-stty(1),
-test(1),
-umask(1),
-vi(1),
-dup(2),
-exec(2),
-fork(2),
-getpwnam(3),
-ioctl(2),
-lseek(2),
-paste(1),
-pathconf(2),
-pipe(2),
-sysconf(3),
-umask(2),
-ulimit(2),
-wait(2),
-strftime(3),
-wctrans(3),
-rand(3),
-a.out(5),
-profile(5),
-environ(7).
+.IR cat (1),
+.IR cd (1),
+.IR chmod (1),
+.IR cut (1),
+.IR date (1),
+.IR egrep (1),
+.IR echo (1),
+.IR emacs (1),
+.IR env (1),
+.IR fgrep (1),
+.IR gmacs (1),
+.IR grep (1),
+.IR stty (1),
+.IR test (1),
+.IR umask (1),
+.IR vi (1),
+.IR dup (2),
+.IR exec (2),
+.IR fork (2),
+.IR getpwnam (3),
+.IR ioctl (2),
+.IR lseek (2),
+.IR paste (1),
+.IR pathconf (2),
+.IR pipe (2),
+.IR sysconf (3),
+.IR umask (2),
+.IR ulimit (2),
+.IR wait (2),
+.IR strftime (3),
+.IR wctrans (3),
+.IR rand (3),
+.IR a.out (5),
+.IR profile (5),
+.IR environ (7).
 .PP
 Morris I. Bolsky and David G. Korn,
 .IR "The New KornShell Command and Programming Language" ,

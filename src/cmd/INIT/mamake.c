@@ -38,8 +38,9 @@ static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 static const char usage[] =
 "[-?\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
+"[-author?Contributors to https://github.com/ksh93/ksh]"
 "[-copyright?(c) 1994-2012 AT&T Intellectual Property]"
-"[-copyright?(c) 2020-2021 Contributors to https://github.com/ksh93/ksh]"
+"[-copyright?(c) 2020-2022 Contributors to ksh 93u+m]"
 "[-license?http://www.eclipse.org/org/documents/epl-v10.html]"
 "[+NAME?mamake - make abstract machine make]"
 "[+DESCRIPTION?\bmamake\b reads \amake abstract machine\a target and"

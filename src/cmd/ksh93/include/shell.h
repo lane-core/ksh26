@@ -337,7 +337,6 @@ struct Shell_s
 	struct argnod	*envlist;
 	struct dolnod	*arglist;
 	int		fn_depth;	/* scoped ksh-style function call depth */
-	int		fn_reset;
 	int		dot_depth;	/* dot-script and POSIX function call depth */
 	int		hist_depth;
 	int		xargmin;
@@ -381,14 +380,16 @@ struct Shell_s
 	Namfun_t	nvfun;
 	char		*mathnodes;
 	char		*bltin_dir;
-	struct Regress_s*regress;
 #if SHOPT_FILESCAN
 	char		*cur_line;
-#endif
+#endif /* SHOPT_FILESCAN */
 #if !SHOPT_DEVFD
 	char		*fifo;		/* FIFO name for current process substitution */
 	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
 #endif /* !SHOPT_DEVFD */
+#if SHOPT_REGRESS
+	struct Regress_s *regress;
+#endif /* SHOPT_REGRESS */
 };
 
 /* used for builtins */

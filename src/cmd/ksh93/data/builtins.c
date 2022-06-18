@@ -122,11 +122,11 @@ const struct shtable3 shtab_builtins[] =
 #endif /* SHOPT_MKSERVICE */
 	"print",	NV_BLTIN|BLT_ENV,		bltin(print),
 	"printf",	NV_BLTIN|BLT_ENV,		bltin(printf),
-	"pwd",		NV_BLTIN,			bltin(pwd),
+	"pwd",		NV_BLTIN|BLT_ENV,		bltin(pwd),
 	"read",		NV_BLTIN|BLT_ENV,		bltin(read),
 	"sleep",	NV_BLTIN,			bltin(sleep),
-	"alarm",	NV_BLTIN,			bltin(alarm),
-	"times",	NV_BLTIN|BLT_SPC,		bltin(times),
+	"alarm",	NV_BLTIN|BLT_ENV,		bltin(alarm),
+	"times",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(times),
 	"ulimit",	NV_BLTIN|BLT_ENV,		bltin(ulimit),
 	"umask",	NV_BLTIN|BLT_ENV,		bltin(umask),
 #ifdef _cmd_universe

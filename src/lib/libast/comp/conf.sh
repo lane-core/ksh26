@@ -112,7 +112,7 @@ esac
 
 rm -f $tmp.*
 case $debug in
-'')	trap "code=\$?; rm -f $tmp.*; exit \$code" 0 1 2 ;;
+'')	trap "code=\$?; rm -rf $tmp.*; exit \$code" 0 1 2 ;;
 esac
 
 # determine the intmax_t printf format

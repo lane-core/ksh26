@@ -689,12 +689,6 @@ int sh_eval(register Sfio_t *iop, int mode)
 	io_save = iop; /* preserve correct value across longjmp */
 	sh.binscript = 0;
 	sh.comsub = 0;
-#define SH_TOPFUN	0x8000	/* this is a temporary tksh hack */
-	if (mode & SH_TOPFUN)
-	{
-		mode ^= SH_TOPFUN;
-		sh.fn_reset = 1;
-	}
 	sh_pushcontext(buffp,SH_JMPEVAL);
 	buffp->olist = pp->olist;
 	jmpval = sigsetjmp(buffp->buff,0);
@@ -741,7 +735,6 @@ int sh_eval(register Sfio_t *iop, int mode)
 
 	sh_freeup();
 	sh.st.staklist = saveslp;
-	sh.fn_reset = 0;
 	if(jmpval>SH_JMPEVAL)
 		siglongjmp(*sh.jmplist,jmpval);
 	return(sh.exitval);
@@ -931,16 +924,15 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
 int sh_exec(register const Shnode_t *t, int flags)
 {
 	Stk_t			*stkp = sh.stk;
-	int			unpipe=0;
 	sh_sigcheck();
 	if(t && !sh.st.execbrk && !sh_isoption(SH_NOEXEC))
 	{
-		register int 	type = flags;
+		register int 	type = t->tre.tretyp;
 		register char	*com0 = 0;
-		int 		errorflg = (type&sh_state(SH_ERREXIT))|OPTIMIZE;
-		int 		execflg = (type&sh_state(SH_NOFORK));
-		int 		execflg2 = (type&sh_state(SH_FORKED));
-		int 		mainloop = (type&sh_state(SH_INTERACTIVE));
+		int 		errorflg = (flags&sh_state(SH_ERREXIT))|OPTIMIZE;
+		int 		execflg = (flags&sh_state(SH_NOFORK));
+		int 		execflg2 = (flags&sh_state(SH_FORKED));
+		int 		mainloop = (flags&sh_state(SH_INTERACTIVE));
 		int		topfd = sh.topfd;
 		char 		*sav=stkfreeze(stkp,0);
 		char		*cp=0, **com=0, *comn;
@@ -963,7 +955,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 		sh_offstate(SH_DEFPATH);
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		type = t->tre.tretyp;
 		sh.exitval=0;
 		sh.lastsig = 0;
 		sh.lastpath = 0;
@@ -1388,6 +1379,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 						siglongjmp(*sh.jmplist,jmpval);
 					if(sh.exitval >=0)
 						goto setexit;
+					/*
+					 * If a built-in sets sh.exitval < 0 (must be allowed by BLT_EXIT attribute),
+					 * then fall through to TFORK which runs the external command by that name
+					 */
 					np = 0;
 					type=0;
 				}
@@ -1593,8 +1588,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(sh.topfd > topfd)
 						sh_iorestore(topfd,0);
-					if(usepipe && tsetio && subdup && unpipe)
-						sh_iounpipe();
 					if(!sh_isstate(SH_MONITOR))
 						sigrelease(SIGINT);
 				}
@@ -2927,8 +2920,6 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	sh.login_sh = 0;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
-	if (sh.fn_reset)
-		sh.fn_depth = sh.fn_reset = 0;
 #if SHOPT_ACCT
 	sh_accsusp();
 #endif	/* SHOPT_ACCT */

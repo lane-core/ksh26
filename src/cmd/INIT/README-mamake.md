@@ -39,11 +39,9 @@ MAM commands have the following basic form:
 *command* [ *argument* [ *operand string* ] ]
 
 The *command* name consists of four lower-case letters.
-Any other command name is an error.
-Unrecognized commands or attributes produce a warning and are then ignored.
-
-The first argument is a single word.
-The operand string is any arbitrary text until the end of the line.
+Unrecognized commands or attributes are an error.
+The *argument* is a single word.
+The *operand string* is any arbitrary text until the end of the line.
 
 ### Comments ###
 
@@ -61,7 +59,7 @@ Unless the `virtual` attribute is used, *rule* names the pathname of the file ge
 Dependencies may be defined in two ways:
 1. By nesting `make`...`done` blocks:
    the enclosing *rule* is the parent
-   and the enclosed *rules* are the prerequisites.
+   and the enclosed *rule*s are the prerequisites.
 2. By using the `prev` command (see **Referencing previously defined rules** below)
    to reference a previous `make`...`done` block.
    The dependency is defined as if that block were repeated at the `prev` command's location.
@@ -111,13 +109,11 @@ However, `mamake` ignores anything after *rule*.
 Defines a new MAM *variable*, optionally assigning the initial *defaultvalue*.
 If the *defaultvalue* begins and ends with double quotes (`"`), those are discarded.
 If the variable already has a value, the `setv` command is ignored; assigning a new value is not possible.
-
 When `mamake` starts, it imports all environment variables as MAM variables,
 so any variable's default value can be overridden by exporting an environment variable by its name.
 
 MAM variables are referenced using the sh-style `${`...`}` syntax, though the braces are *not* optional.
 Any reference to an undefined variable is silently left unexpanded (and not replaced by the empty string).
-
 Expansion of MAM variable references is recursive, i.e., the value may itself contain other variable references.
 Beware: there is no reference loop detection.
 
