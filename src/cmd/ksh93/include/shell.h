@@ -204,6 +204,7 @@ struct sh_scoped
 	short		opterror;
 	int		ioset;
 	unsigned short	trapmax;
+	char		trapdontexec;	/* stop exec optimization if any non-DEBUG/SIGKILL/SIGSTOP trap is set and non-empty */
 	char		*trap[SH_DEBUGTRAP+1];
 	char		**otrap;
 	char		**trapcom;
@@ -335,9 +336,9 @@ struct Shell_s
 	int		inuse_bits;
 	struct argnod	*envlist;
 	struct dolnod	*arglist;
-	int		fn_depth;
+	int		fn_depth;	/* scoped ksh-style function call depth */
 	int		fn_reset;
-	int		dot_depth;
+	int		dot_depth;	/* dot-script and POSIX function call depth */
 	int		hist_depth;
 	int		xargmin;
 	int		xargmax;
@@ -381,9 +382,6 @@ struct Shell_s
 	char		*mathnodes;
 	char		*bltin_dir;
 	struct Regress_s*regress;
-	char 		exittrap;
-	char 		errtrap;
-	char 		end_fn;
 #if SHOPT_FILESCAN
 	char		*cur_line;
 #endif

@@ -1527,9 +1527,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	astintercept(&sh.bltindata,1);
 	if(sh.userinit=userinit)
 		(*userinit)(&sh, 0);
-	sh.exittrap = 0;
-	sh.errtrap = 0;
-	sh.end_fn = 0;
 	error_info.exit = sh_exit;
 #ifdef BUILD_DTKSH
 	{
@@ -1714,9 +1711,6 @@ int sh_reinit(char *argv[])
 	sh.inpipe = sh.outpipe = 0;
 	job_clear();
 	job.in_critical = 0;
-	sh.exittrap = 0;
-	sh.errtrap = 0;
-	sh.end_fn = 0;
 	/* update ${.sh.pid}, $$, $PPID */
 	sh.ppid = sh.current_pid;
 	sh.current_pid = sh.pid = getpid();

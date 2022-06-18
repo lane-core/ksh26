@@ -315,11 +315,17 @@ void	sh_sigdone(void)
  * Restore to default signals
  * Free the trap strings if mode is non-zero
  * If mode>1 then ignored traps cause signal to be ignored 
+ * If mode==-1 we're entering a new function scope in sh_funscope()
  */
 void	sh_sigreset(register int mode)
 {
 	register char	*trap;
 	register int 	flag, sig=sh.st.trapmax;
+	/* do not reset sh.st.trapdontexec in a new ksh function scope as parent traps will still be active */
+	if(mode < 0)
+		mode = 0;
+	else
+		sh.st.trapdontexec = 0;
 	while(sig-- > 0)
 	{
 		if(trap=sh.st.trapcom[sig])

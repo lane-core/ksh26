@@ -928,14 +928,77 @@ AIX | SunOS)
 esac
 
 # ======
+# Test exec optimization of last command in script or subshell
+
 (
-	ulimit -t unlimited 2>/dev/null
+	ulimit -t unlimited 2>/dev/null  # fork subshell
 	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
 	"$SHELL" -c 'print "$$"'
 ) >out
 pid1= pid2=
 { read pid1 && read pid2; } <out && let "pid1 == pid2" \
 || err_exit "last command in forked subshell not exec-optimized ($pid1 != $pid2)"
+
+got=$(
+	ulimit -t unlimited 2>/dev/null  # fork subshell
+	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+	"$SHELL" -c 'print "$$"'
+)
+pid1= pid2=
+{ read pid1 && read pid2; } <<<$got && let "pid1 == pid2" \
+|| err_exit "last command in forked comsub not exec-optimized ($pid1 != $pid2)"
+
+cat >script <<\EOF
+echo $$
+sh -c 'echo $$'
+EOF
+"$SHELL" script >out
+pid1= pid2=
+{ read pid1 && read pid2; } <out && let "pid1 == pid2" \
+|| err_exit "last command in script not exec-optimized ($pid1 != $pid2)"
+
+for sig in EXIT ERR ${ kill -l; }
+do
+	case $sig in
+	KILL | STOP)
+		# cannot be trapped
+		continue ;;
+	esac
+
+	# the following is tested in a background subshell because ksh before 2022-06-18 didn't
+	# do exec optimization on the last external command in a forked non-background subshell
+	(
+		trap + "$sig"  # unadvertised (still sort of broken) feature: unignore signal
+		trap : "$sig"
+		print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+		"$SHELL" -c 'print "$$"'
+	) >out &
+	wait
+	pid1= pid2=
+	{ read pid1 && read pid2; } <out && let "pid1 != pid2" \
+	|| err_exit "last command in forked subshell exec-optimized in spite of $sig trap ($pid1 == $pid2)"
+
+	got=$(
+		ulimit -t unlimited 2>/dev/null  # fork subshell
+		trap + "$sig"  # unadvertised (still sort of broken) feature: unignore signal
+		trap : "$sig"
+		print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+		"$SHELL" -c 'print "$$"'
+	)
+	pid1= pid2=
+	{ read pid1 && read pid2; } <<<$got && let "pid1 != pid2" \
+	|| err_exit "last command in forked comsub exec-optimized in spite of $sig trap ($pid1 == $pid2)"
+
+	cat >script <<-EOF
+	trap ":" $sig
+	echo \$\$
+	sh -c 'echo \$\$'
+	EOF
+	"$SHELL" script >out
+	pid1= pid2=
+	{ read pid1 && read pid2; } <out && let "pid1 != pid2" \
+	|| err_exit "last command in script exec-optimized in spite of $sig trap ($pid1 == $pid2)"
+done
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -10,6 +10,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   the last component command was an external command and the pipeline was
   the last command in a background subshell.
 
+- When any trap except DEBUG, KILL or STOP is set to a non-empty command,
+  the last command in a script or forked subshell will no longer avoid forking
+  before executing; this optimization incorrectly bypassed the traps.
+
 2022-06-15:
 
 - Fixed a bug where converting an indexed array into an associative array in

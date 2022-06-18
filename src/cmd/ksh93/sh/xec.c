@@ -909,10 +909,17 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 /*
  * Check whether to execve(2) the final command or make its redirections permanent.
  */
-static int check_exec_optimization(struct ionod *iop)
+static int check_exec_optimization(int type, int execflg, int execflg2, struct ionod *iop)
 {
-	if(sh.subshell || sh.exittrap || sh.errtrap)
+	if(type&(FAMP|FPOU)
+	|| !(execflg && sh.fn_depth==0 || execflg2)
+	|| sh.st.trapdontexec
+	|| sh.subshell
+	|| ((struct checkpt*)sh.jmplist)->mode==SH_JMPEVAL
+	|| (pipejob && (sh_isstate(SH_MONITOR) || sh_isoption(SH_PIPEFAIL) || sh_isstate(SH_TIMING))))
+	{
 		return(0);
+	}
 	/* '<>;' (IOREWRITE) redirections are incompatible with exec */
 	while(iop && !(iop->iofile & IOREWRITE))
 		iop = iop->ionxt;
@@ -1133,7 +1140,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				int tflags = 1;
 				if(np && nv_isattr(np,BLT_DCL))
 					tflags |= 2;
-				if(execflg && !check_exec_optimization(io))
+				if(execflg && !check_exec_optimization(type,execflg,execflg2,io))
 					execflg = 0;
 				if(argn==0)
 				{
@@ -1506,15 +1513,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int pipes[3];
 			if(sh.subshell)
 				sh_subtmpfile();
-			no_fork = !(type&(FAMP|FPOU))
-			&& !sh.subshell
-			&& !(sh.st.trapcom[SIGINT] && *sh.st.trapcom[SIGINT])
-			&& !sh.st.trapcom[0]
-			&& !sh.st.trap[SH_ERRTRAP]
-			&& ((struct checkpt*)sh.jmplist)->mode!=SH_JMPEVAL
-			&& (execflg && sh.fn_depth==0 || execflg2)
-			&& !(pipejob && (sh_isstate(SH_MONITOR) || sh_isoption(SH_PIPEFAIL) || sh_isstate(SH_TIMING)));
-			if(no_fork)
+			if(no_fork = check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
 				job.parent=parent=0;
 			else
 			{
@@ -1799,7 +1798,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval==0)
 			{
-				if(execflg && !check_exec_optimization(t->fork.forkio))
+				if(execflg && !check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
 				{
 					execflg = 0;
 					flags &= ~sh_state(SH_NOFORK);
@@ -3100,7 +3099,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 		save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
-	sh_sigreset(0);
+	sh_sigreset(-1);
 	if(save_debugtrap)
 		sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 	argsav = sh_argnew(argv,&saveargfor);
@@ -3117,8 +3116,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 		nv_putval(SH_FUNNAMENOD,sh.st.funname,NV_NOFREE);
 	}
-	if((execflg & sh_state(SH_NOFORK)))
-		sh.end_fn = 1;
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
@@ -3169,7 +3166,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh.st = *prevscope;
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(IFSNOD));
-	sh.end_fn = 0;
 	if(nsig)
 	{
 		for (isig = 0; isig < nsig; ++isig)

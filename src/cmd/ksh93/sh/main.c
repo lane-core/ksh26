@@ -467,9 +467,6 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	error_info.line = 1;
 	sh.inlineno = 1;
 	sh.binscript = 0;
-	sh.exittrap = 0;
-	sh.errtrap = 0;
-	sh.end_fn = 0;
 	if(sfeof(iop))
 		goto eof_or_error;
 	/* command loop */

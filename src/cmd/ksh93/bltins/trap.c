@@ -136,13 +136,6 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 						sh.trapnote = 0;
 
 				}
-				if(sig == SH_ERRTRAP)
-				{
-					if(clear)
-						sh.errtrap = 0;
-					else if(!sh.fn_depth || sh.end_fn)
-						sh.errtrap = 1;
-				}
 				continue;
 			}
 			if(sig > sh.sigmax)
@@ -159,8 +152,6 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			else if(clear)
 			{
 				sh_sigclear(sig);
-				if(sig == 0)
-					sh.exittrap = 0;
 				if(dflag)
 					signal(sig,SIG_DFL);
 			}
@@ -180,8 +171,39 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				sh.st.trapcom[sig] = (sh.sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
 				if(arg && arg != Empty)
 					free(arg);
-				if(sig == 0 && (!sh.fn_depth || sh.end_fn))
-					sh.exittrap = 1;
+			}
+		}
+		/*
+		 * Set a flag for sh_exec() to disable exec-without-fork optimizations if any trap is set and non-empty.
+		 * (In ksh functions, there may be parent scope traps, so do not reset to 0 if in a ksh function.)
+		 */
+		if(sh.fn_depth==0)
+			sh.st.trapdontexec = 0;
+		if(!sh.st.trapdontexec)
+		{
+			/* EXIT and real signals */
+			for(sig=0; sig<=sh.sigmax; sig++)
+			{
+				/* these cannot be trapped */
+				if(sig==SIGKILL || sig==SIGSTOP)
+					continue;
+				if(sh.st.trapcom[sig] && *sh.st.trapcom[sig])
+				{
+					sh.st.trapdontexec++;
+					break;
+				}
+			}
+		}
+		if(!sh.st.trapdontexec)
+		{
+			/* other pseudosignals -- exclude DEBUG as it is executed before the command */
+			for(sig=0; sig<SH_DEBUGTRAP; sig++)
+			{
+				if(sh.st.trap[sig] && *sh.st.trap[sig])
+				{
+					sh.st.trapdontexec++;
+					break;
+				}
 			}
 		}
 	}
