@@ -89,7 +89,6 @@ static struct subshell
 	pid_t		cpid;
 	int		coutpipe;
 	int		cpipe;
-	int		nofork;
 	int		subdup;
 	char		subshare;
 	char		comsub;
@@ -625,8 +624,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SF_READ,0);
 			sh.fdstatus[1] = IOWRITE;
-			if(!(sp->nofork = sh_state(SH_NOFORK)))
-				sh_onstate(SH_NOFORK);
 			flags |= sh_state(SH_NOFORK);
 		}
 		else if(sp->prev)
@@ -693,8 +690,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sigrelease(SIGTSTP);
 #endif
 		/* re-enable job control */
-		if(!sp->nofork)
-			sh_offstate(SH_NOFORK);
 		job.jobcontrol = sp->jobcontrol;
 		if(sp->monitor)
 			sh_onstate(SH_MONITOR);
