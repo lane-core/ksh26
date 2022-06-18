@@ -179,7 +179,7 @@ built-in utility).
 A
 .I pipeline\^
 is a sequence of one or more
-.I commands\^
+.IR command\^ s
 separated by
 .BR | .
 The standard output of each command but the last
@@ -194,10 +194,19 @@ by a
 to the standard input of the next command.
 Each command,
 except possibly the last,
-is run as a separate process;
-the shell waits for the last command to terminate.
+is run as a separate process.
+If the
+.B monitor
+or
+.B pipefail
+option is on,
+or the pipeline is preceded by the
+.I "reserved word"
+.BR time ,
+then the shell waits for all component commands in the pipeline to terminate;
+otherwise, the shell only waits for the last component command.
 The exit status of a pipeline is the exit
-status of the last command unless the
+status of its last component command, unless the
 .B pipefail
 option is enabled.
 Each pipeline can be preceded by the
@@ -7527,6 +7536,8 @@ not just those that precede the command name.
 Background jobs will run in a separate process group
 and a line will print upon completion.
 The exit status of background jobs is reported in a completion message.
+A pipeline will not terminate until all component commands of the pipeline
+have terminated.
 On systems with job control,
 this option is turned on automatically for
 interactive shells.
@@ -7687,10 +7698,11 @@ Same as
 .BR \-u .
 .TP 8
 .B pipefail
-A pipeline will not complete until all components
-of the pipeline have completed, and the return value
-will be the value of the last non-zero command
-to fail or zero if no command has failed.
+The exit status of the entire pipeline will be that of the last component
+command that exited with a non-zero exit status, or zero if no command
+exited with a non-zero exit status.
+The shell will wait for all component commands of the pipeline to terminate,
+instead of only waiting for the last component command.
 .TP 8
 .B posix
 Enables the POSIX standard mode for maximum compatibility with other compliant

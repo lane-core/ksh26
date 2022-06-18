@@ -1512,7 +1512,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 			&& !sh.st.trapcom[0]
 			&& !sh.st.trap[SH_ERRTRAP]
 			&& ((struct checkpt*)sh.jmplist)->mode!=SH_JMPEVAL
-			&& (execflg2 || (execflg && sh.fn_depth==0 && !(pipejob && sh_isoption(SH_PIPEFAIL))));
+			&& (execflg && sh.fn_depth==0 || execflg2)
+			&& !(pipejob && (sh_isstate(SH_MONITOR) || sh_isoption(SH_PIPEFAIL) || sh_isstate(SH_TIMING)));
 			if(no_fork)
 				job.parent=parent=0;
 			else
@@ -1898,6 +1899,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 			sh.inpipe = pvo;
 			sh.outpipe = pvn;
 			pvo[1] = -1;
+			/*
+			 * If the pipefail or monitor options are on or if the time keyword is in use, then wait
+			 * for all commands in the pipeline to complete; otherwise, wait for the last one only
+			 */
 			if(sh_isoption(SH_PIPEFAIL))
 			{
 				const Shnode_t* tn=t;
@@ -1909,7 +1914,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				memset(exitval,0,job.waitall*sizeof(int));
 			}
 			else
-				job.waitall |= (!pipejob && sh_isstate(SH_MONITOR));
+				job.waitall = !pipejob && (sh_isstate(SH_MONITOR) || sh_isstate(SH_TIMING));
 			job_lock();
 			nlock++;
 			do
@@ -2329,7 +2334,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			if(t->par.partre)
 			{
-				long timer_on = sh_isstate(SH_TIMING);
+				int timer_on = sh_isstate(SH_TIMING);
 #ifdef timeofday
 				/* must be run after forking a subshell */
 				timeofday(&tb);
@@ -2342,12 +2347,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 					UNREACHABLE();
 				}
 #endif
-				job.waitall = 1;
 				sh_onstate(SH_TIMING);
 				sh_exec(t->par.partre,sh_isstate(SH_ERREXIT)|OPTIMIZE);
 				if(!timer_on)
 					sh_offstate(SH_TIMING);
-				job.waitall = 0;
 			}
 			else
 			{

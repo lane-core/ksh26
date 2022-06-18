@@ -606,4 +606,24 @@ EOF
 EOF
 
 # ======
+# https://github.com/ksh93/ksh/issues/449
+set +o monitor +o pipefail
+for opt in monitor pipefail
+do
+	outfile=out$opt
+	exp="ok $opt"
+	(
+		set +x -o "$opt"
+		(
+			sleep .01
+			print "$exp" >&2
+		) 2>$outfile | "${ whence -p true; }"  # the external 'true' should not be exec-optimized
+	) &
+	wait "$!"
+	got=$(<$outfile)
+	[[ $got == "$exp" ]] || err_exit "shell did not wait for entire pipeline with -o $opt" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# ======
 exit $((Errors<125?Errors:125))
