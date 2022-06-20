@@ -241,7 +241,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 			dcl_tree = dtopen(&_Nvdisc, Dtoset);
 			dtview(sh.bltin_tree, dcl_tree);
 		}
-		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
+		nv_onattr(sh_addbuiltin(cp, b_true, NIL(void*)), NV_BLTIN|BLT_DCL);
 	}
 }
 /*
@@ -1563,7 +1563,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 						cmdarg++;
 					else if(np==SYSEXEC || np==SYSREDIR)
 						lexp->inexec = 1;
-					else if(np->nvalue.bfp==(Nambfp_f)b_getopts)
+					else if(funptr(np)==b_getopts)
 						opt_get |= FOPTGET;
 				}
 			}

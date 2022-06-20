@@ -149,7 +149,7 @@ struct Ufunction
 #define is_abuiltin(n)	(nv_isattr(n,NV_BLTIN|NV_INTEGER)==NV_BLTIN)
 #define is_afunction(n)	(nv_isattr(n,NV_FUNCTION|NV_REF)==NV_FUNCTION)
 #define	nv_funtree(n)	((n)->nvalue.rp->ptree)
-#define	funptr(n)	((n)->nvalue.bfp)
+#define	funptr(n)	((Shbltin_f)(n)->nvalue.bfp)
 
 /* NAMNOD MACROS */
 /* ... for attributes */

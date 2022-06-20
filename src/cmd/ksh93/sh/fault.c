@@ -534,7 +534,7 @@ void sh_exit(register int xno)
 	register int		sig=0;
 	register Sfio_t*	pool;
 	/* POSIX requires exit status >= 2 for error in 'test'/'[' */
-	if(xno == 1 && (sh.bltindata.bnode==SYSTEST || sh.bltindata.bnode==SYSBRACKET))
+	if(xno==1 && sh.bltinfun==b_test)
 		sh.exitval = 2;
 	else
 		sh.exitval = xno;

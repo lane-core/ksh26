@@ -1229,7 +1229,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		{
 			if(nv_isattr(np,BLT_SPC))
 				errmsg = "restricted name";
-			addr = (Shbltin_f)np->nvalue.bfp;
+			addr = funptr(np);
 		}
 		if(!dlete && !addr && !(np=sh_addbuiltin(arg,(Shbltin_f)0 ,0)))
 			errmsg = "not found";

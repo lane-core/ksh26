@@ -406,7 +406,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			char	lastbase=0, *val = xp, oerrno = errno;
 			lvalue->eflag = 0;
 			errno = 0;
-			if(!sh_isoption(sh.bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX))
+			if(!sh_isoption(sh.bltinfun==b_let ? SH_LETOCTAL : SH_POSIX))
 			{
 				/* Skip leading zeros to avoid parsing as octal */
 				while(*val=='0' && isdigit(val[1]))
@@ -529,7 +529,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 {
 	register Sfdouble_t d;
-	char base = (sh_isoption(sh.bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
+	char base = (sh_isoption(sh.bltinfun==b_let ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
 	if(*str==0)
 	{
 		d = 0.0;

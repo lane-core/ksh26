@@ -799,7 +799,7 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 #endif /* SHOPT_NAMESPACE */
 	if((bp=nv_search(name,sh.fun_tree,NV_NOSCOPE)) && !bp->nvalue.ip)
 		nv_delete(bp,sh.fun_tree,0);
-	bp = sh_addbuiltin(name, (Shbltin_f)mp->nvalue.bfp, (void*)cp); 
+	bp = sh_addbuiltin(name, funptr(mp), cp);
 	nv_onattr(bp,nv_isattr(mp,NV_PUBLIC));
 	nv_onattr(np, NV_RDONLY);
 }

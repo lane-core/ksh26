@@ -821,7 +821,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 					sh_addlib(dll,stakptr(m),oldpp);
 				if(dll &&
 				   (addr=(Shbltin_f)dlllook(dll,stakptr(n))) &&
-				   (!(np = sh_addbuiltin(stakptr(PATH_OFFSET),NiL,NiL)) || np->nvalue.bfp!=(Nambfp_f)addr) &&
+				   (!(np = sh_addbuiltin(stakptr(PATH_OFFSET),NiL,NiL)) || funptr(np)!=addr) &&
 				   (np = sh_addbuiltin(stakptr(PATH_OFFSET),addr,NiL)))
 				{
 					np->nvenv = dll;
@@ -869,7 +869,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 			if(np)
 			{
 				n = np->nvflag;
-				np = sh_addbuiltin(stakptr(PATH_OFFSET),(Shbltin_f)np->nvalue.bfp,nv_context(np));
+				np = sh_addbuiltin(stakptr(PATH_OFFSET),funptr(np),nv_context(np));
 				np->nvflag = n;
 			}
 		}
