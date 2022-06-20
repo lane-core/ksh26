@@ -67,6 +67,7 @@ void	sh_fault(register int sig)
 	register char		*trap;
 	register struct checkpt	*pp = (struct checkpt*)sh.jmplist;
 	int	action=0;
+	int	save_errno = errno;
 	/* reset handler */
 	if(!(sig&SH_TRAP))
 		signal(sig, sh_fault);
@@ -90,7 +91,7 @@ void	sh_fault(register int sig)
 		/* critical region, save and process later */
 		if(!(sh.sigflag[sig]&SH_SIGIGNORE))
 			sh.savesig = sig;
-		return;
+		goto done;
 	}
 	if(sig==SIGALRM && sh.bltinfun==b_sleep)
 	{
@@ -99,18 +100,18 @@ void	sh_fault(register int sig)
 			sh.trapnote |= SH_SIGTRAP;
 			sh.sigflag[sig] |= SH_SIGTRAP;
 		}
-		return;
+		goto done;
 	}
 	if(sh.subshell && trap && sig!=SIGINT && sig!=SIGQUIT && sig!=SIGWINCH && sig!=SIGCONT)
 	{
 		sh.exitval = SH_EXITSIG|sig;
 		sh_subfork();
 		sh.exitval = 0;
-		return;
+		goto done;
 	}
 	/* handle ignored signals */
 	if(trap && *trap==0)
-		return;
+		goto done;
 	flag = sh.sigflag[sig]&~SH_SIGOFF;
 	if(!trap)
 	{
@@ -119,7 +120,7 @@ void	sh_fault(register int sig)
 			if(sh.subshell)
 				sh.ignsig = sig;
 			sigrelease(sig);
-			return;
+			goto done;
 		}
 		if(flag&SH_SIGDONE)
 		{
@@ -129,7 +130,7 @@ void	sh_fault(register int sig)
 				/* check for TERM signal between fork/exec */
 				if(sig==SIGTERM && job.in_critical)
 					sh.trapnote |= SH_SIGTERM;
-				return;
+				goto done;
 			}
 			sh.lastsig = sig;
 			sigrelease(sig);
@@ -162,7 +163,7 @@ void	sh_fault(register int sig)
 					dp->exceptf = malloc_done;
 			}
 #endif
-			return;
+			goto done;
 		}
 	}
 	errno = 0;
@@ -190,7 +191,7 @@ void	sh_fault(register int sig)
 				sigrelease(sig);
 				sh_exit(SH_EXITSIG);
 			}
-			return;
+			goto done;
 		}
 #endif /* SIGTSTP */
 	}
@@ -198,12 +199,12 @@ void	sh_fault(register int sig)
 	if((error_info.flags&ERROR_NOTIFY) && sh.bltinfun)
 		action = (*sh.bltinfun)(-sig,(char**)0,(void*)0);
 	if(action>0)
-		return;
+		goto done;
 #endif
 	if(sh.bltinfun && sh.bltindata.notify)
 	{
 		sh.bltindata.sigset = 1;
-		return;
+		goto done;
 	}
 	sh.trapnote |= flag;
 	if(sig <= sh.sigmax)
@@ -211,10 +212,20 @@ void	sh_fault(register int sig)
 	if(pp->mode==SH_JMPCMD && sh_isstate(SH_STOPOK))
 	{
 		if(action<0)
-			return;
+			goto done;
 		sigrelease(sig);
 		sh_exit(SH_EXITSIG);
 	}
+done:
+	/*
+	 * Always restore errno, because this code is run during signal handling which may interrupt loops like:
+	 *	while((fd = open(path, flags, mode)) < 0)
+	 *		if(errno!=EINTR)
+	 *			<throw error>;
+	 * otherwise that may fail if a signal is caught between the open() call and the errno!=EINTR check.
+	 */
+	errno = save_errno;
+	return;
 }
 
 /*
