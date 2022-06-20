@@ -1045,9 +1045,9 @@ static Sfoff_t	file_offset(int fn, char *fname)
  */
 void sh_pclose(register int pv[])
 {
-	if(pv[0] > -1)
+	if(pv[0]>=2)
 		sh_close(pv[0]);
-	if(pv[1] > -1)
+	if(pv[1]>=2)
 		sh_close(pv[1]);
 	pv[0] = pv[1] = -1;
 }

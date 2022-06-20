@@ -1275,13 +1275,10 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	sh.bckpid = 0;
 	sh.st.ioset=0;
 	/* clean up any cooperating processes */
-	if(sh.cpipe[0] > -1)
+	if(sh.cpipe[0]>0)
 		sh_pclose(sh.cpipe);
-	if(sh.cpid && sh.outpipe && *sh.outpipe > -1)
-	{
+	if(sh.cpid && sh.outpipe)
 		sh_close(*sh.outpipe);
-		*sh.outpipe = -1;
-	}
 	sh.cpid = 0;
 	if(sp=fcfile())
 		while(sfstack(sp,SF_POPSTACK));
