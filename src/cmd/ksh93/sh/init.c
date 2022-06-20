@@ -147,9 +147,6 @@ char e_version[]	= "\n@(#)$Id: Version "
 
 #define RANDMASK	0x7fff
 
-#ifndef ARG_MAX
-#   define ARG_MAX	(1*1024*1024)
-#endif
 #ifndef CHILD_MAX
 #   define CHILD_MAX	(1*1024)
 #endif
@@ -1284,11 +1281,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		sh.euserid=geteuid();
 		sh.groupid=getgid();
 		sh.egroupid=getegid();
-		sh.lim.arg_max = astconf_long(CONF_ARG_MAX);
 		sh.lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
 		sh.lim.clk_tck = (int)astconf_long(CONF_CLK_TCK);
-		if(sh.lim.arg_max <=0)
-			sh.lim.arg_max = ARG_MAX;
 		if(sh.lim.child_max <=0)
 			sh.lim.child_max = CHILD_MAX;
 		if(sh.lim.clk_tck <=0)

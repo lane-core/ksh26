@@ -217,7 +217,6 @@ struct sh_scoped
 
 struct limits
 {
-	long		arg_max;	/* max arg+env exec() size */
 	int		open_max;	/* maximum number of file descriptors */
 	int		clk_tck;	/* number of ticks per second */
 	int		child_max;	/* maximum number of children */

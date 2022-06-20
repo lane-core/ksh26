@@ -92,6 +92,17 @@ static pid_t _spawnveg(const char *path, char* const argv[], char* const envp[],
 }
 
 /*
+ * POSIX: "The number of bytes available for the new process' combined argument and environment lists is {ARG_MAX}. It
+ * is implementation-defined whether null terminators, pointers, and/or any alignment bytes are included in this total."
+ * https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html
+ * So, operating systems are free to consume ARG_MAX space in whatever bizarre way they want, and may even come up with
+ * more innovative ways to waste buffer space in future. In command_xargs() below, we assume that null terminators are
+ * included in the total, because why wouldn't they be? Then we allow for the possibility of adding a certain number of
+ * extra bytes per argument to account for pointers and whatnot. We start off from the value that was determined by the
+ * _arg_extrabytes test in features/externs, but path_spawn() will increase arg_extra and retry if E2BIG still occurs.
+ */
+static unsigned arg_extra = _arg_extrabytes;
+/*
  * used with command -x to run the command in multiple passes
  * spawn is non-zero when invoked via spawn
  * the exitval is set to the maximum for each execution
@@ -101,19 +112,31 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 	register char *cp, **av, **xv;
 	char **avlast= &argv[sh.xargmax], **saveargs=0;
 	char *const *ev;
-	long size, left;
+	ssize_t size, left;
 	int nlast=1,n,exitval=0;
 	pid_t pid;
 	if(sh.xargmin < 0)
-		return((pid_t)-1);
-	size = sh.lim.arg_max - (ARG_EXTRA_BYTES > 2 ? 1024*ARG_EXTRA_BYTES : 2048);
+		abort();
+	/* get env/args buffer size (may change dynamically on Linux) */
+	if((size = astconf_long(CONF_ARG_MAX)) < 0)
+		size = 131072;
+	/* leave fairly generous space for the environment */
 	for(ev=envp; cp= *ev; ev++)
-		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
+	{
+		n = strlen(cp);
+		size -= n + n / 2 + arg_extra;
+	}
+	/* subtract lengths of leading and trailing static arguments */
 	for(av=argv; (cp= *av) && av< &argv[sh.xargmin]; av++)
-		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
+		size -= strlen(cp) + 1 + arg_extra;
 	for(av=avlast; cp= *av; av++,nlast++)  
-		size -= strlen(cp) + 1 + ARG_EXTRA_BYTES;
-	size -= 2 + 2 * ARG_EXTRA_BYTES;  /* final null env and arg elements */
+		size -= strlen(cp) + 1 + arg_extra;
+	size -= 2 + 2 * arg_extra;  /* final null env and arg elements */
+	if(size < 2048)
+	{
+		errno = E2BIG;
+		return(-2);
+	}
 	av =  &argv[sh.xargmin];
 	if(!spawn)
 		job_clear();
@@ -122,7 +145,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 	{
 		/* for each argument, account for terminating zero and possible extra bytes */
 		for(xv=av,left=size; left>0 && av<avlast;)
-			left -= strlen(*av++) + 1 + ARG_EXTRA_BYTES;
+			left -= strlen(*av++) + 1 + arg_extra;
 		/* leave at least two for last */
 		if(left<0 && (avlast-av)<2)
 			av--;
@@ -130,8 +153,8 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 		{
 			n = nlast*sizeof(char*);
 			saveargs = (char**)sh_malloc(n);
-			memcpy((void*)saveargs, (void*)av, n);
-			memcpy((void*)av,(void*)avlast,n);
+			memcpy(saveargs,av,n);
+			memcpy(av,avlast,n);
 		}
 		else
 		{
@@ -144,35 +167,36 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 		if(saveargs || av<avlast || (exitval && !spawn))
 		{
 			if((pid=_spawnveg(path,argv,envp,0)) < 0)
+			{
+				if(saveargs)
+				{
+					memcpy(av,saveargs,n);
+					free(saveargs);
+				}
 				return(-1);
+			}
 			job_post(pid,0);
 			job_wait(pid);
 			if(sh.exitval>exitval)
 				exitval = sh.exitval;
 			if(saveargs)
 			{
-				memcpy((void*)av,saveargs,n);
-				free((void*)saveargs);
+				memcpy(av,saveargs,n);
+				free(saveargs);
 				saveargs = 0;
 			}
 		}
 		else if(spawn)
 		{
 			sh.xargexit = exitval;
-			if(saveargs)
-				free((void*)saveargs);
 			return(_spawnveg(path,argv,envp,spawn>>1));
 		}
 		else
-		{
-			if(saveargs)
-				free((void*)saveargs);
 			return(execve(path,argv,envp));
-		}
 	}
 	if(!spawn)
 		exit(exitval);
-	return((pid_t)-1);
+	return(-1);
 }
 
 /*
@@ -1247,13 +1271,17 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 	    case E2BIG:
 		if(sh_isstate(SH_XARG))
 		{
-			pid = command_xargs(opath, &argv[0] ,envp,spawn);
-			if(pid<0)
-			{
-				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),"command -x: could not execute %s",path);
-				UNREACHABLE();
-			}
-			return(pid);
+			/*
+			 * command -x: built-in xargs. If the argument list doesn't fit and there is more
+			 * than one argument, then retry to allow for extra space consumed per argument.
+			 */
+			while((pid = command_xargs(opath,&argv[0],envp,spawn)) == -1
+			&& arg_extra < 8*sizeof(char*) && errno==E2BIG && argv[1])
+				arg_extra += sizeof(char*);
+			if(pid > 0)
+				return(pid);
+			/* error: reset */
+			arg_extra = _arg_extrabytes;
 		}
 		/* FALLTHROUGH */
 	    default:
