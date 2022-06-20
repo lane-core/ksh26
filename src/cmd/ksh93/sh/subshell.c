@@ -455,8 +455,10 @@ void sh_subjobcheck(pid_t pid)
 	{
 		if(sp->cpid==pid)
 		{
-			sh_close(sp->coutpipe);
-			sh_close(sp->cpipe);
+			if(sp->coutpipe > -1)
+				sh_close(sp->coutpipe);
+			if(sp->cpipe > -1)
+				sh_close(sp->cpipe);
 			sp->coutpipe = sp->cpipe = -1;
 			return;
 		}
