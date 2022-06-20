@@ -396,10 +396,11 @@ int job_reap(register int sig)
 			/* check for coprocess completion */
 			if(pid==sh.cpid)
 			{
-				sh_close(sh.coutpipe);
-				sh_close(sh.cpipe[1]);
-				sh.cpipe[1] = -1;
-				sh.coutpipe = -1;
+				if(sh.coutpipe > -1)
+					sh_close(sh.coutpipe);
+				if(sh.cpipe[1] > -1)
+					sh_close(sh.cpipe[1]);
+				sh.coutpipe = sh.cpipe[1] = -1;
 			}
 			else if(sh.subshell)
 				sh_subjobcheck(pid);
