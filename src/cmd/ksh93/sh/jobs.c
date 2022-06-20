@@ -291,7 +291,7 @@ int job_reap(register int sig)
 	struct process *px;
 	register int flags;
 	struct jobsave *jp;
-	int nochild=0, oerrno, wstat;
+	int nochild = 0, oerrno = errno, wstat;
 	Waitevent_f waitevent = sh.waitevent;
 	static int wcontinued = WCONTINUED;
 	int was_ttywait_on;
@@ -312,7 +312,6 @@ int job_reap(register int sig)
 	else
 		flags = WUNTRACED|wcontinued;
 	sh.waitevent = 0;
-	oerrno = errno;
 	was_ttywait_on = sh_isstate(SH_TTYWAIT); /* save tty wait state */
 	while(1)
 	{
@@ -478,7 +477,6 @@ int job_reap(register int sig)
 	}
 	if(errno==ECHILD)
 	{
-		errno = oerrno;
 #if SHOPT_BGX
 		job.numbjob = 0;
 #endif /* SHOPT_BGX */
@@ -494,6 +492,14 @@ int job_reap(register int sig)
 	}
 	if(sig)
 		signal(sig, job_waitsafe);
+	/*
+	 * Always restore errno, because this code is run during signal handling which may interrupt loops like:
+	 *	while((fd = open(path, flags, mode)) < 0)
+	 *		if(errno!=EINTR)
+	 *			<throw error>;
+	 * otherwise that may fail if SIGCHLD is handled between the open() call and the errno!=EINTR check.
+	 */
+	errno = oerrno;
 	return(nochild);
 }
 
