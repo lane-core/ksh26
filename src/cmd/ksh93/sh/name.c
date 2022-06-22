@@ -3125,7 +3125,11 @@ char* sh_setenviron(const char *name)
 	register Namval_t *np;
 	if(name)
 	{
+		char *save_prefix = sh.prefix;
+		/* deactivate a possible compound assignment */
+		sh.prefix = NIL(char*);
 		np = nv_open(name,sh.var_tree,NV_EXPORT|NV_IDENT|NV_NOARRAY|NV_ASSIGN);
+		sh.prefix = save_prefix;
 		if(strchr(name,'='))
 			return(nv_getval(np));
 		_nv_unset(np,0);

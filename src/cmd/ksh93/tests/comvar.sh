@@ -707,4 +707,13 @@ EOF
 ) || err_exit 'unsetting an array turned into a compound variable fails'
 
 # ======
+# before 2022-06-22, this resulted in:
+#   ksh: echo: arr[0]._AST_FEATURES=CONFORMANCE - ast UNIVERSE - ucb: cannot be an array
+#   ksh: [1]=1: invalid variable name
+got=$(set +x; eval 'typeset -a arr=( ( (a $(($(echo 1) + 1)) c)1))' 2>&1; typeset -p arr)
+exp='typeset -a arr=(((a 2 c) 1) )'
+[[ $got == "$exp" ]] || err_exit "'echo' environment messed up by compound assignment" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
