@@ -8,6 +8,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed: 'echo' failed when used inside a command substitution that
   is inside a nested compound assignment.
 
+- Fixed a crash in KEYBD trap handling introduced on 2021-11-29.
+
 2022-06-20:
 
 - Fixed a race condition that could cause redirections to fail with a

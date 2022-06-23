@@ -62,13 +62,13 @@ local_iswblank(wchar_t wc)
 
 #endif
 
-#define	pushlevel(lp,c,s)	((lp->lexd.level>=lp->lexd.lex_max?stack_grow(lp):1) &&\
-				((lp->lexd.lex_match[lp->lexd.level++]=lp->lexd.lastc),\
+#define	pushlevel(lp,c,s)	((lp->lexd.level>=lex_max?stack_grow():1) &&\
+				((lex_match[lp->lexd.level++]=lp->lexd.lastc),\
 				lp->lexd.lastc=(((s)<<CHAR_BIT)|(c))))
 #define oldmode(lp)	(lp->lexd.lastc>>CHAR_BIT)	
 #define endchar(lp)	(lp->lexd.lastc&0xff)	
 #define setchar(lp,c)	(lp->lexd.lastc = ((lp->lexd.lastc&~0xff)|(c)))
-#define poplevel(lp)	(lp->lexd.lastc=lp->lexd.lex_match[--lp->lexd.level])
+#define poplevel(lp)	(lp->lexd.lastc=lex_match[--lp->lexd.level])
 
 static char		*fmttoken(Lex_t*, int);
 static struct argnod	*endword(int);
@@ -77,8 +77,11 @@ static void		setupalias(Lex_t*,const char*, Namval_t*);
 static int		comsub(Lex_t*,int);
 static void		nested_here(Lex_t*);
 static int		here_copy(Lex_t*, struct ionod*);
-static int 		stack_grow(Lex_t*);
+static int 		stack_grow(void);
 static const Sfdisc_t alias_disc = { NULL, NULL, NULL, alias_exceptf, NULL };
+
+/* these were taken out of the Lex_t struct because they should never be saved and restored (see stack_grow()) */
+static int		lex_max, *lex_match;
 
 #if SHOPT_KIA
 
@@ -2472,12 +2475,12 @@ static void setupalias(Lex_t *lp, const char *string,Namval_t *np)
 /*
  * grow storage stack for nested constructs by STACK_ARRAY
  */
-static int stack_grow(Lex_t *lp)
+static int stack_grow(void)
 {
-	lp->lexd.lex_max += STACK_ARRAY;
-	if(lp->lexd.lex_match)
-		lp->lexd.lex_match = (int*)sh_realloc((char*)lp->lexd.lex_match,sizeof(int)*lp->lexd.lex_max);
+	lex_max += STACK_ARRAY;
+	if(lex_match)
+		lex_match = (int*)sh_realloc((char*)lex_match,sizeof(int)*lex_max);
 	else
-		lp->lexd.lex_match = (int*)sh_malloc(sizeof(int)*STACK_ARRAY);
+		lex_match = (int*)sh_malloc(sizeof(int)*STACK_ARRAY);
 	return(1);
 }

@@ -50,7 +50,6 @@
 
 static char CURSOR_UP[20] = { ESC, '[', 'A', 0 };
 static char KILL_LINE[20] = { ESC, '[', 'J', 0 };
-static Lex_t *savelex;
 
 
 #if SHOPT_MULTIBYTE
@@ -219,8 +218,6 @@ int tty_set(int fd, int action, struct termios *tty)
 void tty_cooked(register int fd)
 {
 	register Edit_t *ep = (Edit_t*)(sh.ed_context);
-	if(sh.st.trap[SH_KEYTRAP] && savelex)
-		memcpy(sh.lex_context,savelex,sizeof(Lex_t));
 	ep->e_keytrap = 0;
 	if(ep->e_raw==0)
 		return;
@@ -841,12 +838,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		while(n-- > 0)
 			ep->e_lbuf[n] = *pp++;
 		ep->e_default = 0;
-	}
-	if(sh.st.trap[SH_KEYTRAP])
-	{
-		if(!savelex)
-			savelex = (Lex_t*)sh_malloc(sizeof(Lex_t));
-		memcpy(savelex, sh.lex_context, sizeof(Lex_t));
 	}
 }
 #endif /* SHOPT_ESH || SHOPT_VSH */
@@ -1637,6 +1628,7 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 {
 	register char *cp;
 	int savexit;
+	Lex_t *lexp = (Lex_t*)sh.lex_context, savelex;
 #if SHOPT_MULTIBYTE
 	char buff[MAXLINE];
 	ed_external(ep->e_inbuf,cp=buff);
@@ -1657,7 +1649,9 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 	nv_putval(ED_TXTNOD,(char*)cp,NV_NOFREE);
 	nv_putval(ED_MODENOD,ep->e_vi_insert,NV_NOFREE);
 	savexit = sh.savexit;
+	savelex = *lexp;
 	sh_trap(sh.st.trap[SH_KEYTRAP],0);
+	*lexp = savelex;
 	sh.savexit = savexit;
 	if((cp = nv_getval(ED_CHRNOD)) == inbuff)
 		nv_unset(ED_CHRNOD);

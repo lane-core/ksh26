@@ -61,8 +61,6 @@ struct _shlex_pvt_lexdata_
 	char 		*first;
 	int		level;
 	int		lastc;
-	int		lex_max;
-	int		*lex_match;
 	int		lex_state;
 	int		docextra;
 #if SHOPT_KIA
