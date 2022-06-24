@@ -1744,7 +1744,7 @@ int ed_histgen(Edit_t *ep,const char *pattern)
 	if(ep->hlist)
 	{
 		m = strlen(ep->hpat)-4;
-		if(memcmp(pattern,ep->hpat+2,m)==0)
+		if(strncmp(pattern,ep->hpat+2,m)==0)
 		{
 			n = strcmp(cp,ep->hpat)==0;
 			for(argv=av=(char**)ep->hlist,mp=ep->hfirst; mp;mp= mp->next)

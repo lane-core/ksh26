@@ -1162,7 +1162,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 							nofree = 0;
 							np = nq;
 						}
-						else if(memcmp(cp,"[0]",3))
+						else if(strncmp(cp,"[0]",3))
 							return(nq);
 						else
 						{
@@ -1390,7 +1390,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	{
 		if(xp->root!=root)
 			continue;
-		if(*name==*xp->name && xp->namespace==sh.namespace && (flags&(NV_ARRAY|NV_NOSCOPE))==xp->flags && strncmp(xp->name,name,xp->len)==0 && (name[xp->len]==0 || name[xp->len]=='=' || name[xp->len]=='+'))
+		if(xp->namespace==sh.namespace && (flags&(NV_ARRAY|NV_NOSCOPE))==xp->flags && strncmp(xp->name,name,xp->len)==0 && (name[xp->len]==0 || name[xp->len]=='=' || name[xp->len]=='+'))
 		{
 			sh_stats(STAT_NVHITS);
 			np = xp->np;
@@ -2253,7 +2253,7 @@ static int scanfilter(Namval_t *np, struct scan *sp)
 			if(sp->scanflags==NV_FUNCTION || sp->scanflags==(NV_NOFREE|NV_BINARY|NV_RAW))
 			{
 				int n = strlen(tp->mapname);
-				if(memcmp(np->nvname,tp->mapname,n) || np->nvname[n]!='.' || strchr(&np->nvname[n+1],'.'))
+				if(strncmp(np->nvname,tp->mapname,n) || np->nvname[n]!='.' || strchr(&np->nvname[n+1],'.'))
 					return(0);
 			}
 			else if((sp->scanflags==NV_UTOL||sp->scanflags==NV_LTOU) && (cp=(char*)nv_mapchar(np,0)) && strcmp(cp,tp->mapname))
@@ -2420,7 +2420,7 @@ static void table_unset(register Dt_t *root, int flags, Dt_t *oroot)
 		{
 			int len = strlen(np->nvname);
 			npnext = (Namval_t*)dtnext(root,np);
-			while((nq=npnext) && memcmp(np->nvname,nq->nvname,len)==0 && nq->nvname[len]=='.')
+			while((nq=npnext) && strncmp(np->nvname,nq->nvname,len)==0 && nq->nvname[len]=='.')
 
 			{
 				_nv_unset(nq,flags);
@@ -3584,7 +3584,7 @@ char *nv_name(register Namval_t *np)
 		{
 			char *name = nv_name(sh.namespace);
 			int n = strlen(name);
-			if(memcmp(np->nvname,name,n)==0 && np->nvname[n]=='.')
+			if(strncmp(np->nvname,name,n)==0 && np->nvname[n]=='.')
 				return(np->nvname+n+1);
 		}
 #endif /* SHOPT_NAMESPACE */

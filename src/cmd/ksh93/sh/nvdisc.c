@@ -159,7 +159,6 @@ void nv_putv(Namval_t *np, const char *value, int flags, register Namfun_t *nfp)
 #define	APPEND		2
 #define	UNASSIGN	3
 #define	LOOKUPN		4
-#define BLOCKED		((Namval_t*)&nv_local)
 
 struct	vardisc
 {
@@ -1174,7 +1173,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 	np->nvfun = 0;
 	if(bltin)
 	{
-		np->nvalue.bfp = (Nambfp_f)bltin;
+		np->nvalue.bfp = bltin;
 		nv_onattr(np,NV_BLTIN|NV_NOFREE);
 		np->nvfun = (Namfun_t*)extra;
 	}

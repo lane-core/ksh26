@@ -188,11 +188,11 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		struct argnod *ap = tp->comarg;
 		while(ap = ap->argnxt.ap)
 		{
-			if(!(ap->argflag&ARG_RAW) || memcmp(ap->argval,"--",2))
+			if(!(ap->argflag&ARG_RAW) || strncmp(ap->argval,"--",2))
 				break;
 			if(sh_isoption(SH_NOEXEC))
 				typeset_order(ap->argval,tp->comline);
-			if(memcmp(ap->argval,"-T",2)==0)
+			if(strncmp(ap->argval,"-T",2)==0)
 			{
 				if(ap->argval[2])
 					cp = ap->argval+2;
@@ -220,11 +220,11 @@ static void check_typedef(struct comnod *tp, char intypeset)
 				return;
 			cp = argv[opt_info.index];
 		}
-		else while((cp = *argv++) && memcmp(cp,"--",2))
+		else while((cp = *argv++) && strncmp(cp,"--",2))
 		{
 			if(sh_isoption(SH_NOEXEC))
 				typeset_order(cp,tp->comline);
-			if(memcmp(cp,"-T",2)==0)
+			if(strncmp(cp,"-T",2)==0)
 			{
 				if(cp[2])
 					cp = cp+2;
@@ -876,7 +876,7 @@ static Shnode_t *funct(Lex_t *lexp)
 			}
 			nargs = argv-argv0;
 			size += sizeof(struct dolnod)+(nargs+ARG_SPARE)*sizeof(char*);
-			if(sh.shcomp && memcmp(".sh.math.",t->funct.functnam,9)==0)
+			if(sh.shcomp && strncmp(".sh.math.",t->funct.functnam,9)==0)
 			{
 				Namval_t *np= nv_open(t->funct.functnam,sh.fun_tree,NV_ADD|NV_VARNAME);
 				np->nvalue.rp = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);

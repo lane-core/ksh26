@@ -488,9 +488,9 @@ static Namval_t *create_type(Namval_t *np,const char *name,int flag,Namfun_t *fp
 	{
 		char *base =  (char*)np-sizeof(Dtlink_t);
 		int m=strlen(np->nvname);
-		while((nq=nv_namptr(base,++i)) && memcmp(nq->nvname,np->nvname,m)==0)
+		while((nq=nv_namptr(base,++i)) && strncmp(nq->nvname,np->nvname,m)==0)
 		{
-			if(nq->nvname[m]=='.' && memcmp(name,&nq->nvname[m+1],n)==0 && nq->nvname[m+n+1]==0)
+			if(nq->nvname[m]=='.' && strncmp(name,&nq->nvname[m+1],n)==0 && nq->nvname[m+n+1]==0)
 				goto found;
 		}
 		nq = 0;
@@ -498,7 +498,7 @@ static Namval_t *create_type(Namval_t *np,const char *name,int flag,Namfun_t *fp
 	else for(i=0; i < dp->numnodes; i++)
 	{
 		nq = nv_namptr(dp->nodes,i);
-		if((n==0||memcmp(name,nq->nvname,n)==0) && nq->nvname[n]==0)
+		if((n==0||strncmp(name,nq->nvname,n)==0) && nq->nvname[n]==0)
 		{
 			while(nv_isref(nq))
 				nq = nq->nvalue.nrp->np;
@@ -516,7 +516,7 @@ found:
 	{
 		if(name[n]!='=') for(i=0; i < dp->ndisc; i++)
 		{
-			if((memcmp(name,dp->names[i],n)==0) && dp->names[i][n]==0)
+			if((strncmp(name,dp->names[i],n)==0) && dp->names[i][n]==0)
 				return(nq);
 		}
 		errormsg(SH_DICT,ERROR_exit(1),e_notelem,n,name,nv_name(np));
@@ -660,7 +660,7 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		{
 			sfprintf(out,"\t[+%s?%s.\n",nq->nvname,tp->nvname);
 			n = strlen(nq->nvname);
-			while((cp=nv_namptr(dp->nodes,i+1)->nvname) && memcmp(cp,nq->nvname,n)==0 && cp[n]=='.')
+			while((cp=nv_namptr(dp->nodes,i+1)->nvname) && strncmp(cp,nq->nvname,n)==0 && cp[n]=='.')
 				i++;
 		}
 		else
@@ -741,7 +741,7 @@ static int std_disc(Namval_t *mp, Namtype_t *pp)
 	}
 	return(0);
 found:
-	if(memcmp(sp=mp->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
+	if(strncmp(sp=mp->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
 		sp += sizeof(NV_CLASS);
 	sp += strlen(pp->fun.type->nvname)+1;
 	if(sp == cp)
@@ -749,7 +749,7 @@ found:
 	else for(i=1; i < pp->numnodes; i++)
 	{
 		nq = nv_namptr(pp->nodes,i);
-		if(memcmp(nq->nvname, sp, cp-sp-1)==0)
+		if(strncmp(nq->nvname, sp, cp-sp-1)==0)
 		{
 			np = nq;
 			break;
@@ -849,7 +849,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			if(!std_disc(np, (Namtype_t*)0))
 			{
 				size += strlen(np->nvname+m)+1;
-				if(memcmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
+				if(strncmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
 					size -= sizeof(NV_CLASS);
 				nd++;
 			}
@@ -894,7 +894,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			else
 				size += n + dp->numnodes*(strlen(&np->nvname[m])+1);
 			n = strlen(np->nvname);
-			while((i+1) < numnodes && (cp=nodes[i+1]->nvname) && memcmp(cp,np->nvname,n)==0 && cp[n]=='.')
+			while((i+1) < numnodes && (cp=nodes[i+1]->nvname) && strncmp(cp,np->nvname,n)==0 && cp[n]=='.')
 				i++;
 		}
 		else if(nv_isattr(np,NV_REF))
@@ -939,7 +939,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		if(is_afunction(np))
 		{
 			sp = np->nvname+m;
-			if(memcmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
+			if(strncmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1)==0)
 				sp += sizeof(NV_CLASS);
 			if(!std_disc(np, pp))
 			{
@@ -1098,7 +1098,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				cp = strcopy(cp,nr->nvname);
 				*cp++ = 0;
 			}
-			while((i+1) < numnodes && (cname=&nodes[i+1]->nvname[m]) && memcmp(cname,&np->nvname[m],n)==0 && cname[n]=='.')
+			while((i+1) < numnodes && (cname=&nodes[i+1]->nvname[m]) && strncmp(cname,&np->nvname[m],n)==0 && cname[n]=='.')
 			{
 				int j=kfirst;
 				nv_unset(np);

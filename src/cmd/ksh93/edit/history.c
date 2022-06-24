@@ -949,7 +949,7 @@ int hist_match(register History_t *hp,off_t offset,char *string,int *coffset)
 	n = (int)strlen(string);
 	while(m > n)
 	{
-		if(*cp==*string && memcmp(cp,string,n)==0)
+		if(strncmp((char*)cp,string,n)==0)
 		{
 			if(coffset)
 				*coffset = (cp-first);

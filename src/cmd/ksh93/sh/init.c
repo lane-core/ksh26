@@ -1093,7 +1093,7 @@ static char* get_math(register Namval_t* np, Namfun_t *fp)
 	mp = (Namval_t*)dtprev(sh.fun_tree,&fake);
 	while(mp=(Namval_t*)dtnext(sh.fun_tree,mp))
 	{
-		if(memcmp(mp->nvname,".sh.math.",9))
+		if(strncmp(mp->nvname,".sh.math.",9))
 			break;
 		if(first++)
 			sfputc(sh.strbuf,' ');
@@ -1992,7 +1992,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 		}
 		np->nvenv = 0;
 		if(name_vals==(const struct shtable2*)shtab_builtins)
-			np->nvalue.bfp = (Nambfp_f)((struct shtable3*)tp)->sh_value;
+			np->nvalue.bfp = ((struct shtable3*)tp)->sh_value;
 		else
 		{
 			if(name_vals == shtab_variables)

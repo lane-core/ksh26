@@ -131,7 +131,7 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		return(0);
 	if(strcmp(str,"default")==0)
 		sfprintf(out,"\b%s\b",ep->values[0]);
-	else if(memcmp(str,"last",4)==0)
+	else if(strncmp(str,"last",4)==0)
 	{
 		while(ep->values[++n])
 			;

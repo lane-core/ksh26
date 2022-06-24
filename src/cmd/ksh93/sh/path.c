@@ -1581,7 +1581,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, int 
 			}
 			*cp = 0;
 			m = ep ? (ep-sp) : 0;
-			if(m==0 || m==6 && memcmp((void*)sp,(void*)"FPATH=",m)==0)
+			if(m==0 || m==6 && strncmp(sp,"FPATH=",m)==0)
 			{
 				if(first)
 				{
@@ -1591,7 +1591,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, int 
 					path_addcomp(first,old,stakptr(offset),PATH_FPATH|PATH_BFPATH);
 				}
 			}
-			else if(m==11 && memcmp((void*)sp,(void*)"PLUGIN_LIB=",m)==0)
+			else if(m==11 && strncmp(sp,"PLUGIN_LIB=",m)==0)
 			{
 				if(pp->bbuf)
 					free(pp->bbuf);

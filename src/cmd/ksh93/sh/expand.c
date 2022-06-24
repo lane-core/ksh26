@@ -98,7 +98,7 @@ int path_expand(const char *pattern, struct argnod **arghead)
 		gp->gl_suffix = sufstr;
 	gp->gl_intr = &sh.trapnote;
 	suflen = 0;
-	if(memcmp(pattern,"~(N",3)==0)
+	if(strncmp(pattern,"~(N",3)==0)
 		flags &= ~GLOB_NOCHECK;
 	glob(pattern, flags, 0, gp);
 	sh_sigcheck();

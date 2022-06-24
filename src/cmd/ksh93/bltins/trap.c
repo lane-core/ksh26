@@ -370,7 +370,7 @@ static int sig_number(const char *string)
 		}
 		while(c);
 		stakseek(o);
-		if(memcmp(stakptr(o),"SIG",3)==0)
+		if(strncmp(stakptr(o),"SIG",3)==0)
 		{
 			sig = 1;
 			o += 3;

@@ -493,6 +493,7 @@ int sh_lex(Lex_t* lp)
 						{
 							if(lp->lex.intest)
 								return(c);
+							/* '((' arithmetic comamnd */
 							lp->lexd.nest=1;
 							lp->lastline = sh.inlineno;
 							lp->lexd.lex_state = ST_NESTED;
@@ -522,6 +523,7 @@ int sh_lex(Lex_t* lp)
 						n = 0;
 					else if(n==LPAREN)
 					{
+						/* process substitution <(...) or >(...) */
 						c  |= SYMLPAR;
 						lp->lex.reservok = 1;
 						lp->lex.skipword = 0;
@@ -1584,9 +1586,9 @@ static int comsub(register Lex_t *lp, int endtok)
 			}
 			if(sh_lexstates[ST_NAME][c]==S_BREAK)
 			{
-				if(memcmp(word,"case",4)==0)
+				if(strncmp(word,"case",4)==0)
 					lp->lex.incase=1;
-				else if(memcmp(word,"esac",4)==0)
+				else if(strncmp(word,"esac",4)==0)
 					lp->lex.incase=0;
 			}
 		skip:
