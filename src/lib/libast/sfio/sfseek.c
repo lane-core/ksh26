@@ -87,9 +87,8 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	}
 
 	if(f->extent < 0)
-	{	/* let system call set errno */
-		(void)SFSK(f,(Sfoff_t)0,SEEK_CUR,f->disc);
-		return (Sfoff_t)(-1);
+	{	/* not seekable with sfio: let the system call either set errno or succeed */
+		return SFSK(f,p,type,f->disc);
 	}
 
 	/* throw away ungetc data */
