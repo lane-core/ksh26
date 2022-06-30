@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1982-2014 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -75,14 +75,8 @@ void	sh_fault(register int sig)
 #ifdef SIGWINCH
 	if(sig==SIGWINCH)
 	{
-		int rows=0, cols=0;
-		int32_t v;
-		astwinsize(2,&rows,&cols);
-		if(v = cols)
-			nv_putval(COLUMNS, (char*)&v, NV_INT32|NV_RDONLY);
-		if(v = rows)
-			nv_putval(LINES, (char*)&v, NV_INT32|NV_RDONLY);
-		sh.winch++;
+		sh_update_columns_lines();
+		sh.winch = 1;
 	}
 #endif  /* SIGWINCH */
 	trap = sh.st.trapcom[sig];
@@ -102,7 +96,11 @@ void	sh_fault(register int sig)
 		}
 		goto done;
 	}
-	if(sh.subshell && trap && sig!=SIGINT && sig!=SIGQUIT && sig!=SIGWINCH && sig!=SIGCONT)
+	if(sh.subshell && trap && sig!=SIGINT && sig!=SIGQUIT
+#ifdef SIGWINCH
+	&& sig!=SIGWINCH
+#endif
+	&& sig!=SIGCONT)
 	{
 		sh.exitval = SH_EXITSIG|sig;
 		sh_subfork();
@@ -226,6 +224,20 @@ done:
 	 */
 	errno = save_errno;
 	return;
+}
+
+/*
+ * update $COLUMNS and $LINES
+ */
+void	sh_update_columns_lines(void)
+{
+	int rows=0, cols=0;
+	int32_t v;
+	astwinsize(2,&rows,&cols);
+	if(v = cols)
+		nv_putval(COLUMNS, (char*)&v, NV_INT32|NV_RDONLY);
+	if(v = rows)
+		nv_putval(LINES, (char*)&v, NV_INT32|NV_RDONLY);
 }
 
 /*

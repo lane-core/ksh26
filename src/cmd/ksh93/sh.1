@@ -1804,6 +1804,17 @@ is restored when the function returns.
 Set to a value that identifies the version of this shell.
 .TP
 .B
+.SM COLUMNS
+Width of the terminal window in character positions.
+Updated automatically at initialization and on receiving a
+.B SIGWINCH
+signal.
+The shell uses the value to define the width of the edit window
+for the shell edit modes and for printing
+.B select
+lists.
+.TP
+.B
 .SM KSH_VERSION
 A name reference to
 .BR .sh.version .
@@ -1812,6 +1823,19 @@ A name reference to
 .SM LINENO
 The current line number within the script or
 function being executed.
+.TP
+.B
+.SM LINES
+Height of the terminal window in lines.
+Updated automatically at initialization and on receiving a
+.B SIGWINCH
+signal.
+The shell uses the value to determine the column length for printing
+.B select
+lists: they are printed vertically until about two thirds of
+.B
+.SM LINES
+lines are filled.
 .TP
 .B
 .SM OLDPWD
@@ -1889,14 +1913,6 @@ are used by the shell:
 The search path for the
 .B cd
 command.
-.TP
-.B
-.SM COLUMNS
-If this variable is set,
-the value is used to define the width of the edit window
-for the shell edit modes and for printing
-.B select
-lists.
 .TP
 .B
 .SM EDITOR
@@ -2115,17 +2131,6 @@ below).
 .SM LC_NUMERIC
 This variable determines the locale category for the
 decimal point character.
-.TP
-.B
-.SM LINES
-If this variable is set,
-the value is used to determine the column length for printing
-.B select
-lists.
-Select lists will print vertically until about two-thirds of
-.B
-.SM LINES
-lines are filled.
 .TP
 .B
 .SM MAIL

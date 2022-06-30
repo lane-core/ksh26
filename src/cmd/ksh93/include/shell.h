@@ -313,7 +313,9 @@ struct Shell_s
 	char		funload;
 	char		used_pos;	/* used positional parameter */
 	char		universe;
+#ifdef SIGWINCH
 	char		winch;
+#endif
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */
 	unsigned char	ignsig;		/* ignored signal in subshell */

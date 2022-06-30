@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1982-2014 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -591,16 +591,8 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #else
 	ep->e_multiline = sh_isoption(SH_MULTILINE) && sh_isoption(SH_VI);
 #endif
+	sh_update_columns_lines();
 #ifdef SIGWINCH
-	if(!(sh.sigflag[SIGWINCH]&SH_SIGFAULT))
-	{
-		signal(SIGWINCH,sh_fault);
-		sh.sigflag[SIGWINCH] |= SH_SIGFAULT;
-	}
-	pp = sh.st.trapcom[SIGWINCH];
-	sh.st.trapcom[SIGWINCH] = 0;
-	sh_fault(SIGWINCH);
-	sh.st.trapcom[SIGWINCH] = pp;
 	sh.winch = 0;
 #endif
 #if SHOPT_EDPREDICT
@@ -888,6 +880,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	{
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
+#ifdef SIGWINCH
 #if SHOPT_ESH || SHOPT_VSH
 #if SHOPT_ESH && SHOPT_VSH
 		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
@@ -941,6 +934,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		}
 #endif /* SHOPT_ESH || SHOPT_VSH */
 		sh.winch = 0;
+#endif /* SIGWINCH */
 		/* an interrupt that should be ignored */
 		errno = 0;
 		if(!waitevent || (rv=(*waitevent)(fd,-1L,0))>=0)
@@ -1016,7 +1010,7 @@ static int putstack(Edit_t *ep,char string[], register int nbyte, int type)
 			{
 				/*** user break key ***/
 				ep->e_lookahead = 0;
-				sh_fault(SIGINT);
+				kill(sh.current_pid,SIGINT);
 				siglongjmp(ep->e_env, UINTR);
 			}
 #   endif /* CBREAK */
@@ -1072,7 +1066,7 @@ static int putstack(Edit_t *ep,char string[], register int nbyte, int type)
 		{
 			/*** user break key ***/
 			ep->e_lookahead = 0;
-			sh_fault(SIGINT);
+			kill(sh.current_pid,SIGINT);
 			siglongjmp(ep->e_env, UINTR);
 		}
 #   endif /* CBREAK */

@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-07-01:
+
+- In scripts, $COLUMNS and $LINES are now kept up to date in scripts at
+  initialization and when the window size changes (previously, this
+  required setting a dummy trap for the SIGWINCH signal in the script).
+
 2022-06-28:
 
 - Fixed a bug that caused the <#((num)) or >#((num)) arithmetic seek

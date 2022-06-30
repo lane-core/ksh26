@@ -353,6 +353,14 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 			sh_onoption(SH_EMACS);
 #endif /* SHOPT_ESH */
 	}
+#ifdef SIGWINCH
+	else
+	{
+		/* keep $COLUMNS and $LINES up to date even for scripts that don't trap SIGWINCH */
+		sh_update_columns_lines();
+		signal(SIGWINCH,sh_fault);
+	}
+#endif
 	/* (Re)set PS4 and IFS, but don't export these now even if allexport is on. */
 	i = (sh_isoption(SH_ALLEXPORT) != 0);
 	sh_offoption(SH_ALLEXPORT);
