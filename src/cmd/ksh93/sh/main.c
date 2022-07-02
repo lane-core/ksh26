@@ -349,7 +349,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 #if SHOPT_VSH
 		&& !sh_isoption(SH_VI)
 #endif /* SHOPT_VSH */
-		)
+		&& !is_option(&sh.offoptions,SH_EMACS))
 			sh_onoption(SH_EMACS);
 #endif /* SHOPT_ESH */
 	}
