@@ -1154,4 +1154,22 @@ exp=OK0
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# A virtual subshell should trim its exit status to 8 bits just like a real subshell, but if
+# its last command was killed by a signal then that should still be reflected in the 9th bit.
+sig=USR1
+exp=$((${ kill -l "$sig"; }|0x100))
+{ (:; "$SHELL" -c "kill -s $sig \$\$"); } 2>/dev/null
+let "(got=$?)==exp" || err_exit "command killed by signal in virtual subshell: expected status $exp, got status $got"
+{ (ulimit -t unlimited; "$SHELL" -c "kill -s $sig \$\$"); } 2>/dev/null
+let "(got=$?)==exp" || err_exit "command killed by signal in real subshell: expected status $exp, got status $got"
+{ (trap : EXIT; "$SHELL" -c "kill -s $sig \$\$"); } 2>/dev/null
+let "(got=$?)==exp" || err_exit "command killed by signal in virtual subshell with trap: expected status $exp, got status $got"
+{ (ulimit -t unlimited; trap : EXIT; "$SHELL" -c "kill -s $sig \$\$"); } 2>/dev/null
+let "(got=$?)==exp" || err_exit "command killed by signal in real subshell with trap: expected status $exp, got status $got"
+(:; exit "$exp")
+let "(got=$?)==(exp&0xFF)" || err_exit "fake signal exit from virtual subshell: expected status $((exp&0xFF)), got status $got"
+(ulimit -t unlimited 2>/dev/null; exit "$exp")
+let "(got=$?)==(exp&0xFF)" || err_exit "fake signal exit from real subshell: expected status $((exp&0xFF)), got status $got"
+
+# ======
 exit $((Errors<125?Errors:125))

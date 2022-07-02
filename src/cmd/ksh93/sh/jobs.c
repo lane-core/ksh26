@@ -1508,7 +1508,10 @@ int	job_wait(register pid_t pid)
 					{
 						sh.exitval=px->p_exit;
 						if(px->p_flag&P_SIGNALLED)
+						{
 							sh.exitval |= SH_EXITSIG;
+							sh.chldexitsig = 1;
+						}
 						if(intr)
 							px->p_flag &= ~P_EXITSAVE;
 					}

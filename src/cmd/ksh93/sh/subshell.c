@@ -680,6 +680,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*sh.jmplist,jmpval);
 		sh.exitval &= SH_EXITMASK;
+		if(sh.chldexitsig)
+			sh.exitval |= SH_EXITSIG;
 		sh_done(0);
 	}
 	if(!sh.savesig)
@@ -873,6 +875,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		/* Real subshells have their exit status truncated to 8 bits by the kernel.
 		 * Since virtual subshells should be indistinguishable, do the same here. */
 		sh.exitval &= SH_EXITMASK;
+		if(sh.chldexitsig)
+			sh.exitval |= SH_EXITSIG;
 	}
 	sh.subshare = sp->subshare;
 	sh.subdup = sp->subdup;

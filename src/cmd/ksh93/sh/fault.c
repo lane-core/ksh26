@@ -484,6 +484,7 @@ int sh_trap(const char *trap, int mode)
 	int	jmpval, savxit = sh.exitval, savxit_return;
 	int	was_history = sh_isstate(SH_HISTORY);
 	int	was_verbose = sh_isstate(SH_VERBOSE);
+	char	save_chldexitsig = sh.chldexitsig;
 	int	staktop = staktell();
 	char	*savptr = stakfreeze(0);
 	struct	checkpt buff;
@@ -531,6 +532,7 @@ int sh_trap(const char *trap, int mode)
 		sh_onstate(SH_HISTORY);
 	if(was_verbose)
 		sh_onstate(SH_VERBOSE);
+	sh.chldexitsig = save_chldexitsig;
 	exitset();
 	if(jmpval>SH_JMPTRAP && (((struct checkpt*)sh.jmpbuffer)->prev || ((struct checkpt*)sh.jmpbuffer)->mode==SH_JMPSCRIPT))
 		siglongjmp(*sh.jmplist,jmpval);
@@ -684,7 +686,7 @@ noreturn void sh_done(register int sig)
 	sfsync((Sfio_t*)sfstdin);
 	sfsync((Sfio_t*)sh.outpool);
 	sfsync((Sfio_t*)sfstdout);
-	if(savxit&SH_EXITSIG && (savxit&SH_EXITMASK) == sh.lastsig)
+	if((sh.chldexitsig && sh.realsubshell) || (savxit&SH_EXITSIG && (savxit&SH_EXITMASK) == sh.lastsig))
 		sig = savxit&SH_EXITMASK;
 	if(sig)
 	{
@@ -709,10 +711,8 @@ noreturn void sh_done(register int sig)
 	if(sh_isoption(SH_NOEXEC))
 		kiaclose((Lex_t*)sh.lex_context);
 #endif /* SHOPT_KIA */
-
 	/* Exit with portable 8-bit status (128 + signum) if last child process exits due to signal */
-	if (savxit & SH_EXITSIG)
+	if(sh.chldexitsig)
 		savxit = savxit & ~SH_EXITSIG | 0200;
-
 	exit(savxit&SH_EXITMASK);
 }

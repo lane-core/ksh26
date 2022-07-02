@@ -958,6 +958,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			sh_offstate(SH_ERREXIT);
 		sh.exitval=0;
 		sh.lastsig = 0;
+		sh.chldexitsig = 0;
 		sh.lastpath = 0;
 		switch(type&COMMSK)
 		{
@@ -1860,8 +1861,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_popcontext(buffp);
 				if(jmpval > SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
-				if(sh.exitval > 256)
-					sh.exitval -= 128;
 				sh_done(0);
 			}
 			else

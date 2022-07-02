@@ -320,6 +320,7 @@ struct Shell_s
 	char		indebug; 	/* set when in debug trap */
 	unsigned char	ignsig;		/* ignored signal in subshell */
 	unsigned char	lastsig;	/* last signal received */
+	char		chldexitsig;	/* set if the last command was a child process that exited due to a signal */
 	char		pathinit;	/* pathinit called from subshell */
 	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...) */
 	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */
