@@ -1836,7 +1836,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 		    case TPAR:
 			echeck = 1;
 			flags &= ~OPTIMIZE_FLAG;
-			if(!sh.subshell && !sh.st.trapcom[0] && !sh.st.trap[SH_ERRTRAP] && (flags&sh_state(SH_NOFORK)))
+			if(!sh.subshell && !sh.st.trapdontexec && (flags&sh_state(SH_NOFORK)))
 			{
 				/* This is the last command, so avoid creating a subshell */
 				char *savsig;

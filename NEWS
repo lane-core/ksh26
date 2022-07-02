@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   command that was terminated by a signal, the exit status ($?) of the
   subshell did not reflect this by adding 256 to the signal number.
 
+- Fixed a bug that caused signal traps to be ignored if the shell was
+  signalled from a subshell that is the last command in the script.
+
 2022-07-01:
 
 - In scripts, $COLUMNS and $LINES are now kept up to date in scripts at

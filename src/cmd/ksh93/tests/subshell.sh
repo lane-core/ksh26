@@ -1172,4 +1172,10 @@ let "(got=$?)==(exp&0xFF)" || err_exit "fake signal exit from virtual subshell: 
 let "(got=$?)==(exp&0xFF)" || err_exit "fake signal exit from real subshell: expected status $((exp&0xFF)), got status $got"
 
 # ======
+got=$(set +x; { "$SHELL" -c 'trap "echo OK" TERM; (kill -s TERM $$)'; } 2>&1)
+exp=OK
+[[ $got == "$exp" ]] || err_exit 'trap ignored when signalled from a subshell that is the last command' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
