@@ -926,7 +926,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 {
 	Stk_t			*stkp = sh.stk;
 	sh_sigcheck();
-	if(t && !sh.st.execbrk && !sh_isoption(SH_NOEXEC))
+	if(t && sh.st.breakcnt==0 && !sh_isoption(SH_NOEXEC))
 	{
 		register int 	type = t->tre.tretyp;
 		register char	*com0 = 0;
@@ -2051,7 +2051,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			nameref = nv_isref(np)!=0;
 			sh.st.loopcnt++;
 			cp = *args;
-			while(cp && sh.st.execbrk==0)
+			while(cp && sh.st.breakcnt==0)
 			{
 				if(t->tre.tretyp&COMSCAN)
 				{
@@ -2121,8 +2121,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else
 					cp = *++args;
 			check:
+				/* decrease 'continue' level */
 				if(sh.st.breakcnt<0)
-					sh.st.execbrk = (++sh.st.breakcnt !=0);
+					sh.st.breakcnt++;
 			}
 #if SHOPT_OPTIMIZE
 		endfor:
@@ -2132,8 +2133,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(jmpval)
 				siglongjmp(*sh.jmplist,jmpval);
 #endif /* SHOPT_OPTIMIZE */
+			/* decrease 'break' level */
 			if(sh.st.breakcnt>0)
-				sh.st.execbrk = (--sh.st.breakcnt !=0);
+				sh.st.breakcnt--;
 			sh.st.loopcnt--;
 			sh_argfree(argsav,0);
 			break;
@@ -2177,7 +2179,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #endif /* SHOPT_FILESCAN */
 			sh.st.loopcnt++;
-			while(sh.st.execbrk==0)
+			while(sh.st.breakcnt==0)
 			{
 #if SHOPT_FILESCAN
 				if(iop)
@@ -2190,10 +2192,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if((sh_exec(tt,first)==0)!=(type==TWH))
 					break;
 				r = sh_exec(t->wh.dotre,first|errorflg);
+				/* decrease 'continue' level */
 				if(sh.st.breakcnt<0)
-					sh.st.execbrk = (++sh.st.breakcnt !=0);
+					sh.st.breakcnt++;
 				/* This is for the arithmetic for */
-				if(sh.st.execbrk==0 && t->wh.whinc)
+				if(sh.st.breakcnt==0 && t->wh.whinc)
 					sh_exec((Shnode_t*)t->wh.whinc,first);
 				first = 0;
 				errorflg &= ~OPTIMIZE_FLAG;
@@ -2211,8 +2214,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(jmpval)
 				siglongjmp(*sh.jmplist,jmpval);
 #endif /* SHOPT_OPTIMIZE */
+			/* decrease 'break' level */
 			if(sh.st.breakcnt>0)
-				sh.st.execbrk = (--sh.st.breakcnt !=0);
+				sh.st.breakcnt--;
 			sh.st.loopcnt--;
 			sh.exitval= r;
 #if SHOPT_FILESCAN

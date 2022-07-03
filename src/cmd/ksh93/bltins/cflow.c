@@ -128,7 +128,7 @@ int	b_break(register int n, register char *argv[],Shbltin_t *context)
 	}
 	if(sh.st.loopcnt)
 	{
-		sh.st.execbrk = sh.st.breakcnt = n;
+		sh.st.breakcnt = n;
 		if(sh.st.breakcnt > sh.st.loopcnt)
 			sh.st.breakcnt = sh.st.loopcnt;
 		if(cont)

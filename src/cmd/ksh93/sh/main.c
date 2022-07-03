@@ -437,7 +437,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 		sh_iorestore(0,jmpval);
 		hist_flush(sh.hist_ptr);
 		sfsync(sh.outpool);
-		sh.st.execbrk = sh.st.breakcnt = 0;
+		sh.st.breakcnt = 0;
 		/* check for return from profile or env file */
 		if(sh_isstate(SH_PROFILE) && (jmpval==SH_JMPFUN || jmpval==SH_JMPEXIT))
 		{
@@ -604,7 +604,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 			{
 					execflags |= sh_state(SH_NOFORK);
 			}
-			sh.st.execbrk = 0;
+			sh.st.breakcnt = 0;
 			sh_exec(t,execflags);
 			if(sh.forked)
 			{

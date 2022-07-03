@@ -193,9 +193,8 @@ struct sh_scoped
 	Dt_t		*var_local;	/* local level variables for name() */
 	struct slnod	*staklist;	/* link list of function stacks */
 	int		states;		/* shell state bits used by sh_isstate(), etc. */
-	int		breakcnt;
-	int		execbrk;
-	int		loopcnt;
+	int		breakcnt;	/* number of levels to 'break'/'continue' (negative if 'continue') */
+	int		loopcnt;	/* loop level counter for 'break'/'continue' */
 	int		firstline;
 	int32_t		optindex;
 	int32_t		optnum;
