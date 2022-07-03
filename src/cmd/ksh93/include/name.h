@@ -31,9 +31,6 @@
 #include	<ast.h>
 #include	<cdt.h>
 
-typedef struct Shbltin_s Shbltin_t;
-typedef int (*Shbltin_f)(int, char**, Shbltin_t*);
-
 /* Nodes can have all kinds of values */
 union Value
 {
@@ -55,7 +52,7 @@ union Value
 	struct Ufunction 	*rp;	/* shell user defined functions */
 	struct Namfun		*funp;	/* discipline pointer */
 	struct Namref		*nrp;	/* name reference */
-	Shbltin_f		bfp;	/* builtin entry point function pointer */
+	void			*bfp;	/* pointer to built-in command's entry function (typecast to Shbltin_f) */
 };
 
 #include	"nval.h"
@@ -150,7 +147,6 @@ struct Ufunction
 #define is_abuiltin(n)	(nv_isattr(n,NV_BLTIN|NV_INTEGER)==NV_BLTIN)
 #define is_afunction(n)	(nv_isattr(n,NV_FUNCTION|NV_REF)==NV_FUNCTION)
 #define	nv_funtree(n)	((n)->nvalue.rp->ptree)
-#define	funptr(n)	((n)->nvalue.bfp)
 
 /* NAMNOD MACROS */
 /* ... for attributes */

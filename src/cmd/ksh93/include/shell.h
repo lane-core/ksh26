@@ -52,6 +52,9 @@ typedef struct Shell_s Shell_t;
 
 #include	<shcmd.h>
 
+/* get pointer to a built-in command's entry function */
+#define	funptr(n)	((Shbltin_f)(n)->nvalue.bfp)
+
 typedef void	(*Shinit_f)(Shell_t*, int);
 #ifndef SH_wait_f_defined
     typedef int	(*Shwait_f)(int, long, int);

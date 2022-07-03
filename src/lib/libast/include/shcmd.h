@@ -69,7 +69,7 @@ struct Shbltin_s
 	int		invariant;
 };
 
-#if defined(SH_VERSION) ||  defined(_SH_PRIVATE)
+#if defined(shell_h_defined) || defined(defs_h_defined)
 #   undef Shell_t
 #   undef Namval_t
 #else 

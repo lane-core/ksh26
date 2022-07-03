@@ -1992,7 +1992,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 		}
 		np->nvenv = 0;
 		if(name_vals==(const struct shtable2*)shtab_builtins)
-			np->nvalue.bfp = ((struct shtable3*)tp)->sh_value;
+			np->nvalue.bfp = (void*)((struct shtable3*)tp)->sh_value;
 		else
 		{
 			if(name_vals == shtab_variables)

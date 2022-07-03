@@ -1173,7 +1173,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 	np->nvfun = 0;
 	if(bltin)
 	{
-		np->nvalue.bfp = bltin;
+		np->nvalue.bfp = (void*)bltin;
 		nv_onattr(np,NV_BLTIN|NV_NOFREE);
 		np->nvfun = (Namfun_t*)extra;
 	}
