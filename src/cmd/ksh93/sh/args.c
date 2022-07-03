@@ -650,7 +650,6 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 			*nargs = ap->dolnum;
 			return(ap->dolval+ap->dolbot);
 		}
-		sh.lastpath = 0;
 		*nargs = 0;
 		if(ac)
 		{

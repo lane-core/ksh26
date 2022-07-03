@@ -532,7 +532,6 @@ static void put_type(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 	{
 		Namfun_t  *pp;
 		if((pp=nv_hasdisc(nq,fp->disc)) && pp->type==fp->type)
-
 		{
 			if(!nq->nvenv)
 				flag |= NV_EXPORT;

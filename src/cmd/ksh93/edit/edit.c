@@ -211,7 +211,7 @@ int tty_set(int fd, int action, struct termios *tty)
 /*{	TTY_COOKED( fd )
  *
  *	This routine will set the tty in cooked mode.
- *	It is also called by error.done().
+ *	It is also called by sh_done().
  *
 }*/
 

@@ -922,6 +922,9 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
 	return(1);
 }
 
+/*
+ * Main execution function: execute any type of command.
+ */
 int sh_exec(register const Shnode_t *t, int flags)
 {
 	Stk_t			*stkp = sh.stk;
@@ -959,9 +962,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 		sh.exitval=0;
 		sh.lastsig = 0;
 		sh.chldexitsig = 0;
-		sh.lastpath = 0;
 		switch(type&COMMSK)
 		{
+		    /*
+		     * Simple command
+		     */
 		    case TCOM:
 		    {
 			register struct argnod	*argp;
@@ -1178,7 +1183,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 				if(io)
 					sfsync(sh.outpool);
-				sh.lastpath = 0;
 				if(!np)
 				{
 					if(*com0 == '/' && !sh_isoption(SH_RESTRICTED))
@@ -1448,7 +1452,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						jmpval = sigsetjmp(buffp->buff,0);
 					}
 					if(jmpval == 0)
-
 					{
 						if(io)
 							indx = sh_redirect(io,execflg);
@@ -1489,6 +1492,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						siglongjmp(*sh.jmplist,jmpval);
 					goto setexit;
 				}
+				/* not a built-in or function: external command, fall through to TFORK */
 			}
 			else if(!io)
 			{
@@ -1503,6 +1507,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 		    }
 		    /* FALLTHROUGH */
+
+		    /*
+		     * Any command that needs the shell to fork (e.g. background or external)
+		     */
 		    case TFORK:
 		    {
 			register pid_t parent;
@@ -1656,7 +1664,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fd = (type&FPIN) ? 0 : 1;
 					fn = sh_open(sh.fifo,fd?O_WRONLY:O_RDONLY);
 					save_errno = errno;
-					timerdel(fifo_timer);
+					sh_timerdel(fifo_timer);
 					sh.fifo = 0;
 					if(fn<0)
 					{
@@ -1744,12 +1752,13 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 		    }
 
-		    case TSETIO:
-		    {
 		    /*
+		     * Redirection:
 		     * don't create a new process, just
 		     * save and restore io-streams
 		     */
+		    case TSETIO:
+		    {
 			pid_t	pid = 0;
 			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
@@ -1833,6 +1842,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
+		    /*
+		     * Parentheses subshell block
+		     */
 		    case TPAR:
 			echeck = 1;
 			flags &= ~OPTIMIZE_FLAG;
@@ -1867,13 +1879,13 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_subshell(t->par.partre,flags,0);
 			break;
 
+		    /*
+		     * Pipe: command | command
+		     * All elements of the pipe are started by the parent.
+		     * The last element is executed in the current environment.
+		     */
 		    case TFIL:
 		    {
-		    /*
-		     * This code sets up a pipe.
-		     * All elements of the pipe are started by the parent.
-		     * The last element executes in current environment
-		     */
 			int	pvo[3];	/* old pipe for multi-stage */
 			int	pvn[3];	/* current set up pipe */
 			int	savepipe = pipejob;
@@ -1982,9 +1994,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
+		    /*
+		     * List of semicolon-separated commands
+		     */
 		    case TLST:
 		    {
-			/* a list of commands is executed here */
 			do
 			{
 				sh_exec(t->lst.lstlef,errorflg|OPTIMIZE);
@@ -1999,6 +2013,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
+		    /*
+		     * Logical and: command && command
+		     */
 		    case TAND:
 			if(type&TTEST)
 				skipexitset++;
@@ -2006,6 +2023,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_exec(t->lst.lstrit,flags);
 			break;
 
+		    /*
+		     * Logical or: command || command
+		     */
 		    case TORF:
 			if(type&TTEST)
 				skipexitset++;
@@ -2013,7 +2033,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_exec(t->lst.lstrit,flags);
 			break;
 
-		    case TFOR: /* for and select */
+		    /*
+		     * Loop: 'for' or 'select'
+		     */
+		    case TFOR:
 		    {
 			register char **args;
 			register int nargs;
@@ -2141,7 +2164,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
-		    case TWH: /* while and until */
+		    /*
+		     * Loop: 'while' or 'until'
+		     */
+		    case TWH:
 		    {
 			volatile int 	r=0;
 			int first = OPTIMIZE_FLAG;
@@ -2232,7 +2258,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif /* SHOPT_FILESCAN */
 			break;
 		    }
-		    case TARITH: /* (( expression )) */
+
+		    /*
+		     * Arithmetic command: ((expression))
+		     */
+		    case TARITH:
 		    {
 			register char *trap;
 			char *arg[4];
@@ -2258,6 +2288,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
+		    /*
+		     * Conditional block: if ... fi
+		     */
 		    case TIF:
 			if(sh_exec(t->if_.iftre,OPTIMIZE)==0)
 				sh_exec(t->if_.thtre,flags);
@@ -2267,6 +2300,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh.exitval=0; /* force zero exit for if-then-fi */
 			break;
 
+		    /*
+		     * Switch block: case ... esac
+		     */
 		    case TSW:
 		    {
 			Shnode_t *tt = (Shnode_t*)t;
@@ -2315,9 +2351,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
+		    /*
+		     * The 'time' keyword: time a pipeline
+		     */
 		    case TTIME:
 		    {
-			/* time the command */
 			const char *format = e_timeformat;
 			struct timeval ta, tb;
 #ifdef timeofday
@@ -2397,6 +2435,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 				p_time(sfstderr,sh_translate(format),tm);
 			break;
 		    }
+
+		    /*
+		     * Function definition
+		     */
 		    case TFUN:
 		    {
 			register Namval_t *np=0;
@@ -2405,6 +2447,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			register char *cp = strrchr(fname,'.');
 			register Namval_t *npv=0,*mp;
 #if SHOPT_NAMESPACE
+			/* Namespace definition: a modified function definition */
 			if(t->tre.tretyp==TNSPACE)
 			{
 				Dt_t *root;
@@ -2573,7 +2616,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 
-		    /* new test compound command */
+		    /*
+		     * The [[ keyword: new test compound command
+		     */
 		    case TTST:
 		    {
 			register int n;
@@ -2704,6 +2749,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 	return(sh.exitval);
 }
 
+/*
+ * Public API function: run the command given by by the argument list argv,
+ * containing argn elements. If argv[0] does not contain a /, check for a
+ * built-in or function before performing a path search.
+ */
 int sh_run(int argn, char *argv[])
 {
 	register struct dolnod	*dp;
@@ -2831,7 +2881,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 				pause();
 			else if(forkcnt>1000L)
 				forkcnt /= 2;
-			timerdel(timeout);
+			sh_timerdel(timeout);
 			timeout = 0;
 		}
 		return(-1);
@@ -2896,7 +2946,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	sh.outpipepid = ((flags&FPOU)?sh.current_pid:0);
 	if(sh.trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
-	timerdel(NIL(void*));
+	sh_timerdel(NIL(void*));
 #ifdef JOBS
 	if(sh_isstate(SH_MONITOR))
 	{

@@ -207,11 +207,11 @@ struct sh_scoped
 	int		ioset;
 	unsigned short	trapmax;
 	char		trapdontexec;	/* stop exec optimization if any non-DEBUG/SIGKILL/SIGSTOP trap is set and non-empty */
-	char		*trap[SH_DEBUGTRAP+1];
-	char		**otrap;
-	char		**trapcom;
-	char		**otrapcom;
-	void		*timetrap;
+	char		*trap[SH_DEBUGTRAP+1];	/* pseudosignals (except EXIT) */
+	char		**otrap;	/* save parent pseudosignals for v=$(trap) */
+	char		**trapcom;	/* EXIT and signals */
+	char		**otrapcom;	/* save parent EXIT and signals for v=$(trap) */
+	void		*timetrap;	/* for the 'alarm' built-in */
 	struct Ufunction *real_fun;	/* current 'function name' function */
 	int             repl_index;
 	char            *repl_arg;
@@ -277,7 +277,6 @@ struct Shell_s
 	Sfio_t		*funlog;	/* for logging function definitions */
 	int		**fdptrs;	/* pointer to file numbers */
 	char		*lastarg;
-	char		*lastpath;	/* last absolute path found */
 	int		path_err;	/* last error on path search */
 	Dt_t		*var_base;	/* global level variables */
 	Dt_t		*fun_base;	/* global level functions */
@@ -309,7 +308,6 @@ struct Shell_s
 	unsigned char	*sigflag;	/* pointer to signal states */
 	char		intrap;
 	char		login_sh;
-	char		lastbase;
 	char		forked;
 	char		binscript;
 	char		funload;
@@ -376,7 +374,6 @@ struct Shell_s
 	Dt_t		*prev_root;
 	Dt_t		*fpathdict;
 	Dt_t		*typedict;
-	Dt_t		*inpool;
 	char		ifstable[256];
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;

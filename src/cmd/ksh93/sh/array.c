@@ -608,7 +608,6 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 		if(mp && mp!=np)
 		{
 			if(!is_associative(ap) && string && !(flags&NV_APPEND) && !nv_type(np) && nv_isvtree(mp) && !(ap->nelem&ARRAY_TREE))
-
 			{
 				if(!nv_isattr(np,NV_NOFREE))
 					_nv_unset(mp,flags&NV_RDONLY);

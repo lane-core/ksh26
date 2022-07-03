@@ -229,7 +229,7 @@ void *sh_timeradd(unsigned long msec,int flags,void (*action)(void*),void *handl
 /*
  * delete timer <tp>.  If <tp> is NULL, all timers are deleted
  */
-void	timerdel(void *handle)
+void	sh_timerdel(void *handle)
 {
 	register Timer_t *tp = (Timer_t*)handle;
 	if(tp)

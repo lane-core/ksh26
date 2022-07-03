@@ -100,7 +100,7 @@ static 	void *time_delete(register struct tevent *item, void *list)
 			tp->next = item->next;
 	}
 	if(item->timeout)
-		timerdel((void*)item->timeout);
+		sh_timerdel((void*)item->timeout);
 	return(list);
 }
 

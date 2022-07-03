@@ -167,14 +167,13 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		dp = cdpath?cdpath->name:"";
 		cdpath = path_nextcomp(cdpath,dir,0);
 #if _WINIX
-                if(*stakptr(PATH_OFFSET+1)==':' && isalpha(*stakptr(PATH_OFFSET)))
+		if(*stakptr(PATH_OFFSET+1)==':' && isalpha(*stakptr(PATH_OFFSET)))
 		{
 			*stakptr(PATH_OFFSET+1) = *stakptr(PATH_OFFSET);
 			*stakptr(PATH_OFFSET)='/';
 		}
 #endif /* _WINIX */
-                if(*stakptr(PATH_OFFSET)!='/')
-
+		if(*stakptr(PATH_OFFSET)!='/')
 		{
 			char *last=(char*)stakfreeze(1);
 			stakseek(PATH_OFFSET);

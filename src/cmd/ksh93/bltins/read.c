@@ -464,7 +464,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 			}
 		}
 		if(timeslot)
-			timerdel(timeslot);
+			sh_timerdel(timeslot);
 		if(binary && !((size=nv_size(np)) && nv_isarray(np) && c!=size))
 		{
 			if((c==size) && np->nvalue.cp && !nv_isarray(np))
@@ -500,7 +500,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		}
 	}
 	if(timeslot)
-		timerdel(timeslot);
+		sh_timerdel(timeslot);
 	if((flags&S_FLAG) && !sh.hist_ptr)
 	{
 		sh_histinit();

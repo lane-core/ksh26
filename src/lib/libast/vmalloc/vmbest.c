@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -766,7 +766,7 @@ static int bestfree(Vmalloc_t* vm, void* data, int local )
 }
 
 static void* bestresize(Vmalloc_t*	vm,		/* region allocating from	*/
-			  void*	data,		/* old block of data		*/
+			  void*		data,		/* old block of data		*/
 			  reg size_t	size,		/* new size			*/
 			  int		type,		/* !=0 to move, <0 for not copy */
 			  int		local)

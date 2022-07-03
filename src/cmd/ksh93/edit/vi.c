@@ -193,10 +193,10 @@ static int	search(Vi_t*,int);
 static void	sync_cursor(Vi_t*);
 static int	textmod(Vi_t*,int,int);
 
-/*+	VI_READ( fd, shbuf, nchar )
+/*+	ED_VIREAD( context, fd, shbuf, nchar, reedit )
  *
  *	This routine implements a one line version of vi and is
- * called by _filbuf.c
+ * called by slowread() in io.c
  *
 -*/
 

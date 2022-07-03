@@ -996,7 +996,7 @@ noreturn void path_exec(register const char *arg0,register char *argv[],struct a
 		pp=path_get(arg0);
 	sh.path_err= ENOENT;
 	sfsync(NIL(Sfio_t*));
-	timerdel(NIL(void*));
+	sh_timerdel(NIL(void*));
 	/* find first path that has a library component */
 	while(pp && (pp->flags&PATH_SKIP))
 		pp = pp->next;

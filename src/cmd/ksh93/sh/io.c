@@ -1607,9 +1607,7 @@ static int io_heredoc(register struct ionod *iop, const char *name, int traceon)
 		}
 		if(!(iop->iofile&IOQUOTE))
 		{
-			char *lastpath = sh.lastpath;
 			sh_machere(infile,outfile,iop->ioname);
-			sh.lastpath = lastpath;
 			if(infile)
 				sfclose(infile);
 		}
@@ -1989,7 +1987,7 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 			timeout = (void*)sh_timeradd(sh_isstate(SH_GRACE)?1000L*TGRACE:1000L*sh.timeout,0,time_grace,&sh);
 		rsize = (*readf)(sh.ed_context, fno, (char*)buff, size, reedit);
 		if(timeout)
-			timerdel(timeout);
+			sh_timerdel(timeout);
 		timeout=0;
 #if SHOPT_HISTEXPAND
 		if(rsize && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))

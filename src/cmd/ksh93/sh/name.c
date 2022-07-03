@@ -2421,7 +2421,6 @@ static void table_unset(register Dt_t *root, int flags, Dt_t *oroot)
 			int len = strlen(np->nvname);
 			npnext = (Namval_t*)dtnext(root,np);
 			while((nq=npnext) && strncmp(np->nvname,nq->nvname,len)==0 && nq->nvname[len]=='.')
-
 			{
 				_nv_unset(nq,flags);
 				npnext = (Namval_t*)dtnext(root,nq);
