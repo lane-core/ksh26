@@ -73,7 +73,9 @@ tst	run{
 	esac
 	echo "#define _DLL_NEXT_PATH	\"$lib\""
 }end
-tst	- -lm output{
+
+# try once with -lm, once without
+tst	- -lm - - output{
 	#include <math.h>
 	#if defined(__MVS__) && !defined(__SUSV3)
 	#define __SUSV3		1
@@ -261,6 +263,9 @@ tst	- -lm output{
 		return 0;
 	}
 }end fail{
-	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
-	exit 1
+	case ${_features_dll_TRIEDONCE-no} in
+	no)	_features_dll_TRIEDONCE=yes ;;
+	*)	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
+		exit 1 ;;
+	esac
 }end
