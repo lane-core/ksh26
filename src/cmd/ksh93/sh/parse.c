@@ -1507,7 +1507,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			lexp->token = LBRACE;
 			break;
 		}
-		if(associative && argp->argval[0]!='[')
+		if(associative && (argp->argval[0]!='[' || !strstr(argp->argval,"]=")))
 			sh_syntax(lexp);
 		/* check for assignment argument */
 		if((argp->argflag&ARG_ASSIGN) && assignment!=2)

@@ -831,4 +831,15 @@ exp=$'typeset -A a=([0]=1 [1]=2 [2]=3)\ntypeset -a a=(1 2 3)'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# spurious command execution of a word starting with '[' but not containing ']=' in associative array assignments
+# https://github.com/ksh93/ksh/issues/427
+exp='*: syntax error at line *: `\[badword]'\'' unexpected'
+got=$(set +x; PATH=/dev/null; eval 'typeset -A badword=([x]=1 \[badword])' 2>&1)
+case $((e=$?)),$got in
+3,$exp)	;;
+*)	err_exit 'spurious command execution in invalid associative array assignment' \
+		"(expected status 3 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))" ;;
+esac
+
+# ======
 exit $((Errors<125?Errors:125))

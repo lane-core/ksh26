@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   following a redirection without being an argument to a redirection.
   For example, this now writes 'OK' to standard error: cat >&2 <(echo OK)
 
+- Fixed the detection of a syntax error in compound assignments to
+  associative arays.
+
 2022-07-02:
 
 - Fixed a bug where, if the last command in a subshell was an external
