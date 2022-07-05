@@ -975,4 +975,34 @@ then
 fi
 
 # ======
+# A process substitution should be valid after a redirection
+# https://github.com/ksh93/ksh/issues/418
+got=$(set +x; eval ': </dev/null <(true)' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "spurious syntax error on process substitution following redirection" \
+	"(expected status 0 and '', got status $e and $(printf %q "$got"))"
+got=$(set +x; eval ': <&1 <(/dev/null' 2>&1)
+exp='*: syntax error at line *: `end of file'\'' unexpected'
+[[ $got == $exp ]] || err_exit "': <&1 <(/dev/null' fails to throw a syntax error" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; eval '{ :; } <(: wrong)' 2>&1)
+exp='*: syntax error at line *: `<('\'' unexpected'
+[[ $got == $exp ]] || err_exit "'{ :; } <(: wrong)' throws incorrect syntax error" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; eval ': >/dev/null >(true)' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "spurious syntax error on process substitution following redirection" \
+	"(expected status 0 and '', got status $e and $(printf %q "$got"))"
+got=$(set +x; eval ': >&1 >(/dev/null' 2>&1)
+exp='*: syntax error at line *: `end of file'\'' unexpected'
+[[ $got == $exp ]] || err_exit "': >&1 >(/dev/null' fails to throw a syntax error" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; eval '{ :; } >(: wrong)' 2>&1)
+exp='*: syntax error at line *: `>('\'' unexpected'
+[[ $got == $exp ]] || err_exit "'{ :; } >(: wrong)' throws incorrect syntax error" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
+exp=$'===\nOK'
+[[ $got == "$exp" ]] || err_exit "process substitution nixes output redirection" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
