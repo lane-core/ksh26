@@ -48,7 +48,6 @@ static Shnode_t	*makeparent(Lex_t*, int, Shnode_t*);
 static Shnode_t	*makelist(Lex_t*, int, Shnode_t*, Shnode_t*);
 static struct argnod	*qscan(struct comnod*, int);
 static struct ionod	*inout(Lex_t*,struct ionod*, int);
-static char		inout_found_procsub;
 static Shnode_t	*sh_cmd(Lex_t*,int,int);
 static Shnode_t	*term(Lex_t*,int);
 static Shnode_t	*list(Lex_t*,int);
@@ -1657,7 +1656,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			}
 			else
 				t->comio = io = inout(lexp,(struct ionod*)0,0);
-			if(inout_found_procsub)
+			if((tok = lexp->token)==IPROCSYM || tok==OPROCSYM)
 				goto procsub;
 		}
 	}
@@ -1758,7 +1757,7 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 	char *iovname=0;
 	register int		errout=0;
 	/* return if a process substitution is found without a redirection */
-	if(inout_found_procsub = (token==IPROCSYM || token==OPROCSYM))
+	if(token==IPROCSYM || token==OPROCSYM)
 		return(lastio);
 	if(token==IOVNAME)
 	{
