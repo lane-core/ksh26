@@ -27,6 +27,12 @@ make install
 			exec -	SHOPT()
 			exec -	{
 			exec -		case $1 in
+			exec -		'MULTIBYTE=')
+			exec -			echo
+			exec -			echo '#if !defined(SHOPT_MULTIBYTE) && !AST_NOMULTIBYTE'
+			exec -			echo '#define SHOPT_MULTIBYTE	1'
+			exec -			echo '#endif'
+			exec -			;;
 			exec -		*=?*)	echo
 			exec -			echo "#ifndef SHOPT_${1%%=*}"
 			exec -			echo "#define SHOPT_${1%%=*}	${1#*=}"

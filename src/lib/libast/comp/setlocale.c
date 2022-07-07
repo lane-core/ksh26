@@ -232,6 +232,8 @@ native_setlocale(int category, const char* locale)
 #define DZ	(DB-DX*DC+1)	/* wchar_t embedded size bits	*/
 #define DD	3		/* # mb delimiter chars <n...>	*/
 
+#if !AST_NOMULTIBYTE
+
 static unsigned char debug_order[] =
 {
 	  0,   1,   2,   3,   4,   5,   6,   7,
@@ -490,6 +492,18 @@ debug_strcoll(const char* a, const char* b)
 	return strcmp(ab, bb);
 }
 
+#else
+
+#define debug_mbtowc	0
+#define debug_wctomb	0
+#define debug_mblen	0
+#define	debug_wcwidth	0
+#define debug_alpha	0
+#define debug_strxfrm	0
+#define debug_strcoll	0
+
+#endif	/* !AST_NOMULTIBYTE */
+
 /*
  * default locale
  */
@@ -529,7 +543,7 @@ set_collate(Lc_category_t* cp)
  * workaround the interesting SJIS that translates unshifted 7 bit ASCII!
  */
 
-#if _hdr_wchar && _typ_mbstate_t && _lib_mbrtowc
+#if _hdr_wchar && _typ_mbstate_t && _lib_mbrtowc && !AST_NOMULTIBYTE
 
 #define mb_state_zero	((mbstate_t*)&ast.pad[sizeof(ast.pad)-2*sizeof(mbstate_t)])
 #define mb_state	((mbstate_t*)&ast.pad[sizeof(ast.pad)-sizeof(mbstate_t)])
@@ -546,6 +560,8 @@ sjis_mbtowc(register wchar_t* p, register const char* s, size_t n)
 }
 
 #endif
+
+#if !AST_NOMULTIBYTE
 
 static int
 utf8_wctomb(char* u, wchar_t w) 
@@ -593,8 +609,6 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 	register int		c;
 	register wchar_t	w = 0;
 
-	if (!wp && !sp)
-		ast.mb_sync = 0;  /* assume call from mbinit() macro: reset global multibyte sync state */
 	if (!sp || !n)
 		return 0;
 	if ((m = utf8tab[*sp]) > 0)
@@ -2195,6 +2209,16 @@ utf8_alpha(wchar_t c)
 {
 	return !!(utf8_wam[(c >> 3) & 0x1fff] & (1 << (c & 0x7)));
 }
+
+#else
+
+#define utf8_wctomb	0
+#define utf8_mbtowc	0
+#define utf8_mblen	0
+#define utf8_wcwidth	0
+#define utf8_alpha	0
+
+#endif /* !AST_NOMULTIBYTE */
 
 #if !_hdr_wchar || !_lib_wctype || !_lib_iswctype
 #undef	iswalpha

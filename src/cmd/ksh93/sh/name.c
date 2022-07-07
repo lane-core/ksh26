@@ -1549,12 +1549,10 @@ skip:
 	return(np);
 }
 
-#if SHOPT_MULTIBYTE
-    static int ja_size(char*, int, int);
-    static void ja_restore(void);
-    static char *savep;
-    static char savechars[8+1];
-#endif /* SHOPT_MULTIBYTE */
+static int ja_size(char*, int, int);
+static void ja_restore(void);
+static char *savep;
+static char savechars[8+1];
 
 /*
  * put value <string> into name-value node <np>.
@@ -1863,22 +1861,8 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				for( ; *sp == '0'; sp++)
 					;
 			size = nv_size(np);
-#if SHOPT_MULTIBYTE
 			if(size)
 				size = ja_size((char*)sp,size,nv_isattr(np,NV_RJUST|NV_ZFILL));
-#else
-			/* fallback: consider control characters to have zero width */
-			if(size)
-			{
-				char	*c = (char*)sp;
-				int	s = size;
-				for( ; *c && s; c++)
-					if(iscntrl(*c))
-						size++;
-					else
-						s--;
-			}
-#endif /* SHOPT_MULTIBYTE */
 		}
 		if(!up->cp || *up->cp==0)
 			flags &= ~NV_APPEND;
@@ -2005,11 +1989,9 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 				cp = cp+size;
 				for (; dp < cp; *dp++ = ' ');
 			 }
-#if SHOPT_MULTIBYTE
 			/* restore original string */
 			if(savep)
 				ja_restore();
-#endif /* SHOPT_MULTIBYTE */
 		}
 		if(flags&NV_APPEND)
 			stakseek(offset);
@@ -2066,17 +2048,15 @@ static void rightjust(char *str, int size, int fill)
 	return;
 }
 
-#if SHOPT_MULTIBYTE
-    /*
-     * handle left and right justified fields for multi-byte chars
-     * given physical size, return a logical size which reflects the
-     * screen width of multi-byte characters
-     * Multi-width characters replaced by spaces if they cross the boundary
-     * <type> is non-zero for right justified fields
-     */
+/*
+ * Handle left and right justified fields for multibyte characters.
+ * Given physical size, return a logical size that reflects the screen width.
+ * Multi-width characters are replaced by spaces if they cross the boundary.
+ * <type> is non-zero for right-justified fields.
+ */
 
-    static int ja_size(char *str,int size,int type)
-    {
+static int ja_size(char *str,int size,int type)
+{
 	register char *cp = str;
 	register int c, n=size;
 	register int outsize;
@@ -2118,16 +2098,15 @@ static void rightjust(char *str, int size, int fill)
 			n -= (ja_size(str,size,0)-size);
 	}
 	return(n);
-    }
+}
 
-    static void ja_restore(void)
-    {
+static void ja_restore(void)
+{
 	register char *cp = savechars;
 	while(*cp)
 		*savep++ = *cp++;
 	savep = 0;
-    }
-#endif /* SHOPT_MULTIBYTE */
+}
 
 static char *staknam(register Namval_t *np, char *value)
 {

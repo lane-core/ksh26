@@ -476,7 +476,17 @@ typeset -l x=
 
 unset x
 typeset -L4 x=$'\001abcdef'
-[[ ${#x} == 5 ]] || err_exit "width of character '\001' is not zero"
+exp=$'\001abcd'
+[[ e=${#x} -eq 5 && $x == "$exp" ]] || err_exit "typeset -L: width of control character '\001' is not zero" \
+	"(expected length 5 and $(printf %q "$exp"), got length $e and $(printf %q "$x"))"
+typeset -R10 x=$'a\tb'
+exp=$'        a\tb'
+[[ e=${#x} -eq 11 && $x == "$exp" ]] || err_exit "typeset -R: width of control character '\t' is not zero" \
+	"(expected length 11 and $(printf %q "$exp"), got length $e and $(printf %q "$x"))"
+typeset -Z10 x=$'1\t2'
+exp=$'000000001\t2'
+[[ e=${#x} -eq 11 && $x == "$exp" ]] || err_exit "typeset -Z: width of control character '\t' is not zero" \
+	"(expected length 11 and $(printf %q "$exp"), got length $e and $(printf %q "$x"))"
 
 unset x
 typeset -L x=-1

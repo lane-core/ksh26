@@ -260,9 +260,7 @@ int sh_lex(Lex_t* lp)
 	register int		n, c, mode=ST_BEGIN, wordflags=0;
 	int		inlevel=lp->lexd.level, assignment=0, ingrave=0;
 	int		epatchar=0;
-#if SHOPT_MULTIBYTE
-	LEN=1;
-#endif /* SHOPT_MULTIBYTE */
+	SETLEN(1);
 	if(lp->lexd.paren)
 	{
 		lp->lexd.paren = 0;
@@ -1819,18 +1817,15 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 		if(n!=S_NL)
 		{
 			/* skip over regular characters */
-#if SHOPT_MULTIBYTE
 			do
 			{
-				if(fcleft()< MB_LEN_MAX && mbsize(fcseek(0))<0)
+				if(mbsize(fcseek(0)) < 0 && fcleft() < MB_LEN_MAX)
 				{
 					n = S_EOF;
-					LEN = -fcleft();
+					SETLEN(-fcleft());
 					break;
 				}
 			}
-#endif /* SHOPT_MULTIBYTE */
-
 			while((n=STATE(state,c))==0);
 		}
 		if(n==S_EOF || !(c=fcget()))
@@ -1846,17 +1841,15 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 				if(!lp->lexd.dolparen && (c=sfwrite(sp,bufp,c))>0)
 					iop->iosize += c;
 			}
-#if SHOPT_MULTIBYTE
 			if(LEN==0)
-				LEN=1;
+				SETLEN(1);
 			if(LEN < 0)
 			{
 				n = LEN;
 				c = fcmbget(&LEN);
-				LEN += n;
+				SETLEN(LEN + n);
 			}
 			else
-#endif /* SHOPT_MULTIBYTE */
 				c = lexfill(lp);
 			if(c<0)
 				break;
@@ -1874,10 +1867,8 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 					sfputc(sp,'\\');
 				}
 			}
-#if SHOPT_MULTIBYTE
 			if(LEN < 1)
-				LEN = 1;
-#endif
+				SETLEN(1);
 			bufp = fcseek(-LEN);
 		}
 		else

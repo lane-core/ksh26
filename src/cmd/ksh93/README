@@ -100,8 +100,9 @@ The options have the following defaults and meanings:
                      As of 2021-05-10, no tool that can parse this database is
                      known. If you know of any, please contact us.
 
-    MULTIBYTE    on  Multibyte character handling.  Requires mblen() and
-                     mbctowc().
+    MULTIBYTE        Multibyte character handling. This is on by default unless
+                     the flag -DAST_NOMULTIBYTE is passed to the compiler via
+                     CCFLAGS. The UTF-8 character set is fully supported.
 
     NAMESPACE    on  Adds a 'namespace' reserved word that allows defining name
                      spaces. Variables and functions defined within a block like
@@ -190,6 +191,11 @@ run the build scripts this way. For example:
 Note: Do not add compiler flags that cause the compiler to emit terminal
 escape codes, such as -fdiagnostics-color=always; this will cause the build
 to fail as the probing code greps compiler diagnostics.
+
+If you are certain that you don't need support for UTF-8 and other multibyte
+character locales and really want to save some memory and CPU cycles, add
+'-DAST_NOMULTIBYTE' to CCFLAGS to compile out all multibyte character
+handling in ksh and supporting libraries. Not recommended for most users.
 
 For more information, run:
 

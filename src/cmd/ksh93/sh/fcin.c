@@ -151,6 +151,7 @@ extern void fcrestore(Fcin_t *fp)
 	_Fcin = *fp;
 }
 
+#if SHOPT_MULTIBYTE
 int _fcmbget(short *len)
 {
 	register int		c;
@@ -168,3 +169,4 @@ int _fcmbget(short *len)
 	}
 	return(c);
 } 
+#endif /* SHOPT_MULTIBYTE */

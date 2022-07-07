@@ -208,22 +208,46 @@ typedef struct
  * multibyte macros
  */
 
-#define mbmax()		(ast.mb_cur_max)
-#define mberr()		(ast.tmp_int<0)
+#if !AST_NOMULTIBYTE
 
-#define mbcoll()	(ast.mb_xfrm!=0)
-#define mbwide()	(mbmax()>1)
+#define mbmax()		( ast.mb_cur_max )
+#define mberr()		( ast.tmp_int < 0 )
 
-#define mb2wc(w,p,n)	(*ast.mb_towc)(&w,(char*)p,n)
-#define mbchar(p)	(mbwide()?((ast.tmp_int=(*ast.mb_towc)(&ast.tmp_wchar,(char*)(p),mbmax()))>0?((p+=ast.tmp_int),ast.tmp_wchar):(p+=ast.mb_sync+1,ast.tmp_int)):(*(unsigned char*)(p++)))
-#define mbnchar(p,n)	(mbwide()?((ast.tmp_int=(*ast.mb_towc)(&ast.tmp_wchar,(char*)(p),n))>0?((p+=ast.tmp_int),ast.tmp_wchar):(p+=ast.mb_sync+1,ast.tmp_int)):(*(unsigned char*)(p++)))
-#define mbinit()	(mbwide()?(*ast.mb_towc)((wchar_t*)0,(char*)0,mbmax()):0)
-#define mbsize(p)	(mbwide()?(*ast.mb_len)((char*)(p),mbmax()):((p),1))
-#define mbnsize(p,n)	(mbwide()?(*ast.mb_len)((char*)(p),n):((p),1))
-#define mbconv(s,w)	(ast.mb_conv?(*ast.mb_conv)(s,w):((*(s)=(w)),1))
-#define mbwidth(w)	(ast.mb_width?(*ast.mb_width)(w):1)
-#define mbxfrm(t,f,n)	(mbcoll()?(*ast.mb_xfrm)((char*)(t),(char*)(f),n):0)
-#define mbalpha(w)	(ast.mb_alpha?(*ast.mb_alpha)(w):isalpha((w)&0xff))
+#define mbcoll()	( ast.mb_xfrm != 0 )
+#define mbwide()	( mbmax() > 1 )
+
+#define mb2wc(w,p,n)	( *ast.mb_towc)(&w, (char*)p, n )
+#define	mbchar(p)	mbnchar(p, mbmax())
+#define mbnchar(p,n)	( mbwide() ? ( (ast.tmp_int = (*ast.mb_towc)(&ast.tmp_wchar, (char*)(p), n)) > 0 ? \
+				( (p+=ast.tmp_int),ast.tmp_wchar) : (p+=ast.mb_sync+1,ast.tmp_int) ) : (*(unsigned char*)(p++)) )
+#define mbinit()	( ast.mb_sync = 0 )
+#define mbsize(p)	mbnsize(p, mbmax())
+#define mbnsize(p,n)	( mbwide() ? (*ast.mb_len)((char*)(p), n) : ((p), 1) )
+#define mbconv(s,w)	( ast.mb_conv ? (*ast.mb_conv)(s,w) : ((*(s)=(w)), 1) )
+#define mbwidth(w)	( ast.mb_width ? (*ast.mb_width)(w) : (w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1) )
+#define mbxfrm(t,f,n)	( mbcoll() ? (*ast.mb_xfrm)((char*)(t), (char*)(f), n) : 0 )
+#define mbalpha(w)	( ast.mb_alpha ? (*ast.mb_alpha)(w) : isalpha((w) & 0xff) )
+
+#else
+
+#define mbmax()		1
+#define mberr()		0
+
+#define mbcoll()	0
+#define mbwide()	0
+
+#define mb2wc(w,p,n)	( (w) = *(unsigned char*)(p), 1 )
+#define mbchar(p)	( *(unsigned char*)(p++) )
+#define mbnchar(p,n)	mbchar(p)
+#define mbinit()	0
+#define mbsize(p)	1
+#define mbnsize(p,n)	1
+#define mbconv(s,w)	( (*(s)=(w)), 1 )
+#define mbwidth(w)	( w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1 )
+#define mbxfrm(t,f,n)	0
+#define mbalpha(w)	( isalpha((w) & 0xff) )
+
+#endif /* !AST_NOMULTIBYTE */
 
 /*
  * common macros

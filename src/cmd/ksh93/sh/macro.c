@@ -105,7 +105,8 @@ static void	endfield(Mac_t*,int);
 static char	*mac_getstring(char*);
 static int	charlen(const char*,int);
 #if SHOPT_MULTIBYTE
-    static char	*lastchar(const char*,const char*);
+#   define lastchar(string,endstring)  (mbwide() ? _lastchar(string,endstring) : (endstring))
+    static char	*_lastchar(const char*,const char*);
 #else
 #   define lastchar(string,endstring)  (endstring)
 #endif /* SHOPT_MULTIBYTE */
@@ -2570,7 +2571,7 @@ static int substring(register const char *string,size_t len,const char *pat,int 
 }
 
 #if SHOPT_MULTIBYTE
-	static char	*lastchar(const char *string, const char *endstring)
+	static char	*_lastchar(const char *string, const char *endstring)
 	{
 		register char *str = (char*)string;
 		register int c;

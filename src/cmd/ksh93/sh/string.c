@@ -659,11 +659,17 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 	return(stakptr(offset));
 }
 
-#if SHOPT_MULTIBYTE
-	int sh_strchr(const char *string, register const char *dp)
+/*
+ * Find a multi-byte character in a string.
+ * NOTE: Unlike strchr(3), the return value is an integer offset or -1 if not found.
+ */
+int sh_strchr(const char *string, register const char *dp)
+{
+	const char *cp;
+	if(mbwide())
 	{
 		wchar_t c, d;
-		register const char *cp=string;
+		cp = string;
 		mbinit();
 		d = mbchar(dp); 
 		mbinit();
@@ -676,7 +682,9 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 			return(cp-string);
 		return(-1);
 	}
-#endif /* SHOPT_MULTIBYTE */
+	cp = strchr(string,*dp);
+	return(cp ? cp-string : -1);
+}
 
 const char *_sh_translate(const char *message)
 {

@@ -28,6 +28,12 @@
 #ifndef defs_h_defined
 #define defs_h_defined
 
+/* In case multibyte support was disabled for ksh only (SHOPT_MULTIBYTE==0) and not for libast */
+#if !SHOPT_MULTIBYTE && !AST_NOMULTIBYTE
+#    undef AST_NOMULTIBYTE
+#    define AST_NOMULTIBYTE	1
+#endif
+
 #include	<ast.h>
 #if !defined(AST_VERSION) || AST_VERSION < 20220208
 #error libast version 20220208 or later is required
@@ -35,20 +41,9 @@
 #if !_lib_fork
 #error In 2021, ksh joined the 21st century and started requiring fork(2).
 #endif
-#if !SHOPT_MULTIBYTE
-    /*
-     * Disable multibyte without need for excessive '#if SHOPT_MULTIBYTE' preprocessor conditionals.
-     * If we redefine the maximum character size mbmax() as 1 byte, the mbwide() macro will always
-     * evaluate to 0. All the other multibyte macros have multibtye code conditional upon mbwide(),
-     * so the compiler should optimize all of that code away. See src/lib/libast/include/ast.h
-     */
-#   undef mbmax
-#   define mbmax()	1
-#endif
 
 #include	<sfio.h>
 #include	<error.h>
-#include	"shopt.h"
 #include	"FEATURE/externs"
 #include	"FEATURE/options"
 #include	<cdt.h>
