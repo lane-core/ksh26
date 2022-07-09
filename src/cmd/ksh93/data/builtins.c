@@ -398,7 +398,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (AT&T Research) 2010-08-04 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2022-07-03 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -419,6 +419,7 @@ const char sh_optbuiltin[] =
     "the current list of built-ins, or just the special built-ins if \b-s\b "
     "is specified, on standard output. The full pathname for built-ins that "
     "are bound to pathnames are displayed.]"
+#if SHOPT_DYNAMIC
 "[+?Libraries containing built-ins can be specified with the \b-f\b "
     "option. If the library contains a function named \blib_init\b(), this "
     "function will be invoked with argument \b0\b when the library is "
@@ -427,20 +428,25 @@ const char sh_optbuiltin[] =
     "the C level function name.]"
 "[+?The C level function will be invoked with three arguments. The first "
     "two are the same as \bmain\b() and the third one is a pointer.]"
+#endif /* SHOPT_DYNAMIC */
 "[+?\bbuiltin\b cannot be invoked from a restricted shell.]"
 "[d?Deletes each of the specified built-ins. Special built-ins cannot be "
     "deleted.]"
-"[f]:[lib?On systems with dynamic linking, \alib\a names a shared "
-    "library to load and search for built-ins. Libraries are searched for "
-    "in \b../lib/ksh\b and \b../lib\b on \b$PATH\b and in system dependent "
-    "library directories. The system "
-    "dependent shared library prefix and/or suffix may be omitted. Once a "
+#if SHOPT_DYNAMIC
+"[f]:[lib?\alib\a names a shared library to load and search for built-ins. "
+    "Libraries are searched for in \b../lib/ksh\b and \b../lib\b on \b$PATH\b "
+    "and in system-dependent library directories. The system-dependent "
+    "shared library prefix and/or suffix may be omitted. Once a "
     "library is loaded, its symbols become available for the current and "
     "subsequent invocations of \bbuiltin\b. Multiple libraries can be "
     "specified with separate invocations of \bbuiltin\b. Libraries are "
     "searched in the reverse order in which they are specified.]"
 "[l?List the library base name, plugin YYYYMMDD version stamp, and full "
     "path for \b-f\b\alib\a on one line on the standard output.]"
+#else
+"[f]:[lib?Not supported.]"
+"[l?No effect.]"
+#endif /* SHOPT_DYNAMIC */
 "[s?Display only the special built-ins.]"
 "\n"
 "\n[pathname ...]\n"
