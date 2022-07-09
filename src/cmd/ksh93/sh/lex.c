@@ -208,20 +208,11 @@ Lex_t *sh_lexopen(Lex_t *lp, int mode)
 	if(!lp)
 		lp = (Lex_t*)sh_newof(0,Lex_t,1,0);
 	fcnotify(lex_advance,lp);
-	lp->lex.intest = lp->lex.incase = lp->lex.skipword = lp->lexd.warn = 0;
-	lp->comp_assign = 0;
+	lp->lex.intest = lp->lex.incase = lp->lex.skipword = lp->comp_assign = lp->comsub = lp->assignok = 0;
 	lp->lex.reservok = 1;
-	if(!sh_isoption(SH_DICTIONARY) && sh_isoption(SH_NOEXEC))
-		lp->lexd.warn=1;
 	if(!mode)
-	{
-		lp->lexd.noarg = lp->lexd.level= lp->lexd.dolparen = 0;
-		lp->lexd.nocopy = lp->lexd.docword = lp->lexd.nest = lp->lexd.paren = 0;
-		lp->lexd.lex_state = lp->lexd.lastc=0;
-		lp->lexd.docend = 0;
-		lp->lexd.nested_tilde = 0;
-	}
-	lp->comsub = 0;
+		memset(&lp->lexd,0,sizeof(struct _shlex_pvt_lexdata_));
+	lp->lexd.warn = !sh_isoption(SH_DICTIONARY) && sh_isoption(SH_NOEXEC);
 	return(lp);
 }
 

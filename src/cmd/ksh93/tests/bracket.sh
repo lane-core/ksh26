@@ -495,4 +495,13 @@ $SHELL -c '[[ c < b ]]'; got=$?
 	"(expected $exp, got $got)"
 
 # ======
+# https://github.com/ksh93/ksh/issues/486
+unset x
+savePATH=$PATH
+PATH=/dev/null
+command eval 'x=([x]=1 [y)' 2>/dev/null
+[[ -z $x ]] 2>/dev/null || err_exit "[[ ... ]] breaks after syntax error in associative array assignment (got status $?)"
+PATH=$savePATH
+
+# ======
 exit $((Errors<125?Errors:125))
