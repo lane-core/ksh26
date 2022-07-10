@@ -7,6 +7,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a potential crash on retrieving an empty line from the command history.
 
+- Fixed a potential crash in the lexical analyser on processing single-byte
+  characters with the highest bit set.
+
 2022-07-09:
 
 - Fixed a bug that broke '[[ ... ]]' test expressions for the command

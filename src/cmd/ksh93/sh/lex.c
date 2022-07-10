@@ -2106,15 +2106,15 @@ noreturn void sh_syntax(Lex_t *lp)
 	UNREACHABLE();
 }
 
-static char *stack_shift(register char *sp,char *dp)
+static unsigned char *stack_shift(unsigned char *sp, unsigned char *dp)
 {
-	register char *ep;
-	register int offset = stktell(sh.stk);
-	register int left = offset-(sp-stkptr(sh.stk,0));
-	register int shift = (dp+1-sp);
+	unsigned char *ep;
+	int offset = stktell(sh.stk);
+	int left = offset - (sp - (unsigned char*)stkptr(sh.stk, 0));
+	int shift = (dp+1-sp);
 	offset += shift;
 	stkseek(sh.stk,offset);
-	sp = stkptr(sh.stk,offset);
+	sp = (unsigned char*)stkptr(sh.stk,offset);
 	ep = sp - shift;
 	while(left--)
 		*--sp = *--ep;
@@ -2131,15 +2131,12 @@ static char *stack_shift(register char *sp,char *dp)
  */
 static struct argnod *endword(int mode)
 {
-	register const char *state = sh_lexstates[ST_NESTED];
-	register int n;
-	register char *sp,*dp;
-	register int inquote=0, inlit=0; /* set within quoted strings */
-	struct argnod* argp=0;
-	char	*ep=0, *xp=0;
-	int bracket=0;
+	const char *const state = sh_lexstates[ST_NESTED];
+	unsigned char *sp, *dp, *ep=0, *xp=0;	/* must be unsigned: pointed-to values used as index to 256-byte state table */
+	int inquote=0, inlit=0;			/* set within quoted strings */
+	int n, bracket=0;
 	sfputc(sh.stk,0);
-	sp =  stkptr(sh.stk,ARGVAL);
+	sp =  (unsigned char*)stkptr(sh.stk,ARGVAL);
 	if(mbwide())
 	{
 		do
@@ -2178,13 +2175,16 @@ static struct argnod *endword(int mode)
 		switch(n)
 		{
 		    case S_EOF:
-			stkseek(sh.stk,dp-stkptr(sh.stk,0));
+		    {
+			struct argnod* argp=0;
+			stkseek(sh.stk,dp - (unsigned char*)stkptr(sh.stk,0));
 			if(mode<=0)
 			{
 				argp = (struct argnod*)stkfreeze(sh.stk,0);
 				argp->argflag = ARG_RAW|ARG_QUOTED;
 			}
 			return(argp);
+		    }
 		    case S_LIT:
 			if(!(inquote&1))
 			{
@@ -2195,8 +2195,8 @@ static struct argnod *endword(int mode)
 					if(ep)
 					{
 						*dp = 0;
-						stresc(ep);
-						dp = ep+ strlen(ep);
+						stresc((char*)ep);
+						dp = ep + strlen((char*)ep);
 					}
 					ep = 0;
 				}
@@ -2300,7 +2300,7 @@ static struct argnod *endword(int mode)
 			{
 				inquote >>= 1;
 				if(xp)
-					dp = sh_checkid(xp,dp);
+					dp = (unsigned char*)sh_checkid((char*)xp,(char*)dp);
 				xp = 0;
 				if(--bracket<=0 && mode<0)
 					inquote = 1;
