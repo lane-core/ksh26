@@ -215,15 +215,17 @@ do
 	trap - TERM
 	[[ $sleep_pid ]] && kill $sleep_pid
 	
-# TODO: The /bin/cat iteration of this test is known to hang intermittently on Debian and
-# derived systems (such as Ubuntu). See: https://github.com/ksh93/ksh/issues/132
-	trap 'sleep_pid=; kill $pid; warning "$cat coprocess 2 hung (known issue, help us fix it at <https://github.com/ksh93/ksh/issues/132>)"' TERM
+	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 2 hung"' TERM
 	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
 	pid=$!
-	print foo >&p 2> /dev/null || err_exit "first write of foo to $cat coprocess failed"
-	print foo >&p 2> /dev/null || err_exit "second write of foo to coprocess failed"
+	print foo1 >&p 2> /dev/null || err_exit "first write to $cat coprocess failed" 
+	print foo2 >&p 2> /dev/null || err_exit "second write to $cat coprocess failed" 
+	# avoid race between '$cat |&' initialising and 'kill $pid': read from the coprocess
+	# before 'kill' so that $cat is known to be fully initialised and ready to catch SIGTERM
+	read <&p && [[ $REPLY == foo1 ]] || err_exit "first read from $cat coprocess failed"
+	read <&p && [[ $REPLY == foo2 ]] || err_exit "second read from $cat coprocess failed"
 	kill $pid
 	wait $pid 2> /dev/null
 	trap - TERM
