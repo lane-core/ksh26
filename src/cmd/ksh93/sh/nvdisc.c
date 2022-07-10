@@ -961,7 +961,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	}
 	else if((flags&NV_ARRAY) && !nv_isattr(np,NV_MINIMAL))
 		mp->nvenv = np->nvenv;
-	if(nv_isattr(np,NV_INTEGER) && mp->nvalue.ip!=np->nvalue.ip && np->nvalue.cp!=Empty)
+	if(nv_isattr(np,NV_INTEGER) && !nv_isarray(np) && mp->nvalue.ip!=np->nvalue.ip && np->nvalue.cp!=Empty)
 	{
 		mp->nvalue.ip = (int*)num_clone(np,(void*)np->nvalue.ip);
 		nv_offattr(mp,NV_NOFREE);
