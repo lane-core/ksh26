@@ -982,7 +982,8 @@ int hist_copy(char *s1,int size,int command,int line)
 	register int c;
 	register History_t *hp = sh.hist_ptr;
 	register int count = 0;
-	register char *s1max = s1+size;
+	char *const s1orig = s1;
+	char *const s1max = s1 + size;
 	if(!hp)
 		return(-1);
 	hist_seek(hp,command);
@@ -1008,7 +1009,7 @@ int hist_copy(char *s1,int size,int command,int line)
 	sfseek(hp->histfp,(off_t)0,SEEK_END);
 	if(s1==0)
 		return(count);
-	if(count && (c= *(s1-1)) == '\n')
+	if(count && s1 > s1orig && (c = *(s1 - 1)) == '\n')
 		s1--;
 	*s1 = '\0';
 	return(count);
