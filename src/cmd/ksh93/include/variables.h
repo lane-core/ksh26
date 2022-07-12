@@ -36,6 +36,14 @@ struct rand
 extern void sh_reseed_rand(struct rand *);
 extern void sh_save_rand_seed(struct rand *, int);
 
+/* update ${.sh.level} and, if needed, restore the current scope */
+#define update_sh_level() \
+( \
+	SH_LEVELNOD->nvalue.s = sh.fn_depth + sh.dot_depth, \
+	sh.topscope != (Shscope_t*)sh.st.self ? sh_setscope(sh.topscope) : 0, \
+	1 \
+)
+
 /* The following defines must be kept synchronous with shtab_variables[] in data/variables.c */
 
 #define	PATHNOD		(sh.bltin_nodes)

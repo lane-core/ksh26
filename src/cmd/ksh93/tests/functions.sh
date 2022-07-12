@@ -984,29 +984,25 @@ function _Dbg_debug_trap_handler
 	done
 }
 
-(
-: 'Disabling xtrace while running _Dbg_* functions'
-set +x	# TODO: the _Dbg_* functions are incompatible with xtrace. To expose the regression
-	# test failures, run 'bin/shtests -x -p functions'. Is this a bug in ksh?
 ((baseline=LINENO+2))
 trap '_Dbg_debug_trap_handler' DEBUG
 .  $tmp/debug foo bar
 trap '' DEBUG
-exit $Errors
-)
-Errors=$?
 
 caller() {
   integer .level=.sh.level .max=.sh.level-1
   while((--.level>=0))
   do
-      ((.sh.level = .level))
-      print -r -- "${.sh.lineno}"
+      # as of 2022-07-12, .sh.level can only be changed inside a DEBUG trap;
+      # the trap is executed right before turning it off with 'trap - DEBUG'
+      trap '((.sh.level = .level)); print -r -- "${.sh.lineno}"' DEBUG
+      trap - DEBUG
   done
 }
 bar() { caller;}
 set -- $(bar)
-[[ $1 == $2 ]] && err_exit ".sh.inline optimization bug"
+[[ $1 == $2 ]] && err_exit ".sh.lineno optimization bug (got values: $*)"
+
 ( $SHELL  -c ' function foo { typeset x=$1;print $1;};z=();z=($(foo bar)) ') 2> /dev/null ||  err_exit 'using a function to set an array in a command sub fails'
 
 {

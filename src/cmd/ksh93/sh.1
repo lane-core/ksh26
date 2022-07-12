@@ -1721,13 +1721,20 @@ The pathname of the file that contains the current command.
 The name of the current function that is being executed.
 .TP
 .B .sh.level
-Set to the current function depth.  This can be changed
-inside a DEBUG trap and will set the context to the specified
-level.
+Set to the current call depth of functions and dot scripts.
+Normally, this variable is read-only, but while executing a
+.B DEBUG
+trap, its value may be changed to switch the current function scope
+to that of the specified level for the duration of the trap run,
+making it possible to access a parent scope for debugging purposes.
+When trap execution ends, the variable and the scope are restored.
+It is an error to assign a value lower than 0 (the global scope)
+or higher than the current call depth.
 .TP
 .B .sh.lineno
-Set during a DEBUG trap to the line number for the caller of
-each function.
+Set during a
+.B DEBUG
+trap to the line number for the caller of each function.
 .TP
 .B .sh.match
 An indexed array which stores the most recent match and subpattern

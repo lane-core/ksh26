@@ -558,7 +558,7 @@ char *nv_setdisc(register Namval_t* np,register const char *event,Namval_t *acti
 		action = vp->disc[type];
 		empty = 0;
 	}
-	else if(action)
+	else if(action && np!=SH_LEVELNOD)
 	{
 		Namdisc_t *dp = (Namdisc_t*)vp->fun.disc;
 		if(type==LOOKUPS)

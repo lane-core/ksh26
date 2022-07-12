@@ -169,7 +169,9 @@ struct Ufunction
 #undef nv_size
 #define nv_size(np)	((np)->nvsize)
 #define _nv_hasget(np)  ((np)->nvfun && (np)->nvfun->disc && nv_hasget(np))
-#define nv_isnull(np)	(!(np)->nvalue.cp && !_nv_hasget(np))
+/* for nv_isnull we must exclude non-pointer value attributes (NV_INT16, NV_UINT16) before accessing cp in union Value */
+#define nv_isnonptr(np)	(nv_isattr(np,NV_INT16P)==NV_INT16)
+#define nv_isnull(np)	(!nv_isnonptr(np) && !(np)->nvalue.cp && !_nv_hasget(np))
 
 /* ...	for arrays */
 

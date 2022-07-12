@@ -936,6 +936,8 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				newflag = curflag & ~flag;
 			if (tp->aflag && (tp->argnum || (curflag!=newflag)))
 			{
+				if(np==SH_LEVELNOD)
+					return(r);
 				if(sh.subshell)
 					sh_assignok(np,2);
 				if(troot!=sh.var_tree)

@@ -547,62 +547,36 @@ static void out_string(Sfio_t *iop, register const char *cp, int c, int quoted)
 	sfputr(iop,cp,c);
 }
 
-struct Level
-{
-	Namfun_t	hdr;
-	short		maxlevel;
-};
-
 /*
- * this is for a debugger but it hasn't been tested yet
- * if a debug script sets .sh.level it should set up the scope
- * as if you were executing in that level
- */ 
+ * If a script changes .sh.level inside a DEBUG trap, it will switch the
+ * scope as if it were executing the trap at that function call depth.
+ */
 static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	Shscope_t	*sp;
-	struct Level *lp = (struct Level*)fp;
-	int16_t level, oldlevel = (int16_t)nv_getnum(np);
-	nv_putv(np,val,flags,fp);
-	if(!val)
-	{
-		fp = nv_stack(np, NIL(Namfun_t*));
-		if(fp && !fp->nofree)
-			free((void*)fp);
+	int16_t level, oldlevel = np->nvalue.s;
+	if(val)
+		nv_putv(np,val,flags,fp);
+	else
 		return;
-	}
-	level = nv_getnum(np);
-	if(level<0 || level > lp->maxlevel)
+	level = np->nvalue.s;
+	if(level < 0 || level > sh.fn_depth + sh.dot_depth)
 	{
-		nv_putv(np, (char*)&oldlevel, NV_INT16, fp);
-		/* perhaps this should be an error */
-		return;
+		np->nvalue.s = oldlevel;
+		errormsg(SH_DICT,ERROR_exit(1),"%d: level out of range",level);
+		UNREACHABLE();
 	}
 	if(level==oldlevel)
 		return;
 	if(sp = sh_getscope(level,SEEK_SET))
-	{
 		sh_setscope(sp);
-		error_info.id = sp->cmdname;
-	}
 }
 
-static const Namdisc_t level_disc = {  sizeof(struct Level), put_level };
-
-static struct Level *init_level(int level)
-{
-	struct Level *lp = sh_newof(NiL,struct Level,1,0);
-	lp->maxlevel = level;
-	_nv_unset(SH_LEVELNOD,0);
-	nv_onattr(SH_LEVELNOD,NV_INT16|NV_NOFREE);
-	sh.last_root = nv_dict(DOTSHNOD);
-	nv_putval(SH_LEVELNOD,(char*)&lp->maxlevel,NV_INT16);
-	lp->hdr.disc = &level_disc;
-	nv_disc(SH_LEVELNOD,&lp->hdr,NV_FIRST);
-	return(lp);
-}
+static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };
+static Namfun_t level_disc_fun = { &level_disc, 1 };
 
 /*
+ * Execute the DEBUG trap:
  * write the current command on the stack and make it available as .sh.command
  */
 int sh_debug(const char *trap, const char *name, const char *subscript, char *const argv[], int flags)
@@ -614,7 +588,6 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	char			*sav = stkfreeze(stkp,0);
 	const char		*cp = "+=( ";
 	Sfio_t			*iop = stkstd;
-	short			level;
 	if(sh.indebug)
 		return(0);
 	sh.indebug = 1;
@@ -647,23 +620,22 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	else if(iop==stkstd)
 		*stkptr(stkp,stktell(stkp)-1) = 0;
 	np->nvalue.cp = stkfreeze(stkp,1);
-	/* now setup .sh.level variable */
 	sh.st.lineno = error_info.line;
-	level  = sh.fn_depth+sh.dot_depth;
-	sh.last_root = nv_dict(DOTSHNOD);
-	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc || nv_isattr(SH_LEVELNOD,NV_INT16|NV_NOFREE)!=(NV_INT16|NV_NOFREE))
-		init_level(level);
-	else
-		nv_putval(SH_LEVELNOD,(char*)&level,NV_INT16);
 	savst = sh.st;
 	sh.st.trap[SH_DEBUGTRAP] = 0;
+	/* set up .sh.level variable */
+	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
+		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
+	nv_offattr(SH_LEVELNOD,NV_RDONLY);
+	/* run the trap */
 	n = sh_trap(trap,0);
+	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	np->nvalue.cp = 0;
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
-	if(sh.st.cmdname)
-		error_info.id = sh.st.cmdname;
+	/* restore scope */
+	update_sh_level();
 	sh.st = savst;
 	if(sav != stkptr(stkp,0))
 		stkset(stkp,sav,offset);
@@ -3164,12 +3136,14 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
-		if(sh.fn_depth++ > MAXDEPTH)
+		if(sh.fn_depth >= MAXDEPTH)
 		{
 			sh.toomany = 1;
 			siglongjmp(*sh.jmplist,SH_JMPERRFN);
 		}
-		else if(fun)
+		sh.fn_depth++;
+		update_sh_level();
+		if(fun)
 			r= (*fun)(arg);
 		else
 		{
@@ -3193,9 +3167,9 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			r = sh.exitval;
 		}
 	}
-	if(sh.topscope != (Shscope_t*)sh.st.self)
-		sh_setscope(sh.topscope);
-	if(--sh.fn_depth==1 && jmpval==SH_JMPERRFN)
+	sh.fn_depth--;
+	update_sh_level();
+	if(sh.fn_depth==1 && jmpval==SH_JMPERRFN)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
 		UNREACHABLE();
@@ -3245,20 +3219,15 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 {
 	struct funenv fun;
 	char *fname = nv_getval(SH_FUNNAMENOD);
-	struct Level	*lp =(struct Level*)(SH_LEVELNOD->nvfun);
-	int		level, pipepid=sh.pipepid;
+	pid_t		pipepid = sh.pipepid;
 #if !SHOPT_DEVFD
 	Dt_t		*save_fifo_tree = sh.fifo_tree;
 	sh.fifo_tree = NIL(Dt_t*);
 #endif
 	sh.pipepid = 0;
 	sh_stats(STAT_FUNCT);
-	if(!lp->hdr.disc)
-		lp = init_level(0);
 	if((struct sh_scoped*)sh.topscope != sh.st.self)
 		sh_setscope(sh.topscope);
-	level = lp->maxlevel = sh.dot_depth + sh.fn_depth+1;
-	SH_LEVELNOD->nvalue.s = lp->maxlevel;
 	sh.st.lineno = error_info.line;
 	np->nvalue.rp->running  += 2;
 	if(nv_isattr(np,NV_FPOSIX))
@@ -3285,13 +3254,6 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 		fun.nref = 0;
 		sh_funscope(argn,argv,0,&fun,execflg);
 	}
-	if(level-- != nv_getnum(SH_LEVELNOD))
-	{
-		Shscope_t *sp = sh_getscope(0,SEEK_END);
-		sh_setscope(sp);
-	}
-	lp->maxlevel = level;
-	SH_LEVELNOD->nvalue.s = lp->maxlevel;
 	sh.last_root = nv_dict(DOTSHNOD);
 	nv_putval(SH_FUNNAMENOD,fname,NV_NOFREE);
 	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);

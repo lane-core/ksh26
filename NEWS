@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-07-12:
+
+- The .sh.level variable can now only be changed within a DEBUG trap. When
+  trap execution ends, the variable and the scope are now restored. These
+  changes disallow an inconsistent shell scoping state causing instability.
+
 2022-07-10:
 
 - Fixed a potential crash on retrieving an empty line from the command history.

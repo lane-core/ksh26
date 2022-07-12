@@ -169,6 +169,7 @@ extern const char	e_restricted[];
 extern const char	e_recursive[];
 extern char		e_version[];
 
+/* Documented public interface to shell scope (see shell.3). */
 typedef struct sh_scope
 {
 	struct sh_scope	*par_scope;
@@ -182,6 +183,7 @@ typedef struct sh_scope
 	struct sh_scope	*self;
 } Shscope_t;
 
+/* Private interface to shell scope. The first members must match the public interface. */
 struct sh_scoped
 {
 	struct sh_scoped *prevst;	/* pointer to previous state */
@@ -338,8 +340,8 @@ struct Shell_s
 	int		inuse_bits;
 	struct argnod	*envlist;
 	struct dolnod	*arglist;
-	int		fn_depth;	/* scoped ksh-style function call depth */
-	int		dot_depth;	/* dot-script and POSIX function call depth */
+	int16_t		fn_depth;	/* scoped ksh-style function call depth */
+	int16_t		dot_depth;	/* dot-script and POSIX function call depth */
 	int		hist_depth;
 	int		xargmin;
 	int		xargmax;

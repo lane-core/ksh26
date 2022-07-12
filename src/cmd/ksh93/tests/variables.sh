@@ -20,6 +20,7 @@
 ########################################################################
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
+((!.sh.level))||err_exit ".sh.level should be 0 after dot script, is ${.sh.level}"
 
 [[ ${.sh.version} == "$KSH_VERSION" ]] || err_exit '.sh.version != KSH_VERSION'
 unset ss
@@ -986,11 +987,11 @@ set -- $(
 	IFS=\"
 	while	read -r first varname junk
 	do	[[ $first == '};' ]] && exit
-		[[ -z $junk ]] && continue
+		[[ -z $junk || $junk == *[![:alpha:]]NV_RDONLY[![:alpha:]]* ]] && continue
 		[[ -n $varname && $varname != '.sh' ]] && print -r -- "$varname"
 	done
 )
-(($# >= 66)) || err_exit "could not read shtab_variables[]; adjust test script ($# items read)"
+(($# >= 65)) || err_exit "could not read shtab_variables[]; adjust test script ($# items read)"
 
 # ... unset
 $SHELL -c '
@@ -1069,10 +1070,7 @@ $SHELL -c '
 $SHELL -c '
 	errors=0
 	for var
-	do	if	[[ $var == .sh.level ]]
-		then	continue	# known to fail
-		fi
-		if	eval "($var=bug); [[ \${$var} == bug ]]" 2>/dev/null
+	do	if	eval "($var=bug); [[ \${$var} == bug ]]" 2>/dev/null
 		then	echo "	$0: special variable $var leaks out of subshell" >&2
 			let errors++
 		fi
@@ -1376,6 +1374,39 @@ got=$("$SHELL" -c $'foo=baz; foo+=_foo "$SHELL" -c \'print $foo\'; print $foo')
 got=$("$SHELL" -c 'foo.getn() { .sh.value=2.3*4.5; }; typeset -F2 foo; typeset -p foo' 2>&1)
 exp='typeset -F 2 foo=10.35'
 [[ $got == "$exp" ]] || err_exit "Setting attribute after setting getn discipline fails" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# As of 2022-07-12, the current scope is restored after changing .sh.level in a DEBUG trap
+exp=$'a: 2 CHILD\nb: 1 PARENT\nc: 2 CHILD\nd: 1 PARENT'
+function leveltest
+{
+	typeset scope=PARENT
+	function f
+	{
+		typeset scope=CHILD
+		print "a: ${.sh.level} $scope"
+		trap 'let ".sh.level=$1"; print "b: ${.sh.level} $scope"' DEBUG
+		trap - DEBUG
+		print "c: ${.sh.level} $scope"
+	}
+	f "${.sh.level}"
+	print "d: ${.sh.level} $scope"
+}
+got=$(ulimit -t unlimited 2>/dev/null; set +x; redirect 2>&1; leveltest)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "DEBUG trap does not restore scope after execution" \
+	"(expected status 0 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+unset -f leveltest
+
+cat >dotlevel <<\EOF
+echo ${.sh.level}
+trap '.sh.level=${.sh.level}; echo ${.sh.level}' DEBUG
+trap - DEBUG
+EOF
+got=$(trap "echo ${.sh.level}" DEBUG; trap - DEBUG; . ./dotlevel)
+exp=$'0\n1\n1'
+[[ $got == "$exp" ]] || err_exit '${.sh.level} in dot script not correct' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

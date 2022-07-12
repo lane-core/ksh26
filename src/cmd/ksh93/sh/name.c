@@ -2430,6 +2430,8 @@ void	_nv_unset(register Namval_t *np,int flags)
 #if SHOPT_FIXEDARRAY
 	Namarr_t	*ap;
 #endif /* SHOPT_FIXEDARRAY */
+	if(np==SH_LEVELNOD)
+		return;
 	if(!(flags&NV_RDONLY) && nv_isattr (np,NV_RDONLY))
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_readonly, nv_name(np));
@@ -2505,9 +2507,12 @@ void	_nv_unset(register Namval_t *np,int flags)
 		/* called from disc, assign the actual value */
 		nv_local=0;
 	}
-	if(nv_isattr(np,NV_INT16P) == NV_INT16)
+	if(nv_isnonptr(np))
 	{
-		np->nvalue.cp = nv_isarray(np)?Empty:0;
+		if(nv_isarray(np))
+			np->nvalue.cp = Empty;
+		else
+			np->nvalue.s = 0;
 		goto done;
 	}
 #if SHOPT_FIXEDARRAY
@@ -3492,6 +3497,7 @@ Shscope_t *sh_setscope(Shscope_t *scope)
 	sh.var_tree = scope->var_tree;
 	SH_PATHNAMENOD->nvalue.cp = sh.st.filename;
 	SH_FUNNAMENOD->nvalue.cp = sh.st.funname;
+	error_info.id = scope->cmdname;
 	return(old);
 }
 
@@ -3598,7 +3604,7 @@ char *nv_name(register Namval_t *np)
 			return((*fp->disc->namef)(np,fp));
 		}
 	}
-	if(!(table=sh.last_table) || *np->nvname=='.' || table==sh.namespace || np==table)
+	if(!(table=sh.last_table) || np->nvname && *np->nvname=='.' || table==sh.namespace || np==table)
 	{
 #if SHOPT_FIXEDARRAY
 		if(!ap || !ap->fixed || (ap->nelem&ARRAY_UNDEF))

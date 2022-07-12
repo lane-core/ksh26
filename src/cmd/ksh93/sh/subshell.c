@@ -260,8 +260,6 @@ void sh_save_rand_seed(struct rand *rp, int reseed)
  *
  * add == 0:    Move the node pointer from the parent shell to the current virtual subshell.
  * add == 1:    Create a copy of the node pointer in the current virtual subshell.
- * add == 2:    This will create a copy of the node pointer like 1, but it will disable the
- *              optimization for ${.sh.level}.
  */
 Namval_t *sh_assignok(register Namval_t *np,int add)
 {
@@ -274,9 +272,9 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	unsigned int		save;
 	/*
 	 * Don't create a scope if told not to (see nv_restore()) or if this is a subshare.
-	 * Also, moving/copying ${.sh.level} (SH_LEVELNOD) may crash the shell.
+	 * Also, ${.sh.level} (SH_LEVELNOD) is handled specially and is not scoped in virtual subshells.
 	 */
-	if(subshell_noscope || sh.subshare || add<2 && np==SH_LEVELNOD)
+	if(subshell_noscope || sh.subshare || np==SH_LEVELNOD)
 		return(np);
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{

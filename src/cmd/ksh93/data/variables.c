@@ -98,7 +98,7 @@ const struct shtable2 shtab_variables[] =
 	".sh.file",	0,				(char*)0,
 	".sh.fun",	0,				(char*)0,
 	".sh.subshell",	NV_INTEGER|NV_NOFREE,		(char*)0,
-	".sh.level",	0,				(char*)0,
+	".sh.level",	NV_INT16|NV_NOFREE|NV_RDONLY,	(char*)0,
 	".sh.lineno",	NV_INTEGER|NV_NOFREE,		(char*)0,
 	".sh.stats",	0,				(char*)0,
 	".sh.math",	0,				(char*)0,

@@ -230,7 +230,6 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	volatile struct dolnod   *argsave=0;
 	struct checkpt buff;
 	Sfio_t *iop=0;
-	short level;
 	NOT_USED(context);
 	while (n = optget(argv,sh_optdot)) switch (n)
 	{
@@ -248,7 +247,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(sh.dot_depth+1 > DOTMAX)
+	if(sh.dot_depth >= DOTMAX)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
 		UNREACHABLE();
@@ -294,8 +293,6 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		sh.st.filename = filename;
 		sh.st.lineno = 1;
 	}
-	level  = sh.fn_depth+sh.dot_depth+1;
-	nv_putval(SH_LEVELNOD,(char*)&level,NV_INT16);
 	sh.st.prevst = prevscope;
 	sh.st.self = &savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
@@ -312,6 +309,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	if(jmpval == 0)
 	{
 		sh.dot_depth++;
+		update_sh_level();
 		if(np)
 			sh_exec((Shnode_t*)(nv_funtree(np)),sh_isstate(SH_ERREXIT));
 		else
@@ -328,6 +326,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	if(!np)
 		free(tofree);
 	sh.dot_depth--;
+	update_sh_level();
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
 		sh_argreset((struct dolnod*)argsave,saveargfor);
 	else
