@@ -32,7 +32,7 @@ ksh 93u+m made a few minor changes to `mamake` that make it easier to maintain M
 * Unrecognized commands and rule attributes throw an error instead of being silently ignored.
 * Fixed some crashing bugs and memory leaks.
 
-### Comments and unrecognized commands ###
+## Commands ##
 
 MAM commands have the following basic form:
 

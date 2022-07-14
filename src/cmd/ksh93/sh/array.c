@@ -1198,7 +1198,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 			if(size==0 && !(mode&ARRAY_FILL))
 				return(NIL(Namval_t*));
 			if(sh.subshell)
-				np = sh_assignok(np,1);
+				sh_assignok(np,1);
 			ap = array_grow(np, ap,size);
 		}
 		ap->header.nelem &= ~ARRAY_UNDEF;
@@ -1232,7 +1232,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 			else if(!(sp=(char*)ap->val[size].cp) || sp==Empty)
 			{
 				if(sh.subshell)
-					np = sh_assignok(np,1);
+					sh_assignok(np,1);
 				if(ap->header.nelem&ARRAY_TREE)
 				{
 					char *cp;

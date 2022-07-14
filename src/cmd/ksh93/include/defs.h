@@ -112,7 +112,7 @@ extern struct dolnod	*sh_argnew(char*[],struct dolnod**);
 extern void 		*sh_argopen(void);
 extern struct argnod	*sh_argprocsub(struct argnod*);
 extern void 		sh_argreset(struct dolnod*,struct dolnod*);
-extern Namval_t		*sh_assignok(Namval_t*,int);
+extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);

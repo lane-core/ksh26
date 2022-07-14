@@ -6,7 +6,6 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
-note component level :MAKE: equivalent
 make test
 	make install
 		make all

@@ -261,7 +261,7 @@ void sh_save_rand_seed(struct rand *rp, int reseed)
  * add == 0:    Move the node pointer from the parent shell to the current virtual subshell.
  * add == 1:    Create a copy of the node pointer in the current virtual subshell.
  */
-Namval_t *sh_assignok(register Namval_t *np,int add)
+void sh_assignok(Namval_t *np,int add)
 {
 	register Namval_t	*mp;
 	register struct Link	*lp;
@@ -275,18 +275,18 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 	 * Also, ${.sh.level} (SH_LEVELNOD) is handled specially and is not scoped in virtual subshells.
 	 */
 	if(subshell_noscope || sh.subshare || np==SH_LEVELNOD)
-		return(np);
+		return;
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
 		sh.last_root = ap->table;
 		sh_assignok(mp,add);
 		if(!add || array_assoc(ap))
-			return(np);
+			return;
 	}
 	for(lp=sp->svar; lp;lp = lp->next)
 	{
 		if(lp->node==np)
-			return(np);
+			return;
 	}
 	/* first two pointers use linkage from np */
 	lp = (struct Link*)sh_malloc(sizeof(*np)+2*sizeof(void*));
@@ -323,7 +323,6 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 		nv_onattr(mp,NV_IDENT);
 	nv_clone(np,mp,(add?(nv_isnull(np)?0:NV_NOFREE)|NV_ARRAY:NV_MOVE));
 	sh.subshell = save;
-	return(np);
 }
 
 /*

@@ -278,7 +278,7 @@ struct Shell_s
 	Sfio_t		*heredocs;	/* current here-doc temp file */
 	Sfio_t		*funlog;	/* for logging function definitions */
 	int		**fdptrs;	/* pointer to file numbers */
-	char		*lastarg;
+	char		*lastarg;	/* $_ */
 	int		path_err;	/* last error on path search */
 	Dt_t		*var_base;	/* global level variables */
 	Dt_t		*fun_base;	/* global level functions */

@@ -832,10 +832,8 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 					 */
 					if((flag&NV_ARRAY) && !sh.envlist && !nv_isnull(np))
 						sh_subfork();	/* work around https://github.com/ksh93/ksh/issues/409 */
-					else if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
-						np=sh_assignok(np,2);
 					else
-						np=sh_assignok(np,0);
+						sh_assignok(np, !nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np));
 				}
 				if(iarray)
 				{
@@ -939,7 +937,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				if(np==SH_LEVELNOD)
 					return(r);
 				if(sh.subshell)
-					sh_assignok(np,2);
+					sh_assignok(np,1);
 				if(troot!=sh.var_tree)
 					nv_setattr(np,newflag&~NV_ASSIGN);
 				else
@@ -1390,10 +1388,7 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 					 * Create local scope for virtual subshell. Variables with discipline functions
 					 * (LC_*, LINENO, etc.) need to be cloned, as moving them will remove the discipline.
 					 */
-					if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
-						np=sh_assignok(np,2);
-					else
-						np=sh_assignok(np,0);
+					sh_assignok(np, !nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np));
 				}
 			}
 			/*

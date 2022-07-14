@@ -899,10 +899,10 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
  */
 int sh_exec(register const Shnode_t *t, int flags)
 {
-	Stk_t			*stkp = sh.stk;
 	sh_sigcheck();
 	if(t && sh.st.breakcnt==0 && !sh_isoption(SH_NOEXEC))
 	{
+		Stk_t		*stkp = sh.stk;
 		register int 	type = t->tre.tretyp;
 		register char	*com0 = 0;
 		int 		errorflg = (flags&sh_state(SH_ERREXIT))|OPTIMIZE;
@@ -3464,8 +3464,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid)
 			signal(SIGTSTP,SIG_DFL);
 			jobwasset++;
 		}
-#endif /* _use_ntfork_tcpgrp */
-#if _use_ntfork_tcpgrp
 		if(sh_isstate(SH_MONITOR) && job.jobcontrol)
 		{
 			if(job.curpgid==0)

@@ -236,7 +236,7 @@ char *path_pwd(void)
 		if(cp)
 		{
 			if(sh.subshell)
-				pwdnod = sh_assignok(pwdnod,1);
+				sh_assignok(pwdnod,1);
 			nv_putval(pwdnod,cp,NV_RDONLY);
 		}
 	}

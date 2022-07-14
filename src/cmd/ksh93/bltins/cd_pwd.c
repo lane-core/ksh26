@@ -104,8 +104,8 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(sh.subshell)
 	{
 		/* clone $OLDPWD and $PWD into the subshell's scope */
-		opwdnod = sh_assignok(opwdnod,1);
-		pwdnod = sh_assignok(pwdnod,1);
+		sh_assignok(opwdnod,1);
+		sh_assignok(pwdnod,1);
 	}
 	if(argc==2)
 		dir = sh_substitute(oldpwd,dir,argv[1]);

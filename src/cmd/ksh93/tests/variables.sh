@@ -36,7 +36,7 @@ fi
 # use the same pseudorandom seed as the main shell.
 # https://github.com/ksh93/ksh/issues/285
 # These tests sometimes fail as duplicate numbers can occur randomly, so try up to $N times.
-integer N=3 i rand1 rand2
+integer N=5 i rand1 rand2
 RANDOM=123
 function rand_print {
 	ulimit -t unlimited 2> /dev/null
@@ -81,7 +81,7 @@ do	( echo $RANDOM & ) >|r1
 	do	((giveup)) && break
 	done
 	if	((giveup))
-	then	err_exit "Test 4: ( echo $RANDOM & ) does not write output"
+	then	err_exit 'Test 4: ( echo $RANDOM & ) does not write output'
 	fi
 	kill $! 2>/dev/null
 	trap - USR1

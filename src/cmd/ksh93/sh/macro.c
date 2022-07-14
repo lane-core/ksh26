@@ -2014,7 +2014,7 @@ retry2:
 			if(np)
 			{
 				if(sh.subshell)
-					np = sh_assignok(np,1);
+					sh_assignok(np,1);
 				nv_putval(np,argp,0);
 				v = nv_getval(np);
 				nulflg = 0;

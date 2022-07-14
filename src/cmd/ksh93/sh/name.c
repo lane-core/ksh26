@@ -1592,7 +1592,7 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	/* Create a local scope when inside of a virtual subshell */
 	sh.argaddr = 0;
 	if(sh.subshell && !nv_local && !(flags&NV_RDONLY))
-		np = sh_assignok(np,1);
+		sh_assignok(np,1);
 	/* Export the variable if 'set -o allexport' is enabled */
 	if(sh_isoption(SH_ALLEXPORT))
 	{
@@ -2492,7 +2492,7 @@ void	_nv_unset(register Namval_t *np,int flags)
 		goto done;
 	}
 	if(sh.subshell)
-		np = sh_assignok(np,0);
+		sh_assignok(np,0);
 	nv_offattr(np,NV_NODISC);
 	if(np->nvfun && !nv_isref(np))
 	{

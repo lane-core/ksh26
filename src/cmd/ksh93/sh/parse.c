@@ -1581,7 +1581,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			type = NV_ARRAY;
 		if(tok==LABLSYM && (flag&SH_ASSIGN))
 			lexp->token = tok = 0;
-		if((tok==IPROCSYM || tok==OPROCSYM))
+		if(tok==IPROCSYM || tok==OPROCSYM)
 		{
 	procsub:
 			argp = process_sub(lexp,tok);
@@ -1745,7 +1745,7 @@ static int	skipnl(Lex_t *lexp,int flag)
 }
 
 /*
- * check for and process and i/o redirections
+ * check for and process I/O redirections
  * if flag>0 then an alias can be in the next word
  * if flag<0 only one redirection will be processed
  */
