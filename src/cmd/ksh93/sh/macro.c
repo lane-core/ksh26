@@ -1224,6 +1224,8 @@ retry1:
 		}
 		break;
 	    case S_ALP:
+	    {
+		Namval_t *np_orig;
 		if(c=='.' && type==0)
 			goto nosub;
 		offset = stktell(stkp);
@@ -1365,23 +1367,28 @@ retry1:
 #endif  /* SHOPT_FILESCAN */
 				np = 0;
 		}
+		np_orig = np;
 		ap = np?nv_arrayptr(np):0;
 		if(type)
 		{
 			if(mp->dotdot)
 			{
-				Namval_t *nq;
 #if SHOPT_FIXEDARRAY
-				if(ap && !ap->fixed && (nq=nv_opensub(np)))
+				if(ap && !ap->fixed)
 #else
-				if(ap && (nq=nv_opensub(np)))
+				if(ap)
 #endif /* SHOPT_FIXEDARRAY */
-					ap = nv_arrayptr(np=nq);
+				{
+					Namval_t *nq;
+					if(nq = nv_opensub(np))
+						np = nq;
+				}
 				if(ap)
 				{
 					np = nv_putsub(np,v,ARRAY_SCAN);
 					v = stkptr(stkp,mp->dotdot);
 					dolmax =1;
+					ap = nv_arrayptr(np_orig); /* update */
 					if(array_assoc(ap))
 						arrmax = sh_strdup(v);
 					else if((dolmax = (int)sh_arith(v))<0)
@@ -1441,8 +1448,12 @@ retry1:
 			{
 				type = M_BRACE;
 				v = nv_name(np);
-				if(ap && !mp->dotdot && !(ap->nelem&ARRAY_UNDEF))
-					addsub = 1;
+				if(ap && !mp->dotdot)
+				{
+					ap = nv_arrayptr(np_orig); /* update */
+					if(!(ap->nelem&ARRAY_UNDEF))
+						addsub = 1;
+				}
 			}
 			else if(type==M_TYPE)
 			{
@@ -1465,7 +1476,10 @@ retry1:
 				if(type && fcpeek(0)=='+')
 				{
 					if(ap)
+					{
+						ap = nv_arrayptr(np_orig); /* update */
 						v = nv_arrayisset(np,ap)?(char*)"x":0;
+					}
 					else
 						v = nv_isnull(np)?0:(char*)"x";
 				}
@@ -1498,6 +1512,7 @@ retry1:
 		stkseek(stkp,offset);
 		if(ap)
 		{
+			ap = nv_arrayptr(np_orig); /* update */
 #if SHOPT_OPTIMIZE
 			if(sh.argaddr)
 				nv_optimize(np);
@@ -1511,6 +1526,7 @@ retry1:
 			}
 		}
 		break;
+	    }
 	    case S_EOF:
 		fcseek(-1);
 	    default:
@@ -1579,7 +1595,10 @@ retry1:
 				c = sh.st.dolc;
 			}
 			else if(dolg<0)
+			{
+				ap = nv_arrayptr(np); /* update */
 				c = array_elem(ap);
+			}
 			else
 				c = (v!=0);
 			dolg = dolmax = 0;
@@ -1702,6 +1721,7 @@ retry1:
 			}
 			else if(ap)
 			{
+				ap = nv_arrayptr(np); /* update */
 				if(type<0)
 				{
 					if(array_assoc(ap))
@@ -1902,6 +1922,7 @@ retry2:
 					v = nv_getsub(np);
 				else
 					v = nv_getval(np);
+				ap = nv_arrayptr(np); /* update */
 				if(array_assoc(ap))
 				{
 					if(strcmp(bysub?v:nv_getsub(np),arrmax)>0)
@@ -1943,7 +1964,10 @@ retry2:
 					break;
 				}
 				if(ap)
+				{
+					ap = nv_arrayptr(np); /* update */
 					ap->nelem |= ARRAY_SCAN;
+				}
 				if(nv_nextsub(np) == 0)
 					break;
 				if(bysub)
