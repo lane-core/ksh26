@@ -1490,6 +1490,6 @@ make test
 		make tests/shtests
 		done tests/shtests
 		exec - cd "$PACKAGEROOT/src/cmd/ksh93/tests"
-		exec - SHELL=$INSTALLROOT/bin/ksh "$INSTALLROOT/bin/ksh" ./shtests
+		exec - exec "$SHELL" shtests
 	done test.ksh virtual
 done test dontcare virtual

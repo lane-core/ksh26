@@ -109,7 +109,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-06-12 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-07-22 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -608,7 +608,7 @@ case $_PACKAGE_HOSTTYPE_ in
 	;;
 esac
 KEEP_PACKAGEROOT=0
-KEEP_SHELL=0
+KEEP_SHELL=0	# set to 1 if SHELL is a known-good system shell, 2 if SHELL supplied by user
 USER_VPATH=
 args=
 assign=
@@ -646,7 +646,7 @@ do	case $i in
 		;;
 	SHELL=*)eval $n='$'v
 		case $SHELL in
-		?*)	KEEP_SHELL=1 ;;
+		?*)	KEEP_SHELL=2 ;;
 		esac
 		;;
 	VPATH=*)eval USER_$n='$'v
@@ -721,7 +721,7 @@ use)	case $1 in
 			$exec export VPATH=$A:$P
 			$exec export nativepp=/usr/lib
 
-			if	test '' != "$INSTALLROOT" -a -d $INSTALLROOT/include/ast
+			if	test -n "$INSTALLROOT" && test -d "$INSTALLROOT/include/ast"
 			then	$exec export PACKAGE_ast=$INSTALLROOT
 			elif	test -d ${PWD%/*}/ast/arch/$HOSTTYPE
 			then	$exec export PACKAGE_ast=${PWD%/*}/ast/arch/$HOSTTYPE
@@ -750,7 +750,7 @@ esac
 
 packageroot() # dir
 {
-	test -d $1/lib/$command -o -x $1/bin/$command
+	test -d "$1/lib/$command" || test -x "$1/bin/$command"
 }
 
 # true if arg is executable
@@ -758,8 +758,8 @@ packageroot() # dir
 executable() # [!] command
 {
 	case $1 in
-	'!')	test ! -x "$2" -a ! -x "$2.exe"; return ;;
-	*)	test -x "$1" -o -x "$1.exe"; return ;;
+	'!')	test ! -x "$2" && test ! -x "$2.exe" ;;
+	*)	test -x "$1" || test -x "$1.exe" ;;
 	esac
 }
 
@@ -1460,7 +1460,7 @@ int main()
 			type=unixware
 			;;
 		UTS*|uts*)
-			if	test -x /bin/u370 -o -x /bin/u390
+			if	test -x /bin/u370 || test -x /bin/u390
 			then	type=uts.390
 			else	case $arch in
 				'')	arch=$mach ;;
@@ -1846,12 +1846,6 @@ esac
 run=-
 case $x in
 1)	: accept the current package use environment
-
-	OK=ok
-	KSH=$EXECROOT/bin/ksh
-	MAKE=mamake
-	SUM=$EXECROOT/bin/sum
-	TEE=$EXECROOT/bin/tee
 	INITROOT=$PACKAGEROOT/src/cmd/INIT
 	checkcc
 	;;
@@ -2261,17 +2255,8 @@ cat $INITROOT/$i.sh
 	$show export EXECROOT
 	export EXECROOT
 
-	# use these if possible
-
-	OK=ok
-	KSH=$EXECROOT/bin/ksh
-	MAKE=mamake
-	SUM=$EXECROOT/bin/sum
-	TEE=$EXECROOT/bin/tee
-
 	# grab a decent default shell
 
-	checksh "$SHELL" || KEEP_SHELL=0
 	case $KEEP_SHELL in
 	0)	save_PATH=$PATH
 		if	PATH=$(getconf PATH 2>/dev/null)
@@ -2506,7 +2491,7 @@ checkaout()	# cmd ...
 	'')	_PACKAGE_cc=0
 		;;
 	*)	_PACKAGE_cc=1
-		test -f $INITROOT/hello.c -a -f $INITROOT/p.c || {
+		test -f "$INITROOT/hello.c" && test -f "$INITROOT/p.c" || {
 			note "$INITROOT: INIT package source not found"
 			return 1
 		}
@@ -2656,7 +2641,7 @@ capture() # file command ...
 			cmd='case $error_status in 0) r=done;; *) r=failed;; esac;'
 			cmd=$cmd' echo "$command: $action $r at $(date) in $INSTALLROOT"'
 			case $quiet in
-			0)	cmd="$cmd 2>&1 | \$TEE -a $o" ;;
+			0)	cmd="$cmd 2>&1 | tee -a $o" ;;
 			*)	cmd="$cmd >> $o" ;;
 			esac
 			trap "$cmd" 0
@@ -2665,10 +2650,7 @@ capture() # file command ...
 			;;
 		esac
 		case $quiet in
-		0)	if	executable ! $TEE
-			then	TEE=tee
-			fi
-			# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
+		0)	# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
 			# the build's exit status and use it for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
@@ -2677,7 +2659,7 @@ capture() # file command ...
 				# unlink early
 				exec rm $o.fifo
 			) &
-			$TEE -a $o < $o.fifo &
+			tee -a $o < $o.fifo &
 			tee_pid=$!
 			o=$o.fifo
 			;;
@@ -2852,7 +2834,7 @@ make|view)
 	for i in arch arch/$HOSTTYPE
 	do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
 	done
-	for i in bin bin/$OK bin/$OK/lib fun include lib lib/package lib/package/gen src man man/man1 man/man3 man/man8
+	for i in bin bin/ok bin/ok/lib fun include lib lib/package lib/package/gen src man man/man1 man/man3 man/man8
 	do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
 	done
 	make_recurse src
@@ -3054,7 +3036,7 @@ make|view)
 		k=$INITROOT/make.probe
 		case $(ls -t $i $j $k 2>/dev/null) in
 		$i*)	;;
-		*)	if	test -f $j -a -f $k
+		*)	if	test -f "$j" && test -f "$k"
 			then	note "update $i"
 				shellmagic
 				case $exec in
@@ -3087,19 +3069,19 @@ cat $j $k
 	then	execrate=execrate
 		$make cd $INSTALLROOT/bin
 		for i in chmod chgrp cmp cp ln mv rm
-		do	if	test ! -x $OK/$i -a -x /bin/$i.exe
+		do	if	test ! -x "ok/$i" && test -x "/bin/$i.exe"
 			then	shellmagic
 				case $exec in
-				'')	echo "$SHELLMAGIC"'execrate /bin/'$i' "$@"' > $OK/$i
-					chmod +x $OK/$i
+				'')	echo "$SHELLMAGIC"'execrate /bin/'$i' "$@"' > ok/$i
+					chmod +x ok/$i
 					;;
-				*)	$exec echo \'"$SHELLMAGIC"'execrate /bin/'$i' "$@"'\'' >' $OK/$i
-					$exec chmod +x $OK/$i
+				*)	$exec echo \'"$SHELLMAGIC"'execrate /bin/'$i' "$@"'\'' >' ok/$i
+					$exec chmod +x ok/$i
 					;;
 				esac
 			fi
 		done
-		PATH=$INSTALLROOT/bin/$OK:$PATH
+		PATH=$INSTALLROOT/bin/ok:$PATH
 		export PATH
 	else	execrate=
 	fi
@@ -3172,7 +3154,7 @@ cat $j $k
 	# mamprobe data should have been generated by this point
 
 	case $exec in
-	'')	if	test ! -f $INSTALLROOT/bin/.paths -o -w $INSTALLROOT/bin/.paths
+	'')	if	test ! -f "$INSTALLROOT/bin/.paths" || test -w "$INSTALLROOT/bin/.paths"
 		then	N='
 '
 			b= f= h= n= p= u= B= L=
@@ -3264,32 +3246,29 @@ cat $j $k
 			ksh tee cp ln mv rm \
 			*ast*.dll *cmd*.dll *dll*.dll *shell*.dll
 		do	executable $i && {
-				cmp -s $i $OK/$i 2>/dev/null || {
-					test -f $OK/$i &&
-					$exec $execrate $rm $OK/$i </dev/null
-					test -f $OK/$i &&
-					$exec $execrate $mv $OK/$i $OK/$i.old </dev/null
-					test -f $OK/$i &&
+				cmp -s $i ok/$i 2>/dev/null || {
+					test -f ok/$i &&
+					$exec $execrate $rm ok/$i </dev/null
+					test -f ok/$i &&
+					$exec $execrate $mv ok/$i ok/$i.old </dev/null
+					test -f ok/$i &&
 					case $exec:$i in
 					:ksh)
-						err_out "$OK/$i: cannot update [may be in use by a running process] remove manually and try again"
+						err_out "ok/$i: cannot update [may be in use by a running process] remove manually and try again"
 						;;
 					esac
-					$exec $execrate $cp $i $OK/$i
+					$exec $execrate $cp $i ok/$i
 				}
 			}
 		done
-		if	executable $OK/tee
-		then	TEE=$INSTALLROOT/bin/$OK/tee
-		fi
-		if	test "$KEEP_SHELL" != 1 && executable $OK/ksh
-		then	SHELL=$INSTALLROOT/bin/$OK/ksh
+		if	test "$KEEP_SHELL" -eq 0 && executable ok/ksh
+		then	SHELL=$INSTALLROOT/bin/ok/ksh
 			export SHELL
 		fi
 		case :$PATH: in
-		*:$INSTALLROOT/bin/$OK:*)
+		*:$INSTALLROOT/bin/ok:*)
 			;;
-		*)	PATH=$INSTALLROOT/bin/$OK:$PATH
+		*)	PATH=$INSTALLROOT/bin/ok:$PATH
 			export PATH
 			;;
 		esac
@@ -3371,10 +3350,6 @@ results)set '' $target
 			;;
 		make|test|view)
 			def=$1
-			case $filter:$1:$SHELL in
-			errors:*:*)	;;
-			*:test:*/ksh*)	filter=rt ;;
-			esac
 			;;
 		old)	suf=old
 			;;
@@ -3391,7 +3366,6 @@ results)set '' $target
 		path)	path=1
 			;;
 		test)	def=test
-			filter=rt
 			;;
 		*)	break
 			;;
@@ -3444,8 +3418,6 @@ results)set '' $target
 					;;
 				errors)	$exec egrep -i '\*\*\*|FAIL[ES]|^TEST.* [123456789][0123456789]* error|core.*dump' $j | sed -e '/^TEST.\//s,/[^ ]*/,,'
 					;;
-				rt)	$exec $KSH rt - $j
-					;;
 				*)	$exec egrep -i '^TEST|FAIL' $j
 					;;
 				esac
@@ -3489,8 +3461,14 @@ results)set '' $target
 	esac
 	;;
 
-test)	# run all available default regression tests
+test)	# run all available default regression tests, using our newly compiled shell unless overridden
+
 	cd "$INSTALLROOT" || err_out "run '$0 make' first"
+	if	test "$KEEP_SHELL" -lt 2
+	then	executable bin/ksh || err_out "build ksh first, or supply a SHELL=/path/to/ksh argument"
+		SHELL=$INSTALLROOT/bin/ksh
+	fi
+	export SHELL
 	set -f
 	set -- ${args:-src}
 	cd "$1" || exit

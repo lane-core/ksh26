@@ -159,42 +159,6 @@ make install
 		exec - esac
 		exec - test -w regress -a -x regress || chmod u+w,+x regress
 	done regress generated
-	make rt
-		make rt.sh
-		done rt.sh
-		prev rt.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : rt contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n rt.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) cp rt.sh rt
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < rt.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat rt.sh
-		exec - } > rt
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - rt.sh > rt <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w rt -a -x rt || chmod u+w,+x rt
-	done rt generated
 	make crossexec
 		make crossexec.sh
 		done crossexec.sh
@@ -498,10 +462,6 @@ make install
 		prev regress
 		exec - test '' = 'regress' || ${STDCMP} 2>/dev/null -s regress ${INSTALLROOT}/bin/regress || { ${STDMV} ${INSTALLROOT}/bin/regress ${INSTALLROOT}/bin/regress.old 2>/dev/null || true; ${STDCP} regress ${INSTALLROOT}/bin/regress ;}
 	done ${INSTALLROOT}/bin/regress generated
-	make ${INSTALLROOT}/bin/rt
-		prev rt
-		exec - test '' = 'rt' || ${STDCMP} 2>/dev/null -s rt ${INSTALLROOT}/bin/rt || { ${STDMV} ${INSTALLROOT}/bin/rt ${INSTALLROOT}/bin/rt.old 2>/dev/null || true; ${STDCP} rt ${INSTALLROOT}/bin/rt ;}
-	done ${INSTALLROOT}/bin/rt generated
 	make ${PACKAGEROOT}/bin
 		exec - if test ! -d ${PACKAGEROOT}/bin
 		exec - then mkdir -p ${PACKAGEROOT}/bin
@@ -1095,16 +1055,16 @@ make test
 	make test.iffe
 		make iffe.tst
 		done iffe.tst
-		exec - regress iffe.tst iffe
+		exec - exec "$SHELL" "$INSTALLROOT/bin/regress" iffe.tst iffe
 	done test.iffe virtual
 	make test.mamake
 		make mamake.tst
 			make mamake.rt
 			done mamake.rt
-			exec - if [[ "1" || "mamake.rt" -nt "mamake.tst" ]]
-			exec - then mktest --style=regress mamake.rt > mamake.tst
+			exec - if test mamake.rt -nt mamake.tst
+			exec - then "$SHELL" "$INSTALLROOT/bin/mktest" --style=regress mamake.rt > mamake.tst
 			exec - fi
 		done mamake.tst generated
-		exec - regress mamake.tst mamake
+		exec - exec "$SHELL" "$INSTALLROOT/bin/regress" mamake.tst mamake
 	done test.mamake virtual
 done test dontcare virtual
