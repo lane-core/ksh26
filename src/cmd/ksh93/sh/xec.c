@@ -2888,15 +2888,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 			sh.cpid = parent;
 		if(!postid && job.curjobid && (flags&FPOU))
 			postid = job.curpgid;
-#if SHOPT_BGX
-		if(!postid && (flags&(FAMP|FINT)) == (FAMP|FINT))
-			postid = 1;
-		myjob = job_post(parent,postid);
-		if(postid==1)
-			postid = 0;
-#else
-		myjob = job_post(parent,postid);
-#endif /* SHOPT_BGX */
+		myjob = job_post(parent, (!postid && (flags&(FAMP|FINT))==(FAMP|FINT)) ? 1 : postid);
 		if(job.waitall && (flags&FPOU))
 		{
 			if(!job.curjobid)

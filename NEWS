@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-07-14:
+
+- Fixed a bug that caused a spurious "Done" message on the interactive shell
+  when an external command was run as a foreground job from a SIGINT trap.
+
 2022-07-12:
 
 - The .sh.level variable can now only be changed within a DEBUG trap. When

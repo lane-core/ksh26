@@ -153,10 +153,8 @@ struct back_save
 #define P_DONE		040
 #define P_COREDUMP	0100
 #define P_DISOWN	0200
-#define P_FG		0400
-#if SHOPT_BGX
-#define P_BG		01000
-#endif /* SHOPT_BGX */
+#define P_MOVED2FG	0400	/* set if the process was moved to the foreground by job_switch() */
+#define P_BG		01000	/* set if the process is running in the background */
 
 static int		job_chksave(pid_t);
 static struct process	*job_bypid(pid_t);
@@ -405,9 +403,12 @@ int job_reap(register int sig)
 				sh_subjobcheck(pid);
 
 			pw->p_flag &= ~(P_STOPPED|P_SIGNALLED);
+			pw->p_flag |= P_DONE;
+			if(pw->p_flag&P_BG)
+				pw->p_flag |= P_NOTIFY;
 			if (WIFSIGNALED(wstat))
 			{
-				pw->p_flag |= (P_DONE|P_NOTIFY|P_SIGNALLED);
+				pw->p_flag |= P_SIGNALLED;
 				if (WTERMCORE(wstat))
 					pw->p_flag |= P_COREDUMP;
 				pw->p_exit = WTERMSIG(wstat);
@@ -424,13 +425,12 @@ int job_reap(register int sig)
 			}
 			else
 			{
-				pw->p_flag |= (P_DONE|P_NOTIFY);
 				pw->p_exit =  pw->p_exitmin;
 				if(WEXITSTATUS(wstat) > pw->p_exitmin)
 					pw->p_exit = WEXITSTATUS(wstat);
 			}
 #if SHOPT_BGX
-			if((pw->p_flag&P_DONE) && (pw->p_flag&P_BG))
+			if(pw->p_flag&P_BG)
 			{
 				job.numbjob--;
 				if(sh.st.trapcom[SIGCHLD])
@@ -786,7 +786,7 @@ static void job_reset(register struct process *pw)
 		return;
 #endif	/* SIGTSTP */
 	/* force the following tty_get() to do a tcgetattr() unless fg */
-	if(!(pw->p_flag&P_FG))
+	if(!(pw->p_flag&P_MOVED2FG))
 		tty_set(-1, 0, NIL(struct termios*));
 	if(pw && (pw->p_flag&P_SIGNALLED) && pw->p_exit!=SIGHUP)
 	{
@@ -1206,18 +1206,16 @@ void	job_clear(void)
 }
 
 /*
- * put the process <pid> on the process list and return the job number
- * if non-zero, <join> is the process ID of the job to join
+ * Put the process <pid> on the process list and return the job number.
+ * If <join> is 1, the job is marked as a background job (P_BG);
+ * otherwise, if non-zero, <join> is the process ID of the job to join.
  */
 int job_post(pid_t pid, pid_t join)
 {
 	register struct process *pw;
 	register History_t *hp = sh.hist_ptr;
-#if SHOPT_BGX
-	int val,bg=0;
-#else
 	int val;
-#endif
+	char bg = 0;
 	sh.jobenv = sh.curenv;
 	if(job.toclear)
 	{
@@ -1225,14 +1223,14 @@ int job_post(pid_t pid, pid_t join)
 		return(0);
 	}
 	job_lock();
-#if SHOPT_BGX
 	if(join==1)
 	{
 		join = 0;
-		bg = P_BG;
+		bg++;
+#if SHOPT_BGX
 		job.numbjob++;
-	}
 #endif /* SHOPT_BGX */
+	}
 	if(njob_savelist < NJOB_SAVELIST)
 		init_savelist();
 	if(pw = job_bypid(pid))
@@ -1316,15 +1314,15 @@ int job_post(pid_t pid, pid_t join)
 		else
 			pw->p_flag |= (P_DONE|P_NOTIFY);
 	}
-#if SHOPT_BGX
 	if(bg)
 	{
-		if(pw->p_flag&P_DONE)
-			job.numbjob--;
-		else
+		if(!(pw->p_flag&P_DONE))
 			pw->p_flag |= P_BG;
-	}
+#if SHOPT_BGX
+		else
+			job.numbjob--;
 #endif /* SHOPT_BGX */
+	}
 	lastpid = 0;
 	job_unlock();
 	return(pw->p_job);
@@ -1610,9 +1608,7 @@ int job_switch(register struct process *pw,int bgflag)
 	{
 		sfprintf(outfile,"[%d]\t",(int)pw->p_job);
 		sh.bckpid = pw->p_pid;
-#if SHOPT_BGX
 		pw->p_flag |= P_BG;
-#endif
 		msg = "&";
 	}
 	else
@@ -1633,10 +1629,8 @@ int job_switch(register struct process *pw,int bgflag)
 			return(1);
 		}
 		job.waitall = 1;
-		pw->p_flag |= P_FG;
-#if SHOPT_BGX
+		pw->p_flag |= P_MOVED2FG;
 		pw->p_flag &= ~P_BG;
-#endif
 		job_wait(pw->p_pid);
 		job.waitall = 0;
 	}
