@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2022-06-12"
+#define RELEASE_DATE "2022-07-15"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -2127,7 +2127,12 @@ recurse(char* pattern)
 	 */
 
 	walk(state.rules, scan, NiL);
-	state.view = 0;
+	while (state.view)
+	{
+		View_t *prev = state.view;
+		state.view = state.view->next;
+		free(prev);
+	}
 	walk(state.rules, descend, NiL);
 	return 0;
 }
