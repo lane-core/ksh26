@@ -536,6 +536,8 @@ char *nv_setdisc(register Namval_t* np,register const char *event,Namval_t *acti
 	if (type < 0)
 		return(NIL(char*));
 	/* Handle GET/SET/APPEND/UNSET disc */
+	if(np==SH_VALNOD || np==SH_LEVELNOD)
+		return(0);
 	if(vp && vp->fun.disc->putval!=assign)
 		vp = 0;
 	if(!vp)
@@ -558,7 +560,7 @@ char *nv_setdisc(register Namval_t* np,register const char *event,Namval_t *acti
 		action = vp->disc[type];
 		empty = 0;
 	}
-	else if(action && np!=SH_LEVELNOD)
+	else if(action)
 	{
 		Namdisc_t *dp = (Namdisc_t*)vp->fun.disc;
 		if(type==LOOKUPS)

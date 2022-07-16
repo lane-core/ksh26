@@ -1410,4 +1410,18 @@ exp=$'0\n1\n1'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# setting a .sh.value or .sh.level discipline makes no sense, but should be an error, not crash the shell
+for v in .sh.value .sh.level
+do
+	for d in get set append
+	do
+		exp=": $v.$d: invalid discipline function"
+		got=$(set +x; { "$SHELL" -c "$v.$d() { .sh.value=foo; }; $v=13; $v+=13; : \${$v}"; } 2>&1)
+		(((e = $?)==1)) && [[ $got == *"$exp" ]] || err_exit "attempt to set $v.get discipline does not fail gracefully" \
+			"(expected status 1 and match of *$(printf %q "$exp")," \
+			"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+	done
+done
+
+# ======
 exit $((Errors<125?Errors:125))
