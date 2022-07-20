@@ -65,7 +65,7 @@
     extern int	nice(int);
 #endif /* _lib_nice */
 #if SHOPT_SPAWN
-    static pid_t sh_ntfork(const Shnode_t*,char*[],int*);
+    static pid_t sh_ntfork(const Shnode_t*,char*[],int*,int);
 #endif /* SHOPT_SPAWN */
 
 static void	sh_funct(Namval_t*, int, char*[], struct argnod*,int);
@@ -1523,13 +1523,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if(com && !job.jobcontrol)
 #endif /* _use_ntfork_tcpgrp */
 				{
-					parent = sh_ntfork(t,com,&jobid);
+					parent = sh_ntfork(t,com,&jobid,topfd);
 					if(parent<0)
-					{
-						if(sh.topfd > topfd)
-							sh_iorestore(topfd,0);  /* prevent FD leak from 'not found' */
 						break;
-					}
 				}
 				else
 #endif /* SHOPT_SPAWN */
@@ -3390,7 +3386,7 @@ static void sigreset(int mode)
  * Incompatible with job control on interactive shells (job.jobcontrol) if
  * the system does not support posix_spawn_file_actions_addtcsetpgrp_np().
  */
-static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid)
+static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 {
 	static pid_t	spawnpid;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
@@ -3560,8 +3556,8 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid)
 		if(jmpval==SH_JMPSCRIPT)
 			nv_setlist(t->com.comset,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	}
-	if(t->com.comio && (jmpval || spawnpid<=0))
-		sh_iorestore(buffp->topfd,jmpval);
+	if(t->com.comio && (jmpval || spawnpid<=0) && sh.topfd > topfd)
+		sh_iorestore(topfd,jmpval);
 	if(jmpval>SH_JMPCMD)
 		siglongjmp(*sh.jmplist,jmpval);
 	if(spawnpid>0)
