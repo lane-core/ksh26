@@ -187,16 +187,12 @@ void sh_subfork(void)
 	{
 		/* this is the child part of the fork */
 		/*
-		 * $RANDOM is only reseeded when it's used in a subshell, so if $RANDOM hasn't
-		 * been reseeded yet set rp->rand_last to -2. This allows sh_save_rand_seed()
+		 * In a virtual subshell, $RANDOM is not reseeded until it's used, so if that
+		 * hasn't happened yet, invalidate the seed. This allows sh_save_rand_seed()
 		 * to reseed $RANDOM later.
 		 */
 		if(!sp->rand_state)
-		{
-			struct rand *rp;
-			rp = (struct rand*)RANDNOD->nvfun;
-			rp->rand_last = -2;
-		}
+			sh_invalidate_rand_seed();
 		subshell_data = 0;
 		sh.subshell = 0;
 		sh.comsub = 0;
@@ -249,7 +245,7 @@ void sh_save_rand_seed(struct rand *rp, int reseed)
 		if(reseed)
 			sh_reseed_rand(rp);
 	}
-	else if(reseed && rp->rand_last == -2)
+	else if(reseed && rp->rand_last == RAND_SEED_INVALIDATED)
 		sh_reseed_rand(rp);
 }
 

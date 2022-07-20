@@ -116,6 +116,15 @@ got=$(RANDOM=789; ulimit -t unlimited 2> /dev/null; echo $RANDOM)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 unset N i rand1 rand2
 
+# Running an external command or background job should not influence the sequence
+exp=$(RANDOM=1; print $RANDOM; print $RANDOM)
+got=$(RANDOM=1; print $RANDOM; /dev/null/x 2>/dev/null; print $RANDOM)
+[[ $got == "$exp" ]] || err_exit "External command influences reproducible $RANDOM sequence" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(RANDOM=1; print $RANDOM; :& print $RANDOM)
+[[ $got == "$exp" ]] || err_exit "Background job influences reproducible $RANDOM sequence" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # SECONDS
 float secElapsed=0.0 secSleep=0.001
 let SECONDS=$secElapsed

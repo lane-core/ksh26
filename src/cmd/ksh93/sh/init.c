@@ -1914,7 +1914,7 @@ static Init_t *nv_init(void)
 	nv_putval(SECONDS, (char*)&d, NV_DOUBLE);
 	nv_stack(RANDNOD, &ip->RAND_init.hdr);
 	nv_putval(RANDNOD, (char*)&d, NV_DOUBLE);
-	sh_reseed_rand((struct rand *)RANDNOD->nvfun);
+	sh_invalidate_rand_seed();
 	nv_stack(LINENO, &ip->LINENO_init);
 	SH_MATCHNOD->nvfun =  &ip->SH_MATCH_init.hdr;
 	nv_putsub(SH_MATCHNOD,(char*)0,10);

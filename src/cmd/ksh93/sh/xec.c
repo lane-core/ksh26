@@ -1506,7 +1506,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 				}
 #endif /* SHOPT_BGX */
-				nv_getval(RANDNOD);
 				if(type&FCOOP)
 				{
 					pipes[2] = 0;
@@ -1601,6 +1600,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh.fifo_tree = NIL(Dt_t*);
 				}
 #endif
+				sh_invalidate_rand_seed();
 				if(no_fork)
 					sh_sigreset(2);
 				sh_pushcontext(buffp,SH_JMPEXIT);
@@ -1831,7 +1831,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh.st.otrapcom = (char**)savsig;
 				}
 				/* Still act like a subshell: reseed $RANDOM and increment ${.sh.subshell} */
-				sh_reseed_rand((struct rand*)RANDNOD->nvfun);
+				sh_invalidate_rand_seed();
 				sh.realsubshell++;
 				sh_sigreset(0);
 				sh_pushcontext(buffp,SH_JMPEXIT);
