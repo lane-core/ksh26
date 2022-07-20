@@ -766,7 +766,7 @@ static int set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 	if((ap=nv_arrayptr(nq)) && (sp = nv_getsub(nq)))
 		sp = sh_strdup(sp);
 	sh.instance = 0;
-	if(sh.var_tree!=sh.var_base && !nv_search((char*)nq,nr->root,HASH_BUCKET|HASH_NOSCOPE))
+	if(sh.var_tree!=sh.var_base && !nv_search((char*)nq,nr->root,NV_REF|NV_NOSCOPE))
 	{
 #if SHOPT_NAMESPACE
 		nr->root = sh.namespace?nv_dict(sh.namespace):sh.var_base;
@@ -843,8 +843,8 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 		oroot = nv_dict(onsp);
 		if(!nsp)
 		{
-			path = nv_search(PATHNOD->nvname,oroot,HASH_NOSCOPE);
-			fpath = nv_search(FPATHNOD->nvname,oroot,HASH_NOSCOPE);
+			path = nv_search(PATHNOD->nvname,oroot,NV_NOSCOPE);
+			fpath = nv_search(FPATHNOD->nvname,oroot,NV_NOSCOPE);
 		}
 		if(sh.var_tree==oroot)
 		{
@@ -863,9 +863,9 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 		}
 	}
 	sh.namespace = nsp;
-	if(path && (path = nv_search(PATHNOD->nvname,sh.var_tree,HASH_NOSCOPE)) && (val=nv_getval(path)))
+	if(path && (path = nv_search(PATHNOD->nvname,sh.var_tree,NV_NOSCOPE)) && (val=nv_getval(path)))
 		nv_putval(path,val,NV_RDONLY);
-	if(fpath && (fpath = nv_search(FPATHNOD->nvname,sh.var_tree,HASH_NOSCOPE)) && (val=nv_getval(fpath)))
+	if(fpath && (fpath = nv_search(FPATHNOD->nvname,sh.var_tree,NV_NOSCOPE)) && (val=nv_getval(fpath)))
 		nv_putval(fpath,val,NV_RDONLY);
 	return(onsp);
 }
@@ -1387,7 +1387,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 								np = sh_fsearch(com0,0);
 							else
 #endif /* SHOPT_NAMESPACE */
-							np = nv_search(com0,sh.fun_tree,HASH_NOSCOPE);
+							np = nv_search(com0,sh.fun_tree,NV_NOSCOPE);
 						}
 						if(!np->nvalue.ip)
 						{
@@ -1434,7 +1434,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 							if(cp)
 							{
 								*cp = 0;
-								namespace = nv_search(np->nvname,sh.var_base,HASH_NOSCOPE);
+								namespace = nv_search(np->nvname,sh.var_base,NV_NOSCOPE);
 								*cp = '.';
 							}
 						}
@@ -2042,7 +2042,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				args=sh_argbuild(&argn,tp,0);
 				nargs = argn;
 			}
-			np = nv_open(t->for_.fornam, sh.var_tree,NV_NOASSIGN|NV_NOARRAY|NV_VARNAME|NV_NOREF);
+			np = nv_open(t->for_.fornam, sh.var_tree,NV_NOARRAY|NV_VARNAME|NV_NOREF);
 			nameref = nv_isref(np)!=0;
 			sh.st.loopcnt++;
 			cp = *args;
@@ -2425,7 +2425,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				Dt_t *root;
 				Namval_t *oldnspace = sh.namespace;
 				int offset = stktell(stkp);
-				int	flags=NV_NOASSIGN|NV_NOARRAY|NV_VARNAME;
+				int	flags=NV_NOARRAY|NV_VARNAME;
 				struct checkpt *chkp = (struct checkpt*)stakalloc(sizeof(struct checkpt));
 				int jmpval;
 				if(cp)
@@ -2469,7 +2469,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				{
 					cp = sh.prefix;
 					sh.prefix = 0;
-					npv = nv_open(cp,sh.var_tree,NV_NOASSIGN|NV_NOARRAY|NV_VARNAME);
+					npv = nv_open(cp,sh.var_tree,NV_NOARRAY|NV_VARNAME);
 					sh.prefix = cp;
 					cp = fname;
 				}
@@ -2477,7 +2477,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				{
 					sfwrite(stkp,fname,cp++-fname);
 					sfputc(stkp,0);
-					npv = nv_open(stkptr(stkp,offset),sh.var_tree,NV_NOASSIGN|NV_NOARRAY|NV_VARNAME);
+					npv = nv_open(stkptr(stkp,offset),sh.var_tree,NV_NOARRAY|NV_VARNAME);
 				}
 				offset = stktell(stkp);
 				sfprintf(stkp,"%s.%s%c",nv_name(npv),cp,0);
@@ -2490,10 +2490,10 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_NAMESPACE
 			if(sh.namespace && !sh.prefix && *fname!='.')
-				np = sh_fsearch(fname,NV_ADD|HASH_NOSCOPE);
+				np = sh_fsearch(fname,NV_ADD|NV_NOSCOPE);
 			if(!np)
 #endif /* SHOPT_NAMESPACE */
-			np = nv_open(fname,sh_subfuntree(1),NV_NOASSIGN|NV_NOARRAY|NV_VARNAME|NV_NOSCOPE);
+			np = nv_open(fname,sh_subfuntree(1),NV_NOARRAY|NV_VARNAME|NV_NOSCOPE);
 			if(npv)
 			{
 				if(!sh.mktype)
@@ -2987,7 +2987,7 @@ static void  local_exports(register Namval_t *np, void *data)
 {
 	register Namval_t	*mp;
 	NOT_USED(data);
-	if(!nv_isnull(np) && (mp = nv_search(nv_name(np), sh.var_tree, NV_ADD|HASH_NOSCOPE)) && nv_isnull(mp))
+	if(!nv_isnull(np) && (mp = nv_search(nv_name(np), sh.var_tree, NV_ADD|NV_NOSCOPE)) && nv_isnull(mp))
 		nv_clone(np,mp,0);
 }
 
@@ -3146,7 +3146,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 				sh.last_root = 0;
 				for(r=0; arg[r]; r++)
 				{
-					np = nv_search(arg[r],sh.var_tree,HASH_NOSCOPE|NV_ADD);
+					np = nv_search(arg[r],sh.var_tree,NV_NOSCOPE|NV_ADD);
 					if(np && (nq=*nref++))
 					{
 						np->nvalue.nrp = sh_newof(0,struct Namref,1,0);

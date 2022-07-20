@@ -575,7 +575,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 			*eqp = '\0';
 			if((np = nv_search(cp,dtvnext(vartree),0)) && np->nvflag)
 			{
-				mp = nv_search(cp,vartree,NV_ADD|HASH_NOSCOPE);
+				mp = nv_search(cp,vartree,NV_ADD|NV_NOSCOPE);
 				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
 				mp->nvflag = np->nvflag;
 				mp->nvsize = np->nvsize;
@@ -785,7 +785,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 			dp->last = cp;
 			mode =  (c=='.' || (flags&NV_NOADD))?add:NV_ADD;
 			if(level++ || ((flags&NV_NOSCOPE) && c!='.'))
-				mode |= HASH_NOSCOPE;
+				mode |= NV_NOSCOPE;
 			np=0;
 			if(top)
 			{
@@ -806,7 +806,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 #endif /* SHOPT_NAMESPACE */
 					{
 #if SHOPT_NAMESPACE
-						if(!(nq = nv_search((char*)np,sh.var_base,HASH_BUCKET)))
+						if(!(nq = nv_search((char*)np,sh.var_base,NV_REF)))
 #endif /* SHOPT_NAMESPACE */
 						nq = np;
 						sh.last_root = sh.var_tree->walk;
@@ -839,7 +839,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 						np = 0;
 					}
 					if(!np || sh.var_tree->walk!=root)
-						np =  nv_search(name,root,HASH_NOSCOPE|NV_ADD);
+						np =  nv_search(name,root,NV_NOSCOPE|NV_ADD);
 				}
 			}
 #if SHOPT_NAMESPACE
@@ -1026,7 +1026,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 				{
 					int n = 0;
 					sub = 0;
-					mode &= ~HASH_NOSCOPE;
+					mode &= ~NV_NOSCOPE;
 					if(c=='[')
 					{
 #if SHOPT_FIXEDARRAY
@@ -1343,7 +1343,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	{
 		long mode = ((flags&NV_NOADD)?0:NV_ADD);
 		if(flags&NV_NOSCOPE)
-			mode |= HASH_SCOPE|HASH_NOSCOPE;
+			mode |= NV_NOSCOPE;
 		np = nv_search(name,root,mode);
 		if(np && !(flags&NV_REF))
 		{
@@ -1443,7 +1443,7 @@ nocache:
 #endif
 	if(fname)
 	{
-		c = ((flags&NV_NOSCOPE)?HASH_NOSCOPE:0)|((flags&NV_NOADD)?0:NV_ADD);
+		c = (flags&NV_NOSCOPE)|((flags&NV_NOADD)?0:NV_ADD);
 		*fname = '.';
 		np = nv_search(name, funroot, c);
 		*fname = 0;
@@ -1510,7 +1510,7 @@ skip:
 				{
 					if(mp=nv_opensub(np))
 						np = mp;
-					else if(!array_assoc(ap) && (mp = nv_open(cp,sh.var_tree,NV_NOFAIL|NV_VARNAME|NV_NOARRAY|NV_NOASSIGN|NV_NOADD)) && nv_isvtree(np))
+					else if(!array_assoc(ap) && (mp = nv_open(cp,sh.var_tree,NV_NOFAIL|NV_VARNAME|NV_NOARRAY|NV_NOADD)) && nv_isvtree(np))
 					{
 						ap->nelem |= ARRAY_TREE;
 						nv_putsub(np,(char*)0,ARRAY_ADD|nv_aindex(np));
@@ -1524,7 +1524,7 @@ skip:
 			nv_putval(np, cp, c);
 			if(isref)
 			{
-				if(nv_search((char*)np,sh.var_base,HASH_BUCKET))
+				if(nv_search((char*)np,sh.var_base,NV_REF))
 					sh.last_root = sh.var_base;
 				nv_setref(np,(Dt_t*)0,NV_VARNAME);
 			}
@@ -2260,7 +2260,7 @@ void nv_rehash(register Namval_t *np,void *data)
 	if(sh.subshell)
 	{
 		/* invalidate subshell node; if none exists, add a dummy */
-		np = nv_search(nv_name(np),sh.track_tree,NV_ADD|HASH_NOSCOPE);
+		np = nv_search(nv_name(np),sh.track_tree,NV_ADD|NV_NOSCOPE);
 	}
 	nv_onattr(np,NV_NOALIAS);
 }
@@ -3369,7 +3369,7 @@ void nv_setref(register Namval_t *np, Dt_t *hp, int flags)
 			UNREACHABLE();
 		}
 		/* bind to earlier scope, or add to global scope */
-		if(!(hp=dtvnext(hp)) || (nq=nv_search((char*)np,hp,NV_ADD|HASH_BUCKET))==np)
+		if(!(hp=dtvnext(hp)) || (nq=nv_search((char*)np,hp,NV_ADD|NV_REF))==np)
 		{
 			errormsg(SH_DICT,ERROR_exit(1),e_selfref,nv_name(np));
 			UNREACHABLE();

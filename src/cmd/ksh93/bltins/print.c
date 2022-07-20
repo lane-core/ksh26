@@ -558,7 +558,7 @@ static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
 	char			*cp;
 	Sfdouble_t		d;
 	ssize_t			size;
-	Namval_t		*np = nv_open(string, NiL, NV_VARNAME|NV_NOASSIGN|NV_NOADD);
+	Namval_t		*np = nv_open(string, NiL, NV_VARNAME|NV_NOADD);
 	Namarr_t		*ap;
 	static union types_t	number;
 	if(!np || nv_isnull(np))
@@ -795,7 +795,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		case 'n':
 		{
 			Namval_t *np;
-			np = nv_open(argp,sh.var_tree,NV_VARNAME|NV_NOASSIGN|NV_NOARRAY);
+			np = nv_open(argp,sh.var_tree,NV_VARNAME|NV_NOARRAY);
 			_nv_unset(np,0);
 			nv_onattr(np,NV_INTEGER);
 			if (np->nvalue.lp = new_of(int32_t,0))

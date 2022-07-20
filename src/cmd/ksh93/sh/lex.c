@@ -1490,7 +1490,7 @@ breakloop:
 			/* check for aliases */
 			Namval_t* np;
 			if(!lp->lex.incase && !assignment && fcpeek(0)!=LPAREN &&
-				(np=nv_search(state,sh.alias_tree,HASH_SCOPE))
+				(np=nv_search(state,sh.alias_tree,0))
 				&& !nv_isattr(np,NV_NOEXPAND)
 				&& (lp->aliasok!=2 || nv_isattr(np,BLT_DCL))
 				&& (!sh_isstate(SH_NOALIAS) || nv_isattr(np,NV_NOFREE))

@@ -973,13 +973,24 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	return(1);
 }
 
+/*
+ * Low-level function to look up <name> in <root>. Returns a pointer to the
+ * name-value node found, or NULL if not found. <mode> is an options bitmask:
+ * - If NV_NOSCOPE is set, the search is only done in <root> itself and
+ *   not in any trees it has a view to (i.e. is connected to through scoping).
+ * - If NV_ADD is set and <name> is not fond, a node by that name is created
+ *   in <root> and a pointer to the newly created node is returned.
+ * - If NV_REF is set, <name> is a pointer to a name-value node, and that
+ *   node's name is used.
+ * Note: The mode bitmask is NOT compatible with nv_open's flags bitmask.
+ */
 Namval_t *nv_search(const char *name, Dt_t *root, int mode)
 {
 	register Namval_t *np;
 	register Dt_t *dp = 0;
-	if(mode&HASH_NOSCOPE)
+	if(mode&NV_NOSCOPE)
 		dp = dtview(root,0);
-	if(mode&HASH_BUCKET)
+	if(mode&NV_REF)
 	{
 		Namval_t *mp = (void*)name;
 		if(!(np = dtsearch(root,mp)) && (mode&NV_ADD))
@@ -993,9 +1004,9 @@ Namval_t *nv_search(const char *name, Dt_t *root, int mode)
 	}
 	if(!np && (mode&NV_ADD))
 	{
-		if(sh.namespace && !(mode&HASH_NOSCOPE) && root==sh.var_tree)
+		if(sh.namespace && !(mode&NV_NOSCOPE) && root==sh.var_tree)
 			root = nv_dict(sh.namespace);
-		else if(!dp && !(mode&HASH_NOSCOPE))
+		else if(!dp && !(mode&NV_NOSCOPE))
 		{
 			register Dt_t *next;
 			while(next=dtvnext(root))
@@ -1057,7 +1068,7 @@ Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 		*last = cp;
 	c = *cp;
 	*cp = 0;
-	nq=nv_open(stakptr(offset),0,NV_VARNAME|NV_NOASSIGN|NV_NOADD|NV_NOFAIL);
+	nq=nv_open(stakptr(offset),0,NV_VARNAME|NV_NOADD|NV_NOFAIL);
 	*cp = c;
 	if(!nq)
 	{

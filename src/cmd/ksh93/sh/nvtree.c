@@ -676,7 +676,7 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 	Dt_t *root = wp->root?wp->root:sh.var_base;
 	if(*name!='.' || vname[strlen(vname)-1]==']')
 		mode = NV_ARRAY;
-	if(!(np=nv_open(vname,root,mode|NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_NOFAIL|wp->noscope)))
+	if(!(np=nv_open(vname,root,mode|NV_VARNAME|NV_NOADD|NV_NOFAIL|wp->noscope)))
 	{
 		sh.last_table = last_table;
 		return;
@@ -833,7 +833,7 @@ static char **genvalue(char **argv, const char *prefix, int n, struct Walk *wp)
 				{
 					Namval_t *np,*tp;
 					*nextcp = 0;
-					np=nv_open(arg,wp->root,NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_NOFAIL|wp->noscope);
+					np=nv_open(arg,wp->root,NV_VARNAME|NV_NOADD|NV_NOFAIL|wp->noscope);
 					if(!np || (nv_isarray(np) && (!(tp=nv_opensub(np)) || !nv_isvtree(tp))))
 					{
 						*nextcp = '.';
@@ -870,7 +870,7 @@ static char **genvalue(char **argv, const char *prefix, int n, struct Walk *wp)
 			{
 				int	k=1;
 				Namarr_t *ap=0;
-				Namval_t *np = nv_open(arg,wp->root,NV_VARNAME|NV_NOADD|NV_NOASSIGN|wp->noscope);
+				Namval_t *np = nv_open(arg,wp->root,NV_VARNAME|NV_NOADD|wp->noscope);
 				if(!np)
 					continue;
 				if((wp->array = nv_isarray(np)) && (ap=nv_arrayptr(np)))
@@ -995,7 +995,7 @@ static char *walk_tree(register Namval_t *np, Namval_t *xp, int flags)
 			Namval_t	*nq, *mq;
 			if(strlen(cp)<=len)
 				continue;
-			nq = nv_open(cp,walk.root,NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_NOFAIL);
+			nq = nv_open(cp,walk.root,NV_VARNAME|NV_NOADD|NV_NOFAIL);
 			if(!nq && (flags&NV_MOVE))
 				nq = nv_search(cp,walk.root,NV_NOADD);
 			stakseek(0);
@@ -1003,7 +1003,7 @@ static char *walk_tree(register Namval_t *np, Namval_t *xp, int flags)
 			stakputs(cp+len);
 			stakputc(0);
 			sh.var_tree = save_tree;
-			mq = nv_open(stakptr(0),sh.prev_root,NV_VARNAME|NV_NOASSIGN|NV_NOFAIL);
+			mq = nv_open(stakptr(0),sh.prev_root,NV_VARNAME|NV_NOFAIL);
 			sh.var_tree = dp;
 			if(nq && mq)
 			{
@@ -1100,7 +1100,7 @@ static void put_tree(register Namval_t *np, const char *val, int flags,Namfun_t 
 	{
 		Namval_t	*last_table = sh.last_table;
 		Dt_t		*last_root = sh.last_root;
-		Namval_t 	*mp = val?nv_open(val,sh.var_tree,NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_ARRAY|NV_NOFAIL):0;
+		Namval_t 	*mp = val?nv_open(val,sh.var_tree,NV_VARNAME|NV_NOADD|NV_ARRAY|NV_NOFAIL):0;
 		if(mp && nv_isvtree(mp))
 		{
 			sh.prev_table = sh.last_table;

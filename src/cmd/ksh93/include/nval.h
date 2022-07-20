@@ -32,7 +32,6 @@
 #include	<ast.h>
 #include	<cdt.h>
 #include	<option.h>
-#include	<hash.h>
 
 typedef struct Namval Namval_t;
 typedef struct Namfun Namfun_t;
@@ -174,7 +173,6 @@ struct Namval
 #define NV_ADD		8
 					/* add node if not found */
 #define NV_ASSIGN	NV_NOFREE	/* assignment is possible */
-#define NV_NOASSIGN	0		/* backward compatibility */
 #define NV_NOARRAY	0x200000	/* array name not possible */
 #define NV_IARRAY	0x400000	/* for indexed array */
 #define NV_NOREF	NV_REF		/* don't follow reference */
@@ -184,6 +182,7 @@ struct Namval
 #define NV_NOSCOPE	0x80000		/* look only in current scope */
 #define NV_NOFAIL	0x100000	/* return 0 on failure, no msg */
 #define NV_NODISC	NV_IDENT	/* ignore disciplines */
+#define NV_UNATTR	0x800000	/* unset attributes before assignment */
 #define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
 
 #define NV_FUNCT	NV_IDENT	/* option for nv_create */

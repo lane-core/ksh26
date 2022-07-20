@@ -1744,9 +1744,9 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 				return(0);
 			type = nv_isattr(np,NV_PUBLIC&~(NV_ARRAY|NV_CHILD|NV_MINIMAL));
 			if(mode)
-				mode = NV_ADD|HASH_NOSCOPE;
+				mode = NV_ADD|NV_NOSCOPE;
 			else if(ap->header.nelem&ARRAY_NOSCOPE)
-				mode = HASH_NOSCOPE;
+				mode = NV_NOSCOPE;
 			if(*sp==0 && sh_isoption(SH_XTRACE) && (mode&NV_ADD))
 				errormsg(SH_DICT,ERROR_warn(0),"adding empty subscript"); 
 			if(sh.subshell && (mp=nv_search(sp,ap->header.table,0)) && nv_isnull(mp))
@@ -1781,7 +1781,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 				ap->nextpos = (Namval_t*)dtnext(ap->header.table,mp);
 			}
 			else if(!mp && *sp && mode==0)
-				mp = nv_search(sp,ap->header.table,NV_ADD|HASH_NOSCOPE);
+				mp = nv_search(sp,ap->header.table,NV_ADD|NV_NOSCOPE);
 			np = mp;
 			if(ap->pos && ap->pos==np)
 				ap->header.nelem |= ARRAY_SCAN;

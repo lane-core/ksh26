@@ -91,7 +91,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	error_info.context->flags |= ERROR_SILENT;
 	error_info.id = options;
 	options = argv[0];
-	np = nv_open(argv[1],sh.var_tree,NV_NOASSIGN|NV_VARNAME);
+	np = nv_open(argv[1],sh.var_tree,NV_VARNAME);
 	if(argc>2)
 	{
 		argv +=1;

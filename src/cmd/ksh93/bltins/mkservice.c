@@ -454,7 +454,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 		close(fd);
 	else
 		sp->fd = fd;
-	np = nv_open(var,sh.var_tree,NV_ARRAY|NV_VARNAME|NV_NOASSIGN);
+	np = nv_open(var,sh.var_tree,NV_ARRAY|NV_VARNAME);
 	sp->node = np;
 	nv_putval(np, path, 0); 
 	nv_stack(np, (Namfun_t*)sp);

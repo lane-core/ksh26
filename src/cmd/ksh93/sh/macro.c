@@ -1317,7 +1317,7 @@ retry1:
 			}
 			goto nosub;
 		}
-		flag |= NV_NOASSIGN|NV_VARNAME|NV_NOADD;
+		flag |= NV_VARNAME|NV_NOADD;
 		if(c=='=' || c=='?' || (c==':' && ((d=fcpeek(0))=='=' || d=='?')))
 		{
 			if(c=='=' || (c==':' && d=='='))

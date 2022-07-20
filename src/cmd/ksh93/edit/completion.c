@@ -580,7 +580,7 @@ int ed_macro(Edit_t *ep, register int i)
 		ep->e_macro[2] = ed_getchar(ep,1);
 	else
 		ep->e_macro[2] = 0;
-	if (isalnum(i)&&(np=nv_search(ep->e_macro,sh.alias_tree,HASH_SCOPE))&&(out=nv_getval(np)))
+	if (isalnum(i)&&(np=nv_search(ep->e_macro,sh.alias_tree,0))&&(out=nv_getval(np)))
 	{
 #if SHOPT_MULTIBYTE
 		/* copy to buff in internal representation */

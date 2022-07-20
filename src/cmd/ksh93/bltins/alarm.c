@@ -267,7 +267,7 @@ int	b_alarm(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
 		UNREACHABLE();
 	}
-	np = nv_open(argv[0],sh.var_tree,NV_NOARRAY|NV_VARNAME|NV_NOASSIGN);
+	np = nv_open(argv[0],sh.var_tree,NV_NOARRAY|NV_VARNAME);
 	if(!nv_isnull(np))
 		nv_unset(np);
 	nv_setattr(np, NV_DOUBLE);

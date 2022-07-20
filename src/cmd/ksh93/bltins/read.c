@@ -801,7 +801,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		{
 			if(name)
 			{
-				np = nv_open(name,sh.var_tree,NV_NOASSIGN|NV_VARNAME);
+				np = nv_open(name,sh.var_tree,NV_VARNAME);
 				name = *++names;
 			}
 			else

@@ -28,7 +28,7 @@
  *
  */
 
-#define SH_VERSION	20220106
+#define SH_VERSION	20220719
 
 #include	<ast.h>
 #include	<cdt.h>

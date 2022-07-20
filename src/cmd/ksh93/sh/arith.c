@@ -67,7 +67,7 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 	Dt_t	*sdict = (sh.st.real_fun? sh.st.real_fun->sdict:0);
 	Dt_t	*nsdict = (sh.namespace?nv_dict(sh.namespace):0);
 	Dt_t	*root = sh.var_tree;
-	assign = assign?NV_ASSIGN:NV_NOASSIGN;
+	assign = assign?NV_ASSIGN:0;
 	lvalue->nosub = 0;
 	if(nosub<0 && lvalue->ovalue)
 		return((Namval_t*)lvalue->ovalue);
@@ -101,9 +101,9 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 	}
 	if((lvalue->emode & ARITH_COMP) && dtvnext(root))
 	{
-		if(mp = nv_search(cp, sdict ? sdict : root, HASH_NOSCOPE|HASH_SCOPE|HASH_BUCKET))
+		if(mp = nv_search(cp, sdict ? sdict : root, NV_NOSCOPE|NV_REF))
 			np = mp;
-		else if(nsdict && (mp = nv_search(cp, nsdict, HASH_SCOPE|HASH_BUCKET)))
+		else if(nsdict && (mp = nv_search(cp, nsdict, NV_REF)))
 			np = mp;
 	}
 	while(nv_isref(np))
@@ -365,7 +365,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 					np = &NaNnod;
 					nv_onattr(np,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 				}
-				else if(!(np = nv_open(*ptr,root,NV_NOREF|NV_NOASSIGN|NV_VARNAME|dot)))
+				else if(!(np = nv_open(*ptr,root,NV_NOREF|NV_VARNAME|dot)))
 				{
 					lvalue->value = (char*)*ptr;
 					lvalue->flag =  str-lvalue->value;

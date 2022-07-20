@@ -707,7 +707,7 @@ int	path_search(register const char *name,Pathcomp_t **oldpp, int flag)
 	}
 	else if(pp && !sh_isstate(SH_DEFPATH) && *name!='/' && flag<3)
 	{
-		if(np=nv_search(name,sh_subtracktree(1),NV_ADD|HASH_NOSCOPE))
+		if(np=nv_search(name,sh_subtracktree(1),NV_ADD|NV_NOSCOPE))
 			path_alias(np,pp);
 	}
 	return(0);
