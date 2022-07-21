@@ -2931,7 +2931,6 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	job.jobcontrol = 0;
 #endif /* JOBS */
 	job.toclear = 1;
-	sh.login_sh = 0;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
 #if SHOPT_ACCT

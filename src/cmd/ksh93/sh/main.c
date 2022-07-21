@@ -155,10 +155,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		beenhere++;
 		sh_onstate(SH_PROFILE);
 		sh.sigflag[SIGTSTP] |= SH_SIGIGNORE;
-		if(sh.ppid==1)
-			sh.login_sh++;
-		if(sh.login_sh >= 2)
-			sh_onoption(SH_LOGIN_SHELL);
 		/* decide whether shell is interactive */
 		if(!sh_isoption(SH_INTERACTIVE) && !sh_isoption(SH_TFLAG) && !sh_isoption(SH_CFLAG) &&
 		   sh_isoption(SH_SFLAG) && tty_check(0) && tty_check(ERRIO))

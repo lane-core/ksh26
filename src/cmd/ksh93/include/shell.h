@@ -309,7 +309,6 @@ struct Shell_s
 	int		savesig;
 	unsigned char	*sigflag;	/* pointer to signal states */
 	char		intrap;
-	char		login_sh;
 	char		forked;
 	char		binscript;
 	char		funload;

@@ -677,7 +677,7 @@ noreturn void sh_done(register int sig)
 		tty_cooked(-1);
 #endif /* SHOPT_VSH || SHOPT_ESH */
 #ifdef JOBS
-	if((sh_isoption(SH_INTERACTIVE) && sh.login_sh) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))
+	if((sh_isoption(SH_INTERACTIVE) && sh_isoption(SH_LOGIN_SHELL)) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))
 		job_walk(sfstderr, job_hup, SIGHUP, NIL(char**));
 #endif	/* JOBS */
 	job_close();

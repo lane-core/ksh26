@@ -191,7 +191,6 @@ const char e_suidprofile[]	= "/etc/suid_profile";
 #if SHOPT_SYSRC
 const char e_sysrc[]		= "/etc/ksh.kshrc";
 #endif
-const char e_prohibited[]	= "login setuid/setgid shells prohibited";
 #ifdef BUILD_DTKSH
    const char e_suidexec[]      = SUIDEXECPATH;
 #else

@@ -477,7 +477,7 @@ static void init_radixpoint(void)
 #endif
 		if(!r && val)
 		{
-			if(!sh_isstate(SH_INIT) || sh.login_sh==0)
+			if(!sh_isstate(SH_INIT) || !sh_isoption(SH_LOGIN_SHELL))
 				errormsg(SH_DICT,0,e_badlocale,val);
 			return;
 		}
@@ -1353,7 +1353,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	{
 		type = sh_type(*argv);
 		if(type&SH_TYPE_LOGIN)
-			sh.login_sh = 2;
+			sh_onoption(SH_LOGIN_SHELL);
 		if(type&SH_TYPE_POSIX)
 		{
 			sh_onoption(SH_POSIX);
@@ -1482,14 +1482,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		else
 #endif /* SHOPT_P_SUID */
 			sh_onoption(SH_PRIVILEGED);
-#ifdef SHELLMAGIC
-		/* careful of #! setuid scripts with name beginning with - */
-		if(sh.login_sh && argv[1] && strcmp(argv[0],argv[1])==0)
-		{
-			errormsg(SH_DICT,ERROR_exit(1),e_prohibited);
-			UNREACHABLE();
-		}
-#endif /*SHELLMAGIC*/
 	}
 	else
 		sh_offoption(SH_PRIVILEGED);

@@ -705,7 +705,7 @@ int job_close(void)
 			errormsg(SH_DICT,0,e_terminate);
 			return(-1);
 		}
-		else if(running && sh.login_sh)
+		else if(running && sh_isoption(SH_LOGIN_SHELL))
 		{
 			errormsg(SH_DICT,0,e_jobsrunning);
 			return(-1);
