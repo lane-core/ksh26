@@ -26,7 +26,5 @@
 int
 fseek(Sfio_t* f, long off, int op)
 {
-	STDIO_INT(f, "fseek", int, (Sfio_t*, long, int), (f, off, op))
-
 	return sfseek(f, (Sfoff_t)off, op|SF_SHARE) >= 0 ? 0 : -1;
 }

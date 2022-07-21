@@ -60,7 +60,7 @@ cat{
 	#endif
 
 	/* Windows variants and veneers */
-	#if !defined(_WINIX) && (_UWIN || __CYGWIN__ || __EMX__)
+	#if !defined(_WINIX) && (__CYGWIN__ || __EMX__)
 	#	define _WINIX		1
 	#endif
 
@@ -75,7 +75,7 @@ cat{
 	#	if _BLD_STATIC && !_BLD_DLL
 	#		undef	_DLL
 	#	else
-	#		if !_UWIN && !defined(_DLL)
+	#		if !defined(_DLL)
 	#			define _DLL		1
 	#		endif
 	#	endif
@@ -85,9 +85,6 @@ cat{
 	#	if !defined(__IMPORT__) && ( _BLD_DLL || defined(_DLL) )
 	#		define __IMPORT__	__declspec(dllimport)
 	#	endif
-	#	if _BLD_DLL && _UWIN
-	#	define __DYNAMIC__(v)		(_ast_getdll()->_ast_ ## v)
-	#	endif
 	#endif
 	#if !defined(_astimport)
 	#	if defined(__IMPORT__) && defined(_DLL)
@@ -96,7 +93,7 @@ cat{
 	#		define _astimport	extern
 	#	endif
 	#endif
-	#if _dll_import && ( !_BLD_DLL || _WINIX && !_UWIN )
+	#if _dll_import && ( !_BLD_DLL || _WINIX )
 	#	define __EXTERN__(T,obj)	extern T obj; T* _imp__ ## obj = &obj
 	#	define __DEFINE__(T,obj,val)	T obj = val; T* _imp__ ## obj = &obj
 	#else
@@ -517,12 +514,6 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 			printf("/* va_arg() va_list type */\n");
 	#endif /*TRY == 4*/
 	
-	#if _UWIN
-		printf("#ifndef va_copy\n");
-		printf("#define va_copy(to,fr) ((to)=(fr))\t");
-			printf("/* copy va_list fr -> to */\n");
-		printf("#endif\n");
-	#else
 	#if !defined(va_copy)
 	#if defined(__va_copy)
 		printf("#ifndef va_copy\n");
@@ -540,7 +531,6 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 		printf("#define va_copy(to,fr) ((to)=(fr))\t");
 			printf("/* copy va_list fr -> to */\n");
 		printf("#endif\n");
-	#endif
 	#endif
 	#endif
 	#endif

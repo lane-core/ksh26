@@ -605,11 +605,7 @@ format(register Feature_t* fp, const char* path, const char* value, unsigned int
 {
 	register Feature_t*	sp;
 	register int		n;
-#if _UWIN && ( _X86_ || _X64_ )
-	struct stat		st;
-#else
 	static struct utsname	uts;
-#endif
 
 #if DEBUG_astconf
 	error(-6, "astconf format name=%s path=%s value=%s flags=%04x fp=%p%s", fp->name, path, value, flags, fp, state.synthesizing ? " SYNTHESIZING" : "");
@@ -622,31 +618,10 @@ format(register Feature_t* fp, const char* path, const char* value, unsigned int
 	{
 
 	case OP_architecture:
-#if _UWIN && ( _X86_ || _X64_ )
-		if (!stat("/", &st))
-		{
-			if (st.st_ino == 64)
-			{
-				fp->value = "x64";
-				break;
-			}
-			if (st.st_ino == 32)
-			{
-				fp->value = "x86";
-				break;
-			}
-		}
-#if _X64_
-		fp->value = "x64";
-#else
-		fp->value = "x86";
-#endif
-#else
 		if (!uname(&uts))
 			return fp->value = uts.machine;
 		if (!(fp->value = getenv("HOSTNAME")))
 			fp->value = "unknown";
-#endif
 		break;
 
 	case OP_conformance:

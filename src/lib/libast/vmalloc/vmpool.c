@@ -20,11 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if defined(_UWIN) && defined(_BLD_ast)
-
-void _STUB_vmpool(){}
-
-#else
 
 #include	"vmhdr.h"
 
@@ -261,6 +256,4 @@ __DEFINE__(Vmethod_t*,Vmpool,&_Vmpool);
 
 #ifdef NoF
 NoF(vmpool)
-#endif
-
 #endif

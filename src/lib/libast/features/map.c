@@ -518,9 +518,7 @@ main()
 	printf("#endif\n");
 #endif
 #endif
-	printf("#if !_UWIN\n");
 	printf("#undef	extern\n");
-	printf("#endif\n");
 #if _npt_strtold || _map_libc || _std_strtold
 #if _npt_strtold && !_map_libc && !_std_strtold
 	printf("#ifndef _ISOC99_SOURCE\n");

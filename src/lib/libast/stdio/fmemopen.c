@@ -26,7 +26,5 @@
 Sfio_t*
 fmemopen(void* buf, size_t size, const char* mode)
 {
-	STDIO_PTR(0, "fmemopen", Sfio_t*, (void*, size_t, const char*), (buf, size, mode))
-
 	return sfnew(NiL, buf, size, -1, SF_STRING|_sftype(mode, NiL, NiL));
 }

@@ -33,13 +33,11 @@
 
 #if _PACKAGE_ast
 
-#if !_UWIN
 #define getpagesize		______getpagesize
 #define _npt_getpagesize	1
 #define brk			______brk
 #define sbrk			______sbrk
 #define _npt_sbrk		1
-#endif
 
 #include	<ast.h>
 
@@ -55,10 +53,8 @@
 
 #include	<ast_common.h>
 
-#if !_UWIN
 #define _npt_getpagesize	1
 #define _npt_sbrk		1
-#endif
 
 #undef free
 #undef malloc
@@ -111,10 +107,6 @@ typedef struct _pfobj_s	Pfobj_t;
 #define VM_free		0x0008	/* disable addfreelist()		*/
 #define VM_keep		0x0010	/* disable free()			*/
 #define VM_mmap		0x0020	/* try mmap() block allocator first	*/
-
-#if _UWIN
-#include <ast_windows.h>
-#endif
 
 #ifndef DEBUG
 #ifdef _BLD_DEBUG

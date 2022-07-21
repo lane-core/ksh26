@@ -20,11 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if defined(_UWIN) && defined(_BLD_ast)
-
-void _STUB_vmbest(){}
-
-#else
 
 #include	"vmhdr.h"
 
@@ -1306,6 +1301,4 @@ __DEFINE__(Vmdisc_t*,  Vmdcsbrk, (Vmdisc_t*)(&_Vmdcsystem) );
 
 #ifdef NoF
 NoF(vmbest)
-#endif
-
 #endif

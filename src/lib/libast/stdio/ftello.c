@@ -26,7 +26,5 @@
 off_t
 ftello(Sfio_t* f)
 {
-	STDIO_INT(f, "ftello", off_t, (Sfio_t*), (f))
-
 	return sfseek(f, (Sfoff_t)0, SEEK_CUR);
 }

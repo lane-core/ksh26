@@ -23,7 +23,7 @@
 
 #include "asohdr.h"
 
-#if defined(_UWIN) && defined(_BLD_ast) || !_aso_semaphore
+#if !_aso_semaphore
 
 NoN(aso_meth_semaphore)
 

@@ -37,64 +37,6 @@
 #define SF_MB		010000
 #define SF_WC		020000
 
-#if _UWIN
-
-#define STDIO_TRANSFER	1
-
-typedef int (*Fun_f)();
-
-typedef struct Funvec_s
-{
-	const char*	name;
-	Fun_f		vec[2];
-} Funvec_t;
-
-extern int	_stdfun(Sfio_t*, Funvec_t*);
-
-#define STDIO_INT(p,n,t,f,a) \
-	{ \
-		typedef t (*_s_f)f; \
-		int		_i; \
-		static Funvec_t	_v = { n }; \
-		if ((_i = _stdfun(p, &_v)) < 0) \
-			return -1; \
-		else if (_i > 0) \
-			return ((_s_f)_v.vec[_i])a; \
-	}
-
-#define STDIO_PTR(p,n,t,f,a) \
-	{ \
-		typedef t (*_s_f)f; \
-		int		_i; \
-		static Funvec_t	_v = { n }; \
-		if ((_i = _stdfun(p, &_v)) < 0) \
-			return 0; \
-		else if (_i > 0) \
-			return ((_s_f)_v.vec[_i])a; \
-	}
-
-#define STDIO_VOID(p,n,t,f,a) \
-	{ \
-		typedef t (*_s_f)f; \
-		int		_i; \
-		static Funvec_t	_v = { n }; \
-		if ((_i = _stdfun(p, &_v)) < 0) \
-			return; \
-		else if (_i > 0) \
-		{ \
-			((_s_f)_v.vec[_i])a; \
-			return; \
-		} \
-	}
-
-#else
-
-#define STDIO_INT(p,n,t,f,a)
-#define STDIO_PTR(p,n,t,f,a)
-#define STDIO_VOID(p,n,t,f,a)
-
-#endif
-
 #define FWIDE(f,r) \
 	do \
 	{ \

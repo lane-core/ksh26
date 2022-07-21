@@ -26,7 +26,5 @@
 long
 ftell(Sfio_t* f)
 {
-	STDIO_INT(f, "ftell", long, (Sfio_t*), (f))
-
 	return (long)sfseek(f, (Sfoff_t)0, SEEK_CUR);
 }

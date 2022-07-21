@@ -40,9 +40,7 @@
 #define _BLD_aso	1
 #define _BLD_cdt	1
 #define _BLD_sfio	1
-#if !_UWIN
 #define _BLD_vmalloc	1
-#endif
 #endif
 
 #ifdef	_SFSTDIO_H
@@ -134,8 +132,6 @@ struct lconv
 #define extern		__EXPORT__
 #endif
 
-#if !_UWIN /* for AST54 compatibility */
-
 #undef	getenv
 #define getenv		_ast_getenv
 
@@ -143,8 +139,6 @@ struct lconv
 #define setenviron	_ast_setenviron
 
 extern char*		getenv(const char*);
-
-#endif
 
 #undef	localeconv
 #define localeconv	_ast_localeconv

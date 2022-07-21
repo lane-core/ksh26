@@ -295,23 +295,6 @@ int main()
 #endif
 
 	printf("\n");
-#ifdef _UWIN
-	printf("#ifdef _UWIN\n");
-	printf("#ifndef DBL_DIG\n");
-	printf("#define DBL_DIG		15\n");
-	printf("#endif\n");
-	printf("#ifndef DBL_MAX\n");
-	printf("#define DBL_MAX		1.7976931348623158e+308\n");
-	printf("#endif\n");
-	printf("#ifndef FLT_DIG\n");
-	printf("#define FLT_DIG		6\n");
-	printf("#endif\n");
-	printf("#ifndef FLT_MAX\n");
-	printf("#define FLT_MAX		3.402823466e+38F\n");
-	printf("#endif\n");
-	printf("#endif\n");
-	printf("\n");
-#endif
 
 #include "conflim.h"
 

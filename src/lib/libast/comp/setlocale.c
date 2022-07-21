@@ -82,103 +82,6 @@ header(void)
 	}
 }
 
-#if _UWIN
-
-#include <ast_windows.h>
-
-#undef	_lib_setlocale
-#define _lib_setlocale		1
-
-#define setlocale(c,l)		native_setlocale(c,l)
-
-extern char*			uwin_setlocale(int, const char*);
-
-/*
- * convert locale to native locale name in buf
- */
-
-static char*
-native_locale(const char* locale, char* buf, size_t siz)
-{
-	Lc_t*				lc;
-	const Lc_attribute_list_t*	ap;
-	int				i;
-	unsigned long			lcid;
-	unsigned long			langidx;
-	unsigned long			ctry;
-	char				lbuf[128];
-	char				cbuf[128];
-
-	if (locale && *locale)
-	{
-		if (!(lc = lcmake(locale)))
-			return 0;
-		langidx = lc->language->index;
-		ctry = 0;
-		for (ap = lc->attributes; ap; ap = ap->next)
-			if (ctry = ap->attribute->index)
-				break;
-		if (!ctry)
-		{
-			for (i = 0; i < elementsof(lc->territory->languages); i++)
-				if (lc->territory->languages[i] == lc->language)
-				{
-					ctry = lc->territory->indices[i];
-					break;
-				}
-			if (!ctry)
-			{
-				if (!langidx)
-					return 0;
-				ctry = SUBLANG_DEFAULT;
-			}
-		}
-		lcid = MAKELCID(MAKELANGID(langidx, ctry), SORT_DEFAULT);
-	}
-	else
-		lcid = GetUserDefaultLCID();
-	if (GetLocaleInfo(lcid, LOCALE_SENGLANGUAGE, lbuf, sizeof(lbuf)) <= 0 ||
-	    GetLocaleInfo(lcid, LOCALE_SENGCOUNTRY, cbuf, sizeof(cbuf)) <= 0)
-		return 0;
-	if (lc->charset->ms)
-		sfsprintf(buf, siz, "%s_%s.%s", lbuf, cbuf, lc->charset->ms);
-	else
-		sfsprintf(buf, siz, "%s_%s", lbuf, cbuf);
-	return buf;
-}
-
-/*
- * locale!=0 here
- */
-
-static char*
-native_setlocale(int category, const char* locale)
-{
-	char*		usr;
-	char*		sys;
-	char		buf[256];
-
-	if (!(usr = native_locale(locale, buf, sizeof(buf))))
-		return 0;
-
-	/*
-	 * Win32 doesn't have LC_MESSAGES
-	 */
-
-	if (category == LC_MESSAGES)
-		return (char*)locale;
-	sys = uwin_setlocale(category, usr);
-	if (ast.locale.set & AST_LC_debug)
-		sfprintf(sfstderr, "locale uwin %17s %-24s %-24s\n", lc_categories[lcindex(category, 0)].name, usr, sys);
-	return sys;
-}
-
-#else
-
-#define native_locale(a,b,c)	((char*)0)
-
-#endif
-
 /*
  * LC_COLLATE and LC_CTYPE native support
  */
@@ -2432,8 +2335,7 @@ default_setlocale(int category, const char* locale)
 
 #endif
 
-#if !_UWIN
-
+/* <TODO> [2022-07-21]: remove this and _vmkeep? obsolete? */
 /*
  * workaround for Solaris and FreeBSD systems
  * they call free() with addresses that look like they came from the stack
@@ -2454,8 +2356,7 @@ _sys_setlocale(int category, const char* locale)
 }
 
 #define setlocale(a,b)	_sys_setlocale(a,b)
-
-#endif
+/* </TODO> */
 
 /*
  * set a single AST_LC_* locale category
@@ -2796,7 +2697,7 @@ _ast_setlocale(int category, const char* locale)
 			u = 0;
 			if ((s = getenv("LANG")) && *s)
 			{
-				if (streq(s, local) && (u || (u = native_locale(locale, tmp, sizeof(tmp)))))
+				if (u && streq(s, local))
 					s = u;
 				lang = lcmake(s);
 			}
@@ -2804,7 +2705,7 @@ _ast_setlocale(int category, const char* locale)
 				lang = 0;
 			if ((s = getenv("LC_ALL")) && *s)
 			{
-				if (streq(s, local) && (u || (u = native_locale(locale, tmp, sizeof(tmp)))))
+				if (u && streq(s, local))
 					s = u;
 				lc_all = lcmake(s);
 			}
@@ -2815,7 +2716,7 @@ _ast_setlocale(int category, const char* locale)
 					/* explicitly set by setlocale() */;
 				else if ((s = getenv(lc_categories[i].name)) && *s)
 				{
-					if (streq(s, local) && (u || (u = native_locale(locale, tmp, sizeof(tmp)))))
+					if (u && streq(s, local))
 						s = u;
 					lc_categories[i].prev = lcmake(s);
 				}

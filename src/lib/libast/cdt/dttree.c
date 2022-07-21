@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -635,15 +635,6 @@ static int treeevent(Dt_t* dt, int event, void* arg)
 	}
 	else	return 0;
 }
-
-#if _UWIN
-
-void* dtfinger(Dt_t* dt)
-{
-	return (dt && dt->meth && (dt->meth->type & DT_ORDERED)) ? (void*)((Dttree_t*)dt->data)->root : NIL(void*);
-}
-
-#endif
 
 /* make this method available */
 static Dtmethod_t	_Dtoset =  { dttree, DT_OSET, treeevent, "Dtoset" };

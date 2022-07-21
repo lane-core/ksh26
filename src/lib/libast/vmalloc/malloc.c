@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -20,54 +20,9 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if defined(_UWIN) && defined(_BLD_ast)
-
-void _STUB_malloc(){}
-
-#else
-
-#if _UWIN
-
-#define calloc		______calloc
-#define _ast_free	______free
-#define malloc		______malloc
-#define mallinfo	______mallinfo
-#define mallopt		______mallopt
-#define mstats		______mstats
-#define realloc		______realloc
-
-#define _STDLIB_H_	1
-
-extern int		atexit(void(*)(void));
-extern char*		getenv(const char*);
-
-#endif
 
 #include	"vmhdr.h"
 #include	<errno.h>
-
-#if _UWIN
-
-#include	<malloc.h>
-
-#define _map_malloc	1
-#define _mal_alloca	1
-
-#undef	calloc
-#define calloc		_ast_calloc
-#undef	_ast_free
-#define free		_ast_free
-#undef	malloc
-#define malloc		_ast_malloc
-#undef	mallinfo
-typedef struct ______mallinfo Mallinfo_t;
-#undef	mallopt
-#undef	mstats
-typedef struct ______mstats Mstats_t;
-#undef	realloc
-#define realloc		_ast_realloc
-
-#endif
 
 /*
  * define _AST_std_malloc=1 to force the standard malloc
@@ -170,26 +125,6 @@ static int		_Vmpffd = -1;
 
 #include <ast_windows.h>
 
-#if _UWIN
-
-#define VMRECORD(p)	_vmrecord(p)
-#define VMBLOCK		{ int _vmblock = _sigblock();
-#define VMUNBLOCK	_sigunblock(_vmblock); }
-
-extern int		_sigblock(void);
-extern void		_sigunblock(int);
-extern unsigned long	_record[2048];
-
-__inline void* _vmrecord(void* p)
-{
-	register unsigned long	v = ((unsigned long)p)>>16; 
-
-	_record[v>>5] |= 1<<((v&0x1f));
-	return p;
-}
-
-#else
-
 #define getenv(s)	lcl_getenv(s)
 
 static char*
@@ -202,9 +137,6 @@ lcl_getenv(const char* s)
 		return 0;
 	return buf;
 }
-
-#endif /* _UWIN */
-
 #endif /* _WINIX */
 
 #ifndef VMRECORD
@@ -829,14 +761,10 @@ extern void*	__libc_valloc(size_t n) { return valloc(n); }
 #undef	valloc
 #define valloc		______valloc
 
-#if !_UWIN
-
 #include	<malloc.h>
 
 typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
-
-#endif
 
 #if defined(__EXPORT__)
 #define extern		__EXPORT__
@@ -940,14 +868,10 @@ extern void*	_ast_valloc(size_t n) { return valloc(n); }
 #define realloc		______realloc
 #define valloc		______valloc
 
-#if !_UWIN
-
 #include	<malloc.h>
 
 typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
-
-#endif
 
 #if defined(__EXPORT__)
 #define extern		__EXPORT__
@@ -1313,5 +1237,3 @@ _vmkeep(int v)
 		_Vmassert &= ~VM_keep;
 	return r;
 }
-
-#endif /*_UWIN*/

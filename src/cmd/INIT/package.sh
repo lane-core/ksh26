@@ -682,64 +682,6 @@ use)	case $1 in
 		32|64)	bit=$1 ;;
 		esac
 		shift
-
-		# HOSTTYPE specific setup
-
-		case $HOSTTYPE in
-		win32.*)sys=uwin
-			wow=$(uname -i)
-			case $bit in
-			32)	case $HOSTTYPE in
-				*-64)	HOSTTYPE=${HOSTTYPE%-64} ;;
-				esac
-				;;
-			64)	case $HOSTTYPE in
-				*-64)	;;
-				*)	HOSTTYPE=$HOSTTYPE-64 ;;
-				esac
-				case $wow in
-				*/32)	err_out "cannot build $bit-bit on $wow $sys" ;;
-				esac
-				;;
-			esac
-			case $bit in
-			'')	PS1="($sys) " ;;
-			*)	PS1="($sys-$bit) " ;;
-			esac
-
-			$exec umask 002
-			$exec unset MAKESKIP
-
-			P=$PWD
-			A=$P/arch/$HOSTTYPE
-
-			$exec export CDPATH=:..:$A/src/cmd:$A/src/lib:$A/src/uwin:$P/lib/package
-			$exec export INSTALLROOT=$A
-			$exec export PACKAGEROOT=$P
-			$exec export PATH=$A/bin:$P/bin:$PATH
-			$exec export PS1="$PS1"
-			$exec export VPATH=$A:$P
-			$exec export nativepp=/usr/lib
-
-			if	test -n "$INSTALLROOT" && test -d "$INSTALLROOT/include/ast"
-			then	$exec export PACKAGE_ast=$INSTALLROOT
-			elif	test -d ${PWD%/*}/ast/arch/$HOSTTYPE
-			then	$exec export PACKAGE_ast=${PWD%/*}/ast/arch/$HOSTTYPE
-			fi
-
-			# run the command
-
-			case $# in
-			0)	case $show in
-				':')	$exec exec $SHELL ;;
-				esac
-				;;
-			*)	$exec exec $SHELL -c "$@"
-				;;
-			esac
-			exit
-			;;
-		esac
 		PACKAGEROOT=$PWD
 		$show export PACKAGEROOT
 	esac

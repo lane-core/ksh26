@@ -26,7 +26,7 @@
  * fun==SIG_DFL also unblocks signal
  */
 
-#if !_UWIN && !__HAIKU__
+#if !__HAIKU__
 
 #undef	signal
 #define signal		______signal
@@ -36,8 +36,6 @@
 #include <ast.h>
 #include <sig.h>
 
-#if !_UWIN
-
 #undef	signal
 
 #undef	_def_map_ast
@@ -45,8 +43,6 @@
 
 #if defined(__EXPORT__)
 #define extern	__EXPORT__
-#endif
-
 #endif
 
 #if defined(SV_ABORT)                                         

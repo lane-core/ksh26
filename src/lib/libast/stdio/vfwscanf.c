@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -84,8 +84,6 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 	Sfio_t*	t;
 	Wide_t*	w;
 	char	buf[1024];
-
-	STDIO_INT(f, "vfwscanf", int, (Sfio_t*, const wchar_t*, va_list), (f, fmt, args))
 
 	FWIDE(f, WEOF);
 	n = wcstombs(NiL, fmt, 0);

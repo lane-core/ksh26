@@ -115,7 +115,6 @@ output{
 		printf("#ifndef TMP_MAX\n");
 		printf("#define TMP_MAX		%d\n", TMP_MAX);
 		printf("#endif\n");
-	#if !_UWIN
 		printf("\n");
 		printf("#define _doprnt		_ast_doprnt\n");
 		printf("#define _doscan		_ast_doscan\n");
@@ -191,12 +190,7 @@ output{
 		printf("#define putc_unlocked	_ast_putc_unlocked\n");
 		printf("#define putchar_unlocked _ast_putchar_unlocked\n");
 
-		printf("#define flockfile	_ast_flockfile\n");
-		printf("#define ftrylockfile	_ast_ftrylockfile\n");
-		printf("#define funlockfile	_ast_funlockfile\n");
-
 		printf("\n");
-	#endif
 		return 0;
 	}
 }end
@@ -359,13 +353,11 @@ cat{
 
 	#else
 
-	#if !_UWIN
 	#if _BLD_ast && defined(__EXPORT__)
 	#define extern		extern __EXPORT__
 	#endif
 	#if !_BLD_ast && defined(__IMPORT__)
 	#define extern		extern __IMPORT__
-	#endif
 	#endif
 
 	extern FILE	_Sfstdin;

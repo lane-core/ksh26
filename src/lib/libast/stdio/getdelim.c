@@ -33,8 +33,6 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 	uchar*		s;
 	uchar*		ps;
 
-	STDIO_INT(f, "getdelim", ssize_t, (char**, size_t*, int, Sfio_t*), (sp, np, delim, f))
-
 	if(delim < 0 || delim > 255 || !sp || !np) /* bad parameters */
 		return -1;
 

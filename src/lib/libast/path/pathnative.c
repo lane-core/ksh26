@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -32,18 +32,6 @@
  */
 
 #include <ast.h>
-
-#if _UWIN
-
-extern int	uwin_path(const char*, char*, int);
-
-size_t
-pathnative(const char* path, char* buf, size_t siz)
-{
-	return uwin_path(path, buf, siz);
-}
-
-#else
 
 #if __CYGWIN__
 
@@ -116,8 +104,6 @@ pathnative(const char* path, char* buf, size_t siz)
 		memcpy(buf, path, n + 1);
 	return n;
 }
-
-#endif
 
 #endif
 
