@@ -195,9 +195,6 @@ output{
 	}
 }end
 macro{
-	<<"#if defined(__STDPP__directive) && defined(__STDPP__initial)">>
-	<<"__STDPP__directive pragma pp:initial">>
-	<<"#endif">>
 	<<"#ifndef P_tmpdir">>
 	#ifndef P_tmpdir
 	#define P_tmpdir "/var/tmp/"
@@ -215,9 +212,6 @@ macro{
 	#define L_tmpnam (sizeof(P_tmpdir)+15)
 	#endif
 	<<"#define L_tmpnam">> L_tmpnam
-	<<"#endif">>
-	<<"#if defined(__STDPP__directive) && defined(__STDPP__initial)">>
-	<<"__STDPP__directive pragma pp:noinitial">>
 	<<"#endif">>
 }end
 cat{

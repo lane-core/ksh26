@@ -60,7 +60,8 @@ cat{
 	#endif
 
 	/* Windows variants and veneers */
-	#if !defined(_WINIX) && (__CYGWIN__ || __EMX__)
+	/* (as of 2022-07-21, only Cygwin) */
+	#if !defined(_WINIX) && __CYGWIN__
 	#	define _WINIX		1
 	#endif
 

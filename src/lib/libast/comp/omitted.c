@@ -3,12 +3,8 @@
  * workarounds to bring the native interface close to POSIX and X/Open
  */
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide utime utimes
-#else
 #define utime		______utime
 #define utimes		______utimes
-#endif
 
 #include <ast.h>
 #include <error.h>
@@ -33,12 +29,8 @@ __STDPP__directive pragma pp:hide utime utimes
 #endif
 #endif
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide utime utimes
-#else
 #undef	utime
 #undef	utimes
-#endif
 
 #ifndef MAX_PATH
 #define MAX_PATH	PATH_MAX

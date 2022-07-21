@@ -460,12 +460,8 @@ mntclose(void* handle)
 
 #if _lib_getmntent && ( _hdr_mntent || _sys_mntent && !_sys_mnttab )
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide endmntent getmntent
-#else
 #define endmntent	______endmntent
 #define getmntent	______getmntent
-#endif
 
 #include <stdio.h>
 #if _hdr_mntent
@@ -474,12 +470,8 @@ __STDPP__directive pragma pp:hide endmntent getmntent
 #include <sys/mntent.h>
 #endif
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide endmntent getmntent
-#else
 #undef	endmntent
 #undef	getmntent
-#endif
 
 extern int		endmntent(FILE*);
 extern struct mntent*	getmntent(FILE*);

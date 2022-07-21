@@ -27,21 +27,13 @@
  * cached GID number -> group name
  */
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide getgrgid
-#else
 #define getgrgid	______getgrgid
-#endif
 
 #include <ast.h>
 #include <cdt.h>
 #include <grp.h>
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide getgrgid
-#else
 #undef	getgrgid
-#endif
 
 extern struct group*	getgrgid(gid_t);
 

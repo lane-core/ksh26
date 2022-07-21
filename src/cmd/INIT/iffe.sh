@@ -3579,10 +3579,7 @@ $inc
 						[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]:[\\/]*|[\\/]*)
 							success
 							case $o in
-							lcl)	echo "#if defined(__STDPP__directive)"
-								echo "__STDPP__directive pragma pp:hosted"
-								echo "#endif"
-								echo "#include <$i>	/* the native <$f.h> */"
+							lcl)	echo "#include <$i>	/* the native <$f.h> */"
 								echo "#undef	$m"
 								usr="$usr$nl#define $m 1"
 								echo "#define $m	1"

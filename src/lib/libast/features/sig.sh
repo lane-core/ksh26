@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1985-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -38,19 +38,11 @@ int xxx;" > $tmp.c
 $cc -c $tmp.c >/dev/null 2>$tmp.e
 echo "#define sig_info	_sig_info_
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide kill killpg
-#else
 #define kill	______kill
 #define killpg	______killpg
-#endif
 #include <signal.h>
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide kill killpg
-#else
 #undef	kill
 #undef	killpg
-#endif
 #ifndef sigmask
 #define sigmask(s)	(1<<((s)-1))
 #endif"

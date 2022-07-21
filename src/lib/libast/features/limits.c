@@ -31,12 +31,8 @@
  * NOTE: two's complement binary integral representation assumed
  */
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide getpagesize getdtablesize
-#else
 #define getpagesize	______getpagesize
 #define getdtablesize	______getdtablesize
-#endif
 
 /*
  * we'd like as many symbols as possible defined
@@ -74,12 +70,8 @@ __STDPP__directive pragma pp:hide getpagesize getdtablesize
 
 #include "FEATURE/param"
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide getpagesize getdtablesize
-#else
 #undef	getpagesize
 #undef	getdtablesize   
-#endif
 
 int main()
 {

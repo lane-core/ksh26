@@ -20,19 +20,11 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide getpagesize
-#else
 #define getpagesize	______getpagesize
-#endif
 
 #include	"sfhdr.h"
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide getpagesize
-#else
 #undef	getpagesize
-#endif
 
 #if _lib_getpagesize
 extern int	getpagesize(void);

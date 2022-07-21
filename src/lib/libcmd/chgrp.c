@@ -97,11 +97,7 @@ static const char usage_3[] =
 "[+SEE ALSO?\bchmod\b(1), \bchown\b(2), \btw\b(1), \bgetconf\b(1), \bls\b(1)]"
 ;
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide lchown
-#else
 #define lchown		______lchown
-#endif
 
 #include <cmd.h>
 #include <cdt.h>
@@ -111,11 +107,7 @@ __STDPP__directive pragma pp:hide lchown
 
 #include "FEATURE/symlink"
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide lchown
-#else
 #undef	lchown
-#endif
 
 typedef struct Key_s			/* UID/GID key			*/
 {

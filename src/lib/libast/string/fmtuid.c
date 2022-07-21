@@ -27,21 +27,13 @@
  * UID number -> user name
  */
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:hide getpwuid
-#else
 #define getpwuid	______getpwuid
-#endif
 
 #include <ast.h>
 #include <cdt.h>
 #include <pwd.h>
 
-#if defined(__STDPP__directive) && defined(__STDPP__hide)
-__STDPP__directive pragma pp:nohide getpwuid
-#else
 #undef	getpwuid
-#endif
 
 extern struct passwd*	getpwuid(uid_t);
 

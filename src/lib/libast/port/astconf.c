@@ -654,32 +654,7 @@ format(register Feature_t* fp, const char* path, const char* value, unsigned int
 		break;
 
 	case OP_path_attributes:
-#ifdef _PC_PATH_ATTRIBUTES
-		{
-			register char*	s;
-			register char*	e;
-			intmax_t	v;
-
-			/*
-			 * _PC_PATH_ATTRIBUTES is a bitmap for 'a' to 'z'
-			 */
-
-			if ((v = pathconf(path, _PC_PATH_ATTRIBUTES)) == -1L)
-				return 0;
-			s = fp->value;
-			e = s + sizeof(fp->value) - 1;
-			for (n = 'a'; n <= 'z'; n++)
-				if (v & (1 << (n - 'a')))
-				{
-					*s++ = n;
-					if (s >= e)
-						break;
-				}
-			*s = 0;
-		}
-#else
 		fp->value = pathicase(path) > 0 ? "c" : null;
-#endif
 		break;
 
 	case OP_path_resolve:

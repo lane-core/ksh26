@@ -55,30 +55,7 @@ pathposix(const char* path, char* buf, size_t siz)
 	return strlen(buf);
 }
 
-#else
-
-#if __EMX__ && 0 /* show me the docs */
-
-size_t
-pathposix(const char* path, char* buf, size_t siz)
-{
-	char*		s;
-	size_t		n;
-
-	if (!_posixpath(buf, path, siz))
-	{
-		for (s = buf; *s; s++)
-			if (*s == '/')
-				*s = '\\';
-	}
-	else if ((n = strlen(path)) < siz && buf)
-		memcpy(buf, path, n + 1);
-	return n;
-}
-
-#else
-
-#if __INTERIX
+#elif __INTERIX
 
 #include <interix/interix.h>
 
@@ -106,9 +83,5 @@ pathposix(const char* path, char* buf, size_t siz)
 		memcpy(buf, path, n + 1);
 	return n;
 }
-
-#endif
-
-#endif
 
 #endif
