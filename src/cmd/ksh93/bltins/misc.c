@@ -305,6 +305,8 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(&buff,SH_JMPDOT);
+	errorpush(&buff.err,0);
+	error_info.id = argv[0];
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{

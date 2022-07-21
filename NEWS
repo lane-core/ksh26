@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug where a reproducible $RANDOM sequence (after assigning a
   specific value to $RANDOM) was influenced by running any external command.
 
+- When an error occurs in a POSIX name() function or a dot script, the
+  function or script name is now reported in the error message.
+
 2022-07-14:
 
 - Fixed a bug that caused a spurious "Done" message on the interactive shell
