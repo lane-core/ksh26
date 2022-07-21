@@ -5483,11 +5483,6 @@ make install
 		done man/ast.3
 		exec - test '' = 'man/ast.3' || ${STDCMP} 2>/dev/null -s man/ast.3 ${INSTALLROOT}/man/man3/ast.3 || { ${STDMV} ${INSTALLROOT}/man/man3/ast.3 ${INSTALLROOT}/man/man3/ast.3.old 2>/dev/null || true; ${STDCP} man/ast.3 ${INSTALLROOT}/man/man3/ast.3 ;}
 	done ${INSTALLROOT}/man/man3/ast.3 generated
-	make ${INSTALLROOT}/man/man3/astsa.3
-		make man/astsa.3
-		done man/astsa.3
-		exec - test '' = 'man/astsa.3' || ${STDCMP} 2>/dev/null -s man/astsa.3 ${INSTALLROOT}/man/man3/astsa.3 || { ${STDMV} ${INSTALLROOT}/man/man3/astsa.3 ${INSTALLROOT}/man/man3/astsa.3.old 2>/dev/null || true; ${STDCP} man/astsa.3 ${INSTALLROOT}/man/man3/astsa.3 ;}
-	done ${INSTALLROOT}/man/man3/astsa.3 generated
 	make ${INSTALLROOT}/man/man3/cdt.3
 		make man/cdt.3
 		done man/cdt.3
