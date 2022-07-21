@@ -984,4 +984,10 @@ float x
 EOF
 
 # ======
+got=$(set +x; eval ': $((1 << 2))' 2>&1) \
+|| err_exit "bitwise left shift operator fails to parse (got $(printf %q "$got"))"
+got=$(set +x; eval 'got=$( ((y=1<<4)); echo $y )' 2>&1; echo $got) \
+|| err_exit "bitwise left shift operator fails to parse in comsub (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

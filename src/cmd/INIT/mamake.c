@@ -97,7 +97,7 @@ static const char usage[] =
 #define elementsof(x)	(sizeof(x)/sizeof(x[0]))
 #define newof(p,t,n,x)	((p)?(t*)realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)calloc(1,sizeof(t)*(n)+(x)))
 
-#define NiL		((char*)0)
+#define NiL		0
 
 #endif
 
@@ -267,7 +267,15 @@ extern char**		environ;
 static void
 usage()
 {
-	fprintf(stderr, "Usage: %s [-iknFKNV] [-f mamfile] [-r pattern] [-C directory] [-D level] [target ...] [name=value ...]\n", state.id);
+	fprintf(stderr, "Usage: %s"
+		" [-iknFKNV]"
+		" [-f Mamfile]"
+		" [-r pattern]"
+		" [-C directory]"
+		" [-D level]"
+		" [target ...]"
+		" [name=value ...]"
+		"\n", state.id);
 	exit(2);
 }
 
@@ -1834,7 +1842,7 @@ update(register Rule_t* r)
 }
 
 /*
- * scan makefile prereqs
+ * scan Mamfile prereqs
  */
 
 static int
@@ -2123,7 +2131,7 @@ recurse(char* pattern)
 	search(state.vars, "MAMAKEARGS", duplicate(use(state.opt) + 1));
 
 	/*
-	 * scan the makefile and descend
+	 * scan the Mamfile and descend
 	 */
 
 	walk(state.rules, scan, NiL);

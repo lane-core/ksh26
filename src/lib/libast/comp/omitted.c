@@ -7,6 +7,7 @@
 #define utimes		______utimes
 
 #include <ast.h>
+#include <ast_stdio.h>
 #include <error.h>
 #include <tm.h>
 
@@ -24,6 +25,7 @@
 
 #if __CYGWIN__
 #include <ast_windows.h>
+#include <sys/cygwin.h>
 #if _win32_botch_execve || _lib_spawn_mode
 #define CONVERT		1
 #endif

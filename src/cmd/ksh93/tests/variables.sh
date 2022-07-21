@@ -1433,4 +1433,11 @@ do
 done
 
 # ======
+var1.get() { .sh.value=one; : $var2; }
+var2.get() { .sh.value=two; }
+got=$var1
+unset var1 var2
+[[ $got == one ]] || err_exit ".sh.value not restored after second .get discipline call (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

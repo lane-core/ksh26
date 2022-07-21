@@ -287,7 +287,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	}
 	*prevscope = sh.st;
 	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
-	sh.st.var_local = sh.st.save_tree = sh.var_tree;
+	sh.st.save_tree = sh.var_tree;
 	if(filename)
 	{
 		sh.st.filename = filename;

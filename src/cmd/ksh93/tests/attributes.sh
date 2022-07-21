@@ -385,7 +385,8 @@ done
 
 unset v
 typeset -H v=/dev/null
-[[ $v == *nul* ]] || err_exit 'typeset -H for /dev/null not working'
+# on cygwin, this is \\.\GLOBALROOT\Device\Null
+[[ $v == *[Nn]ul* ]] || err_exit "typeset -H for /dev/null not working (got $(printf %q "$v"))"
 
 unset x
 (typeset +C x) 2> /dev/null && err_exit 'typeset +C should be an error' 

@@ -56,14 +56,6 @@ int		sys_nerr = 0;
 extern char*	strerror(int);
 #endif
 
-#if _PACKAGE_astsa
-
-#define fmtbuf(n)	((n),tmp)
-
-static char		tmp[32];
-
-#endif
-
 char*
 _ast_strerror(int err)
 {
@@ -82,7 +74,6 @@ _ast_strerror(int err)
 #endif
 	if (msg)
 	{
-#if !_PACKAGE_astsa
 		if (ERROR_translating())
 		{
 #if _lib_strerror
@@ -125,7 +116,6 @@ _ast_strerror(int err)
 #endif
 			return ERROR_translate(NiL, NiL, "errlist", msg);
 		}
-#endif
 		return msg;
 	}
 	msg = fmtbuf(z = 32);

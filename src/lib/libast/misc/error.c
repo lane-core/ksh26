@@ -47,12 +47,9 @@
 /*
  * 2007-03-19 move error_info from _error_info_ to (*_error_infop_)
  *	      to allow future Error_info_t growth
- *            by 2009 _error_info_ can be static
  */
 
-extern Error_info_t	_error_info_;
-
-Error_info_t	_error_info_ =
+static Error_info_t	_error_info_ =
 {
 	2, exit, write,
 	0,0,0,0,0,0,0,0,
@@ -64,8 +61,7 @@ Error_info_t	_error_info_ =
 	translate,
 	0			/* catalog			*/
 };
-
-extern Error_info_t*	_error_infop_ = &_error_info_;
+Error_info_t*		_error_infop_ = &_error_info_;
 
 /*
  * these should probably be in error_info
@@ -356,10 +352,8 @@ errorv(const char* id, int level, va_list ap)
 	int		line;
 	char*		file;
 
-#if !_PACKAGE_astsa
 	unsigned long	d;
 	struct tms	us;
-#endif
 
 	if (!error_info.init)
 	{
@@ -466,14 +460,12 @@ errorv(const char* id, int level, va_list ap)
 				sfprintf(stkstd, "%s %d: ", ERROR_translate(NiL, NiL, ast.id, "line"), error_info.line);
 			}
 		}
-#if !_PACKAGE_astsa
 		if (error_info.time)
 		{
 			if ((d = times(&us)) < error_info.time || error_info.time == 1)
 				error_info.time = d;
 			sfprintf(stkstd, " %05lu.%05lu.%05lu ", d - error_info.time, (unsigned long)us.tms_utime, (unsigned long)us.tms_stime);
 		}
-#endif
 		switch (level)
 		{
 		case 0:

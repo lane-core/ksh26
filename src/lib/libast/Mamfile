@@ -2832,6 +2832,7 @@ make install
 					done FEATURE/omitted generated
 					prev include/tm.h implicit
 					prev include/error.h implicit
+					prev ast_stdio.h implicit
 					prev include/ast.h implicit
 					prev FEATURE/float implicit
 				done comp/omitted.c

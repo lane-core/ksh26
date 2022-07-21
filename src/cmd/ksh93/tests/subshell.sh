@@ -790,16 +790,17 @@ hash -r
 
 # ======
 # Variables set in functions inside of a virtual subshell should not affect the
-# outside environment. This regression test must be run from the disk.
-testvars=$tmp/testvars.sh
-cat >| "$testvars" << 'EOF'
+# outside environment. This regression test must be run as a separate script.
+got=$("$SHELL" -c '
 c=0
 function set_ac { a=1; c=1; }
 function set_abc { ( set_ac ; b=1 ) }
 set_abc
 echo "a=$a b=$b c=$c"
-EOF
-v=$($SHELL $testvars) && [[ "$v" == "a= b= c=0" ]] || err_exit 'variables set in subshells are not confined to the subshell'
+')
+exp='a= b= c=0'
+[[ $got == "$exp" ]] || err_exit 'variables set in subshells are not confined to the subshell' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 got=$("$SHELL" -c '

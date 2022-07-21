@@ -2805,18 +2805,6 @@ int sh_trace(register char *argv[], register int nl)
 	return(0);
 }
 
-/*
- * This routine creates a subshell by calling fork() or vfork()
- * If ((flags&COMMSK)==TCOM), then vfork() is permitted
- * If fork fails, the shell sleeps for exponentially longer periods
- *   and tries again until a limit is reached.
- * SH_FORKLIM is the max period between forks - power of 2 usually.
- * Currently shell tries after 2,4,8,16, and 32 seconds and then quits
- * Failures cause the routine to error exit.
- * Parent links to here-documents are removed by the child
- * Traps are reset by the child
- * The process-id of the child is returned to the parent, 0 to the child.
- */
 static void timed_out(void *handle)
 {
 	NOT_USED(handle);
@@ -2955,6 +2943,17 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	return(0);
 }
 
+/*
+ * This routine creates a subshell by calling fork(2).
+ * If fork fails, the shell sleeps for exponentially longer periods
+ *   and tries again until a limit is reached.
+ * SH_FORKLIM is the max period between forks - power of 2 usually.
+ * Currently, the shell tries after 2, 4, 8, 16 and 32 seconds, and then quits.
+ * Failures cause the routine to error exit.
+ * Parent links to here-documents are removed by the child.
+ * Traps are reset by the child.
+ * The process-id of the child is returned to the parent, 0 to the child.
+ */
 pid_t sh_fork(int flags, int *jobid)
 {
 	register pid_t parent;
@@ -3110,7 +3109,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
-	sh.st.var_local = sh.var_tree;
 	if(!fun)
 	{
 		if(fp->node->nvalue.rp)
