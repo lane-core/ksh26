@@ -39,4 +39,4 @@ _Ast_info_t	_ast_info =
 	AST_VERSION	/* version */
 };
 
-__EXTERN__(_Ast_info_t, _ast_info);
+extern _Ast_info_t	_ast_info;

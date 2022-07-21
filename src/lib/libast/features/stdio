@@ -230,10 +230,6 @@ cat{
 
 	#undef	extern
 
-	#if _BLD_ast && defined(__EXPORT__)
-	#define extern		__EXPORT__
-	#endif
-
 	extern int	_doprnt(const char*, va_list, FILE*);
 	extern int	_doscan(FILE*, const char*, va_list);
 	extern int	asprintf(char**, const char*, ...);
@@ -347,18 +343,9 @@ cat{
 
 	#else
 
-	#if _BLD_ast && defined(__EXPORT__)
-	#define extern		extern __EXPORT__
-	#endif
-	#if !_BLD_ast && defined(__IMPORT__)
-	#define extern		extern __IMPORT__
-	#endif
-
 	extern FILE	_Sfstdin;
 	extern FILE	_Sfstdout;
 	extern FILE	_Sfstderr;
-
-	#undef	extern
 
 	#define feof(f)		(_sf_(f)->_flags&_SF_EOF)
 	#define ferror(f)	(_sf_(f)->_flags&_SF_ERROR)
@@ -369,14 +356,8 @@ cat{
 	#define putc(c,f)	fputc(c,f)
 	#define putchar(c)	fputc(c,stdout)
 
-	#if _BLD_ast && defined(__EXPORT__)
-	#define extern		__EXPORT__
-	#endif
-
 	extern int		_sffilbuf(FILE*, int);
 	extern int		_sfflsbuf(FILE*, int);
-
-	#undef	extern
 
 	#endif
 }end

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -59,10 +59,6 @@ NoN(statvfs)
 #define STATFS(a,b)	statfs(a,b)
 #endif
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 static void
 us2v(register struct statfs* ufs, register struct stat* st, register struct statvfs* vfs)
 {
@@ -110,10 +106,6 @@ statvfs(const char* path, struct statvfs* vfs)
 }
 
 #else
-
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
 
 static void
 s2v(register struct stat* st, register struct statvfs* vfs)

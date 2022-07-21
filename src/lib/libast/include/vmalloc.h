@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -122,12 +122,6 @@ struct _vmalloc_s
 #define VM_MMADD	2		/* add data value (long)	*/
 
 /* public data */
-#if _BLD_vmalloc && defined(__EXPORT__)
-#define extern	extern __EXPORT__
-#endif
-#if !_BLD_vmalloc && defined(__IMPORT__)
-#define extern	extern __IMPORT__
-#endif
 
 extern Vmethod_t*	Vmbest;		/* best allocation		*/
 extern Vmethod_t*	Vmlast;		/* last-block allocation	*/
@@ -145,12 +139,7 @@ extern Vmalloc_t	_Vmheap;	/* heap region - use with care! */
 extern Vmalloc_t*	Vmheap;		/* = &_Vmheap - safe to use	*/
 extern Vmalloc_t*	Vmregion;	/* malloc region		*/
 
-#undef extern
-
 /* public functions */
-#if _BLD_vmalloc && defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
 
 extern Vmalloc_t*	vmopen( Vmdisc_t*, Vmethod_t*, int );
 extern int		vmclose( Vmalloc_t* );
@@ -203,8 +192,6 @@ extern void*		memalign( size_t, size_t );
 extern void*		valloc( size_t );
 #endif
 extern int		setregmax( int );
-
-#undef extern
 
 /* to coerce any value to a Vmalloc_t*, make ANSI happy */
 #define _VM_(vm)	((Vmalloc_t*)(vm))

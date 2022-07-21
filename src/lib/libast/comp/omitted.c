@@ -74,10 +74,6 @@ extern int		_utime(const char*, const struct utimbuf*);
 extern int		_utimes(const char*, const struct timeval*);
 extern ssize_t		_write(int, const void*, size_t);
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 #if _win32_botch_access
 #define sysaccess		_access
 #else
@@ -1115,23 +1111,6 @@ getpagesize()
 {
 	return _AST_PAGESIZE;
 }
-
-#endif
-
-#if __CYGWIN__ && defined(__IMPORT__) && defined(__EXPORT__)
-
-#ifndef OMITTED
-#define OMITTED	1
-#endif
-
-/*
- * a few _imp__FUNCTION symbols are needed to avoid
- * static link multiple definitions
- */
-
-#ifndef strtod
-__EXPORT__ double (*_imp__strtod)(const char*, char**) = strtod;
-#endif
 
 #endif
 

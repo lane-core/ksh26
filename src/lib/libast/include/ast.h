@@ -290,10 +290,6 @@ typedef int (*Ast_confdisc_f)(const char*, const char*, const char*);
 typedef int (*Strcmp_context_f)(const char*, const char*, void*);
 typedef int (*Strcmp_f)(const char*, const char*);
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 extern char*		astgetconf(const char*, const char*, const char*, int, Error_f);
 extern char*		astconf(const char*, const char*, const char*);
 extern Ast_confdisc_f	astconfdisc(Ast_confdisc_f);
@@ -431,8 +427,6 @@ extern int		struniq(char**, int);
 extern int		strvcmp(const char*, const char*);
 extern int		wc2utf8(char*, uint32_t);
 
-#undef			extern
-
 /*
  * C library global data symbols not prototyped by <unistd.h>
  */
@@ -464,12 +458,6 @@ extern char**		environ;
 #undef	AST_PLUGIN_VERSION
 #define AST_PLUGIN_VERSION(v)	((v)>AST_VERSION?(v):AST_VERSION)
 
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 extern unsigned long	plugin_version(void);
-
-#undef	extern
 
 #endif

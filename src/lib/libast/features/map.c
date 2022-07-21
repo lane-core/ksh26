@@ -48,10 +48,6 @@ main()
 	printf(" * unmapped in native headers included by <ast_std.h>\n");
 	printf(" */\n");
 	printf("\n");
-	printf("#if _BLD_ast && defined(__EXPORT__)\n");
-	printf("#define extern		__EXPORT__\n");
-	printf("#endif\n");
-	printf("\n");
 #if __MVS__
 #undef	_map_libc
 #define _map_libc	1

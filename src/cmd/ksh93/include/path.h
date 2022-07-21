@@ -83,12 +83,8 @@ extern char 		*path_fullname(const char*);
 extern int 		path_expand(const char*, struct argnod**);
 extern noreturn void 	path_exec(const char*,char*[],struct argnod*);
 extern pid_t		path_spawn(const char*,char*[],char*[],Pathcomp_t*,int);
-#if defined(__EXPORT__) && defined(_BLD_DLL)
-#   define extern __EXPORT__
-#endif
 extern int		path_open(const char*,Pathcomp_t*);
 extern Pathcomp_t 	*path_get(const char*);
-#undef extern
 extern char 		*path_pwd(void);
 extern Pathcomp_t	*path_nextcomp(Pathcomp_t*,const char*,Pathcomp_t*);
 extern int		path_search(const char*,Pathcomp_t**,int);

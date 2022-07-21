@@ -33,10 +33,6 @@ NoN(strstr)
 
 #else
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern char*
 strstr(register const char* s1, register const char* s2)
 {

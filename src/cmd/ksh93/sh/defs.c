@@ -32,9 +32,6 @@
 #include	"timeout.h"
 
 Shell_t			sh = {0};
-#ifdef	__IMPORT__
-    Shell_t		*_imp__sh = &sh;
-#endif
 
 Dtdisc_t	_Nvdisc =
 {

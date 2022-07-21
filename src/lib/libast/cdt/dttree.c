@@ -639,15 +639,12 @@ static int treeevent(Dt_t* dt, int event, void* arg)
 /* make this method available */
 static Dtmethod_t	_Dtoset =  { dttree, DT_OSET, treeevent, "Dtoset" };
 static Dtmethod_t	_Dtobag =  { dttree, DT_OBAG, treeevent, "Dtobag" };
-__DEFINE__(Dtmethod_t*,Dtoset,&_Dtoset);
-__DEFINE__(Dtmethod_t*,Dtobag,&_Dtobag);
+Dtmethod_t		*Dtoset	= &_Dtoset;
+Dtmethod_t		*Dtobag = &_Dtobag;
 
 /* backwards compatibility */
 #undef	Dttree
-#if defined(__EXPORT__)
-__EXPORT__
-#endif
-__DEFINE__(Dtmethod_t*,Dttree,&_Dtoset);
+Dtmethod_t		*Dttree = &_Dtoset;
 
 #ifdef NoF
 NoF(dttree)

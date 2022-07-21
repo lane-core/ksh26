@@ -37,10 +37,6 @@ Intercepts_t	intercepts
  * get name from the environment
  */
 
-#if defined(__EXPORT__) && defined(getenv)
-#define extern	__EXPORT__
-#endif
-
 extern char*
 getenv(const char* name)
 {

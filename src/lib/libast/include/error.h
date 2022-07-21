@@ -195,22 +195,9 @@ extern int	errno;			/* system call error status	*/
 #define ESPIPE	29
 #endif
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		extern __EXPORT__
-#endif
-#if !_BLD_ast && defined(__IMPORT__)
-#define extern		extern __IMPORT__
-#endif
-
 extern Error_info_t*	_error_infop_;
 
 #define error_info	(*_error_infop_)
-
-#undef	extern
-
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
 
 extern void		error(int, ...);
 extern int		errormsg(const char*, int, ...);
@@ -220,7 +207,5 @@ extern void		errorv(const char*, int, va_list);
 extern char*		errorx(const char*, const char*, const char*, const char*);
 #endif
 extern Error_info_t*	errorctx(Error_info_t*, int, int);
-
-#undef	extern
 
 #endif

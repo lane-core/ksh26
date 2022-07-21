@@ -59,9 +59,6 @@ extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
 extern int	sh_rpipe(int[]);
 extern void 	sh_iorestore(int,int);
-#if defined(__EXPORT__) && defined(_BLD_DLL)
-   __EXPORT__
-#endif
 extern Sfio_t 	*sh_iostream(int);
 extern int	sh_redirect(struct ionod*,int);
 extern void 	sh_iosave(int,int,char*);

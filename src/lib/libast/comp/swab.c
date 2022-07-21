@@ -38,10 +38,6 @@ NoN(swab)
 
 #include <swap.h>
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern void
 swab(const void* src, void* dst, ssize_t n)
 {

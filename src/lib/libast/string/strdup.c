@@ -38,10 +38,6 @@
  * return a copy of s using malloc
  */
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 /*
  * Avoid a null-test optimization bug caused by glibc's headers
  * by naming this function '_ast_strdup' instead of 'strdup'.

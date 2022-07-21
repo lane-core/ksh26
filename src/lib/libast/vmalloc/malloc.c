@@ -145,10 +145,6 @@ lcl_getenv(const char* s)
 #define VMUNBLOCK
 #endif
 
-#if defined(__EXPORT__)
-#define extern		extern __EXPORT__
-#endif
-
 static int		_Vmflinit = 0;
 #define VMFLINIT() \
 	{ if(!_Vmflinit)	vmflinit(); \
@@ -742,8 +738,6 @@ extern void*	__libc_valloc(size_t n) { return valloc(n); }
 
 #endif /* _map_malloc */
 
-#undef	extern
-
 #if _hdr_malloc /* need the mallint interface for statistics, etc. */
 
 #undef	calloc
@@ -765,10 +759,6 @@ extern void*	__libc_valloc(size_t n) { return valloc(n); }
 
 typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
-
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
 
 #if _lib_mallopt
 extern int mallopt(int cmd, int value)
@@ -813,11 +803,9 @@ extern Mstats_t mstats(void)
 	}
 	return ms;
 }
-#endif /*_lib_mstats*/
+#endif /* _lib_mstats */
 
-#undef	extern
-
-#endif/*_hdr_malloc*/
+#endif /* _hdr_malloc */
 
 #else
 
@@ -827,10 +815,6 @@ extern Mstats_t mstats(void)
  */
 
 #define setregmax(n)
-
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
 
 #if !_malloc_hook
 
@@ -852,8 +836,6 @@ extern void*	_ast_pvalloc(size_t n) { return pvalloc(n); }
 extern void*	_ast_valloc(size_t n) { return valloc(n); }
 #endif
 
-#undef	extern
-
 #if _hdr_malloc
 
 #undef	mallinfo
@@ -873,10 +855,6 @@ extern void*	_ast_valloc(size_t n) { return valloc(n); }
 typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
 
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 #if _lib_mallopt
 extern int	_ast_mallopt(int cmd, int value) { return mallopt(cmd, value); }
 #endif
@@ -888,8 +866,6 @@ extern Mallinfo_t	_ast_mallinfo(void) { return mallinfo(); }
 #if _lib_mstats && _mem_bytes_total_mstats
 extern Mstats_t		_ast_mstats(void) { return mstats(); }
 #endif
-
-#undef	extern
 
 #endif /*_hdr_malloc*/
 

@@ -98,29 +98,14 @@ typedef struct
 extern int		kill(pid_t, int);
 extern int		killpg(pid_t, int);
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		extern __EXPORT__
-#endif
-#if !_BLD_ast && defined(__IMPORT__)
-#define extern		extern __IMPORT__
-#endif
-
 extern Sig_info_t	sig_info;
-
-#undef	extern
 
 #if _lib_sigflag && _npt_sigflag
 extern int		sigflag(int, int, int);
-#endif
-
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
 #endif
 
 #if !_lib_sigflag
 extern int		sigflag(int, int, int);
 #endif
 extern int		sigcritical(int);
-extern int		sigunblock(int);
-
-#undef	extern'
+extern int		sigunblock(int);'

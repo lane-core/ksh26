@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -50,10 +50,6 @@
  *            by 2009 _error_info_ can be static
  */
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		extern __EXPORT__
-#endif
-
 extern Error_info_t	_error_info_;
 
 Error_info_t	_error_info_ =
@@ -69,13 +65,7 @@ Error_info_t	_error_info_ =
 	0			/* catalog			*/
 };
 
-#undef	extern
-
-__EXTERN__(Error_info_t, _error_info_);
-
-__EXTERN__(Error_info_t*, _error_infop_);
-
-Error_info_t*	_error_infop_ = &_error_info_;
+extern Error_info_t*	_error_infop_ = &_error_info_;
 
 /*
  * these should probably be in error_info

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -160,24 +160,16 @@ typedef struct S2F_part_s
 
 #if S2F_static > 0
 static
-#else
-#if S2F_static < 0 || !defined(S2F_static)
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
+#elif S2F_static < 0 || !defined(S2F_static)
 extern
-#undef	extern
-#endif
 #endif
 S2F_number
 #if S2F_scan
 S2F_function(void* s, S2F_get_f get)
-#else
-#if S2F_size
+#elif S2F_size
 S2F_function(const char* str, size_t size, char** end)
 #else
 S2F_function(const char* str, char** end)
-#endif
 #endif
 {
 #if !S2F_scan

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -432,15 +432,12 @@ static int hashevent(Dt_t* dt, int event, void* arg)
 
 static Dtmethod_t	_Dtset = { dthashchain, DT_SET, hashevent, "Dtset" };
 static Dtmethod_t	_Dtbag = { dthashchain, DT_BAG, hashevent, "Dtbag" };
-__DEFINE__(Dtmethod_t*,Dtset,&_Dtset);
-__DEFINE__(Dtmethod_t*,Dtbag,&_Dtbag);
+Dtmethod_t		*Dtset = &_Dtset;
+Dtmethod_t		*Dtbag = &_Dtbag;
 
 /* backwards compatibility */
 #undef	Dthash
-#if defined(__EXPORT__)
-__EXPORT__
-#endif
-__DEFINE__(Dtmethod_t*,Dthash,&_Dtset);
+Dtmethod_t		*Dthash = &_Dtset;
 
 #ifdef NoF
 NoF(dthashchain)

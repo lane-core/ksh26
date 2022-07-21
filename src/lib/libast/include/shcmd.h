@@ -93,12 +93,6 @@ struct Shbltin_s
 #   endif
 #endif
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 extern int		astintercept(Shbltin_t*, int);
-
-#undef	extern
 
 #endif

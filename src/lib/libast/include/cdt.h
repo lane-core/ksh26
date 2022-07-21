@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -232,12 +232,6 @@ struct _dtstat_s
 #define DT_ERROR	0xbad	/* announcing an error			*/
 
 /* data structures and functions */
-#if _BLD_cdt && defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-#if !_BLD_cdt && defined(__IMPORT__)
-#define extern	__IMPORT__
-#endif
 
 extern Dtmethod_t* 	Dtset;
 extern Dtmethod_t* 	Dtbag;
@@ -266,12 +260,6 @@ extern Dtmethod_t*	Dtrhbag;
 
 #endif /*_PACKAGE_ast*/
 
-#undef extern
-
-#if _BLD_cdt && defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern Dt_t*		dtopen(Dtdisc_t*, Dtmethod_t*);
 extern int		dtclose(Dt_t*);
 extern Dt_t*		dtview(Dt_t*, Dt_t*);
@@ -288,18 +276,8 @@ extern int		dtuserevent(Dt_t*, int, void*);
 extern Dt_t*		_dtopen(Dtdisc_t*, Dtmethod_t*, unsigned long);
 #define dtopen(dc,mt)	_dtopen((dc), (mt), CDT_VERSION)
 
-#undef extern
-
 #if _PACKAGE_ast && !defined(_CDTLIB_H)
-
-#if _BLD_dll && defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern void*		dllmeth(const char*, const char*, unsigned long);
-
-#undef	extern
-
 #endif
 
 /* internal functions for translating among holder, object and key */

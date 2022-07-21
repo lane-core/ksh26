@@ -420,10 +420,6 @@ extern Libcomp_t *liblist;
 
 #undef getenv			/* -lshell provides its own */
 
-#if defined(__EXPORT__) && defined(_DLL)
-#	define extern __EXPORT__
-#endif /* _DLL */
-
 extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
 extern int		sh_reinit(char*[]);
@@ -472,10 +468,6 @@ extern int		sh_exec(const Shnode_t*,int);
  */
 extern Shell_t		sh;
 #define	sh_getinterp()	(&sh)
-
-#ifdef _DLL
-#   undef extern
-#endif /* _DLL */
 
 #define chdir(a)	sh_chdir(a)
 #define fchdir(a)	sh_fchdir(a)

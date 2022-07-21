@@ -29,10 +29,6 @@ NoN(_flsbuf)
 
 #else
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern int
 _flsbuf(int c, Sfio_t* f)
 {

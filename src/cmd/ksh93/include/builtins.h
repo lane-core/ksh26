@@ -63,10 +63,6 @@
 
 /* entry point for shell special builtins */
 
-#if defined(__EXPORT__)
-#	define extern	__EXPORT__
-#endif
-
 extern int b_alias(int, char*[],Shbltin_t*);
 extern int b_break(int, char*[],Shbltin_t*);
 extern int b_dot_cmd(int, char*[],Shbltin_t*);
@@ -128,8 +124,6 @@ extern int b_times(int, char*[],Shbltin_t*);
 #endif /* SHOPT_ECHOPRINT */
 
 extern short		b_enum_nelem(Namfun_t*);
-
-#undef	extern
 
 extern const char	e_alrm1[];
 extern const char	e_alrm2[];

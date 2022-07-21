@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -26,13 +26,7 @@
 
 #undef	_sfgetl2
 
-#if _BLD_sfio && defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern long	_sfgetl2(Sfio_t*, long);
-
-#undef	extern
 
 long _sfgetl2(reg Sfio_t* f, long v)
 {

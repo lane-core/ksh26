@@ -604,7 +604,7 @@ static Vmethod_t _Vmprofile =
 	VM_MTPROFILE
 };
 
-__DEFINE__(Vmethod_t*,Vmprofile,&_Vmprofile);
+Vmethod_t*	Vmprofile = &_Vmprofile;
 
 #ifdef NoF
 NoF(vmprofile)

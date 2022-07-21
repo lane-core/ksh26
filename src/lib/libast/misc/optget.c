@@ -340,19 +340,13 @@ static Msg_t		C_LC_MESSAGES_libast[] =
  *            by 2009 _opt_info_ can be static
  */
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		extern __EXPORT__
-#endif
-
 extern Opt_t	_opt_info_;
 
 Opt_t		_opt_info_ = { 0,0,0,0,0,0,0,{0},{0},0,0,0,{0},{0},&state };
 
-#undef	extern
+extern Opt_t	_opt_info_;
 
-__EXTERN__(Opt_t, _opt_info_);
-
-__EXTERN__(Opt_t*, _opt_infop_);
+extern Opt_t*	_opt_infop_;
 
 Opt_t*		_opt_infop_ = &_opt_info_;
 

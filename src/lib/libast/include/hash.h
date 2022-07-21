@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -181,10 +181,6 @@ struct Hash_table			/* hash table information	*/
 #endif
 };
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 extern Hash_table_t*	hashalloc(Hash_table_t*, ...);
 extern void		hashdone(Hash_position_t*);
 extern void		hashdump(Hash_table_t*, int);
@@ -196,7 +192,5 @@ extern Hash_position_t*	hashscan(Hash_table_t*, int);
 extern void		hashsize(Hash_table_t*, int);
 extern Hash_table_t*	hashview(Hash_table_t*, Hash_table_t*);
 extern int		hashwalk(Hash_table_t*, int, int (*)(const char*, char*, void*), void*);
-
-#undef	extern
 
 #endif

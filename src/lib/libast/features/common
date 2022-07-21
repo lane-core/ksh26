@@ -6,13 +6,6 @@ typ	__va_list stdio.h
 
 mac	SF_APPEND,SF_CLOSE	sys/stat.h sys/socket.h
 
-dll	import note{ Microsoft import/export nonsense }end execute{
-	__declspec(dllimport) int foo;
-	int main() { return foo == 5 ? 0 : 1; }
-	int	bar = 5;
-	int*	_imp__foo = &bar;
-}end
-
 std	proto note{ standard C prototypes ok }end compile{
 	extern int foo(int, int);
 	bar() { foo(1, 1); }
@@ -43,6 +36,10 @@ cat{
 	#define	_BEGIN_EXTERNS_
 	#undef	_END_EXTERNS_
 	#define	_END_EXTERNS_
+	#undef __EXTERN__
+	#define __EXTERN__(T,obj)	extern T obj
+	#undef __DEFINE__
+	#define __DEFINE__(T,obj,val)	T obj = val
 	#undef	__STD_C
 	#define	__STD_C		1
 	#undef	Void_t
@@ -71,35 +68,6 @@ cat{
 	#	ifndef _DLL
 	#		define _DLL		1
 	#	endif
-	#endif
-	#if _dll_import
-	#	if _BLD_STATIC && !_BLD_DLL
-	#		undef	_DLL
-	#	else
-	#		if !defined(_DLL)
-	#			define _DLL		1
-	#		endif
-	#	endif
-	#	if !defined(__EXPORT__) && _BLD_DLL
-	#		define __EXPORT__	__declspec(dllexport)
-	#	endif
-	#	if !defined(__IMPORT__) && ( _BLD_DLL || defined(_DLL) )
-	#		define __IMPORT__	__declspec(dllimport)
-	#	endif
-	#endif
-	#if !defined(_astimport)
-	#	if defined(__IMPORT__) && defined(_DLL)
-	#		define _astimport	__IMPORT__
-	#	else
-	#		define _astimport	extern
-	#	endif
-	#endif
-	#if _dll_import && ( !_BLD_DLL || _WINIX )
-	#	define __EXTERN__(T,obj)	extern T obj; T* _imp__ ## obj = &obj
-	#	define __DEFINE__(T,obj,val)	T obj = val; T* _imp__ ## obj = &obj
-	#else
-	#	define __EXTERN__(T,obj)	extern T obj
-	#	define __DEFINE__(T,obj,val)	T obj = val
 	#endif
 
 	#if !_hdr_stdnoreturn

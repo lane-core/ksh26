@@ -43,7 +43,7 @@ static void* heapmem(Vmalloc_t*	vm,	/* region doing allocation from 	*/
 }
 
 static Vmdisc_t _Vmdcheap = { heapmem, NIL(Vmexcept_f), 0 };
-__DEFINE__(Vmdisc_t*,Vmdcheap,&_Vmdcheap);
+Vmdisc_t*	Vmdcheap = &_Vmdcheap;
 
 #ifdef NoF
 NoF(vmdcheap)

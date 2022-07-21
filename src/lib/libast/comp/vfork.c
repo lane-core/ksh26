@@ -33,10 +33,6 @@ NoN(vfork)
 
 #undef	vfork
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern pid_t
 vfork(void)
 {

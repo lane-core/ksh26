@@ -212,9 +212,6 @@ union Shnode_u
 extern void			sh_freeup(void);
 extern void			sh_funstaks(struct slnod*,int);
 extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, int);
-#if defined(__EXPORT__) && defined(_BLD_DLL)
-   __EXPORT__
-#endif
 extern int			sh_tdump(Sfio_t*, const Shnode_t*);
 extern Shnode_t			*sh_trestore(Sfio_t*);
 

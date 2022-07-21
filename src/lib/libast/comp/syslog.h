@@ -103,22 +103,9 @@
 #define LOG_FACILITY(p)	LOG_FAC(p)	/* get facility index from pri	*/
 #define LOG_SEVERITY(p)	LOG_PRI(p)	/* get severity from pri	*/
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-#if !_BLD_ast && defined(__IMPORT__)
-#define extern		extern __IMPORT__
-#endif
-
 extern const Namval_t	log_facility[];
 extern const Namval_t	log_severity[];
 
-#undef	extern
-
-#endif
-
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
 #endif
 
 extern void	closelog(void);
@@ -126,7 +113,5 @@ extern void	openlog(const char*, int, int);
 extern int	setlogmask(int);
 extern void	syslog(int, const char*, ...);
 extern void	vsyslog(int, const char*, va_list);
-
-#undef	extern
 
 #endif

@@ -29,12 +29,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if _BLD_sfio && defined(__EXPORT__)
-#define extern  __EXPORT__
-#endif
 extern
-#undef  extern
-
 Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 		const char*	file,		/* file/string to be opened */
 		const char*	mode)		/* mode of the stream */

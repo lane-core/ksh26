@@ -973,19 +973,10 @@ extern int		_sfsetpool(Sfio_t*);
 extern char*		_sfcvt(void*,char*,size_t,int,int*,int*,int*,int);
 extern char**		_sfgetpath(char*);
 
-#if _BLD_sfio && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-#if !_BLD_sfio && defined(__IMPORT__)
-#define extern		extern __IMPORT__
-#endif
-
 extern Sfextern_t	_Sfextern;
 
 extern int		_sfmode(Sfio_t*, int, int);
 extern int		_sftype(const char*, int*, int*);
-
-#undef	extern
 
 #ifndef errno
 extern int		errno;

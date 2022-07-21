@@ -23,10 +23,6 @@
 
 #include "stdhdr.h"
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern int
 _filbuf(Sfio_t* f)
 {

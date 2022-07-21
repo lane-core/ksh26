@@ -135,10 +135,6 @@ void fcnotify(void (*fun)(Sfio_t*,const char*,int,void*),void* context)
 	_Fcin.context = context;
 }
 
-#ifdef __EXPORT__
-#   define extern __EXPORT__
-#endif
-
 #undef fcsave
 extern void fcsave(Fcin_t *fp)
 {

@@ -45,10 +45,6 @@
 		f->bits |= SF_WC; \
 	} while (0)
 
-#ifdef __EXPORT__
-#define extern	__EXPORT__
-#endif
-
 extern int		sfdcwide(Sfio_t*);
 
 #endif

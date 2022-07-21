@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -337,10 +337,10 @@ static Dtmethod_t _Dtdeque = { dtlist, DT_DEQUE, listevent, "Dtdeque" };
 static Dtmethod_t _Dtstack = { dtlist, DT_STACK, listevent, "Dtstack" };
 static Dtmethod_t _Dtqueue = { dtlist, DT_QUEUE, listevent, "Dtqueue" };
 
-__DEFINE__(Dtmethod_t*,Dtlist,&_Dtlist);
-__DEFINE__(Dtmethod_t*,Dtdeque,&_Dtdeque);
-__DEFINE__(Dtmethod_t*,Dtstack,&_Dtstack);
-__DEFINE__(Dtmethod_t*,Dtqueue,&_Dtqueue);
+Dtmethod_t*	Dtlist = &_Dtlist;
+Dtmethod_t*	Dtdeque = &_Dtdeque;
+Dtmethod_t*	Dtstack = &_Dtstack;
+Dtmethod_t*	Dtqueue = &_Dtqueue;
 
 #ifdef NoF
 NoF(dtlist)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -33,10 +33,6 @@
 
 #define SFDCEVENT(a,b,n)	((((a)-'A'+1)<<11)^(((b)-'A'+1)<<6)^(n))
 
-#if _BLD_ast && defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
 #define SFSK_DISCARD		SFDCEVENT('S','K',1)
 
 /*
@@ -64,7 +60,5 @@ extern int		sfdctee(Sfio_t*, Sfio_t*);
 extern int		sfdcunion(Sfio_t*, Sfio_t**, int);
 
 extern Sfio_t*		sfdcsubstream(Sfio_t*, Sfio_t*, Sfoff_t, Sfoff_t);
-
-#undef	extern
 
 #endif

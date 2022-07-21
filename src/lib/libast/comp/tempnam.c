@@ -39,10 +39,6 @@
 #undef	tempnam
 #endif
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern char*
 tempnam(const char* dir, const char* pfx)
 {

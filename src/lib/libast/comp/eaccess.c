@@ -36,10 +36,6 @@ NoN(eaccess)
 
 #else
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 extern int
 eaccess(const char* path, register int flags)
 {

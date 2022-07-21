@@ -41,10 +41,6 @@
 #undef	_def_map_ast
 #include <ast_map.h>
 
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
 #if defined(SV_ABORT)                                         
 #undef	SV_INTERRUPT
 #define SV_INTERRUPT	SV_ABORT

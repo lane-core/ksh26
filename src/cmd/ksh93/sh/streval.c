@@ -969,10 +969,6 @@ Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const ch
 
 #undef	error
 
-#if defined(__EXPORT__)
-#define extern			__EXPORT__
-#endif
-
 #ifndef DOMAIN
 #define DOMAIN			_DOMAIN
 #endif
@@ -1009,7 +1005,5 @@ Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const ch
 	errormsg(SH_DICT,ERROR_exit(1),message,ep->name);
 	UNREACHABLE();
     }
-
-#undef	extern
 
 #endif /* _mem_name_exception */
