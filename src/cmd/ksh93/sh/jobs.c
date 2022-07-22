@@ -374,7 +374,7 @@ int job_reap(register int sig)
 			pw->p_flag &= ~(P_NOTIFY|P_SIGNALLED|P_STOPPED);
 		else if(WIFSTOPPED(wstat))
 		{
-			pw->p_flag |= (P_NOTIFY|P_SIGNALLED|P_STOPPED);
+			pw->p_flag |= (P_NOTIFY|P_SIGNALLED|P_STOPPED|P_BG);
 			pw->p_exit = WSTOPSIG(wstat);
 			if(pw->p_pgrp && pw->p_pgrp==job.curpgid && sh_isstate(SH_STOPOK))
 				kill(sh.current_pid,pw->p_exit);
