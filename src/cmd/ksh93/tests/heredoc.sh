@@ -121,11 +121,15 @@ $0
 $SHELL -c 'x=$(
 cat << EOF
 EOF)' 2> /dev/null || err_exit 'here-doc cannot be terminated by )'
-if	[[ $( IFS=:;cat <<-!
+
+got=$(	IFS=:; cat <<-!
 			$IFS$(print hi)$IFS
-		!) != :hi: ]]
-then	err_exit '$IFS unset by command substitution in here docs'
-fi
+	!
+)
+exp=:hi:
+[[ $got == "$exp" ]] || err_exit '$IFS unset by command substitution in here docs' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 if	x=$($SHELL -c 'cat <<< "hello world"' 2> /dev/null)
 then	[[ $x == 'hello world' ]] || err_exit '<<< documents not working'
 	x=$($SHELL -c 'v="hello  world";cat <<< $v' 2> /dev/null)

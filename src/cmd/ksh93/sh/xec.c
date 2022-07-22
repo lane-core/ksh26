@@ -167,43 +167,6 @@ static inline double timeval_to_double(struct timeval tv)
 #endif
 
 /*
- * The following two functions allow command substitution for non-builtins
- * to use a pipe and to wait for the pipe to close before restoring to a
- * temp file.
- */
-static int      subpipe[3],subdup,tsetio,usepipe;
-
-static int iousepipe(void)
-{
-	if(usepipe)
-	{
-		usepipe++;
-		sh_iounpipe();
-	}
-	if(sh_rpipe(subpipe) < 0)
-		return(0);
-	usepipe++;
-	subpipe[2] = sh_fcntl(subpipe[1],F_DUPFD,10);
-	sh_close(subpipe[1]);
-	return(1);
-}
-
-void sh_iounpipe(void)
-{
-	char buff[SF_BUFSIZE];
-	if(!usepipe)
-		return;
-	--usepipe;
-	sh_close(subpipe[2]);
-	while(read(subpipe[0],buff,sizeof(buff))>0)
-		;
-	sh_close(subpipe[0]);
-	subpipe[0] = -1;
-	tsetio = 0;
-	usepipe = 0;
-}
-
-/*
  * print time <t> in h:m:s format with precision <p>
  */
 #ifdef timeofday
@@ -1288,7 +1251,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->sigset = 0;
 						bp->notify = 0;
 						bp->flags = (OPTIMIZE!=0);
-						if(sh.subshell && nv_isattr(np,BLT_NOSFIO))
+						if(sh.comsub && nv_isattr(np,BLT_NOSFIO))
 							sh_subtmpfile();
 						if(argn)
 							sh.exitval = (*sh.bltinfun)(argn,com,(void*)bp);
@@ -1488,7 +1451,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			register pid_t parent;
 			int no_fork,jobid;
 			int pipes[3];
-			if(sh.subshell)
+			if(sh.comsub)
 				sh_subtmpfile();
 			if(no_fork = check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
 				job.parent=parent=0;
@@ -1866,7 +1829,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			echeck = 1;
 			job.exitval = 0;
 			job.curjobid = 0;
-			if(sh.subshell)
+			if(sh.comsub)
 				sh_subtmpfile();
 			sh.inpipe = pvo;
 			sh.outpipe = pvn;
@@ -2939,7 +2902,6 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	if(sig>0)
 		kill(sh.current_pid,sig);
 	sh_sigcheck();
-	usepipe=0;
 	return(0);
 }
 

@@ -413,13 +413,13 @@ unset foo
 unset foo
 foo=$(false) > /dev/null && err_exit 'failed command substitution with redirection not returning false'
 expected=foreback
-got=`print -n fore; (sleep 2;print back)&`
+got=`print -n fore; (sleep .01; print back)&`
 [[ $got == $expected ]] || err_exit "\`\` command substitution background process output error (expected '$expected', got '$got')"
-got=$(print -n fore; (sleep .2;print back)&)
+got=$(print -n fore; (sleep .01; print back)&)
 [[ $got == $expected ]] || err_exit "\$() command substitution background process output error (expected '$expected', got '$got')"
-got=${ print -n fore; (sleep 2;print back)& }
+got=${ print -n fore; (sleep .01; print back)& }
 [[ $got == $expected ]] || err_exit "\${} shared-state command substitution background process output error (expected '$expected', got '$got')"
-function abc { sleep 2; print back; }
+function abc { sleep .01; print back; }
 function abcd { abc & }
 got=$(print -n fore;abcd)
 [[ $got == $expected ]] || err_exit "\$() command substitution background with function process output error (expected '$expected', got '$got')"

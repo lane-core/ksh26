@@ -330,7 +330,6 @@ struct Shell_s
 	char		redir0;		/* redirect of 0 */
 	char		intrace;	/* set when trace expands PS4 */
 	char		*readscript;	/* set before reading a script */
-	int		subdup;		/* bitmask for dups of 1 */
 	int		*inpipe;	/* input pipe pointer */
 	int		*outpipe;	/* output pipe pointer */
 	int		cpipe[3];

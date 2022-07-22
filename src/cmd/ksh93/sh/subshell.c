@@ -89,7 +89,6 @@ static struct subshell
 	pid_t		cpid;
 	int		coutpipe;
 	int		cpipe;
-	int		subdup;
 	char		subshare;
 	char		comsub;
 	unsigned int	rand_seed;  /* parent shell $RANDOM seed */
@@ -500,8 +499,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	subshell_data = sp;
 	sp->options = sh.options;
 	sp->jobs = job_subsave();
-	sp->subdup = sh.subdup;
-	sh.subdup = 0;
 	/* make sure initialization has occurred */ 
 	if(!sh.pathlist)
 	{
@@ -872,7 +869,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sh.exitval |= SH_EXITSIG;
 	}
 	sh.subshare = sp->subshare;
-	sh.subdup = sp->subdup;
 	sh.subshell--;			/* decrease level of virtual subshells */
 	sh.realsubshell--;		/* decrease ${.sh.subshell} */
 	subshell_data = sp->prev;
@@ -898,11 +894,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	if(nsig>0)
 		kill(sh.current_pid,nsig);
 	if(sp->subpid)
-	{
 		job_wait(sp->subpid);
-		if(comsub)
-			sh_iounpipe();
-	}
 	sh.comsub = sp->comsub;
 	if(comsub && iop && sp->pipefd<0)
 		sfseek(iop,(off_t)0,SEEK_SET);

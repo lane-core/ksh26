@@ -1173,7 +1173,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 			memset(ap, 0, ARGVAL);
 			if(iof&IOPUT)
 				ap->argflag = ARG_RAW;
-			else if(sh.subshell)
+			else if(sh.comsub)
 				sh_subtmpfile();
 			ap->argchn.ap = (struct argnod*)fname;
 			ap = sh_argprocsub(ap);
@@ -1241,16 +1241,12 @@ int	sh_redirect(struct ionod *iop, int flag)
 					}
 					if(sh.subshell && dupfd==1)
 					{
-						if(sfset(sfstdout,0,0)&SF_STRING)
+						if(sh.comsub)
 							sh_subtmpfile();
-						if(sh.comsub==1)
-							sh.subdup |= 1<<fn;
 						dupfd = sffileno(sfstdout);
 					}
 					else if(sh.sftable[dupfd])
 						sfsync(sh.sftable[dupfd]);
-					if(dupfd!=1 && fn < 10)
-						sh.subdup &= ~(1<<fn);
 				}
 				else if(fd=='-' && fname[1]==0)
 				{
