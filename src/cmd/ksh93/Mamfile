@@ -1470,6 +1470,12 @@ make install
 		done fun/dirs
 		exec - test '' = 'fun/dirs' || ${STDCMP} 2>/dev/null -s fun/dirs ${INSTALLROOT}/fun/dirs || { ${STDMV} ${INSTALLROOT}/fun/dirs ${INSTALLROOT}/fun/dirs.old 2>/dev/null || true; ${STDCP} fun/dirs ${INSTALLROOT}/fun/dirs && chmod ugo+x ${INSTALLROOT}/fun/dirs ;}
 	done ${INSTALLROOT}/fun/dirs generated
+	make ${INSTALLROOT}/fun/man
+		prev ${INSTALLROOT}/fun
+		make fun/man
+		done fun/man
+		exec - ${STDCMP} 2>/dev/null -s fun/man ${INSTALLROOT}/fun/man || { ${STDMV} ${INSTALLROOT}/fun/man ${INSTALLROOT}/fun/man.old 2>/dev/null || true; ${STDCP} fun/man ${INSTALLROOT}/fun/man && chmod ugo+x ${INSTALLROOT}/fun/man ;}
+	done ${INSTALLROOT}/fun/man generated
 	make ${INSTALLROOT}/fun/popd
 		make fun/popd
 		done fun/popd

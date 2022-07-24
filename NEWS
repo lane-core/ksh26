@@ -5,6 +5,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-07-24:
 
+- Add new 'man' function in src/cmd/ksh93/fun/man. This integrates the --man
+  self-documentation of ksh built-in and external AST commands with your
+  system's 'man' command so you can conveniently use 'man' for all commands,
+  whether built-in or external. See the file for details.
+
 - New feature to make 'set -b'/'set -o notify' more usable. When that option
   is on (and either the vi or emacs/gmacs line editor is in use), 'Done' and
   similar notifications from completed background jobs no longer mess up the
