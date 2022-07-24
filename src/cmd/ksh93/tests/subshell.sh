@@ -1179,4 +1179,11 @@ exp=OK
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# if this fails with empty output, sh_subtmpfile() is not getting called where it should be
+exp='some output'
+{ got=$(eval 'print -r -- "$exp" | "$bincat"'); } >/dev/null
+[[ $got == "$exp" ]] || err_exit 'command substitution did not catch output' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

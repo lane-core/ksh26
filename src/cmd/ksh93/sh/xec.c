@@ -1251,7 +1251,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->sigset = 0;
 						bp->notify = 0;
 						bp->flags = (OPTIMIZE!=0);
-						if(sh.comsub && nv_isattr(np,BLT_NOSFIO))
+						if(sh.subshell && nv_isattr(np,BLT_NOSFIO))
 							sh_subtmpfile();
 						if(argn)
 							sh.exitval = (*sh.bltinfun)(argn,com,(void*)bp);
@@ -1451,7 +1451,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			register pid_t parent;
 			int no_fork,jobid;
 			int pipes[3];
-			if(sh.comsub)
+			if(sh.subshell)
 				sh_subtmpfile();
 			if(no_fork = check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
 				job.parent=parent=0;
@@ -1829,7 +1829,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			echeck = 1;
 			job.exitval = 0;
 			job.curjobid = 0;
-			if(sh.comsub)
+			if(sh.subshell)
 				sh_subtmpfile();
 			sh.inpipe = pvo;
 			sh.outpipe = pvn;
