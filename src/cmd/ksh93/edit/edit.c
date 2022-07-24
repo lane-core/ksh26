@@ -853,6 +853,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	{
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
+#if SHOPT_ESH || SHOPT_VSH
 		/*
 		 * If sh.winch is set, the number of window columns changed and/or there is a buffered
 		 * job notification. When using a line editor, erase and redraw the command line.
@@ -898,6 +899,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			emacs_redraw(ep->e_emacs);
 #endif /* SHOPT_ESH && SHOPT_VSH */
 		}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 		sh.winch = 0;
 		/* an interrupt that should be ignored */
 		errno = 0;
