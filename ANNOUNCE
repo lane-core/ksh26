@@ -77,6 +77,11 @@ New command line editor features:
   mode, <ESC> 7 <left-arrow> will now move the cursor seven positions to
   the left. In vi control mode, this would be entered as: 7 <left-arrow>.
 
+- When the -b/--notify shell option is on and the vi or emacs/gmacs shell
+  line editor is in use, 'Done' and similar notifications from completed
+  background jobs are now inserted directly above the line you're typing,
+  without affecting your command line display.
+
 New shell language features:
 
 - The &>file redirection shorthand (for >file 2>&1) is now available for

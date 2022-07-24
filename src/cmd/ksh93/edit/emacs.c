@@ -613,7 +613,7 @@ update:
 			}
 			continue;
 		case cntl('L'):
-			ed_crlf(ep->ed);
+			putchar(ep->ed,'\n');
 			draw(ep,REFRESH);
 			continue;
 		case ESC :
@@ -733,7 +733,8 @@ process:
 	{
 		out[eol++] = '\n';
 		out[eol] = '\0';
-		ed_crlf(ep->ed);
+		putchar(ep->ed,'\n');
+		ed_flush(ep->ed);
 	}
 #if SHOPT_MULTIBYTE
 	ed_external(out,buff);

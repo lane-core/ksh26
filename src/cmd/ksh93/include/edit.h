@@ -174,7 +174,6 @@ typedef struct edit
 		(c<'J'?c+1-'A':(c+10-'J'))))))))))))))))
 #endif
 
-extern void	ed_crlf(Edit_t*);
 extern void	ed_putchar(Edit_t*, int);
 extern void	ed_ringbell(void);
 extern void	ed_setup(Edit_t*,int, int);

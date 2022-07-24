@@ -1014,5 +1014,15 @@ r echo
 r ^ok\r\n$
 !
 
+tst $LINENO <<"!"
+L --notify does not report all simultaneously terminated jobs
+
+d 15
+p :test-1:
+w set -b; sleep .1 & sleep .1 & sleep .1 &
+u Done
+u Done
+u Done
+!
 # ======
 exit $((Errors<125?Errors:125))

@@ -74,10 +74,7 @@ void	sh_fault(register int sig)
 	sig &= ~SH_TRAP;
 #ifdef SIGWINCH
 	if(sig==SIGWINCH)
-	{
-		sh_update_columns_lines();
-		sh.winch = 1;
-	}
+		sh_winsize(NIL(int*),NIL(int*));
 #endif  /* SIGWINCH */
 	trap = sh.st.trapcom[sig];
 	if(sh.savesig)
@@ -227,17 +224,35 @@ done:
 }
 
 /*
- * update $COLUMNS and $LINES
+ * Get window size and update LINES and COLUMNS.
+ * Returns the sizes in the pointed-to ints if non-null.
+ * If the number of columns changed, flags a window size change in sh.winch.
  */
-void	sh_update_columns_lines(void)
+void	sh_winsize(int *linesp, int *columnsp)
 {
-	int rows=0, cols=0;
-	int32_t v;
-	astwinsize(2,&rows,&cols);
-	if(v = cols)
-		nv_putval(COLUMNS, (char*)&v, NV_INT32|NV_RDONLY);
-	if(v = rows)
-		nv_putval(LINES, (char*)&v, NV_INT32|NV_RDONLY);
+	static int	oldlines, oldcolumns;
+	int		lines = oldlines, columns = oldcolumns;
+	int32_t		i;
+	astwinsize(2,&lines,&columns);
+	if(linesp)
+		*linesp = lines;
+	if(columnsp)
+		*columnsp = columns;
+	/*
+	 * Update LINES and COLUMNS only when the values changed; this makes
+	 * LINES.set and COLUMNS.set shell discipline functions more useful.
+	 */
+	if((lines != oldlines || nv_isnull(LINES)) && (i = (int32_t)lines))
+	{
+		nv_putval(LINES, (char*)&i, NV_INT32|NV_RDONLY);
+		oldlines = lines;
+	}
+	if((columns != oldcolumns || nv_isnull(COLUMNS)) && (i = (int32_t)columns))
+	{
+		nv_putval(COLUMNS, (char*)&i, NV_INT32|NV_RDONLY);
+		oldcolumns = columns;
+		sh.winch = 1;
+	}
 }
 
 /*
@@ -664,18 +679,8 @@ noreturn void sh_done(register int sig)
 #if SHOPT_ACCT
 	sh_accend();
 #endif	/* SHOPT_ACCT */
-#if SHOPT_VSH || SHOPT_ESH
-	if(mbwide()
-#if SHOPT_ESH
-	|| sh_isoption(SH_EMACS)
-	|| sh_isoption(SH_GMACS)
-#endif
-#if SHOPT_VSH
-	|| sh_isoption(SH_VI)
-#endif
-	)
+	if(mbwide() && sh_editor_active())
 		tty_cooked(-1);
-#endif /* SHOPT_VSH || SHOPT_ESH */
 #ifdef JOBS
 	if((sh_isoption(SH_INTERACTIVE) && sh_isoption(SH_LOGIN_SHELL)) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))
 		job_walk(sfstderr, job_hup, SIGHUP, NIL(char**));

@@ -48,9 +48,17 @@
 #include	"edit.h"
 #include	"shlex.h"
 
-static char CURSOR_UP[20] = { ESC, '[', 'A', 0 };
-static char KILL_LINE[20] = { ESC, '[', 'J', 0 };
-
+static char *CURSOR_UP = Empty;  /* move cursor up one line */
+static char *ERASE_EOS = Empty;  /* erase to end of screen */
+#if _tput_terminfo
+#define TPUT_CURSOR_UP	"cuu1"
+#define TPUT_ERASE_EOS	"ed"
+#elif _tput_termcap
+#define TPUT_CURSOR_UP	"up"
+#define TPUT_ERASE_EOS	"cd"
+#else
+#undef _pth_tput
+#endif /* _tput_terminfo */
 
 #if SHOPT_MULTIBYTE
 #   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
@@ -499,17 +507,11 @@ int tty_alt(register int fd)
  */
 int ed_window(void)
 {
-	int	rows,cols;
-	register char *cp = nv_getval(COLUMNS);
-	if(cp)
-		cols = (int)strtol(cp, (char**)0, 10)-1;
-	else
-	{
-		astwinsize(2,&rows,&cols);
-		if(--cols <0)
-			cols = DFLTWINDOW-1;
-	}
-	if(cols < MINWINDOW)
+	int	cols;
+	sh_winsize(NIL(int*),&cols);
+	if(--cols < 0)
+		cols = DFLTWINDOW - 1;
+	else if(cols < MINWINDOW)
 		cols = MINWINDOW;
 	else if(cols > MAXWINDOW)
 		cols = MAXWINDOW;
@@ -546,23 +548,32 @@ void ed_ringbell(void)
  * send a carriage return line feed to the terminal
  */
 
-void ed_crlf(register Edit_t *ep)
+#ifdef _pth_tput
+/*
+ * Get or update a tput (terminfo or termcap) capability string.
+ */
+static void get_tput(char *tp, char **cpp)
 {
-#ifdef cray
-	ed_putchar(ep,'\r');
-#endif /* cray */
-#ifdef u370
-	ed_putchar(ep,'\r');
-#endif	/* u370 */
-#ifdef VENIX
-	ed_putchar(ep,'\r');
-#endif /* VENIX */
-	ed_putchar(ep,'\n');
-	ed_flush(ep);
+	Shopt_t	o = sh.options;
+	char	*cp;
+	sigblock(SIGINT);
+	sh_offoption(SH_RESTRICTED);
+	sh_offoption(SH_VERBOSE);
+	sh_offoption(SH_XTRACE);
+	sfprintf(sh.strbuf,".sh.value=$(" _pth_tput " %s 2>/dev/null)",tp);
+	sh_trap(sfstruse(sh.strbuf),0);
+	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp,*cpp)!=0))
+	{
+		if(*cpp && *cpp!=Empty)
+			free(*cpp);
+		*cpp = *cp ? sh_strdup(cp) : Empty;
+	}
+	nv_unset(SH_VALNOD);
+	sh.options = o;
+	sigrelease(SIGINT);
 }
-#endif /* SHOPT_ESH || SHOPT_VSH */
+#endif /* _pth_tput */
 
-#if SHOPT_ESH || SHOPT_VSH
 /*	ED_SETUP( max_prompt_size )
  *
  *	This routine sets up the prompt string
@@ -584,17 +595,8 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	register int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-#if SHOPT_ESH && SHOPT_VSH
-	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS) || sh_isoption(SH_VI));
-#elif SHOPT_ESH
-	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS));
-#else
-	ep->e_multiline = sh_isoption(SH_MULTILINE) && sh_isoption(SH_VI);
-#endif
-	sh_update_columns_lines();
-#ifdef SIGWINCH
+	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
 	sh.winch = 0;
-#endif
 #if SHOPT_EDPREDICT
 	ep->hlist = 0;
 	ep->nhlist = 0;
@@ -616,18 +618,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		ep->e_hismax = ep->e_hismin = ep->e_hloff = 0;
 	}
 	ep->e_hline = ep->e_hismax;
-#if SHOPT_ESH && SHOPT_VSH
-	if(!sh_isoption(SH_VI) && !sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
-#elif SHOPT_ESH
-	if(!sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
-#elif SHOPT_VSH
-	if(!sh_isoption(SH_VI))
-#else
-	if(1)
-#endif /* SHOPT_ESH && SHOPT_VSH */
-		ep->e_wsize = MAXLINE;
-	else
-		ep->e_wsize = ed_window()-2;
+	ep->e_wsize = sh_editor_active() ? ed_window()-2 : MAXLINE;
 	ep->e_winsz = ep->e_wsize+2;
 	ep->e_crlf = 1;
 	ep->e_plen = 0;
@@ -789,35 +780,17 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #if SHOPT_ESH || SHOPT_VSH
 	if(ep->e_multiline)
 	{
-#if defined(_pth_tput) && (_tput_terminfo || _tput_termcap)
+#ifdef _pth_tput
 		char *term;
 		if(!ep->e_term)
 			ep->e_term = nv_search("TERM",sh.var_tree,0);
 		if(ep->e_term && (term=nv_getval(ep->e_term)) && strlen(term)<sizeof(ep->e_termname) && strcmp(term,ep->e_termname))
 		{
-			Shopt_t o = sh.options;
-			sigblock(SIGINT);
-			sh_offoption(SH_RESTRICTED);
-			sh_offoption(SH_VERBOSE);
-			sh_offoption(SH_XTRACE);
-			/* get the cursor up sequence from tput */
-#if _tput_terminfo
-			sh_trap(".sh.subscript=$(" _pth_tput " cuu1 2>/dev/null)",0);
-#elif _tput_termcap
-			sh_trap(".sh.subscript=$(" _pth_tput " up 2>/dev/null)",0);
-#else
-#error no tput method
-#endif
-			if((pp = nv_getval(SH_SUBSCRNOD)) && strlen(pp) < sizeof(CURSOR_UP))
-				strcopy(CURSOR_UP,pp);
-			else
-				CURSOR_UP[0] = '\0';  /* no escape sequence is better than a faulty one */
-			nv_unset(SH_SUBSCRNOD);
+			get_tput(TPUT_CURSOR_UP,&CURSOR_UP);
+			get_tput(TPUT_ERASE_EOS,&ERASE_EOS);
 			strcopy(ep->e_termname,term);
-			sh.options = o;
-			sigrelease(SIGINT);
 		}
-#endif
+#endif /* _pth_tput */
 		ep->e_wsize = MAXLINE - (ep->e_plen+1);
 	}
 #endif /* SHOPT_ESH || SHOPT_VSH */
@@ -880,47 +853,40 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	{
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
-#ifdef SIGWINCH
-#if SHOPT_ESH || SHOPT_VSH
-#if SHOPT_ESH && SHOPT_VSH
-		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
-#elif SHOPT_ESH
-		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
-#else
-		if(sh.winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
-#endif
+		/*
+		 * If sh.winch is set, the number of window columns changed and/or there is a buffered
+		 * job notification. When using a line editor, erase and redraw the command line.
+		 */
+		if(sh.winch && sh_editor_active() && sh_isstate(SH_INTERACTIVE))
 		{
-			/* redraw the prompt after receiving SIGWINCH */
-			Edpos_t	lastpos;
-			int	n, rows, newsize;
-			/* move cursor to start of first line */
-			ed_putchar(ep,'\r');
-			ed_flush(ep);
-			astwinsize(2,&rows,&newsize);
-			n = (ep->e_plen+ep->e_cur)/++ep->e_winsz;
-			while(n--)
-				ed_putstring(ep,CURSOR_UP);
-			if(ep->e_multiline && newsize>ep->e_winsz && (lastpos.line=(ep->e_plen+ep->e_peol)/ep->e_winsz))
+			int	n, newsize;
+			char	*cp;
+			sh_winsize(NIL(int*),&newsize);
+			/*
+			 * Try to move cursor to start of first line and pray it works... it's very
+			 * failure-prone if the window size changed, especially on modern terminals
+			 * that break the whole terminal abstraction by rewrapping lines themselves :(
+			 */
+			if(ep->e_multiline)
 			{
-				/* clear the current command line */
-				n = lastpos.line;
-				while(lastpos.line--)
-				{
-					ed_nputchar(ep,ep->e_winsz,' ');
-					ed_putchar(ep,'\n');
-				}
-				ed_nputchar(ep,ep->e_winsz,' ');
+				n = (ep->e_plen + ep->e_cur) / newsize;
 				while(n--)
 					ed_putstring(ep,CURSOR_UP);
 			}
+			ed_putchar(ep,'\r');
+			/* clear the current command line */
+			ed_putstring(ep,ERASE_EOS);
 			ed_flush(ep);
-			sh_delay(.05,0);
-			astwinsize(2,&rows,&newsize);
+			/* show any buffered 'set -b' job notification(s) */
+			if(sh.notifybuf && (cp = sfstruse(sh.notifybuf)) && *cp)
+				sfputr(sfstderr, cp, -1);
+			/* update window size */
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
 			if(!ep->e_multiline && ep->e_wsize < MAXLINE)
 				ep->e_wsize = ep->e_winsz-2;
+			/* redraw command line */
 #if SHOPT_ESH && SHOPT_VSH
 			if(sh_isoption(SH_VI))
 				vi_redraw(ep->e_vi);
@@ -930,11 +896,9 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			vi_redraw(ep->e_vi);
 #elif SHOPT_ESH
 			emacs_redraw(ep->e_emacs);
-#endif
+#endif /* SHOPT_ESH && SHOPT_VSH */
 		}
-#endif /* SHOPT_ESH || SHOPT_VSH */
 		sh.winch = 0;
-#endif /* SIGWINCH */
 		/* an interrupt that should be ignored */
 		errno = 0;
 		if(!waitevent || (rv=(*waitevent)(fd,-1L,0))>=0)
@@ -1842,7 +1806,7 @@ void	ed_histlist(Edit_t *ep,int n)
 		ep->hlist = 0;
 		ep->nhlist = 0;
 	}
-	ed_putstring(ep,KILL_LINE);
+	ed_putstring(ep,ERASE_EOS);
 	if(n)
 	{
 		for(i=1; (mp= *mpp) && i <= 16 ; i++,mpp++)

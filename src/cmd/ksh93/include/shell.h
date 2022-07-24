@@ -313,9 +313,7 @@ struct Shell_s
 	char		funload;
 	char		used_pos;	/* used positional parameter */
 	char		universe;
-#ifdef SIGWINCH
-	char		winch;
-#endif
+	char		winch;		/* set upon window size change or 'set -b' notification */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */
 	unsigned char	ignsig;		/* ignored signal in subshell */
@@ -367,6 +365,7 @@ struct Shell_s
 	void		*mktype;
 	Sfio_t		*strbuf;
 	Sfio_t		*strbuf2;
+	Sfio_t		*notifybuf;	/* for 'set -o notify' job notices */
 	Dt_t		*first_root;
 	Dt_t		*prefix_root;
 	Dt_t		*last_root;

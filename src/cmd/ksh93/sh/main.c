@@ -341,22 +341,18 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		sh_onstate(SH_INTERACTIVE);
 #if SHOPT_ESH
 		/* do not leave users without a line editor */
-		if(!sh_isoption(SH_GMACS)
-#if SHOPT_VSH
-		&& !sh_isoption(SH_VI)
-#endif /* SHOPT_VSH */
-		&& !is_option(&sh.offoptions,SH_EMACS))
+		if(!sh_editor_active() && !is_option(&sh.offoptions,SH_EMACS))
 			sh_onoption(SH_EMACS);
 #endif /* SHOPT_ESH */
 	}
-#ifdef SIGWINCH
 	else
 	{
 		/* keep $COLUMNS and $LINES up to date even for scripts that don't trap SIGWINCH */
-		sh_update_columns_lines();
+		sh_winsize(NIL(int*),NIL(int*));
+#ifdef SIGWINCH
 		signal(SIGWINCH,sh_fault);
+#endif /* SIGWINCH */
 	}
-#endif
 	/* (Re)set PS4 and IFS, but don't export these now even if allexport is on. */
 	i = (sh_isoption(SH_ALLEXPORT) != 0);
 	sh_offoption(SH_ALLEXPORT);

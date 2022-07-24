@@ -474,7 +474,10 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 				pr_string(vp,Prompt);
 				putstring(vp,0, last_phys+1);
 				if(echoctl)
-					ed_crlf(vp->ed);
+				{
+					putchar('\n');
+					ed_flush(vp->ed);
+				}
 				else
 					while(kill_erase-- > 0)
 						putchar(' ');
@@ -483,7 +486,10 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 			if( term_char=='\n' )
 			{
 				if(!echoctl)
-					ed_crlf(vp->ed);
+				{
+					putchar('\n');
+					ed_flush(vp->ed);
+				}
 				virtual[++last_virt] = '\n';
 			}
 			vp->last_cmd = 'i';
@@ -596,7 +602,8 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 	if( vp->addnl )
 	{
 		virtual[++last_virt] = '\n';
-		ed_crlf(vp->ed);
+		putchar('\n');
+		ed_flush(vp->ed);
 	}
 	if( ++last_virt >= 0 )
 	{

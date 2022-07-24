@@ -52,6 +52,21 @@
     struct ionod;
 #endif /* !ARG_RAW */
 
+/*
+ * Check if there is an editor active while avoiding repetitive #if flaggery.
+ * The 0 definition is used to optimize out code if no editor is compiled in.
+ * (This is here and not in edit.h because io.h is far more widely included.)
+ */
+#if SHOPT_ESH && SHOPT_VSH
+#define sh_editor_active()	(sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
+#elif SHOPT_ESH
+#define sh_editor_active()	(sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
+#elif SHOPT_VSH
+#define sh_editor_active()	(sh_isoption(SH_VI)!=0)
+#else
+#define sh_editor_active()	0
+#endif
+
 extern int	sh_iocheckfd(int);
 extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int);

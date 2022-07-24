@@ -292,7 +292,6 @@ int job_reap(register int sig)
 	int nochild = 0, oerrno = errno, wstat;
 	Waitevent_f waitevent = sh.waitevent;
 	static int wcontinued = WCONTINUED;
-	int was_ttywait_on;
 	if (vmbusy())
 	{
 		errormsg(SH_DICT,ERROR_warn(0),"vmbusy() inside job_reap() -- should not happen");
@@ -310,18 +309,14 @@ int job_reap(register int sig)
 	else
 		flags = WUNTRACED|wcontinued;
 	sh.waitevent = 0;
-	was_ttywait_on = sh_isstate(SH_TTYWAIT); /* save tty wait state */
 	while(1)
 	{
 		if(!(flags&WNOHANG) && !sh.intrap && job.pwlist)
 		{
-			sh_onstate(SH_TTYWAIT);
 			if(waitevent && (*waitevent)(-1,-1L,0))
 				flags |= WNOHANG;
 		}
 		pid = waitpid((pid_t)-1,&wstat,flags);
-		if(!was_ttywait_on)
-			sh_offstate(SH_TTYWAIT);
 
 		/*
 		 * some systems (Linux 2.6) may return EINVAL
@@ -331,10 +326,20 @@ int job_reap(register int sig)
 		if (pid<0 && errno==EINVAL && (flags&WCONTINUED))
 			pid = waitpid((pid_t)-1,&wstat,flags&=~WCONTINUED);
 		sh_sigcheck();
-		if(pid<0 && errno==EINTR && (sig||job.savesig))
+		if(pid<0)
 		{
-			errno = 0;
-			continue;
+			if(errno==EINTR && (sig||job.savesig))
+			{
+				errno = 0;
+				continue;
+			}
+			if(errno==ECHILD)
+			{
+#if SHOPT_BGX
+				job.numbjob = 0;
+#endif /* SHOPT_BGX */
+				nochild = 1;
+			}
 		}
 		if(pid<=0)
 			break;
@@ -474,23 +479,29 @@ int job_reap(register int sig)
 			sh.sigflag[SIGCHLD] |= SH_SIGTRAP;
 			sh.trapnote |= SH_SIGTRAP;
 		}
-#endif
-	}
-	if(errno==ECHILD)
-	{
-#if SHOPT_BGX
-		job.numbjob = 0;
-#endif /* SHOPT_BGX */
-		nochild = 1;
+#endif /* !SHOPT_BGX */
+		/* Handle -b/--notify while waiting for command line input */
+		if(sh_isoption(SH_NOTIFY) && sh_isstate(SH_TTYWAIT))
+		{
+			if(sh_editor_active())
+			{
+				/* Buffer the notification for ed_read() to show */
+				if(!sh.notifybuf)
+					sh.notifybuf = sfstropen();
+				outfile = sh.notifybuf;
+				job_list(pw,JOB_NFLAG);
+				sh.winch = 1;
+			}
+			else
+			{
+				outfile = sfstderr;
+				job_list(pw,JOB_NFLAG|JOB_NLFLAG);
+				sfsync(sfstderr);
+			}
+			job_unpost(pw,1);
+		}
 	}
 	sh.waitevent = waitevent;
-	if(pw && sh_isoption(SH_NOTIFY) && sh_isstate(SH_TTYWAIT))
-	{
-		outfile = sfstderr;
-		job_list(pw,JOB_NFLAG|JOB_NLFLAG);
-		job_unpost(pw,1);
-		sfsync(sfstderr);
-	}
 	if(sig)
 		signal(sig, job_waitsafe);
 	/*
@@ -897,7 +908,8 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 /*
  * list the given job
  * flag JOB_LFLAG for long listing
- * flag JOB_NFLAG for list only jobs marked for notification
+ * flag JOB_NFLAG to list only jobs marked for notification
+ * flag JOB_NLFLAG to print an initial newline
  * flag JOB_PFLAG for process ID(s) only
  */
 int job_list(struct process *pw,register int flag)
