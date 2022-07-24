@@ -14,6 +14,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug that caused the -b/--notify option to only notify on one job if
   more than one background job completed at the same time.
 
+- Fixed a bug in the 'command -x' feature introduced on 2021-01-30; it is meant
+  to always run an external command, but failed to bypass path-bound builtins.
+
 2022-07-21:
 
 - Fixed a bug where a reproducible $RANDOM sequence (after assigning a

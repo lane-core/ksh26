@@ -757,7 +757,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 			int n;
 #endif
 			/* Handle default path-bound builtins */
-			if(*stakptr(PATH_OFFSET)=='/' && nv_search(stakptr(PATH_OFFSET),sh.bltin_tree,0))
+			if(!sh_isstate(SH_XARG) && *stakptr(PATH_OFFSET)=='/' && nv_search(stakptr(PATH_OFFSET),sh.bltin_tree,0))
 				return(oldpp);
 #if SHOPT_DYNAMIC
 			/* Load builtins from dynamic libraries */
@@ -1054,7 +1054,7 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 	char		*s, *v;
 	int		r, n, pidsize;
 	pid_t		pid= -1;
-	if(nv_search(opath,sh.bltin_tree,0))
+	if(!sh_isstate(SH_XARG) && nv_search(opath,sh.bltin_tree,0))
 	{
 		/* Found a path-bound built-in. Since this was not caught earlier in sh_exec(), it must
 		   have been found on a temporarily assigned PATH, as with 'PATH=/opt/ast/bin:$PATH cat'.

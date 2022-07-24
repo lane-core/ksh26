@@ -518,6 +518,15 @@ then
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# Check that adding '-x' runs an external command, also bypassing path-bound builtins
+if	! test -x /opt/ast/bin/cat	# a physical external utility here would invalidate these tests
+then
+	got=$( PATH=/opt/ast/bin; command -x cat --about 2>&1 )
+	[[ $got == *version*'cat ('* ]] && err_exit 'command -x fails to bypass path-bound built-in found in PATH search'
+	got=$( command -x /opt/ast/bin/cat --about 2>&1 )
+	[[ $got == *version*'cat ('* ]] && err_exit 'command -x fails to bypass path-bound built-in by direct pathname'
+fi
+
 # ======
 # 'command -x' used to hang in an endless E2BIG loop on Linux and macOS
 ofile=$tmp/command_x_chunks.sh
