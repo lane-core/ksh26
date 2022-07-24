@@ -1464,6 +1464,12 @@ make install
 		exec - then mkdir -p ${INSTALLROOT}/fun
 		exec - fi
 	done ${INSTALLROOT}/fun generated
+	make ${INSTALLROOT}/fun/autocd
+		prev ${INSTALLROOT}/fun
+		make fun/autocd
+		done fun/autocd
+		exec - ${STDCMP} 2>/dev/null -s fun/autocd ${INSTALLROOT}/fun/autocd || { ${STDMV} ${INSTALLROOT}/fun/autocd ${INSTALLROOT}/fun/autocd.old 2>/dev/null || true; ${STDCP} fun/autocd ${INSTALLROOT}/fun/autocd && chmod ugo+x ${INSTALLROOT}/fun/autocd ;}
+	done ${INSTALLROOT}/fun/autocd generated
 	make ${INSTALLROOT}/fun/dirs
 		prev ${INSTALLROOT}/fun
 		make fun/dirs

@@ -8,7 +8,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Add new 'man' function in src/cmd/ksh93/fun/man. This integrates the --man
   self-documentation of ksh built-in and external AST commands with your
   system's 'man' command so you can conveniently use 'man' for all commands,
-  whether built-in or external. See the file for details.
+  whether built-in or external. To use this, put the file in a directory in
+  your $FPATH and then issue 'autoload man' in your .kshrc to override the
+  system's man(1) command. See the file for details.
+
+- Add new 'autocd' function in src/cmd/ksh93/fun/autocd. This activates a
+  feature like 'shopt -s autocd' in bash: type only a directory name to change.
+  See the file for details. Add this file to a directory in your $FPATH to use.
 
 - New feature to make 'set -b'/'set -o notify' more usable. When that option
   is on (and either the vi or emacs/gmacs line editor is in use), 'Done' and
