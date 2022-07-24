@@ -1377,7 +1377,7 @@ make install
 	make ${INSTALLROOT}/bin/ksh
 		prev ${INSTALLROOT}/bin
 		prev ksh
-		exec - test '' = 'ksh' || ${STDCMP} 2>/dev/null -s ksh ${INSTALLROOT}/bin/ksh || { ${STDMV} ${INSTALLROOT}/bin/ksh ${INSTALLROOT}/bin/ksh.old 2>/dev/null || true; ${STDCP} ksh ${INSTALLROOT}/bin/ksh ;}
+		exec - ${STDCMP} 2>/dev/null -s ksh ${INSTALLROOT}/bin/ksh || { ${STDMV} ${INSTALLROOT}/bin/ksh ${INSTALLROOT}/bin/ksh.old 2>/dev/null || true; ${STDCP} ksh ${INSTALLROOT}/bin/ksh ;}
 	done ${INSTALLROOT}/bin/ksh generated
 	make ${INSTALLROOT}/man/man1
 		exec - if silent test ! -d ${INSTALLROOT}/man/man1
@@ -1388,7 +1388,7 @@ make install
 		prev ${INSTALLROOT}/man/man1
 		make sh.1
 		done sh.1
-		exec - test '' = 'sh.1' || ${STDCMP} 2>/dev/null -s sh.1 ${INSTALLROOT}/man/man1/sh.1 || { ${STDMV} ${INSTALLROOT}/man/man1/sh.1 ${INSTALLROOT}/man/man1/sh.1.old 2>/dev/null || true; ${STDCP} sh.1 ${INSTALLROOT}/man/man1/sh.1 ;}
+		exec - ${STDCMP} 2>/dev/null -s sh.1 ${INSTALLROOT}/man/man1/sh.1 || { ${STDMV} ${INSTALLROOT}/man/man1/sh.1 ${INSTALLROOT}/man/man1/sh.1.old 2>/dev/null || true; ${STDCP} sh.1 ${INSTALLROOT}/man/man1/sh.1 ;}
 	done ${INSTALLROOT}/man/man1/sh.1 generated
 	make ${INSTALLROOT}/lib
 		exec - if silent test ! -d ${INSTALLROOT}/lib
@@ -1398,7 +1398,7 @@ make install
 	make ${INSTALLROOT}/lib/libshell.a archive
 		prev ${INSTALLROOT}/lib
 		prev libshell.a archive
-		exec - test '' = 'libshell.a' || ${STDCMP} 2>/dev/null -s libshell.a ${INSTALLROOT}/lib/libshell.a || { ${STDMV} ${INSTALLROOT}/lib/libshell.a ${INSTALLROOT}/lib/libshell.a.old 2>/dev/null || true; ${STDCP} libshell.a ${INSTALLROOT}/lib/libshell.a ;}
+		exec - ${STDCMP} 2>/dev/null -s libshell.a ${INSTALLROOT}/lib/libshell.a || { ${STDMV} ${INSTALLROOT}/lib/libshell.a ${INSTALLROOT}/lib/libshell.a.old 2>/dev/null || true; ${STDCP} libshell.a ${INSTALLROOT}/lib/libshell.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libshell.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libshell.a generated
 	make ${INSTALLROOT}/man/man3
@@ -1410,12 +1410,12 @@ make install
 		prev ${INSTALLROOT}/man/man3
 		make shell.3
 		done shell.3
-		exec - test '' = 'shell.3' || ${STDCMP} 2>/dev/null -s shell.3 ${INSTALLROOT}/man/man3/shell.3 || { ${STDMV} ${INSTALLROOT}/man/man3/shell.3 ${INSTALLROOT}/man/man3/shell.3.old 2>/dev/null || true; ${STDCP} shell.3 ${INSTALLROOT}/man/man3/shell.3 ;}
+		exec - ${STDCMP} 2>/dev/null -s shell.3 ${INSTALLROOT}/man/man3/shell.3 || { ${STDMV} ${INSTALLROOT}/man/man3/shell.3 ${INSTALLROOT}/man/man3/shell.3.old 2>/dev/null || true; ${STDCP} shell.3 ${INSTALLROOT}/man/man3/shell.3 ;}
 	done ${INSTALLROOT}/man/man3/shell.3 generated
 	make ${INSTALLROOT}/man/man3/nval.3
 		make nval.3
 		done nval.3
-		exec - test '' = 'nval.3' || ${STDCMP} 2>/dev/null -s nval.3 ${INSTALLROOT}/man/man3/nval.3 || { ${STDMV} ${INSTALLROOT}/man/man3/nval.3 ${INSTALLROOT}/man/man3/nval.3.old 2>/dev/null || true; ${STDCP} nval.3 ${INSTALLROOT}/man/man3/nval.3 ;}
+		exec - ${STDCMP} 2>/dev/null -s nval.3 ${INSTALLROOT}/man/man3/nval.3 || { ${STDMV} ${INSTALLROOT}/man/man3/nval.3 ${INSTALLROOT}/man/man3/nval.3.old 2>/dev/null || true; ${STDCP} nval.3 ${INSTALLROOT}/man/man3/nval.3 ;}
 	done ${INSTALLROOT}/man/man3/nval.3 generated
 	make ${INSTALLROOT}/lib/lib
 		exec - if silent test ! -d ${INSTALLROOT}/lib/lib
@@ -1425,7 +1425,7 @@ make install
 	make ${INSTALLROOT}/lib/lib/shell
 		prev ${INSTALLROOT}/lib/lib
 		prev shell.req
-		exec - test '' = 'shell.req' || ${STDCMP} 2>/dev/null -s shell.req ${INSTALLROOT}/lib/lib/shell || { ${STDMV} ${INSTALLROOT}/lib/lib/shell ${INSTALLROOT}/lib/lib/shell.old 2>/dev/null || true; ${STDCP} shell.req ${INSTALLROOT}/lib/lib/shell ;}
+		exec - ${STDCMP} 2>/dev/null -s shell.req ${INSTALLROOT}/lib/lib/shell || { ${STDMV} ${INSTALLROOT}/lib/lib/shell ${INSTALLROOT}/lib/lib/shell.old 2>/dev/null || true; ${STDCP} shell.req ${INSTALLROOT}/lib/lib/shell ;}
 	done ${INSTALLROOT}/lib/lib/shell generated
 	make ${PACKAGE_ast_INCLUDE}
 		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}
@@ -1453,11 +1453,11 @@ make install
 	done ${PACKAGE_ast_INCLUDE}/history.h generated
 	make ${INSTALLROOT}/bin/suid_exec
 		prev suid_exec
-		exec - test '' = 'suid_exec' || ${STDCMP} 2>/dev/null -s suid_exec ${INSTALLROOT}/bin/suid_exec || { ${STDMV} ${INSTALLROOT}/bin/suid_exec ${INSTALLROOT}/bin/suid_exec.old 2>/dev/null || true; ${STDCP} suid_exec ${INSTALLROOT}/bin/suid_exec ;}
+		exec - ${STDCMP} 2>/dev/null -s suid_exec ${INSTALLROOT}/bin/suid_exec || { ${STDMV} ${INSTALLROOT}/bin/suid_exec ${INSTALLROOT}/bin/suid_exec.old 2>/dev/null || true; ${STDCP} suid_exec ${INSTALLROOT}/bin/suid_exec ;}
 	done ${INSTALLROOT}/bin/suid_exec generated
 	make ${INSTALLROOT}/bin/shcomp
 		prev shcomp
-		exec - test '' = 'shcomp' || ${STDCMP} 2>/dev/null -s shcomp ${INSTALLROOT}/bin/shcomp || { ${STDMV} ${INSTALLROOT}/bin/shcomp ${INSTALLROOT}/bin/shcomp.old 2>/dev/null || true; ${STDCP} shcomp ${INSTALLROOT}/bin/shcomp ;}
+		exec - ${STDCMP} 2>/dev/null -s shcomp ${INSTALLROOT}/bin/shcomp || { ${STDMV} ${INSTALLROOT}/bin/shcomp ${INSTALLROOT}/bin/shcomp.old 2>/dev/null || true; ${STDCP} shcomp ${INSTALLROOT}/bin/shcomp ;}
 	done ${INSTALLROOT}/bin/shcomp generated
 	make ${INSTALLROOT}/fun
 		exec - if silent test ! -d ${INSTALLROOT}/fun
@@ -1474,7 +1474,7 @@ make install
 		prev ${INSTALLROOT}/fun
 		make fun/dirs
 		done fun/dirs
-		exec - test '' = 'fun/dirs' || ${STDCMP} 2>/dev/null -s fun/dirs ${INSTALLROOT}/fun/dirs || { ${STDMV} ${INSTALLROOT}/fun/dirs ${INSTALLROOT}/fun/dirs.old 2>/dev/null || true; ${STDCP} fun/dirs ${INSTALLROOT}/fun/dirs && chmod ugo+x ${INSTALLROOT}/fun/dirs ;}
+		exec - ${STDCMP} 2>/dev/null -s fun/dirs ${INSTALLROOT}/fun/dirs || { ${STDMV} ${INSTALLROOT}/fun/dirs ${INSTALLROOT}/fun/dirs.old 2>/dev/null || true; ${STDCP} fun/dirs ${INSTALLROOT}/fun/dirs && chmod ugo+x ${INSTALLROOT}/fun/dirs ;}
 	done ${INSTALLROOT}/fun/dirs generated
 	make ${INSTALLROOT}/fun/man
 		prev ${INSTALLROOT}/fun
@@ -1485,12 +1485,12 @@ make install
 	make ${INSTALLROOT}/fun/popd
 		make fun/popd
 		done fun/popd
-		exec - test '' = 'fun/popd' || ${STDCMP} 2>/dev/null -s fun/popd ${INSTALLROOT}/fun/popd || { ${STDMV} ${INSTALLROOT}/fun/popd ${INSTALLROOT}/fun/popd.old 2>/dev/null || true; ${STDCP} fun/popd ${INSTALLROOT}/fun/popd && chmod ugo+x ${INSTALLROOT}/fun/popd ;}
+		exec - ${STDCMP} 2>/dev/null -s fun/popd ${INSTALLROOT}/fun/popd || { ${STDMV} ${INSTALLROOT}/fun/popd ${INSTALLROOT}/fun/popd.old 2>/dev/null || true; ${STDCP} fun/popd ${INSTALLROOT}/fun/popd && chmod ugo+x ${INSTALLROOT}/fun/popd ;}
 	done ${INSTALLROOT}/fun/popd generated
 	make ${INSTALLROOT}/fun/pushd
 		make fun/pushd
 		done fun/pushd
-		exec - test '' = 'fun/pushd' || ${STDCMP} 2>/dev/null -s fun/pushd ${INSTALLROOT}/fun/pushd || { ${STDMV} ${INSTALLROOT}/fun/pushd ${INSTALLROOT}/fun/pushd.old 2>/dev/null || true; ${STDCP} fun/pushd ${INSTALLROOT}/fun/pushd && chmod ugo+x ${INSTALLROOT}/fun/pushd ;}
+		exec - ${STDCMP} 2>/dev/null -s fun/pushd ${INSTALLROOT}/fun/pushd || { ${STDMV} ${INSTALLROOT}/fun/pushd ${INSTALLROOT}/fun/pushd.old 2>/dev/null || true; ${STDCP} fun/pushd ${INSTALLROOT}/fun/pushd && chmod ugo+x ${INSTALLROOT}/fun/pushd ;}
 	done ${INSTALLROOT}/fun/pushd generated
 done install virtual
 make test

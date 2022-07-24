@@ -687,7 +687,7 @@ make install
 	make ${INSTALLROOT}/lib/libcmd.a archive
 		prev ${INSTALLROOT}/lib
 		prev libcmd.a archive
-		exec - test '' = 'libcmd.a' || ${STDCMP} 2>/dev/null -s libcmd.a ${INSTALLROOT}/lib/libcmd.a || { ${STDMV} ${INSTALLROOT}/lib/libcmd.a ${INSTALLROOT}/lib/libcmd.a.old 2>/dev/null || true; ${STDCP} libcmd.a ${INSTALLROOT}/lib/libcmd.a ;}
+		exec - ${STDCMP} 2>/dev/null -s libcmd.a ${INSTALLROOT}/lib/libcmd.a || { ${STDMV} ${INSTALLROOT}/lib/libcmd.a ${INSTALLROOT}/lib/libcmd.a.old 2>/dev/null || true; ${STDCP} libcmd.a ${INSTALLROOT}/lib/libcmd.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libcmd.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libcmd.a generated
 	make ${INSTALLROOT}/lib/lib
@@ -698,7 +698,7 @@ make install
 	make ${INSTALLROOT}/lib/lib/cmd
 		prev ${INSTALLROOT}/lib/lib
 		prev cmd.req
-		exec - test '' = 'cmd.req' || ${STDCMP} 2>/dev/null -s cmd.req ${INSTALLROOT}/lib/lib/cmd || { ${STDMV} ${INSTALLROOT}/lib/lib/cmd ${INSTALLROOT}/lib/lib/cmd.old 2>/dev/null || true; ${STDCP} cmd.req ${INSTALLROOT}/lib/lib/cmd ;}
+		exec - ${STDCMP} 2>/dev/null -s cmd.req ${INSTALLROOT}/lib/lib/cmd || { ${STDMV} ${INSTALLROOT}/lib/lib/cmd ${INSTALLROOT}/lib/lib/cmd.old 2>/dev/null || true; ${STDCP} cmd.req ${INSTALLROOT}/lib/lib/cmd ;}
 	done ${INSTALLROOT}/lib/lib/cmd generated
 	make ${PACKAGE_ast_INCLUDE}
 		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}

@@ -25,7 +25,7 @@
 #include <sfdisc.h>
 
 #if _std_malloc  /* do not pointlessly compile this if vmalloc is disabled */
-void _STUB_vmstate(){}
+NoN(vmstate)
 #else
 
 #define FORMAT		"region=%(region)p method=%(method)s flags=%(flags)s size=%(size)d segments=%(segments)d busy=(%(busy_size)d,%(busy_blocks)d,%(busy_max)d) free=(%(free_size)d,%(free_blocks)d,%(free_max)d)"

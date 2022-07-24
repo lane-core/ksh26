@@ -23,7 +23,7 @@
 #include "FEATURE/vmalloc"
 #if !_hdr_sys_shm
 
-void _STUB_vmmapopen(){}
+NoN(vmmapopen)
 
 #else
 

@@ -54,7 +54,7 @@ make install
 	done ${INSTALLROOT}/bin generated
 	make ${INSTALLROOT}/bin/pty
 		prev pty
-		exec - test '' = 'pty' || ${STDCMP} 2>/dev/null -s pty ${INSTALLROOT}/bin/pty || { ${STDMV} ${INSTALLROOT}/bin/pty ${INSTALLROOT}/bin/pty.old 2>/dev/null || true; ${STDCP} pty ${INSTALLROOT}/bin/pty ;}
+		exec - ${STDCMP} 2>/dev/null -s pty ${INSTALLROOT}/bin/pty || { ${STDMV} ${INSTALLROOT}/bin/pty ${INSTALLROOT}/bin/pty.old 2>/dev/null || true; ${STDCP} pty ${INSTALLROOT}/bin/pty ;}
 	done ${INSTALLROOT}/bin/pty generated
 	make ${INSTALLROOT}/bin
 		exec - if silent test ! -d ${INSTALLROOT}/bin

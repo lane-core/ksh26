@@ -250,7 +250,7 @@ make install
 	make ${INSTALLROOT}/lib/libdll.a archive
 		prev ${INSTALLROOT}/lib
 		prev libdll.a archive
-		exec - test '' = 'libdll.a' || ${STDCMP} 2>/dev/null -s libdll.a ${INSTALLROOT}/lib/libdll.a || { ${STDMV} ${INSTALLROOT}/lib/libdll.a ${INSTALLROOT}/lib/libdll.a.old 2>/dev/null || true; ${STDCP} libdll.a ${INSTALLROOT}/lib/libdll.a ;}
+		exec - ${STDCMP} 2>/dev/null -s libdll.a ${INSTALLROOT}/lib/libdll.a || { ${STDMV} ${INSTALLROOT}/lib/libdll.a ${INSTALLROOT}/lib/libdll.a.old 2>/dev/null || true; ${STDCP} libdll.a ${INSTALLROOT}/lib/libdll.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libdll.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libdll.a generated
 	make ${INSTALLROOT}/lib/lib
@@ -261,7 +261,7 @@ make install
 	make ${INSTALLROOT}/lib/lib/dll
 		prev ${INSTALLROOT}/lib/lib
 		prev dll.req
-		exec - test '' = 'dll.req' || ${STDCMP} 2>/dev/null -s dll.req ${INSTALLROOT}/lib/lib/dll || { ${STDMV} ${INSTALLROOT}/lib/lib/dll ${INSTALLROOT}/lib/lib/dll.old 2>/dev/null || true; ${STDCP} dll.req ${INSTALLROOT}/lib/lib/dll ;}
+		exec - ${STDCMP} 2>/dev/null -s dll.req ${INSTALLROOT}/lib/lib/dll || { ${STDMV} ${INSTALLROOT}/lib/lib/dll ${INSTALLROOT}/lib/lib/dll.old 2>/dev/null || true; ${STDCP} dll.req ${INSTALLROOT}/lib/lib/dll ;}
 	done ${INSTALLROOT}/lib/lib/dll generated
 	make ${PACKAGE_ast_INCLUDE}
 		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}

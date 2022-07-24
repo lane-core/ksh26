@@ -26,8 +26,10 @@
  */
 
 #include	"shopt.h"
+#include	"defs.h"
+
 #if !SHOPT_MKSERVICE
-void _STUB_b_mkservice(){}
+NoN(mkservice)
 #else
 
 static const char mkservice_usage[] =
@@ -90,8 +92,6 @@ static const char eloop_usage[] =
 "[+SEE ALSO?\bmkservice\b(1)]"
 ;
 
-
-#include	"defs.h"
 
 #include	<cmd.h>
 #include	<error.h>

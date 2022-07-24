@@ -40,10 +40,9 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 	 * standard
 	 */
 
-#	include <dlfcn.h> 
+	NoN(dlopen)
 
-#else
-#if _hdr_dl
+#elif _hdr_dl
 
 	/*
 	 * HP-UX
@@ -103,8 +102,7 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 		return msg;
 	}
 
-#else
-#if _sys_ldr && _lib_loadbind
+#elif _sys_ldr && _lib_loadbind
 
 	/*
 	 * rs6000
@@ -259,8 +257,7 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 		return msg;
 	}
 
-#else
-#if _hdr_dll && _lib_dllload
+#elif _hdr_dll && _lib_dllload
 
 	/*
 	 * MVS
@@ -305,8 +302,7 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 		return msg;
 	}
 
-#else
-#if _hdr_mach_o_dyld
+#elif _hdr_mach_o_dyld
 
 	/*
 	 * mac[h]
@@ -525,8 +521,4 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 		return "dynamic linking not supported";
 	}
 
-#endif
-#endif
-#endif
-#endif
 #endif

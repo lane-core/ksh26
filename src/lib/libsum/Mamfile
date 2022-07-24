@@ -186,7 +186,7 @@ make install
 	make ${INSTALLROOT}/lib/libsum.a archive
 		prev ${INSTALLROOT}/lib
 		prev libsum.a archive
-		exec - test '' = 'libsum.a' || ${STDCMP} 2>/dev/null -s libsum.a ${INSTALLROOT}/lib/libsum.a || { ${STDMV} ${INSTALLROOT}/lib/libsum.a ${INSTALLROOT}/lib/libsum.a.old 2>/dev/null || true; ${STDCP} libsum.a ${INSTALLROOT}/lib/libsum.a ;}
+		exec - ${STDCMP} 2>/dev/null -s libsum.a ${INSTALLROOT}/lib/libsum.a || { ${STDMV} ${INSTALLROOT}/lib/libsum.a ${INSTALLROOT}/lib/libsum.a.old 2>/dev/null || true; ${STDCP} libsum.a ${INSTALLROOT}/lib/libsum.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libsum.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libsum.a generated
 	make ${INSTALLROOT}/lib/lib
@@ -197,7 +197,7 @@ make install
 	make ${INSTALLROOT}/lib/lib/sum
 		prev ${INSTALLROOT}/lib/lib
 		prev sum.req
-		exec - test '' = 'sum.req' || ${STDCMP} 2>/dev/null -s sum.req ${INSTALLROOT}/lib/lib/sum || { ${STDMV} ${INSTALLROOT}/lib/lib/sum ${INSTALLROOT}/lib/lib/sum.old 2>/dev/null || true; ${STDCP} sum.req ${INSTALLROOT}/lib/lib/sum ;}
+		exec - ${STDCMP} 2>/dev/null -s sum.req ${INSTALLROOT}/lib/lib/sum || { ${STDMV} ${INSTALLROOT}/lib/lib/sum ${INSTALLROOT}/lib/lib/sum.old 2>/dev/null || true; ${STDCP} sum.req ${INSTALLROOT}/lib/lib/sum ;}
 	done ${INSTALLROOT}/lib/lib/sum generated
 	make ${PACKAGE_ast_INCLUDE}
 		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}

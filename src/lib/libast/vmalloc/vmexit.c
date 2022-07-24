@@ -29,7 +29,7 @@
 */
 #if _PACKAGE_ast || _lib_atexit
 
-void _STUB_vmexit(){}
+NoN(vmexit)
 
 #else
 

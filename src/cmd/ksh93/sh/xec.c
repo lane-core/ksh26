@@ -3330,8 +3330,8 @@ static void coproc_init(int pipes[])
 static void sigreset(int mode)
 {
 	register char   *trap;
-	register int sig=sh.st.trapmax;
-	while(sig-- > 0)
+	register int	sig;
+	for (sig = 1; sig < sh.st.trapmax; sig++)
 	{
 		if(sig==SIGCHLD)
 			continue;

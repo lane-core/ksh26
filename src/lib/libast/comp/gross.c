@@ -29,7 +29,7 @@
 
 #include "FEATURE/hack"
 
-void _STUB_gross(){}
+NoN(gross)
 
 #if _lcl_xstat
 

@@ -206,7 +206,7 @@ struct sh_scoped
 	short		optchar;
 	short		opterror;
 	int		ioset;
-	unsigned short	trapmax;
+	unsigned short	trapmax;	/* highest currently trapped signal number, plus one (!) */
 	char		trapdontexec;	/* stop exec optimization if any non-DEBUG/SIGKILL/SIGSTOP trap is set and non-empty */
 	char		*trap[SH_DEBUGTRAP+1];	/* pseudosignals (except EXIT) */
 	char		**otrap;	/* save parent pseudosignals for v=$(trap) */
