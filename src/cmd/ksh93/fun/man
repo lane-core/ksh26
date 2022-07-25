@@ -111,7 +111,7 @@ namespace man
 
 	try_os_man()
 	{
-		[[ $(command man -s "$1" "$2" 2>/dev/null) == *$'\n'*$'\n'*$'\n'* ]]
+		[[ $2 != */* && $(command man -s "$1" "$2" 2>/dev/null) == *$'\n'*$'\n'*$'\n'* ]]
 	}
 
 	# The main function puts it all together. When given a single argument,
