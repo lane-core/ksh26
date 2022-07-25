@@ -56,10 +56,9 @@ namespace man
 
 	builtin_has_selfdoc()
 	{
-		typeset LF=$'\n'	# linefeed/newline shorthand
 		[[ $(whence -t -- "$1") == builtin ]] \
 			&& [[ ! $1 =~ ^(:|true|false|echo)$ \
-			&& $LF$(builtin)$LF == *"$LF$(whence -- "$1")$LF"* ]]
+			&& $'\n'$(builtin)$'\n' == *$'\n'"$(whence -- "$1")"$'\n'* ]]
 	}
 
 	# Check if a binary or script has --man self-documentation by grepping
@@ -104,17 +103,15 @@ namespace man
 		${PAGER:-less -R}	# ...so we can safely split $PAGER
 	}
 
-	# Function to try if a system manual page in a section exists. If it
-	# does, it is shown as normal, otherwise the function returns false.
-	# On some systems 2>/dev/null will make man(1) misbehave if the page
-	# is found, so erase the error message after the fact.
+	# Try if a system manual page in a section exists. Unfortunately, we
+	# cannot portably rely on the exit status of the 'man' command to check
+	# for success, so test if its standard output includes at least three
+	# newline control characters. (Thankfully, all OS man commands seem to
+	# deactivate the pager if standard output is not on a terminal.)
 
 	try_os_man()
 	{
-		if ! command man -s "$1" "$2"; then
-			print -n $'\r\E[A\E[K'  # erase man's error msg
-			false
-		fi
+		[[ $(command man -s "$1" "$2" 2>/dev/null) == *$'\n'*$'\n'*$'\n'* ]]
 	}
 
 	# The main function puts it all together. When given a single argument,
@@ -131,8 +128,10 @@ namespace man
 			command man "$@"
 		elif builtin_has_selfdoc "$1"; then
 			show_selfdoc "$1" | pager
-		elif try_os_man 1 "$1" || try_os_man 8 "$1"; then
-			:
+		elif try_os_man 1 "$1"; then
+			command man -s 1 "$1"
+		elif try_os_man 8 "$1"; then
+			command man -s 8 "$1"
 		elif extcmd_has_selfdoc "$1"; then
 			show_selfdoc "$1" | pager
 		else
