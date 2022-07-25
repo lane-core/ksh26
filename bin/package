@@ -109,7 +109,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-07-22 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-07-25 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -2718,7 +2718,7 @@ make|view)
 	# check for some required commands
 
 	must="$AR"
-	warn="$NM yacc bison"
+	warn="$NM"
 	test="$must $warn"
 	have=
 	IFS=:
@@ -2742,14 +2742,6 @@ make|view)
 			esac
 		done
 	done
-	case " $have " in
-	*" bison "*)	;;
-	*" yacc "*)	have="$have bison" ;;
-	esac
-	case " $have " in
-	*" yacc "*)	;;
-	*" bison "*)	have="$have yacc" ;;
-	esac
 	for t in $test
 	do	case " $have " in
 		*" $t "*)
