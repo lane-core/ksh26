@@ -7793,6 +7793,18 @@ built-ins;
 stops the \fB.\fR command (but not \fBsource\fR) from looking up functions
 defined with the \fBfunction\fR syntax;
 .IP \[bu]
+disables the recognition of unexpanded shell arithmetic expressions in the
+numerical comparison operators
+.BR \-eq ,
+.BR \-ne ,
+.BR \-gt ,
+.BR \-ge ,
+.B \-lt
+and
+.B \-le
+of the \fBtest\fR/\fB[\fR built-in command, causing them to accept only
+decimal numbers as operands;
+.IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators
 work even if \fIexpr1\fR equals "\fB!\fR" or "\fb(\fR" (which means the
@@ -8004,7 +8016,7 @@ to those specified for the \f3[[\fP compound command under
 .I Conditional Expressions
 above, but with several important differences. The \f3=\fP, \f3==\fP and
 \f3!=\fP operators test for string (in)equality without pattern matching;
-\f3==\fP is nonstandard and unportable. The f3&&\fP and \f3||\fP operators are
+\f3==\fP is nonstandard and unportable. The \f3&&\fP and \f3||\fP operators are
 not available. Instead, the \f3-a\fP and \f3-o\fP binary operators can be
 used, but they are fraught with pitfalls due to grammatical ambiguities and
 therefore deprecated in favor of invoking separate \f3test\fP commands. Most
