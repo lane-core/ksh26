@@ -1276,7 +1276,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		sh_regress_init();
 #endif
 		sh.current_pid = sh.pid = getpid();
-		sh.ppid = getppid();
+		sh.current_ppid = sh.ppid = getppid();
 		sh.userid=getuid();
 		sh.euserid=geteuid();
 		sh.groupid=getgid();
@@ -1697,9 +1697,9 @@ int sh_reinit(char *argv[])
 	sh.inpipe = sh.outpipe = 0;
 	job_clear();
 	job.in_critical = 0;
-	/* update ${.sh.pid}, $$, $PPID */
-	sh.ppid = sh.current_pid;
-	sh.current_pid = sh.pid = getpid();
+	/* update $$, $PPID */
+	sh.ppid = sh.current_ppid;
+	sh.pid = sh.current_pid;
 	/* call user init function, if any */
 	if(sh.userinit)
 		(*sh.userinit)(&sh, 1);

@@ -147,9 +147,16 @@ fi
 # PPID
 exp=$$
 got=${ $SHELL -c 'print $PPID'; }
-if	[[ ${ $SHELL -c 'print $PPID'; } != $$ ]]
-then	err_exit "PPID variable failed -- expected '$exp', got '$got'"
-fi
+[[ $got == $$ ]] || err_exit "PPID variable failed in -c script -- expected '$exp', got '$got'"
+print 'print $PPID' >ppid.sh
+chmod +x ppid.sh
+./ppid.sh >|out
+got=$(<out)
+[[ $got == $$ ]] || err_exit "PPID variable failed in script without #! -- expected '$exp', got '$got'"
+print -r "#!$SHELL"$'\nprint $PPID' >|ppid.sh
+./ppid.sh >|out
+got=$(<out)
+[[ $got == $$ ]] || err_exit "PPID variable failed in script with #! -- expected '$exp', got '$got'"
 # OLDPWD
 old=$PWD
 cd /
