@@ -1007,7 +1007,7 @@ set -- $(
 		[[ -n $varname && $varname != '.sh' ]] && print -r -- "$varname"
 	done
 )
-(($# >= 65)) || err_exit "could not read shtab_variables[]; adjust test script ($# items read)"
+(($# >= 64)) || err_exit "could not read shtab_variables[]; adjust test script ($# items read)"
 
 # ... unset
 $SHELL -c '
@@ -1102,10 +1102,10 @@ $SHELL -c '
 	typeset -l lower
 	errors=0
 	PS1=/dev/null/test_my_case_too
-	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1 CSWIDTH=$PS1
+	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1
 	for var
 	do	case $var in
-		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats)
+		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
 			# these are expected to fail below as their values change; just test against crashing
 			typeset -u "$var"
 			typeset -l "$var"

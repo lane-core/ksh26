@@ -2785,9 +2785,7 @@ static char *special(register int c)
 			return(ltos(sh.bckpid));
 		break;
 	    case '$':
-		if(nv_isnull(SH_DOLLARNOD))
-			return(ltos(sh.pid));
-		return(nv_getval(SH_DOLLARNOD));
+		return(ltos(sh.pid));
 	    case '-':
 		return(sh_argdolminus(sh.arg_context));
 	    case '?':
