@@ -1923,6 +1923,7 @@ static Init_t *nv_init(void)
 #endif /* _hdr_locale */
 	(PPIDNOD)->nvalue.pidp = (&sh.ppid);
 	(SH_PIDNOD)->nvalue.pidp = (&sh.current_pid);
+	(SH_PPIDNOD)->nvalue.pidp = (&sh.current_ppid);
 	(SH_SUBSHELLNOD)->nvalue.ip = (&sh.realsubshell);
 	(TMOUTNOD)->nvalue.lp = (&sh.st.tmout);
 	(MCHKNOD)->nvalue.lp = (&sh_mailchk);

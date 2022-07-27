@@ -103,6 +103,7 @@ const struct shtable2 shtab_variables[] =
 	".sh.math",	0,				(char*)0,
 	".sh.pool",	0,				(char*)0,
 	".sh.pid",	NV_PID|NV_NOFREE,		(char*)0,
+	".sh.ppid",	NV_PID|NV_NOFREE,		(char*)0,
 	".sh.tilde",	0,				(char*)0,
 	"SHLVL",	NV_INTEGER|NV_NOFREE|NV_EXPORT,	(char*)0,
 	"",	0,					(char*)0
