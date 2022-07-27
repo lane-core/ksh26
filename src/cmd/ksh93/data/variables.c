@@ -64,7 +64,7 @@ const struct shtable2 shtab_variables[] =
 	"VISUAL",	0,				(char*)0,
 	"COLUMNS",	0,				(char*)0,
 	"LINES",	0,				(char*)0,
-	"PPID",		NV_NOFREE|NV_INTEGER,		(char*)0,
+	"PPID",		NV_NOFREE|NV_PID,		(char*)0,
 	"_",		NV_EXPORT,			(char*)0,
 	"TMOUT",	NV_NOFREE|NV_INTEGER,		(char*)0,
 	"SECONDS",	NV_NOFREE|NV_INTEGER|NV_DOUBLE,	(char*)0,
@@ -103,7 +103,7 @@ const struct shtable2 shtab_variables[] =
 	".sh.stats",	0,				(char*)0,
 	".sh.math",	0,				(char*)0,
 	".sh.pool",	0,				(char*)0,
-	".sh.pid",	NV_INTEGER|NV_NOFREE,		(char*)0,
+	".sh.pid",	NV_PID|NV_NOFREE,		(char*)0,
 	".sh.tilde",	0,				(char*)0,
 	"SHLVL",	NV_INTEGER|NV_NOFREE|NV_EXPORT,	(char*)0,
 	"",	0,					(char*)0
