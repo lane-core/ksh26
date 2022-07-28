@@ -314,4 +314,43 @@ three
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# BUG_IFSGLOBS: https://github.com/ksh93/ksh/issues/489
+# "$*" does pattern matching if the first char of $IFS is a wildcard
+
+IFS=*			# output field separator for "$*"
+set -- F ''		# "$*" is now "F*"
+exp=BUGFREE
+got=${exp%"$*"}		# the quoted "*" in "F*" should not act as a wildcard
+[[ $got == "$exp" ]] || err_exit 'BUG_IGSGLOBS reproducer 1' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+case BUGFREE in
+BUG"$*")	err_exit 'BUG_IFSGLOBS reproducer 2' ;;
+BUGFREE)	;;
+*)		err_exit 'BUG_IFSGLOBS reproducer 2 fails badly' ;;
+esac
+
+IFS=?
+exp=abcd
+set a c
+got=${exp#"$*"}
+[[ $got == "$exp" ]] || err_exit 'BUG_IFSGLOBS reproducer 3' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+case abc in
+"$*")	err_exit 'BUG_IFSGLOBS reproducer 4' ;;
+esac
+[[ abc = "$*" ]] && err_exit 'BUG_IFSGLOBS reproducer 5'
+
+# https://unix.stackexchange.com/questions/411001/using-case-and-arrays-together-in-bash/411006#411006
+IFS='|'
+arr=(opt1 opt2 opt3)
+case opt2 in
+@("${arr[*]}"))
+	err_exit 'BUG_IFSGLOBS reproducer 6' ;;
+esac
+[[ opt2 == @("${arr[*]}") ]] && err_exit 'BUG_IFSGLOBS reproducer 7'
+unset arr
+
+IFS=$' \t\n'
+
+# ======
 exit $((Errors<125?Errors:125))

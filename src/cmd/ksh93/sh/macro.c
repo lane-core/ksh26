@@ -59,7 +59,7 @@ typedef struct  _mac_
 	char		quote;		/* set within double quoted contexts */
 	char		lit;		/* set within single quotes */
 	char		split;		/* set when word splitting is possible */
-	char		pattern;	/* set when file expansion follows */
+	char		pattern;	/* set when glob pattern expansion or matching follows */
 	char		patfound;	/* set if pattern character found */
 	char		assign;		/* set for assignments */
 	char		arith;		/* set for ((...)) */
@@ -1985,6 +1985,8 @@ retry2:
 				 * We're joining fields into one; write the output field separator, which may be multi-byte.
 				 * For "$@" it's a space, for "$*" it's the 1st char of IFS (space if unset, none if empty).
 				 */
+				if(mp->pattern)				/* avoid BUG_IFSGLOBS */
+					sfputc(sfio_ptr, '\\');
 				if(mode == '@' || !mp->ifsp)		/* if expanding $@ or if IFS is unset... */
 					sfputc(sfio_ptr, ' ');
 				else if(mp->ifs)			/* else if IFS is non-empty... */
