@@ -45,7 +45,7 @@
 extern Sfio_t		_Stk_data;
 
 extern Stk_t*		stkopen(int);
-extern Stk_t*		stkinstall(Stk_t*, char*(*)(int));
+extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));
 extern int		stkclose(Stk_t*);
 extern unsigned int	stklink(Stk_t*);
 extern char*		stkalloc(Stk_t*, size_t);

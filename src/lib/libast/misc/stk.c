@@ -51,7 +51,7 @@
 #define STK_FSIZE	(1024*sizeof(char*))
 #define STK_HDRSIZE	(sizeof(Sfio_t)+sizeof(Sfdisc_t))
 
-typedef char* (*_stk_overflow_)(int);
+typedef char* (*_stk_overflow_)(size_t);
 
 static int stkexcept(Sfio_t*,int,void*,Sfdisc_t*);
 static Sfdisc_t stkdisc = { 0, 0, 0, stkexcept };
@@ -113,7 +113,7 @@ static const char Omsg[] = "malloc failed while growing stack\n";
 /*
  * default overflow exception
  */
-static noreturn char *overflow(int n)
+static noreturn char *overflow(size_t n)
 {
 	NoP(n);
 	write(2,Omsg, sizeof(Omsg)-1);
