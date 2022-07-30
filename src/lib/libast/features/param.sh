@@ -13,6 +13,7 @@
 #                 Glenn Fowler <gsf@research.att.com>                  #
 #                  David Korn <dgk@research.att.com>                   #
 #                   Phong Vo <kpv@research.att.com>                    #
+#                  Martijn Dekker <martijn@inlv.org>                   #
 #                                                                      #
 ########################################################################
 : generate "<sys/param.h> + <sys/types.h> + <sys/stat.h>" include sequence

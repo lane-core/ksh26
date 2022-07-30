@@ -12,6 +12,8 @@
 #                                                                      #
 #                  David Korn <dgk@research.att.com>                   #
 #              Roland Mainz <roland.mainz@nrubsig.org>                 #
+#                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 

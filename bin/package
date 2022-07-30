@@ -11,6 +11,8 @@
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
 #                 Glenn Fowler <gsf@research.att.com>                  #
+#                  Martijn Dekker <martijn@inlv.org>                   #
+#                      Trey Valenta <t@trey.net>                       #
 #                                                                      #
 ########################################################################
 ### this sh script is POSIX compliant and compatible with shell bugs ###
