@@ -2965,7 +2965,7 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 		np->nvflag = oldatts;
 		if (sp = nv_getval(np))
  		{
-			if(nv_isattr(np,NV_ZFILL))
+			if(nv_isattr(np,NV_ZFILL) && *sp=='0')
 			{
 				while(*sp=='0') sp++;	/* skip initial zeros */
 				if(!*sp) sp--;		/* if number was 0, leave one zero */

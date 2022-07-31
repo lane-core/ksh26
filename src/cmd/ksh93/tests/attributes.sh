@@ -823,4 +823,11 @@ got=$(typeset -F5 num; num=3.25+4.5 eval 'typeset -p num')
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+unset foo
+(
+	typeset -Z foo=
+	typeset -i foo
+) || err_exit 'failed to convert from -Z to -i'
+
+# ======
 exit $((Errors<125?Errors:125))
