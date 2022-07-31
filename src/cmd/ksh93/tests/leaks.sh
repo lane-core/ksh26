@@ -66,7 +66,7 @@ fi
 # lucky. If the OS decides to randomly grow the memory heap, it may take more tries, but hopefully not more than
 # $max_iter iterations. If the loop counter reaches $max_iter, then we assume a memory leak and throw a test failure.
 
-typeset -ir max_iter=16384 block_iter=128 min_good_blocks=16
+typeset -ir max_iter=65536 block_iter=128 min_good_blocks=16
 
 # Set up test block construct.
 # Known leaks can be marked known=y to turn them into non-fail warnings.
