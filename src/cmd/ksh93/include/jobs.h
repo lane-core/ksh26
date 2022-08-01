@@ -30,6 +30,7 @@
 #   include	<signal.h>
 #endif /* !SIGINT */
 #include	"FEATURE/options"
+#include	<aso.h>
 
 #undef JOBS
 #if defined(SIGCLD) && !defined(SIGCHLD)
@@ -120,16 +121,13 @@ extern struct jobs job;
 #define vmbusy()	0
 #endif
 
-#define job_lock()	(job.in_critical++)
+#define job_lock()	asoincint(&job.in_critical)
 #define job_unlock()	\
 	do { \
-		int	sig; \
-		if (!--job.in_critical && (sig = job.savesig)) \
-		{ \
-			if (!job.in_critical++ && !vmbusy()) \
-				job_reap(sig); \
-			job.in_critical--; \
-		} \
+		int	_sig; \
+		if (asogetint(&job.in_critical) == 1 && (_sig = job.savesig) && !vmbusy()) \
+		    job_reap(_sig); \
+		asodecint(&job.in_critical); \
 	} while(0)
 
 extern const char	e_jobusage[];
