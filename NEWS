@@ -1,7 +1,17 @@
-This documents significant changes in the 93u+m branch of AT&T ksh93.
+This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
+Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-Any uppercase BUG_* names are modernish shell bug IDs.
+2022-08-01:
+   _        _        ___ _____                          ___   ___   ___
+  | | _____| |__    / _ \___ / _   _   _   _ __ ___    / / | / _ \ / _ \
+  | |/ / __| '_ \  | (_) ||_ \| | | |_| |_| '_ ` _ \  / /| || | | | | | |
+  |   <\__ \ | | |  \__, |__) | |_| |_   _| | | | | |/ / | || |_| | |_| |
+  |_|\_\___/_| |_|    /_/____/ \__,_| |_| |_| |_| |_/_/  |_(_)___(_)___/
+
+- Exactly ten years after ksh 93u+ 2012-08-01, we now have a new ksh release.
+  Many thanks to all the direct and indirect contributors for their hard work!
+  (Note: this applies to the 1.0 branch, but seemed worth mentioning here)
 
 2022-07-28:
 
@@ -2137,3 +2147,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   for reading and writing, you now need '1<>'.
   Ref.:	https://github.com/att/ast/issues/75
 	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
+
+2020-05-12:
+
+- ksh development rebooted based on 93u+ 2012-08-01.

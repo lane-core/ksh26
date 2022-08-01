@@ -551,7 +551,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 				/*
 				 * Initializing means importing untrusted env vars. The string does not appear to be
 				 * a recognized numeric literal, so give up. We can't safely call arith_strval(), because
-				 * that allows arbitrary expressions, causing security vulnerability CVE-2019-14868.
+				 * that allows arbitrary expressions, which could be a security vulnerability.
 				 */
 				d = 0.0;
 			else

@@ -928,7 +928,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 }
 
 /*
- * evaluate an integer arithmetic expression in s
+ * evaluate an arithmetic expression in s
  *
  * (Sfdouble_t)(*convert)(char** end, struct lval* string, int type, Sfdouble_t value)
  *     is a user supplied conversion routine that is called when unknown 
