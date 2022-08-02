@@ -2667,7 +2667,7 @@ do_install() # dir [ command ... ]
 	dd=$1
 	shift
 	case $dd in
-	'' | [^/]*)
+	'' | [!/]*)
 		err_out "ERROR: destination directory '$dd' must begin with a /" ;;
 	esac
 	# commands to install by default
