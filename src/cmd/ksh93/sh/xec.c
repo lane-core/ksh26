@@ -1933,11 +1933,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				t = t->lst.lstrit;
 			}
 			while(t->tre.tretyp == TLST);
-			/*
-			 * if sh_state(SH_FORKED) was turned on in the meantime, mix it in to the flags to allow a last-command
-			 * no_fork optimization via execflg2 -- this happens when a subshell forks mid-execution (sh_subfork())
-			 */
-			sh_exec(t,flags|sh_isstate(SH_FORKED));
+			sh_exec(t,flags);
 			break;
 		    }
 

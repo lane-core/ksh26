@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-08-05:
+
+- Reverted a buggy exec optimisation introduced on 2022-06-18. It is known
+  to make the build scripts of GNU binutils produce corrupted results.
+
 2022-08-01:
    _        _        ___ _____                          ___   ___   ___
   | | _____| |__    / _ \___ / _   _   _   _ __ ___    / / | / _ \ / _ \

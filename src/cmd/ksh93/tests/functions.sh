@@ -1034,9 +1034,22 @@ function foo
 	typeset pid
 	$tmp1 > $tmp2 & pid=$!
 	wait $!
-	[[ $(< $tmp2) == $pid ]] || err_exit 'wrong PID for & job in function'
+	got=$(< $tmp2)
+	[[ $got == "$pid" ]] || err_exit 'wrong PID for & job in function' \
+		"(expected $(printf %q "$pid"), got $(printf %q "$got"))"
 }
 foo
+foo()
+{
+	$tmp1 > $tmp2 & pid=$!
+	wait $!
+	got=$(< $tmp2)
+	[[ $got == "$pid" ]] || err_exit 'wrong PID for & job in POSIX function' \
+		"(expected $(printf %q "$pid"), got $(printf %q "$got"))"
+}
+foo
+unset pid
+unset -f foo
 # make sure compiled functions work
 [[ $(tmp=$tmp $SHELL <<- \++++
 	cat > $tmp/functions <<- \EOF
