@@ -1031,19 +1031,14 @@ p :test-1:
 w set -H
 p :test-2:
 w true ${#v} !non_existent
-r true \$\{#v} !non_existent\r\n$
-r : !non_existent: event not found
+u : !non_existent: event not found
 w histchars='!^@'
 p :test-3:
 w true \\@ !non_existent
-r true \\@ !non_existent\r\n$
-r : !non_existent: event not found
+u : !non_existent: event not found
 p :test-4:
-w true @ !non_existent
-r true @ !non_existent\r\n$
-p :test-5:
-w true OK
-r true OK\r\n$
+w echo @ !non_existent
+u @ !non_existent\r\n$
 !
 
 # ======
