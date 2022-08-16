@@ -1021,5 +1021,30 @@ u Done
 u Done
 u Done
 !
+
+((SHOPT_HISTEXPAND)) && HISTFILE=$tmp/tmp_histfile tst $LINENO <<"!"
+L history expansion: history comment character stops line from being processed
+# https://github.com/ksh93/ksh/issues/513
+
+d 15
+p :test-1:
+w set -H
+p :test-2:
+w true ${#v} !non_existent
+r true \$\{#v} !non_existent\r\n$
+r : !non_existent: event not found
+w histchars='!^@'
+p :test-3:
+w true \\@ !non_existent
+r true \\@ !non_existent\r\n$
+r : !non_existent: event not found
+p :test-4:
+w true @ !non_existent
+r true @ !non_existent\r\n$
+p :test-5:
+w true OK
+r true OK\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
