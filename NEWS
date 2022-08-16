@@ -9,6 +9,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   history expansion. (On 2022-01-24 the history comment character was set to
   '#' instead of being disabled by default, which exposed this bug.)
 
+- Fixed a bug introduced on 2022-02-12 that would cause the optional head
+  builtin's -s option to fail.
+
 2022-08-06:
 
 - Fixed an interactive shell crashing on redefining, then unsetting one of
