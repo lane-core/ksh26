@@ -8,6 +8,11 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   invalid completions if ESC = was used at the beginning of a line. Both
   tab and = completions are now disabled at the start of the command line.
 
+- Fixed ksh freezing or using excessive memory if HISTSIZE is assigned a
+  pathologically large value. A new bounds check makes the theoretical
+  maximum number of history lines equal to the number of bytes kept in the
+  history file at cleanup time. On 64-bit systems, that maximum is 16384.
+
 2022-08-20:
 
 - Fixed a bug in command line options processing that caused short-form
