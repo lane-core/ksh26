@@ -1560,6 +1560,11 @@ static void getline(register Vi_t* vp,register int mode)
 				}
 				vp->ed->e_tabcount = 0;
 			}
+			if(cur_virt <= 0)
+			{
+				ed_ringbell();
+				break;
+			}
 			/* FALLTHROUGH */
 		default:
 		fallback:
@@ -1581,7 +1586,6 @@ static void getline(register Vi_t* vp,register int mode)
 			break;
 		}
 		refresh(vp,INPUT);
-
 	}
 }
 
@@ -2540,10 +2544,10 @@ addin:
 		/* FALLTHROUGH */
 	case '*':		/** do file name expansion in place **/
 	case '\\':		/** do file name completion in place **/
+	case '=':		/** list file name expansions **/
 		if( cur_virt == INVALID )
 			return(BAD);
 		/* FALLTHROUGH */
-	case '=':		/** list file name expansions **/
 		save_v(vp);
 		i = last_virt;
 		++last_virt;
