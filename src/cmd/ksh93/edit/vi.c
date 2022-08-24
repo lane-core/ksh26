@@ -1537,6 +1537,22 @@ static void getline(register Vi_t* vp,register int mode)
 			return;
 
 		case '\t':		/** command completion **/
+		{
+			char allempty = 1;
+			int x;
+			for(x=0; x <= cur_virt; x++)
+			{
+				if(!isspace(virtual[x]))
+				{
+					allempty = 0;
+					break;
+				}
+			}
+			if(allempty)
+			{
+				ed_ringbell();
+				break;
+			}
 			if(sh_isoption(SH_VI) &&
 				mode != SEARCH &&
 				last_virt >= 0 &&
@@ -1566,6 +1582,7 @@ static void getline(register Vi_t* vp,register int mode)
 				break;
 			}
 			/* FALLTHROUGH */
+		}
 		default:
 		fallback:
 			if( mode == REPLACE )
@@ -2545,7 +2562,18 @@ addin:
 	case '*':		/** do file name expansion in place **/
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
-		if( cur_virt == INVALID )
+	{
+		char allempty = 1;
+		int x;
+		for(x=0; x <= cur_virt; x++)
+		{
+			if(!isspace(virtual[x]))
+			{
+				allempty = 0;
+				break;
+			}
+		}
+		if(cur_virt == INVALID || allempty)
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2584,6 +2612,7 @@ addin:
 			return(APPEND);
 		}
 		break;
+	}
 
 	case '@':		/** macro expansion **/
 		if( mode )
