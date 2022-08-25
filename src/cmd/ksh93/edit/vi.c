@@ -741,13 +741,8 @@ static int cntlmode(Vi_t *vp)
 	{
 		vp->repeat_set = 0;
 		was_inmacro = inmacro;
-		if( c == '0' )
-		{
-			/*** move to leftmost column ***/
-			cur_virt = 0;
-			sync_cursor(vp);
-			continue;
-		}
+
+		/*** see if it's a repeat count parameter ***/
 
 		if( digit(c) )
 		{
@@ -1627,10 +1622,14 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		/***** Cursor move commands *****/
 
 	case '0':		/** First column **/
+		if(cur_virt <= 0)
+			return(ABORT);
 		tcur_virt = 0;
 		break;
 
 	case '^':		/** First nonblank character **/
+		if(cur_virt <= 0)
+			return(ABORT);
 		tcur_virt = first_virt;
 		while( tcur_virt < last_virt && isblank(tcur_virt) )
 			++tcur_virt;
