@@ -617,10 +617,6 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 			last_virt = ed_external(virtual,shbuf);
 		}
 #endif /* SHOPT_MULTIBYTE */
-#if SHOPT_EDPREDICT
-		if(vp->ed->nhlist)
-			ed_histlist(vp->ed,0);
-#endif /* SHOPT_EDPREDICT */
 		return(last_virt);
 	}
 	else
@@ -846,15 +842,6 @@ static int cntlmode(Vi_t *vp)
 
 		case 'j':		/** get next command **/
 		case '+':		/** get next command **/
-#if SHOPT_EDPREDICT
-			if(vp->ed->hlist)
-			{
-				if(vp->ed->hoff >= vp->ed->hmax)
-					goto ringbell;
-				vp->ed->hoff++;
-				goto hupdate;
-			}
-#endif /* SHOPT_EDPREDICT */
 			curhline += vp->repeat;
 			if( curhline > histmax )
 			{
@@ -875,18 +862,6 @@ static int cntlmode(Vi_t *vp)
 
 		case 'k':		/** get previous command **/
 		case '-':		/** get previous command **/
-#if SHOPT_EDPREDICT
-			if(vp->ed->hlist)
-			{
-				if(vp->ed->hoff == 0)
-					goto ringbell;
-				vp->ed->hoff--;
-			 hupdate:
-				ed_histlist(vp->ed,*vp->ed->hlist!=0);
-				vi_redraw((void*)vp);
-				continue;
-			}
-#endif /* SHOPT_EDPREDICT */
 			if( curhline == histmax )
 			{
 				vp->u_space = tmp_u_space;
@@ -920,16 +895,6 @@ static int cntlmode(Vi_t *vp)
 #endif /* SHOPT_MULTIBYTE */
 			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
-#if SHOPT_EDPREDICT
-			if(vp->ed->hlist)
-			{
-				ed_histlist(vp->ed,0);
-				if(c=='\n')
-					ed_ungetchar(vp->ed,c);
-				cur_virt = 0;
-				vi_redraw((void*)vp);
-			}
-#endif /* SHOPT_EDPREDICT */
 			break;
 
 
@@ -1012,22 +977,8 @@ static int cntlmode(Vi_t *vp)
 			/* FALLTHROUGH */
 
 		case '\n':		/** send to shell **/
-#if SHOPT_EDPREDICT
-			if(!vp->ed->hlist)
-				return(ENTER);
-			/* FALLTHROUGH */
-		case '\t':		/** bring choice to edit **/
-			if(vp->ed->hlist)
-			{
-				if(vp->repeat > vp->ed->nhlist-vp->ed->hoff)
-					goto ringbell;
-				curhline = vp->ed->hlist[vp->repeat+vp->ed->hoff-1]->index;
-				goto newhist;
-			}
-			goto ringbell;
-#else
 			return(ENTER);
-#endif /* SHOPT_EDPREDICT */
+
 	        case ESC:
 			/* don't ring bell if next char is '[' */
 			if(!lookahead)
@@ -1651,11 +1602,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		{
 		    case 'A':
 			/* VT220 up arrow */
-#if SHOPT_EDPREDICT
-			if(!vp->ed->hlist && cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
-#else
 			if(cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
-#endif /* SHOPT_EDPREDICT */
 			{
 				virtual[last_virt + 1] = '\0';
 #if SHOPT_MULTIBYTE
@@ -2031,31 +1978,6 @@ static void refresh(register Vi_t* vp, int mode)
 			mode = TRANSLATE;
 	}
 	v = cur_virt;
-#if SHOPT_EDPREDICT
-	if(mode==INPUT && v>0 && virtual[0]=='#' && v==last_virt && virtual[v]!='*' && sh_isoption(SH_VI))
-	{
-		int		n;
-		virtual[last_virt+1] = 0;
-#   if SHOPT_MULTIBYTE
-		ed_external(virtual,(char*)virtual);
-#   endif /* SHOPT_MULTIBYTE */
-		n = ed_histgen(vp->ed,(char*)virtual);
-#   if SHOPT_MULTIBYTE
-		ed_internal((char*)virtual,virtual);
-#   endif /* SHOPT_MULTIBYTE */
-		if(vp->ed->hlist)
-		{
-			ed_histlist(vp->ed,n);
-			pr_string(vp,Prompt);
-			vp->ocur_virt = INVALID;
-			ed_setcursor(vp->ed,physical,0,cur_phys,0);
-		}
-		else
-			ed_ringbell();
-	}
-	else if(mode==INPUT && v<=1 && vp->ed->hlist)
-		ed_histlist(vp->ed,0);
-#endif /* SHOPT_EDPREDICT */
 	if( v<vp->ocur_virt || vp->ocur_virt==INVALID
 		|| ( v==vp->ocur_virt
 			&& (!is_print(virtual[v]) || !is_print(vp->o_v_char))) )
