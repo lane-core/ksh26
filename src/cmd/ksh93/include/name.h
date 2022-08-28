@@ -98,7 +98,6 @@ struct Ufunction
 	short		argc;		/* number of references */
 	short		running;	/* function is running */
 	char		**argv;		/* reference argument list */
-	off_t		hoffset;	/* offset into source or history file */
 	Namval_t	*nspace;	/* pointer to name space */
 	char		*fname;		/* file name where function defined */
 	char		*help;		/* help string */
@@ -124,7 +123,6 @@ struct Ufunction
 #define NV_COMVAR	0x4000000
 #define NV_FUNCTION	(NV_RJUST|NV_FUNCT)	/* value is shell function */
 #define NV_FPOSIX	NV_LJUST		/* POSIX function semantics */
-#define NV_FTMP		NV_ZFILL		/* function source in tmpfile */
 #define NV_STATICF	NV_INTEGER		/* static class function */
 
 #define NV_NOPRINT	(NV_LTOU|NV_UTOL)	/* do not print */

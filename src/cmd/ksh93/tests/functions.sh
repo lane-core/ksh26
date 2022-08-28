@@ -1207,7 +1207,10 @@ foo -h -i foobar foo2
 
 if	[[ ! $compiled ]]
 then	function foo { getopts --man; }
-	[[ $(typeset -f foo) == 'function foo { getopts --man; }' ]] || err_exit 'typeset -f not work for function with getopts'
+	got=$(typeset -f foo)
+	exp=$'function foo\n{\tgetopts --man\n}'
+	[[ $got == "$exp" ]] || err_exit 'typeset -f does not work for function with getopts' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 function foo

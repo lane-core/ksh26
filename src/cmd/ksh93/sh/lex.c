@@ -126,13 +126,11 @@ static void refvar(Lex_t *lp, int type)
 static void lex_advance(Sfio_t *iop, const char *buff, register int size, void *context)
 {
 	register Lex_t		*lp = (Lex_t*)context;
-	register Sfio_t		*log= sh.funlog;
 	/* write to history file and to stderr if necessary */
 	if(iop && !sfstacked(iop))
 	{
 		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
-			log = sh.hist_ptr->histfp;
-		sfwrite(log, (void*)buff, size);
+			sfwrite(sh.hist_ptr->histfp, buff, size);
 		if(sh_isstate(SH_VERBOSE))
 			sfwrite(sfstderr, buff, size);
 	}
@@ -1758,14 +1756,8 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 	register const char	*state;
 	register int		c,n;
 	register char		*bufp,*cp;
-	register Sfio_t		*sp=sh.heredocs, *funlog;
+	register Sfio_t		*sp=sh.heredocs;
 	int			stripcol=0,stripflg, nsave, special=0;
-	if(funlog=sh.funlog)
-	{
-		if(fcfill()>0)
-			fcseek(-LEN);
-		sh.funlog = 0;
-	}
 	if(iop->iolst)
 		here_copy(lp,iop->iolst);
 	iop->iooffset = sfseek(sp,(off_t)0,SEEK_END);
@@ -1997,7 +1989,6 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 		n=0;
 	}
 done:
-	sh.funlog = funlog;
 	if(lp->lexd.dolparen)
 		free((void*)iop);
 	else if(!special)

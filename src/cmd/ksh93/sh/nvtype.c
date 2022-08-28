@@ -1420,7 +1420,7 @@ int	sh_outtype(Sfio_t *out)
 {
 	Namval_t	node,*mp,*tp;
 	Dt_t		*dp;
-	char		*cp,*sp,*xp,nvtype[sizeof(NV_CLASS)];
+	char		*cp,*sp,nvtype[sizeof(NV_CLASS)];
 	Sfio_t		*iop=0;
 	int		n=0,indent = 0;
 	if(cp=sh.prefix)
@@ -1482,21 +1482,10 @@ int	sh_outtype(Sfio_t *out)
 				sfprintf(out,"\t%s()",cp);
 			else
 				sfprintf(out,"\tfunction %s",cp);
-			xp = 0;
-			if(mp->nvalue.ip && mp->nvalue.rp->hoffset>=0)
+			if(mp->nvalue.rp && nv_funtree(mp))
 			{
-				if(nv_isattr(mp,NV_FTMP))
-					iop = sh.heredocs;
-				else if(xp=mp->nvalue.rp->fname)
-					iop = sfopen(iop,xp,"r");
-				else if(sh.hist_ptr)
-					iop = sh.hist_ptr->histfp;
-				if(iop && sfseek(iop,(Sfoff_t)mp->nvalue.rp->hoffset,SEEK_SET)>=0)
-					sfmove(iop,out, nv_size(mp), -1);
-				else
-					sfputc(iop,'\n');
-				if(xp)
-					sfclose(iop);
+				sfputc(out, '\n');
+				sh_deparse(out, (Shnode_t*)(nv_funtree(mp)), 2 | nv_isattr(mp,NV_FPOSIX), 1);
 				if(nv_isattr(mp,NV_STATICF|NV_TAGGED))
 				{
 					if(indent)

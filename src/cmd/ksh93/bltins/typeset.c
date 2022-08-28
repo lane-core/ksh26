@@ -1477,34 +1477,21 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 		sfputr(file,cp,-1);
 		if(nv_isattr(np,NV_FPOSIX))
 			sfwrite(file,"()",2);
-		if(np->nvalue.ip && np->nvalue.rp->hoffset>=0)
+		if(np->nvalue.rp && nv_funtree(np))
 			fname = np->nvalue.rp->fname;
 		else
 			flag = '\n';
 		if(flag)
 		{
-			if(tp->pflag && np->nvalue.ip && np->nvalue.rp->hoffset>=0)
+			if(tp->pflag && np->nvalue.rp && nv_funtree(np))
 				sfprintf(file," #line %d %s\n", np->nvalue.rp->lineno, fname ? sh_fmtq(fname) : Empty);
 			else
 				sfputc(file, '\n');
 		}
 		else
 		{
-			if(nv_isattr(np,NV_FTMP))
-			{
-				fname = 0;
-				iop = sh.heredocs;
-			}
-			else if(fname)
-				iop = sfopen(iop,fname,"r");
-			else if(sh.hist_ptr)
-				iop = (sh.hist_ptr)->histfp;
-			if(iop && sfseek(iop,(Sfoff_t)np->nvalue.rp->hoffset,SEEK_SET)>=0)
-				sfmove(iop,file, nv_size(np), -1);
-			else
-				flag = '\n';
-			if(fname)
-				sfclose(iop);
+			sfputc(file, '\n');
+			sh_deparse(file, (Shnode_t*)(nv_funtree(np)), 2 | nv_isattr(np,NV_FPOSIX), 0);
 		}
 		return(nv_size(np)+1);
 	}

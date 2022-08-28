@@ -273,7 +273,6 @@ struct Shell_s
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
 	Sfio_t		*heredocs;	/* current here-doc temp file */
-	Sfio_t		*funlog;	/* for logging function definitions */
 	int		**fdptrs;	/* pointer to file numbers */
 	char		*lastarg;	/* $_ */
 	int		path_err;	/* last error on path search */

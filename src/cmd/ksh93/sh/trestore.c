@@ -132,7 +132,6 @@ static Shnode_t *r_tree(void)
 			struct slnod *slp;
 			struct functnod *fp;
 			t = getnode(functnod);
-			t->funct.functloc = -1;
 			t->funct.functline = sfgetu(infile);
 			t->funct.functnam = r_string();
 			savstak = stakcreate(STAK_SMALL);

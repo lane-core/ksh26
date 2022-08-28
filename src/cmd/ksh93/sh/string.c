@@ -338,12 +338,13 @@ char	*sh_fmtq(const char *string)
 	mbinit();
 	offset = staktell();
 	state = ((c= mbchar(cp))==0);
-	if(isaletter(c))
+	if(isaletter(c) || c=='.')
 	{
-		while((c=mbchar(cp)),isaname(c));
+		while((c=mbchar(cp)), isaname(c) || c=='.')
+			;
 		if(c==0)
 			return((char*)string);
-		if(c=='=')
+		if(c=='=' || c=='+' && *cp=='=')
 		{
 			if(*cp==0)
 				return((char*)string);

@@ -799,7 +799,6 @@ static Shnode_t *funct(Lex_t *lexp)
 	register int flag;
 	struct slnod *volatile slp=0;
 	Stak_t *volatile savstak=0;
-	Sfoff_t	first, last;
 	struct functnod *volatile fp;
 	Sfio_t *iop;
 #if SHOPT_KIA
@@ -825,25 +824,6 @@ static Shnode_t *funct(Lex_t *lexp)
 		iop = sfopen(NIL(Sfio_t*),fcseek(0),"s");
 		fcclose();
 		fcfopen(iop);
-	}
-	t->funct.functloc = first = fctell();
-	if(!sh.st.filename || sffileno(iop)<0)
-	{
-		if(fcfill() >= 0)
-			fcseek(-1);
-		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
-			t->funct.functloc = sfseek(sh.hist_ptr->histfp, (off_t)0, SEEK_CUR);
-		else
-		{
-			/* copy source to temporary file */
-			t->funct.functloc = 0;
-			if(sh.heredocs)
-				t->funct.functloc = sfseek(sh.heredocs,(Sfoff_t)0, SEEK_END);
-			else
-				sh.heredocs = sftmp(HERE_MEM);
-			sh.funlog = sh.heredocs;
-			t->funct.functtyp |= FPIN;
-		}
 	}
 	t->funct.functnam= (char*)lexp->arg->argval;
 #if SHOPT_KIA
@@ -970,16 +950,8 @@ static Shnode_t *funct(Lex_t *lexp)
 		siglongjmp(*sh.jmplist,jmpval);
 	}
 	sh.st.staklist = (struct slnod*)slp;
-	last = fctell();
-	fp->functline = (last-first);
 	fp->functtre = t;
 	sh.mktype = in_mktype;
-	if(sh.funlog)
-	{
-		if(fcfill()>0)
-			fcseek(-1);
-		sh.funlog = 0;
-	}
 #if 	SHOPT_KIA
 	if(lexp->kiafile)
 		kiaentity(lexp,t->funct.functnam,-1,'p',t->funct.functline,sh.inlineno-1,lexp->current,'p',0,"");
@@ -1354,7 +1326,6 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 		t = getnode(functnod);
 		t->funct.functtyp=TNSPACE;
 		t->funct.functargs = 0;
-		t->funct.functloc = 0;
 		if(sh_lex(lexp))
 			sh_syntax(lexp);
 		t->funct.functnam=(char*) lexp->arg->argval;

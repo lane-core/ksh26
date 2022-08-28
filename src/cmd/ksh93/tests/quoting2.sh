@@ -355,4 +355,21 @@ unset arr
 IFS=$' \t\n'
 
 # ======
+# test quoting of additive assignments and namespace variable assignments in generated function definitions
+case ${.sh.version} in
+*93u+m/1.0.*)
+	;;
+*93u+m/*)
+	got=$(f() { foo+=bar\ baz; }; typeset -f f)
+	exp=$'f()\n{\tfoo+='\'bar\ baz\'$'\n}'
+	[[ $got == "$exp" ]] || err_exit 'print function definition with additive assignment' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	got=$(f() { .namespace.foo='bar baz'; }; typeset -f f)
+	exp=$'f()\n{\t.namespace.foo='\'bar\ baz\'$'\n}'
+	[[ $got == "$exp" ]] || err_exit 'print function definition with namespace assignment' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+esac
+
+# ======
 exit $((Errors<125?Errors:125))

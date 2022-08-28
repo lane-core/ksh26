@@ -2507,7 +2507,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					staklink(slp->slptr);
 				np->nvenv = (char*)slp;
 				nv_funtree(np) = (int*)(t->funct.functtre);
-				np->nvalue.rp->hoffset = t->funct.functloc;
 				np->nvalue.rp->lineno = t->funct.functline;
 				np->nvalue.rp->nspace = sh.namespace;
 				np->nvalue.rp->fname = 0;
@@ -2517,7 +2516,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				fp = (struct functnod*)(slp+1);
 				if(fp->functtyp==(TFUN|FAMP))
 					np->nvalue.rp->fname = fp->functnam;
-				nv_setsize(np,fp->functline);
 				nv_offattr(np,NV_FPOSIX);
 				if(sh.funload)
 				{
@@ -2535,8 +2533,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				nv_onattr(np,NV_FUNCTION|NV_FPOSIX);
 			else
 				nv_onattr(np,NV_FUNCTION);
-			if(type&FPIN)
-				nv_onattr(np,NV_FTMP);
 			if(type&FOPTGET)
 				nv_onattr(np,NV_OPTGET);
 			break;

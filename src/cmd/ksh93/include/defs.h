@@ -113,7 +113,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);
+extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern void 		sh_envnolocal(Namval_t*,void*);

@@ -152,7 +152,6 @@ struct functnod
 	char		*functnam;
 	Shnode_t	*functtre;
 	int		functline;
-	off_t		functloc;
 	struct slnod	*functstak;
 	struct comnod	*functargs;
 };
