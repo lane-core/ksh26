@@ -492,7 +492,10 @@ if builtin cat 2> /dev/null; then
 
 	# -s Equivalent to -S for att universe and -B otherwise.
 	got=$(cat -s "$tmp/sample_file")
-	exp=$(cat -B "$tmp/sample_file")
+	case $(/opt/ast/bin/getconf UNIVERSE) in
+	att)	exp=$(cat -S "$tmp/sample_file") ;;
+	*)	exp=$(cat -B "$tmp/sample_file") ;;
+	esac
 	[[ $got == "$exp" ]] || err_exit "cat -s failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 	# -t Equivalent to -vT.
