@@ -224,12 +224,11 @@ static void p_time(Sfio_t *out, const char *format, clock_t *tm)
 #endif
 	for(first=format; *format; format++)
 	{
+		unsigned char l_modifier = 0;
+		int precision = 3;
 		c = *format;
 		if(c!='%')
 			continue;
-		unsigned char l_modifier = 0;
-		int precision = 3;
-
 		sfwrite(stkp, first, format-first);
 		c = *++format;
 		if(c=='\0')
@@ -255,9 +254,9 @@ static void p_time(Sfio_t *out, const char *format, clock_t *tm)
 #ifdef timeofday
 			struct timeval tv_real = tm[TM_REAL_IDX];
 			struct timeval tv_cpu;
+			double d;
 			timeradd(&tm[TM_USR_IDX], &tm[TM_SYS_IDX], &tv_cpu);
-
-			double d = timeval_to_double(tv_real);
+			d = timeval_to_double(tv_real);
 			if(d)
 				d = 100.0 * timeval_to_double(tv_cpu) / d;
 			sfprintf(stkp, "%.*f", precision, d);
