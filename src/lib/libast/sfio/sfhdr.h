@@ -987,7 +987,7 @@ extern int		errno;
 #define frexpl		frexp
 #endif
 #if !_lib_frexpl
-extern Sfdouble_t	frexpl(Sfdouble_t, int*);
+extern long double	frexpl(long double, int*);
 #endif
 #endif
 #ifndef ldexpl
@@ -995,7 +995,7 @@ extern Sfdouble_t	frexpl(Sfdouble_t, int*);
 #define ldexpl		ldexp
 #endif
 #if !_lib_ldexpl
-extern Sfdouble_t	ldexpl(Sfdouble_t, int);
+extern long double	ldexpl(long double, int);
 #endif
 #endif
 
