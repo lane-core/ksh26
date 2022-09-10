@@ -1617,7 +1617,10 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			else if(cur_virt==0 && vp->direction == -2)
 				ed_ungetchar(vp->ed,'n');
 			else
+			{
+				vp->direction = -1;  /* cancel active reverse search if necessary */
 				ed_ungetchar(vp->ed,'k');
+			}
 			return(1);
 		    case 'B':
 			/* VT220 down arrow */

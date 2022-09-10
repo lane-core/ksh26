@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a bug introduced in ksh93u+ 2012-04-23 that caused LINENO to have the
   wrong value after parsing a multi-line compound assignment.
 
+- Fixed a bug in vi mode that caused reverse search to remain active after
+  receiving an interrupt.
+
 2022-09-01:
 
 - Fixed a bug where 'command -x' would create a tracked alias for a command,
