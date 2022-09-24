@@ -16,6 +16,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - In the emacs line editor, the Ctrl+R reverse-search prompt is now visually
   distinct from a literal control character ("^R: " instead of "^R").
 
+- Fixed a crashing bug involving incorrect data alignment in variables of
+  types defined by 'typeset -T'.
+
 2022-09-11:
 
 - Fixed a bug introduced in ksh93u+ 2012-04-23 that caused LINENO to have the
