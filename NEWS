@@ -7,6 +7,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a bug introduced on 2021-04-04 that incorrectly allowed 'typeset' to
   turn off the readonly and export attributes on a readonly variable.
 
+- Fixed multiple scoping-related bugs in the += additive assignment operator,
+  including a bug introduced on 2021-04-11 that caused it to append to the
+  value of a global variable when used on a local variable with the same name.
+
 2022-09-24:
 
 - The down arrow key can now be used to perform a backwards reverse search,

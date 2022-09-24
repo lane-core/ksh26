@@ -1477,4 +1477,51 @@ got=$("$SHELL" <<-\EOF
 	"(expected $exp, got $(printf %q "$got"))"
 
 # ======
+# The += operator shouldn't copy variables outside of a function's scope
+# https://github.com/ksh93/ksh/issues/533
+unset v foo bar
+v=outside
+function f {
+	typeset v
+	print -n "$v"
+	v+="inside"
+	print "$v"
+}
+function foo {
+	echo $bar
+}
+function bar {
+	bar=bar_
+	bar+=foo foo
+	bar+=foo "$SHELL" -c 'echo $bar'
+	bar+=foo
+	echo $bar
+}
+exp='inside
+bar_foo
+bar_foo
+bar_foo'
+got=$(f && bar)
+[[ $exp == "$got" ]] || err_exit "+= operator used in function copies variable from outside of the function's scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+unset var
+function three {
+        :
+}
+function two {
+	var+='wrong ' sh -c 'true'
+	var+='wrong ' true
+	var+='wrong ' three
+	echo $var
+}
+function one {
+	var=one_ two
+}
+exp=one_
+got=$(one)
+[[ $exp == "$got" ]] || err_exit "+= operator in a nested function appends variable in the wrong scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
