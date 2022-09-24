@@ -14,6 +14,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *          atheik <14833674+atheik@users.noreply.github.com>           *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *                                                                      *
 ***********************************************************************/
 /*

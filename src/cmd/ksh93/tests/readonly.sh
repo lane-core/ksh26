@@ -11,7 +11,7 @@
 #      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      #
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
-#                              hyenias                                 #
+#         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                                                                      #
 ########################################################################
 

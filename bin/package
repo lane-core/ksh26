@@ -13,6 +13,10 @@
 #                 Glenn Fowler <gsf@research.att.com>                  #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #                      Trey Valenta <t@trey.net>                       #
+#            Johnothan King <johnothanking@protonmail.com>             #
+#  Sterling Jensen <5555776+sterlingjensen@users.noreply.github.com>   #
+#                   Chase <nicetrynsa@protonmail.ch>                   #
+#               Anuradha Weeraman <anuradha@debian.org>                #
 #                                                                      #
 ########################################################################
 ### this sh script is POSIX compliant and compatible with shell bugs ###
