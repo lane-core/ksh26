@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-09-25:
+
+- Fixed a bug introduced on 2021-04-04 that incorrectly allowed 'typeset' to
+  turn off the readonly and export attributes on a readonly variable.
+
 2022-09-24:
 
 - The down arrow key can now be used to perform a backwards reverse search,

@@ -783,7 +783,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				continue;
 			}
 			if(np->nvflag&NV_RDONLY && !tp->pflag
-			&& (flag & ~(NV_ASSIGN|NV_RDONLY|NV_EXPORT)))	/* allow readonly/export on readonly vars */
+			&& (tp->aflag=='+' || flag & ~(NV_ASSIGN|NV_RDONLY|NV_EXPORT)))	/* allow readonly/export on readonly vars */
 			{
 				errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
 				UNREACHABLE();
