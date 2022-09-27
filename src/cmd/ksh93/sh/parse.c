@@ -915,11 +915,10 @@ static Shnode_t *funct(Lex_t *lexp)
 		}
 		if(!flag && lexp->token==0)
 		{
-			/* copy current word token to current stak frame */
-			struct argnod *ap;
-			flag = ARGVAL + strlen(lexp->arg->argval);
-			ap = (struct argnod*)stakalloc(flag);
-			memcpy(ap,lexp->arg,flag);
+			/* functname() simple_command: copy current word token to current stack frame */
+			size_t sz = ARGVAL + strlen(lexp->arg->argval) + 1;  /* include terminating 0 */
+			struct argnod *ap = (struct argnod*)stakalloc(sz);
+			memcpy(ap,lexp->arg,sz);
 			lexp->arg = ap;
 		}
 		t->funct.functtre = item(lexp,SH_NOIO);

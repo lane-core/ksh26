@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-09-27:
+
+- Fixed a parsing bug in (uncommonly used) function definitions of the
+  form 'functname() simple_command' that could cause the first word of
+  simple_command to be corrupted with trailing garbage.
+
 2022-09-25:
 
 - Backported support for 'print -u p' from ksh93v- 2014-06-06 (this is
