@@ -1524,4 +1524,11 @@ got=$(one)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/543
+got=$("$SHELL" -c $':\nLINENO=$LINENO true\nprint "Line 3 is $LINENO"')
+exp='Line 3 is 3'
+[[ $got == "$exp" ]] || err_exit "LINENO is wrong after being set in an invocation-local scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

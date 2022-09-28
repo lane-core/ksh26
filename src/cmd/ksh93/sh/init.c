@@ -1709,7 +1709,7 @@ int sh_reinit(char *argv[])
  */
 Namfun_t *nv_cover(register Namval_t *np)
 {
-	if(np==IFSNOD || np==PATHNOD || np==SHELLNOD || np==FPATHNOD || np==CDPNOD || np==SECONDS || np==ENVNOD || np==LINENO)
+	if(np==IFSNOD || np==PATHNOD || np==SHELLNOD || np==FPATHNOD || np==CDPNOD || np==SECONDS || np==ENVNOD)
 		return(np->nvfun);
 #ifdef _hdr_locale
 	if(np==LCALLNOD || np==LCTYPENOD || np==LCMSGNOD || np==LCCOLLNOD || np==LCNUMNOD || np==LCTIMENOD || np==LANGNOD)

@@ -563,7 +563,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
 				mp->nvflag = np->nvflag;
 				mp->nvsize = np->nvsize;
-				mp->nvfun = np->nvfun;
+				mp->nvfun = nv_cover(np);
 			}
 			*eqp = '=';
 		}
