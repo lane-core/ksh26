@@ -1531,4 +1531,10 @@ exp='Line 3 is 3'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/545
+got=$({ "$SHELL" -uc $'a=A; function a.get { : $z; }\necho $a'; } 2>&1)
+let "(e=$?)==0" || err_exit "unset variable access in discipline function" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
