@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-10-14:
+
+- Fixed: the generic --version option was not recognised for the built-in
+  commands ., bg, disown, fc, fg, hist, jobs, let, source, times, and ulimit.
+
 2022-10-13:
 
 - Added a -V/--novmon option to ulimit that supports setting the number of open

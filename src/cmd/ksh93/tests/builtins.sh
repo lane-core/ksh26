@@ -1588,4 +1588,16 @@ EOF
 let Errors+=$?
 
 # ======
+# Most built-ins should handle --version
+while IFS= read -r bltin <&3
+do	case $bltin in
+	# TODO: remove 'alarm' below when it's properly self-documented
+	alarm | echo | test | true | false | \[ | : | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
+		continue ;;
+	esac
+	got=$({ "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
+	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"
+done 3< <(builtin)
+
+# ======
 exit $((Errors<125?Errors:125))
