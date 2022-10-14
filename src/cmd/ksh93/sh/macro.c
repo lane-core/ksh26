@@ -860,11 +860,12 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 			break;
 		    case S_BRAOP:
 			/* escape a quoted !^- within a bracket expression */
+			if(!bracketexpr || !(mp->quote || mp->lit))
+				continue;
 			if(c)
 				sfwrite(stkp,first,c);
 			first = fcseek(c);
-			if(bracketexpr && (mp->quote || mp->lit))
-				sfputc(stkp,ESCAPE);
+			sfputc(stkp,ESCAPE);
 			break;
 		}
 	}

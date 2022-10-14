@@ -7,6 +7,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: the generic --version option was not recognised for the built-in
   commands ., bg, disown, fc, fg, hist, jobs, let, source, times, and ulimit.
 
+- Fixed a bug introduced by the 2022-10-07 BUG_BRACQUOT fix, which caused the
+  fallback string in an expansion like ${emptyvar:-fallback string} to fail to
+  split into fields correctly if the fallback string contained a !, ^ or -.
+
 2022-10-13:
 
 - Added a -V/--novmon option to ulimit that supports setting the number of open

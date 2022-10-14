@@ -1537,4 +1537,30 @@ let "(e=$?)==0" || err_exit "unset variable access in discipline function" \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/553
+unset NOTSET
+IFS=' '
+set -- ${NOTSET:-echo -e foo}
+IFS=/
+got=$#,$*
+exp=3,echo/-e/foo
+[[ $got == "$exp" ]] || err_exit "Field-split fallback string containing dash (1)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+IFS=' '
+set -- ${NOTSET:-a b c xxx-xxx d e f}
+IFS=/
+got=$#,$*
+exp=7,a/b/c/xxx-xxx/d/e/f
+[[ $got == "$exp" ]] || err_exit "Field-split fallback string containing dash (2)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+IFS=' '
+set -- ${NOTSET:-[a - b]}
+IFS=/
+got=$#,$*
+exp=3,[a/-/b]
+[[ $got == "$exp" ]] || err_exit "Field-split fallback string containing brackets and a dash" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+IFS=$' \t\n'  # restore default
+
+# ======
 exit $((Errors<125?Errors:125))
