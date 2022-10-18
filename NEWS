@@ -8,6 +8,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   ${parameter//pattern/string}. For example:  v=AB; echo "${v/@(A)B/\0:\1:\2}"
   now yields 'AB:A:' instead of 'AB:A:\2'.
 
+- Fixed a corner case regression in the BUG_IFSGLOBS fix applied on 2022-07-28:
+  unquoted $* was affected. The fix now properly applies only to quoted "$*".
+
 2022-10-14:
 
 - Fixed: the generic --version option was not recognised for the built-in
