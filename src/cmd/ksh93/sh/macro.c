@@ -636,7 +636,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				mp->pattern = c;
 			break;
 		    case S_ENDCH:
-			if(bracketexpr && cp[-1]==RBRACT)
+			if(bracketexpr && cp[-1]==RBRACT && !(mp->quote || mp->lit))
 				bracketexpr--;
 			if((mp->lit || cp[-1]!=endch || mp->quote!=newquote))
 				goto pattern;

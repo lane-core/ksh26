@@ -135,6 +135,11 @@ p='*[a\-c]*'; case - in $p) ;; *) err_exit 'BUG_BRACQUOT: 6a';; esac
 p='*[\!N]*'; case \! in $p) ;; *) err_exit 'BUG_BRACQUOT: 6b';; esac
 p='*[\^N]*'; case ^ in $p) ;; *) err_exit 'BUG_BRACQUOT: 6c';; esac
 
+# quoting should also work for the end character ']'
+case b in [\]\-z]) err_exit 'BUG_BRACQUOT: 7a' ;; esac
+case b in [']-z']) err_exit 'BUG_BRACQUOT: 7b' ;; esac
+case b in ["]-z"]) err_exit 'BUG_BRACQUOT: 7c' ;; esac
+
 # also test bracket expressions with ] as the first character, e.g. []abc]
 case b in *[]a'-'c]*) err_exit 'BUG_BRACQUOT: A1';; esac
 case b in *[]a$'-'c]*) err_exit 'BUG_BRACQUOT: A2';; esac

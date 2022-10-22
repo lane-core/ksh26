@@ -534,6 +534,11 @@ p='*[a\-c]*'; [[ - == $p ]] || err_exit 'BUG_BRACQUOT: 6A'
 p='*[\!N]*'; [[ \! == $p ]] || err_exit 'BUG_BRACQUOT: 6B'
 p='*[\^N]*'; [[ ^ == $p ]] || err_exit 'BUG_BRACQUOT: 6C'
 
+# quoting should also work for the end character ']'
+[[ b == [\]\-z] ]] && err_exit 'BUG_BRACQUOT: 7a'
+[[ b == [']-z'] ]] && err_exit 'BUG_BRACQUOT: 7b'
+[[ b == ["]-z"] ]] && err_exit 'BUG_BRACQUOT: 7c'
+
 # also test bracket expressions with ] as the first character, e.g. []abc]
 [[ b == *[]a'-'c]* ]] && err_exit 'BUG_BRACQUOT: B1'
 [[ b == *[]a$'-'c]* ]] && err_exit 'BUG_BRACQUOT: B2'

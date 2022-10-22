@@ -429,6 +429,10 @@ test_glob '<[^N]>' ["^"N]
 test_glob '<[a-c]>' [a\-c]
 test_glob '<[!N]>' [\!N]
 test_glob '<[^N]>' [\^N]
+# quoting should also work for the end character ']'
+test_glob '<[]-z]>' [\]\-z]
+test_glob '<[]-z]>' [']-z']
+test_glob '<[]-z]>' ["]-z"]
 cd ..
 
 # ======
