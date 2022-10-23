@@ -110,7 +110,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-08-20 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-10-23 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -550,7 +550,7 @@ SEE ALSO
   mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2022-08-20
+  version         package (ksh 93u+m) 2022-10-23
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1088,28 +1088,25 @@ int main()
 			esac
 			;;
 		esac
-		case $cc in
-		/*)	a=$($cc -dumpmachine $CCFLAGS 2>/dev/null)
-			case $a in
-			'')	case $CCFLAGS in
-				?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
-				esac
-				;;
+		a=$($cc -dumpmachine $CCFLAGS 2>/dev/null)
+		case $a in
+		'')	case $CCFLAGS in
+			?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
 			esac
-			case $a in
-			''|*' '*|*/*:*)
-				;;
-			*.*-*)	_hostinfo_="$_hostinfo_ $a"
-				continue
-				;;
-			*-*-*)	case $canon in
-				'')	canon=$a ;;
-				esac
-				;;
-			*)	_hostinfo_="$_hostinfo_ $a"
-				continue
-				;;
+			;;
+		esac
+		case $a in
+		''|*' '*|*/*:*)
+			;;
+		*.*-*)	_hostinfo_="$_hostinfo_ $a"
+			continue
+			;;
+		*-*-*)	case $canon in
+			'')	canon=$a ;;
 			esac
+			;;
+		*)	_hostinfo_="$_hostinfo_ $a"
+			continue
 			;;
 		esac
 		IFS=:
