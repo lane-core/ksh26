@@ -547,18 +547,6 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s $src $dst || { ${STDMV} $dst $dst.old 2>/dev/null || true; ${STDCP} $src $dst ;}
 		exec - test -w $dst && test -x $dst || chmod u+w,+x $dst
 	done __proto_stub dontcare virtual
-	make ${INSTALLROOT}/bin/mkdir
-		make mkdir.sh
-		done mkdir.sh
-		exec - if test ! -x ${INSTALLROOT}/bin/mkdir -a -x /bin/mkdir
-		exec - then mkdir -p 2>/dev/null || :
-		exec - if test -d ./-p
-		exec - then rmdir ./-p
-		exec - cp mkdir.sh ${INSTALLROOT}/bin/mkdir
-		exec - chmod +x ${INSTALLROOT}/bin/mkdir
-		exec - fi
-		exec - fi
-	done ${INSTALLROOT}/bin/mkdir generated
 	make ${INSTALLROOT}/bin/.paths
 		exec - if test ! -f ${INSTALLROOT}/bin/.paths -o -w ${INSTALLROOT}/bin/.paths
 		exec - then N='
