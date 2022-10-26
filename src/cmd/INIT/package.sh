@@ -1842,7 +1842,7 @@ case $x in
 		then
 			# update the basic package commands
 
-			for i in execrate ignore mamprobe silent
+			for i in execrate mamprobe
 			do	test -h $PACKAGEROOT/bin/$i 2>/dev/null ||
 				case $(ls -t $INITROOT/$i.sh $PACKAGEROOT/bin/$i 2>/dev/null) in
 				"$INITROOT/$i.sh"*)

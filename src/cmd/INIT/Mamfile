@@ -231,84 +231,6 @@ make install
 		exec - esac
 		exec - test -w execrate -a -x execrate || chmod u+w,+x execrate
 	done execrate generated
-	make ignore
-		make ignore.sh
-		done ignore.sh
-		prev ignore.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : ignore contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n ignore.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) cp ignore.sh ignore
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < ignore.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat - ignore.sh <<'!'
-		exec -
-		exec - !
-		exec - } > ignore
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - ignore.sh > ignore <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w ignore -a -x ignore || chmod u+w,+x ignore
-	done ignore generated
-	make silent
-		make silent.sh
-		done silent.sh
-		prev silent.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : silent contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n silent.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) cp silent.sh silent
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < silent.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat - silent.sh <<'!'
-		exec -
-		exec - !
-		exec - } > silent
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - silent.sh > silent <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w silent -a -x silent || chmod u+w,+x silent
-	done silent generated
 	make mamake
 		make mamake.o
 			make mamake.c
@@ -436,10 +358,6 @@ make install
 		prev execrate
 		exec - ${STDCMP} 2>/dev/null -s execrate ${PACKAGEROOT}/bin/execrate || { ${STDMV} ${PACKAGEROOT}/bin/execrate ${PACKAGEROOT}/bin/execrate.old 2>/dev/null || true; ${STDCP} execrate ${PACKAGEROOT}/bin/execrate ;}
 	done ${PACKAGEROOT}/bin/execrate generated
-	make ${PACKAGEROOT}/bin/ignore
-		prev ignore
-		exec - ${STDCMP} 2>/dev/null -s ignore ${PACKAGEROOT}/bin/ignore || { ${STDMV} ${PACKAGEROOT}/bin/ignore ${PACKAGEROOT}/bin/ignore.old 2>/dev/null || true; ${STDCP} ignore ${PACKAGEROOT}/bin/ignore ;}
-	done ${PACKAGEROOT}/bin/ignore generated
 	make ${PACKAGEROOT}/bin/mamprobe
 		make mamprobe
 			make mamprobe.sh
@@ -485,10 +403,6 @@ make install
 		prev package
 		exec - ${STDCMP} 2>/dev/null -s package ${PACKAGEROOT}/bin/package || { ${STDMV} ${PACKAGEROOT}/bin/package ${PACKAGEROOT}/bin/package.old 2>/dev/null || true; ${STDCP} package ${PACKAGEROOT}/bin/package ;}
 	done ${PACKAGEROOT}/bin/package generated
-	make ${PACKAGEROOT}/bin/silent
-		prev silent
-		exec - ${STDCMP} 2>/dev/null -s silent ${PACKAGEROOT}/bin/silent || { ${STDMV} ${PACKAGEROOT}/bin/silent ${PACKAGEROOT}/bin/silent.old 2>/dev/null || true; ${STDCP} silent ${PACKAGEROOT}/bin/silent ;}
-	done ${PACKAGEROOT}/bin/silent generated
 	make ${INSTALLROOT}/bin/crossexec
 		prev crossexec
 		exec - ${STDCMP} 2>/dev/null -s crossexec ${INSTALLROOT}/bin/crossexec || { ${STDMV} ${INSTALLROOT}/bin/crossexec ${INSTALLROOT}/bin/crossexec.old 2>/dev/null || true; ${STDCP} crossexec ${INSTALLROOT}/bin/crossexec ;}
