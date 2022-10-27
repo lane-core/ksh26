@@ -569,34 +569,6 @@ make install
 		prev probe
 		exec - ${STDCMP} 2>/dev/null -s probe ${INSTALLROOT}/lib/probe/C/make/probe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/make/probe ${INSTALLROOT}/lib/probe/C/make/probe.old 2>/dev/null || true; ${STDCP} probe ${INSTALLROOT}/lib/probe/C/make/probe ;}
 	done ${INSTALLROOT}/lib/probe/C/make/probe generated
-	make ${INSTALLROOT}/lib/probe/C/make/probe.ini
-		make probe.ini
-			make probe.win32
-			done probe.win32
-			exec - t=${mam_cc_HOSTTYPE}
-			exec - ifs=$IFS
-			exec - IFS=.
-			exec - set x $t
-			exec - IFS=$ifs
-			exec - t=$2
-			exec - set x probe.win32
-			exec - while :
-			exec - do shift
-			exec - case $# in
-			exec - 0) break ;;
-			exec - esac
-			exec - case $1 in
-			exec - *probe.$t)
-			exec - break
-			exec - esac
-			exec - done
-			exec - case $1 in
-			exec - ?*) cmp -s $1 probe.ini || cp $1 probe.ini ;;
-			exec - *) : > probe.ini
-			exec - esac
-		done probe.ini generated
-		exec - ${STDCMP} 2>/dev/null -s probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini || { ${STDMV} ${INSTALLROOT}/lib/probe/C/make/probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini.old 2>/dev/null || true; ${STDCP} probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini ;}
-	done ${INSTALLROOT}/lib/probe/C/make/probe.ini generated
 	make ${INSTALLROOT}/include/ast
 		exec - if test ! -d ${INSTALLROOT}/include/ast
 		exec - then mkdir -p ${INSTALLROOT}/include/ast
