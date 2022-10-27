@@ -10,7 +10,6 @@ lcl
 FEATURE/
 /bin/.paths
 /bin/crossexec
-/bin/execrate
 /bin/filter
 /bin/iffe
 /bin/ksh
@@ -28,7 +27,6 @@ FEATURE/
 /lib/
 /man/
 /src/cmd/INIT/crossexec
-/src/cmd/INIT/execrate
 /src/cmd/INIT/filter
 /src/cmd/INIT/iffe
 /src/cmd/INIT/mamake

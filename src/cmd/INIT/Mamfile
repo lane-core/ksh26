@@ -195,42 +195,6 @@ make install
 		exec - esac
 		exec - test -w crossexec -a -x crossexec || chmod u+w,+x crossexec
 	done crossexec generated
-	make execrate
-		make execrate.sh
-		done execrate.sh
-		prev execrate.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : execrate contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n execrate.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) cp execrate.sh execrate
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < execrate.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat execrate.sh
-		exec - } > execrate
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - execrate.sh > execrate <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w execrate -a -x execrate || chmod u+w,+x execrate
-	done execrate generated
 	make mamake
 		make mamake.o
 			make mamake.c
@@ -353,11 +317,6 @@ make install
 		exec - then mkdir -p ${PACKAGEROOT}/bin
 		exec - fi
 	done ${PACKAGEROOT}/bin generated
-	make ${PACKAGEROOT}/bin/execrate
-		prev ${PACKAGEROOT}/bin
-		prev execrate
-		exec - ${STDCMP} 2>/dev/null -s execrate ${PACKAGEROOT}/bin/execrate || { ${STDMV} ${PACKAGEROOT}/bin/execrate ${PACKAGEROOT}/bin/execrate.old 2>/dev/null || true; ${STDCP} execrate ${PACKAGEROOT}/bin/execrate ;}
-	done ${PACKAGEROOT}/bin/execrate generated
 	make ${PACKAGEROOT}/bin/mamprobe
 		make mamprobe
 			make mamprobe.sh
