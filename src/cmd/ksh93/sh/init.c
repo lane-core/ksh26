@@ -451,7 +451,7 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 #endif
 	else
 		type= -1;
-	if(!sh_isstate(SH_INIT) && (type>=0 || type==LC_ALL || type==LC_LANG))
+	if(type>=0 || type==LC_ALL || type==LC_NUMERIC || type==LC_LANG)
 	{
 		char*		r;
 #ifdef AST_LC_setenv
