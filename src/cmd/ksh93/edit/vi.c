@@ -175,7 +175,7 @@ typedef struct _vi_
 
 static const char paren_chars[] = "([{)]}";   /* for % command */
 
-static char	allwhitespace(Vi_t*);
+static char	blankline(Vi_t*);
 static void	cursor(Vi_t*, int);
 static void	del_line(Vi_t*,int);
 static int	getcount(Vi_t*,int);
@@ -706,7 +706,6 @@ static int cntlmode(Vi_t *vp)
 {
 	register int c;
 	register int i;
-	register int uparrow;
 	genchar tmp_u_space[MAXLINE];	/* temporary u_space */
 	genchar *real_u_space;		/* points to real u_space */
 	int tmp_u_column = INVALID;	/* temporary u_column */
@@ -862,7 +861,6 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			uparrow = 0;
 			goto newhist;
 
 		case 'k':		/** get previous command **/
@@ -885,7 +883,6 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			uparrow = 1;
 		newhist:
 			if(curhline!=histmax || cur_virt==INVALID)
 				hist_copy((char*)virtual, MAXLINE, curhline,-1);
@@ -901,13 +898,11 @@ static int cntlmode(Vi_t *vp)
 #endif /* SHOPT_MULTIBYTE */
 			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
-			if(allwhitespace(vp))
-			{
-				if(uparrow && curhline != histmin)
-					ed_ungetchar(vp->ed,'k');
-				if(!uparrow && curhline != histmax)
-					ed_ungetchar(vp->ed,'j');
-			}
+			/* skip blank lines when going up/down in history */
+			if((c=='k' || c=='-') && curhline != histmin && blankline(vp))
+				ed_ungetchar(vp->ed,'k');
+			else if((c=='j' || c=='+') && curhline != histmax && blankline(vp))
+				ed_ungetchar(vp->ed,'j');
 			break;
 
 
@@ -930,7 +925,7 @@ static int cntlmode(Vi_t *vp)
 		case 'v':
 			if(vp->repeat_set==0)
 			{
-				if(allwhitespace(vp) || cur_virt == INVALID)
+				if(blankline(vp) || cur_virt == INVALID)
 				{
 					cur_virt = 0;
 					last_virt = cur_virt;
@@ -1506,7 +1501,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 		case '\t':		/** command completion **/
 		{
-			if(allwhitespace(vp))
+			if(blankline(vp))
 			{
 				ed_ringbell();
 				break;
@@ -2544,7 +2539,7 @@ addin:
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
 	{
-		if(cur_virt == INVALID || allwhitespace(vp))
+		if(cur_virt == INVALID || blankline(vp))
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2886,9 +2881,9 @@ yankeol:
 #endif	/* SHOPT_MULTIBYTE */
 
 /*
- * determine if a line is entirely blank
+ * determine if the command line is blank (empty or all whitespace)
  */
-static char allwhitespace(register Vi_t *vp)
+static char blankline(Vi_t *vp)
 {
 	int x;
 	for(x=0; x <= cur_virt; x++)
