@@ -2512,6 +2512,7 @@ static int textmod(register Vi_t *vp,register int c, int mode)
 	register genchar *p = vp->lastline;
 	register int trepeat = vp->repeat;
 	genchar *savep;
+	int savecur;
 	int ch;
 
 	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T')) 
@@ -2547,6 +2548,9 @@ addin:
 		++last_virt;
 		mode = cur_virt-1;
 		virtual[last_virt] = 0;
+		savecur = cur_virt;
+		while(isalph(cur_virt) && isalph(cur_virt+1))
+			cur_virt++;
 		ch = c;
 		if(mode>=0 && c=='\\' && virtual[mode+1]=='/')
 			c = '=';
@@ -2559,6 +2563,7 @@ addin:
 #endif /* SHOPT_MULTIBYTE */
 		if(ed_expand(vp->ed,(char*)virtual, &cur_virt, &last_virt, ch, vp->repeat_set?vp->repeat:-1)<0)
 		{
+			cur_virt = savecur;
 			if(vp->ed->e_tabcount)
 			{
 				vp->ed->e_tabcount=2;
@@ -2572,6 +2577,7 @@ addin:
 		else if(vp->ed->e_nlist!=0 && !vp->repeat_set)
 		{
 			last_virt = i;
+			cur_virt = savecur;
 			vi_redraw((void*)vp);
 			return(GOOD);
 		}
