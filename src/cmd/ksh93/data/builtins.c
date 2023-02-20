@@ -214,7 +214,6 @@ const char sh_set[] =
 	"[++?contained in the pipeline following \b!\b.]"
 "}"
 "[f?Pathname expansion is disabled.]"
-"[h?Obsolete; no effect.]"
 "[k?All arguments of the form \aname\a\b=\b\avalue\a "
 	"are removed and placed in the variable assignment list for "
 	"the command.  Ordinarily, variable assignments must precede "
@@ -296,7 +295,6 @@ const char sh_set[] =
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width.]"
 #endif
-		"[+log?Obsolete; has no effect.]"
 		"[+notify?Equivalent to \b-b\b.]"
 		"[+pipefail?A pipeline will not complete until all components "
 			"of the pipeline have completed, and the exit status "
@@ -307,13 +305,10 @@ const char sh_set[] =
 		"[+privileged?Equivalent to \b-p\b.]"
 		"[+showme?Simple commands preceded by a \b;\b will be traced "
 			"as if \b-x\b were enabled but not executed.]"
-		"[+trackall?Equivalent to \b-h\b.]"
 		"[+unset?Opposite of \b-u\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
 		"[+vi?Enables/disables \bvi\b editing mode.]"
-		"[+viraw?Does not use canonical input mode when using \bvi\b "
-			"edit mode.]"
 #endif
 		"[+xtrace?Equivalent to \b-x\b.]"
 	"}"
