@@ -554,7 +554,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 					else if(job_close()<0)
 						continue;
 				}
-				else if(sferr==SH_EXITSIG)
+				else if(errno)
 				{
 					/* Ctrl+C with SIGINT ignored */
 					sfputc(sfstderr,'\n');
