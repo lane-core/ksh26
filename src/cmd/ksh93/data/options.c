@@ -64,6 +64,7 @@ const Shtable_t shtab_options[] =
 	"interactive",			SH_INTERACTIVE|SH_COMMANDLINE,
 	"keyword",			SH_KEYWORD,
 	"letoctal",			SH_LETOCTAL,
+	"nolog",			SH_NOLOG,
 	"login_shell",			SH_LOGIN_SHELL|SH_COMMANDLINE,
 	"markdirs",			SH_MARKDIRS,
 	"monitor",			SH_MONITOR,
@@ -77,6 +78,7 @@ const Shtable_t shtab_options[] =
 	"rc",				SH_RC|SH_COMMANDLINE,
 	"restricted",			SH_RESTRICTED,
 	"showme",			SH_SHOWME,
+	"trackall",			SH_TRACKALL,
 	"nounset",			SH_NOUNSET,
 	"verbose",			SH_VERBOSE,
 #if SHOPT_VSH

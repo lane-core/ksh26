@@ -108,6 +108,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_VI		17
 #endif
 #define	SH_TFLAG	19
+#define SH_TRACKALL	20
 #define	SH_SFLAG	21
 #define	SH_NOEXEC	22
 #if SHOPT_ESH || SHOPT_VSH
@@ -118,6 +119,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_EMACS	25
 #endif
 #define SH_PRIVILEGED	26
+#define SH_NOLOG	28
 #define SH_NOTIFY	29
 #define SH_DICTIONARY	30
 #define SH_PIPEFAIL	32

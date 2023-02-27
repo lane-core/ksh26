@@ -198,8 +198,9 @@ set -- \
 	glob \
 	globstar glob-star glob_star \
 	ignoreeof ignore-eof ignore_eof \
-	keyword markdirs monitor notify \
+	keyword log markdirs monitor notify \
 	pipefail pipe-fail pipe_fail \
+	trackall track-all track_all \
 	unset verbose
 ((SHOPT_ESH)) && set -- "$@" emacs gmacs
 ((SHOPT_VSH)) && set -- "$@" vi
@@ -382,15 +383,15 @@ got=$(
 [[ $got == @((12|21)(12|21)) ]] || err_exit "& job delayed by --pipefail, expected '$exp', got '$got'"
 $SHELL -c '[[ $- == *c* ]]' || err_exit 'option c not in $-'
 > $tmp/.profile
-for i in i l r s D E a b e f k n t u v x $(let SHOPT_BRACEPAT && echo B) C G $(let SHOPT_HISTEXPAND && echo H)
+for i in i l r s D E a b e f h k n t u v x $(let SHOPT_BRACEPAT && echo B) C G $(let SHOPT_HISTEXPAND && echo H)
 do	HOME=$tmp ENV=/./dev/null $SHELL -$i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not in \$-"
 	[[ \$- == *$i* ]] || exit 1
 	++EOF++
 done
-letters=ilrabefknuvx$(let SHOPT_BRACEPAT && echo B)CGE
+letters=ilrabefhknuvx$(let SHOPT_BRACEPAT && echo B)CGE
 integer j=0
 for i in interactive login restricted allexport notify errexit \
-	noglob keyword noexec nounset verbose xtrace \
+	noglob trackall keyword noexec nounset verbose xtrace \
 	$(let SHOPT_BRACEPAT && echo braceexpand) \
 	noclobber globstar rc
 do	HOME=$tmp ENV=/./dev/null $SHELL -o $i >/dev/null 2>&1 <<- ++EOF++ || err_exit "option $i not equivalent to ${letters:j:1}"

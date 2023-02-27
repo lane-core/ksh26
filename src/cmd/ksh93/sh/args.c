@@ -47,7 +47,7 @@ static	char		*null;
 
 /* The following order is determined by sh_optset */
 static  const char optksh[] =
-	"Dircabefkmnpstuvx"
+	"Dircabefhkmnpstuvx"
 #if SHOPT_BRACEPAT
 	"B"
 #endif
@@ -59,7 +59,7 @@ static  const char optksh[] =
 static const int flagval[]  =
 {
 	SH_DICTIONARY, SH_INTERACTIVE, SH_RESTRICTED, SH_CFLAG,
-	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB,
+	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB, SH_TRACKALL,
 	SH_KEYWORD, SH_MONITOR, SH_NOEXEC, SH_PRIVILEGED, SH_SFLAG, SH_TFLAG,
 	SH_NOUNSET, SH_VERBOSE,  SH_XTRACE,
 #if SHOPT_BRACEPAT

@@ -417,7 +417,10 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	else
 	{
 		if(!sh_isstate(SH_PROFILE))
+		{
 			buff.mode = SH_JMPEXIT;
+			sh_onoption(SH_TRACKALL);
+		}
 		if(sh_isoption(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		sh_offstate(SH_HISTORY);
