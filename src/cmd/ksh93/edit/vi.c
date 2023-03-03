@@ -27,12 +27,13 @@
 -*/
 
 #include	"shopt.h"
-
-#if SHOPT_VSH
-
 #include	"defs.h"
-#include	"io.h"
 
+#if !SHOPT_VSH
+NoN(vi)
+#else
+
+#include	"io.h"
 #include	"history.h"
 #include	"edit.h"
 #include	"terminal.h"
@@ -2663,4 +2664,4 @@ static int getrchar(register Vi_t *vp)
 	return(c);
 }
 
-#endif /* SHOPT_VSH */
+#endif /* !SHOPT_VSH */
