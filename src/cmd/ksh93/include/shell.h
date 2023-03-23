@@ -106,6 +106,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_BGNICE	16
 #if SHOPT_VSH
 #define SH_VI		17
+#define SH_VIRAW	18
 #endif
 #define	SH_TFLAG	19
 #define SH_TRACKALL	20

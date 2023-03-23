@@ -83,6 +83,7 @@ const Shtable_t shtab_options[] =
 	"verbose",			SH_VERBOSE,
 #if SHOPT_VSH
 	"vi",				SH_VI,
+	"viraw",			SH_VIRAW,
 #endif
 	"xtrace",			SH_XTRACE,
 	"",				0

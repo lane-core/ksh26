@@ -308,6 +308,7 @@ const char sh_set[] =
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
 		"[+vi?Enables/disables \bvi\b editing mode.]"
+		"[+viraw?Obsolete; no effect.]"
 #endif
 		"[+xtrace?Equivalent to \b-x\b.]"
 	"}"
