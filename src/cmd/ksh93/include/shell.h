@@ -338,7 +338,6 @@ struct Shell_s
 	int16_t		fn_depth;	/* scoped ksh-style function call depth */
 	int16_t		dot_depth;	/* dot-script and POSIX function call depth */
 	char		invoc_local;	/* set when inside of an invocation-local scope */
-	int		hist_depth;
 	int		xargmin;
 	int		xargmax;
 	int		xargexit;
