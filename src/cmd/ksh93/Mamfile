@@ -263,7 +263,7 @@ make install
 				prev shopt.h implicit
 			done sh/pmain.c
 			prev sh/pmain.c
-			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/pmain.c
+			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/pmain.c
 		done pmain.o generated
 		make libshell.a archive
 			prev shell.req
@@ -311,7 +311,7 @@ make install
 					prev shopt.h implicit
 				done bltins/alarm.c
 				prev bltins/alarm.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/alarm.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/alarm.c
 			done alarm.o generated
 			make cd_pwd.o
 				make bltins/cd_pwd.c
@@ -345,7 +345,7 @@ make install
 					prev shopt.h implicit
 				done bltins/cd_pwd.c
 				prev bltins/cd_pwd.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/cd_pwd.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/cd_pwd.c
 			done cd_pwd.o generated
 			make cflow.o
 				make bltins/cflow.c
@@ -360,7 +360,7 @@ make install
 					prev shopt.h implicit
 				done bltins/cflow.c
 				prev bltins/cflow.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/cflow.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/cflow.c
 			done cflow.o generated
 			make deparse.o
 				make sh/deparse.c
@@ -370,7 +370,7 @@ make install
 					prev shopt.h implicit
 				done sh/deparse.c
 				prev sh/deparse.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/deparse.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/deparse.c
 			done deparse.o generated
 			make enum.o
 				make bltins/enum.c
@@ -378,7 +378,7 @@ make install
 					prev shopt.h implicit
 				done bltins/enum.c
 				prev bltins/enum.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=${SH_DICT} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/enum.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/enum.c
 			done enum.o generated
 			make getopts.o
 				make bltins/getopts.c
@@ -390,7 +390,7 @@ make install
 					prev shopt.h implicit
 				done bltins/getopts.c
 				prev bltins/getopts.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/getopts.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/getopts.c
 			done getopts.o generated
 			make hist.o
 				make bltins/hist.c
@@ -427,7 +427,7 @@ make install
 					prev shopt.h implicit
 				done bltins/hist.c
 				prev bltins/hist.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/hist.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/hist.c
 			done hist.o generated
 			make misc.o
 				make bltins/misc.c
@@ -454,7 +454,7 @@ make install
 					prev shopt.h implicit
 				done bltins/misc.c
 				prev bltins/misc.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/misc.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/misc.c
 			done misc.o generated
 			make mkservice.o
 				make bltins/mkservice.c
@@ -465,7 +465,7 @@ make install
 					prev shopt.h implicit
 				done bltins/mkservice.c
 				prev bltins/mkservice.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/mkservice.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/mkservice.c
 			done mkservice.o generated
 			make print.o
 				make bltins/print.c
@@ -502,7 +502,7 @@ make install
 					prev shopt.h implicit
 				done bltins/print.c
 				prev bltins/print.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/print.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/print.c
 			done print.o generated
 			make read.o
 				make bltins/read.c
@@ -524,7 +524,7 @@ make install
 					prev shopt.h implicit
 				done bltins/read.c
 				prev bltins/read.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/read.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/read.c
 			done read.o generated
 			make sleep.o
 				make bltins/sleep.c
@@ -541,7 +541,7 @@ make install
 					prev shopt.h implicit
 				done bltins/sleep.c
 				prev bltins/sleep.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/sleep.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/sleep.c
 			done sleep.o generated
 			make trap.o
 				make bltins/trap.c
@@ -551,7 +551,7 @@ make install
 					prev shopt.h implicit
 				done bltins/trap.c
 				prev bltins/trap.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/trap.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/trap.c
 			done trap.o generated
 			make test.o
 				make bltins/test.c
@@ -569,7 +569,7 @@ make install
 					prev shopt.h implicit
 				done bltins/test.c
 				prev bltins/test.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/test.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/test.c
 			done test.o generated
 			make typeset.o
 				make bltins/typeset.c
@@ -584,7 +584,7 @@ make install
 					prev shopt.h implicit
 				done bltins/typeset.c
 				prev bltins/typeset.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/typeset.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/typeset.c
 			done typeset.o generated
 			make ulimit.o
 				make bltins/ulimit.c
@@ -605,7 +605,7 @@ make install
 					prev shopt.h implicit
 				done bltins/ulimit.c
 				prev bltins/ulimit.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/ulimit.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/ulimit.c
 			done ulimit.o generated
 			make umask.o
 				make bltins/umask.c
@@ -618,7 +618,7 @@ make install
 					prev shopt.h implicit
 				done bltins/umask.c
 				prev bltins/umask.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/umask.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/umask.c
 			done umask.o generated
 			make whence.o
 				make bltins/whence.c
@@ -637,7 +637,7 @@ make install
 					prev shopt.h implicit
 				done bltins/whence.c
 				prev bltins/whence.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/whence.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/whence.c
 			done whence.o generated
 			make main.o
 				make sh/main.c
@@ -676,7 +676,7 @@ make install
 					prev shopt.h implicit
 				done sh/main.c
 				prev sh/main.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${DEBUG+-DDEBUG=${DEBUG}} -DSH_DICT=${SH_DICT} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/main.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${DEBUG+-DDEBUG=${DEBUG}} -DSH_DICT=${SH_DICT} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/main.c
 			done main.o generated
 			make nvdisc.o
 				make sh/nvdisc.c
@@ -689,7 +689,7 @@ make install
 					prev shopt.h implicit
 				done sh/nvdisc.c
 				prev sh/nvdisc.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/nvdisc.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvdisc.c
 			done nvdisc.o generated
 			make nvtype.o
 				make sh/nvtype.c
@@ -699,7 +699,7 @@ make install
 					prev shopt.h implicit
 				done sh/nvtype.c
 				prev sh/nvtype.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvtype.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvtype.c
 			done nvtype.o generated
 			make arith.o
 				make sh/arith.c
@@ -712,7 +712,7 @@ make install
 					prev shopt.h implicit
 				done sh/arith.c
 				prev sh/arith.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/arith.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/arith.c
 			done arith.o generated
 			make args.o
 				make sh/args.c
@@ -728,7 +728,7 @@ make install
 					prev shopt.h implicit
 				done sh/args.c
 				prev sh/args.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/args.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/args.c
 			done args.o generated
 			make array.o
 				make sh/array.c
@@ -738,7 +738,7 @@ make install
 					prev shopt.h implicit
 				done sh/array.c
 				prev sh/array.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/array.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/array.c
 			done array.o generated
 			make completion.o
 				make edit/completion.c
@@ -752,7 +752,7 @@ make install
 					prev shopt.h implicit
 				done edit/completion.c
 				prev edit/completion.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c edit/completion.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/completion.c
 			done completion.o generated
 			make defs.o
 				make sh/defs.c
@@ -764,7 +764,7 @@ make install
 					prev shopt.h implicit
 				done sh/defs.c
 				prev sh/defs.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/defs.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/defs.c
 			done defs.o generated
 			make edit.o
 				make edit/edit.c
@@ -788,7 +788,7 @@ make install
 					prev shopt.h implicit
 				done edit/edit.c
 				prev edit/edit.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/edit.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/edit.c
 			done edit.o generated
 			make expand.o
 				make sh/expand.c
@@ -815,7 +815,7 @@ make install
 					prev shopt.h implicit
 				done sh/expand.c
 				prev sh/expand.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/expand.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/expand.c
 			done expand.o generated
 			make regress.o
 				make bltins/regress.c
@@ -828,7 +828,7 @@ make install
 					prev shopt.h implicit
 				done bltins/regress.c
 				prev bltins/regress.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/regress.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/regress.c
 			done regress.o generated
 			make fault.o
 				make sh/fault.c
@@ -846,7 +846,7 @@ make install
 					prev shopt.h implicit
 				done sh/fault.c
 				prev sh/fault.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/fault.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/fault.c
 			done fault.o generated
 			make fcin.o
 				make sh/fcin.c
@@ -857,7 +857,7 @@ make install
 					prev shopt.h implicit
 				done sh/fcin.c
 				prev sh/fcin.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/fcin.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/fcin.c
 			done fcin.o generated
 			make history.o
 				make edit/history.c
@@ -876,7 +876,7 @@ make install
 					prev shopt.h implicit
 				done edit/history.c
 				prev edit/history.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c edit/history.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/history.c
 			done history.o generated
 			make init.o
 				make sh/init.c
@@ -907,7 +907,7 @@ make install
 					prev shopt.h implicit
 				done sh/init.c
 				prev sh/init.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/init.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/init.c
 			done init.o generated
 			make io.o
 				make sh/io.c
@@ -931,7 +931,7 @@ make install
 					prev shopt.h implicit
 				done sh/io.c
 				prev sh/io.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/io.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/io.c
 			done io.o generated
 			make jobs.o
 				make sh/jobs.c
@@ -947,7 +947,7 @@ make install
 					prev shopt.h implicit
 				done sh/jobs.c
 				prev sh/jobs.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/jobs.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/jobs.c
 			done jobs.o generated
 			make lex.o
 				make sh/lex.c
@@ -966,7 +966,7 @@ make install
 					prev shopt.h implicit
 				done sh/lex.c
 				prev sh/lex.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/lex.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/lex.c
 			done lex.o generated
 			make macro.o
 				make sh/macro.c
@@ -985,7 +985,7 @@ make install
 					prev shopt.h implicit
 				done sh/macro.c
 				prev sh/macro.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/macro.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/macro.c
 			done macro.o generated
 			make name.o
 				make sh/name.c
@@ -1001,7 +1001,7 @@ make install
 					prev shopt.h implicit
 				done sh/name.c
 				prev sh/name.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/name.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/name.c
 			done name.o generated
 			make nvtree.o
 				make sh/nvtree.c
@@ -1012,7 +1012,7 @@ make install
 					prev shopt.h implicit
 				done sh/nvtree.c
 				prev sh/nvtree.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/nvtree.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvtree.c
 			done nvtree.o generated
 			make parse.o
 				make sh/parse.c
@@ -1029,7 +1029,7 @@ make install
 					prev shopt.h implicit
 				done sh/parse.c
 				prev sh/parse.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/parse.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/parse.c
 			done parse.o generated
 			make path.o
 				make sh/path.c
@@ -1053,7 +1053,7 @@ make install
 					prev shopt.h implicit
 				done sh/path.c
 				prev sh/path.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/path.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/path.c
 			done path.o generated
 			make string.o
 				make sh/string.c
@@ -1069,7 +1069,7 @@ make install
 					prev shopt.h implicit
 				done sh/string.c
 				prev sh/string.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/string.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/string.c
 			done string.o generated
 			make streval.o
 				make sh/streval.c
@@ -1080,7 +1080,7 @@ make install
 					prev shopt.h implicit
 				done sh/streval.c
 				prev sh/streval.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/streval.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/streval.c
 			done streval.o generated
 			make subshell.o
 				make sh/subshell.c
@@ -1096,7 +1096,7 @@ make install
 					prev shopt.h implicit
 				done sh/subshell.c
 				prev sh/subshell.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/subshell.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/subshell.c
 			done subshell.o generated
 			make tdump.o
 				make sh/tdump.c
@@ -1108,7 +1108,7 @@ make install
 					prev shopt.h implicit
 				done sh/tdump.c
 				prev sh/tdump.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/tdump.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/tdump.c
 			done tdump.o generated
 			make timers.o
 				make sh/timers.c
@@ -1122,7 +1122,7 @@ make install
 					prev shopt.h implicit
 				done sh/timers.c
 				prev sh/timers.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/timers.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/timers.c
 			done timers.o generated
 			make trestore.o
 				make sh/trestore.c
@@ -1134,7 +1134,7 @@ make install
 					prev shopt.h implicit
 				done sh/trestore.c
 				prev sh/trestore.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/trestore.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/trestore.c
 			done trestore.o generated
 			make waitevent.o
 				make sh/waitevent.c
@@ -1142,7 +1142,7 @@ make install
 					prev shopt.h implicit
 				done sh/waitevent.c
 				prev sh/waitevent.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/waitevent.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/waitevent.c
 			done waitevent.o generated
 			make xec.o
 				make sh/xec.c
@@ -1165,7 +1165,7 @@ make install
 					prev shopt.h implicit
 				done sh/xec.c
 				prev sh/xec.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/xec.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/xec.c
 			done xec.o generated
 			make limits.o
 				make data/limits.c
@@ -1174,7 +1174,7 @@ make install
 					prev shopt.h implicit
 				done data/limits.c
 				prev data/limits.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -c data/limits.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -c data/limits.c
 			done limits.o generated
 			make msg.o
 				make data/msg.c
@@ -1192,7 +1192,7 @@ make install
 					prev shopt.h implicit
 				done data/msg.c
 				prev data/msg.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/msg.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/msg.c
 			done msg.o generated
 			make strdata.o
 				make data/strdata.c
@@ -1215,7 +1215,7 @@ make install
 					prev shopt.h implicit
 				done data/strdata.c
 				prev data/strdata.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/strdata.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/strdata.c
 			done strdata.o generated
 			make testops.o
 				make data/testops.c
@@ -1225,7 +1225,7 @@ make install
 					prev shopt.h implicit
 				done data/testops.c
 				prev data/testops.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/testops.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/testops.c
 			done testops.o generated
 			make keywords.o
 				make data/keywords.c
@@ -1234,7 +1234,7 @@ make install
 					prev shopt.h implicit
 				done data/keywords.c
 				prev data/keywords.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/keywords.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/keywords.c
 			done keywords.o generated
 			make options.o
 				make data/options.c
@@ -1244,7 +1244,7 @@ make install
 					prev shopt.h implicit
 				done data/options.c
 				prev data/options.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/options.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/options.c
 			done options.o generated
 			make signals.o
 				make data/signals.c
@@ -1253,7 +1253,7 @@ make install
 					prev shopt.h implicit
 				done data/signals.c
 				prev data/signals.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/signals.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/signals.c
 			done signals.o generated
 			make aliases.o
 				make data/aliases.c
@@ -1262,7 +1262,7 @@ make install
 					prev shopt.h implicit
 				done data/aliases.c
 				prev data/aliases.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/aliases.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/aliases.c
 			done aliases.o generated
 			make builtins.o
 				make data/builtins.c
@@ -1278,7 +1278,7 @@ make install
 					prev shopt.h implicit
 				done data/builtins.c
 				prev data/builtins.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/builtins.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/builtins.c
 			done builtins.o generated
 			make variables.o
 				make data/variables.c
@@ -1293,7 +1293,7 @@ make install
 					prev shopt.h implicit
 				done data/variables.c
 				prev data/variables.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/variables.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/variables.c
 			done variables.o generated
 			make lexstates.o
 				make data/lexstates.c
@@ -1302,7 +1302,7 @@ make install
 					prev shopt.h implicit
 				done data/lexstates.c
 				prev data/lexstates.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -c data/lexstates.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -c data/lexstates.c
 			done lexstates.o generated
 			make emacs.o
 				make edit/emacs.c
@@ -1317,7 +1317,7 @@ make install
 					prev shopt.h implicit
 				done edit/emacs.c
 				prev edit/emacs.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/emacs.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/emacs.c
 			done emacs.o generated
 			make vi.o
 				make edit/vi.c
@@ -1332,7 +1332,7 @@ make install
 					prev shopt.h implicit
 				done edit/vi.c
 				prev edit/vi.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c edit/vi.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/vi.c
 			done vi.o generated
 			make hexpand.o
 				make edit/hexpand.c
@@ -1341,7 +1341,7 @@ make install
 					prev shopt.h implicit
 				done edit/hexpand.c
 				prev edit/hexpand.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/hexpand.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/hexpand.c
 			done hexpand.o generated
 			exec - ${AR} rc libshell.a alarm.o cd_pwd.o cflow.o deparse.o enum.o getopts.o hist.o misc.o mkservice.o print.o read.o sleep.o trap.o test.o typeset.o ulimit.o umask.o whence.o main.o nvdisc.o nvtype.o arith.o args.o array.o completion.o defs.o edit.o expand.o regress.o fault.o fcin.o
 			exec - ${AR} rc libshell.a history.o init.o io.o jobs.o lex.o macro.o name.o nvtree.o parse.o path.o string.o streval.o subshell.o tdump.o timers.o trestore.o waitevent.o xec.o limits.o msg.o strdata.o testops.o keywords.o options.o signals.o aliases.o builtins.o variables.o lexstates.o emacs.o vi.o hexpand.o
@@ -1367,7 +1367,7 @@ make install
 				prev shopt.h implicit
 			done sh/shcomp.c
 			prev sh/shcomp.c
-			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/shcomp.c
+			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/shcomp.c
 		done shcomp.o generated
 		prev ksh
 		prev +ljobs
