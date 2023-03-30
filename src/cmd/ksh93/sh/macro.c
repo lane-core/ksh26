@@ -1883,9 +1883,16 @@ retry2:
 					oldv = v;
 					nmatch_prev = nmatch;
 					if(c=='%')
-						nmatch=substring(v,tsize,pattern,match,flag&STR_MAXIMAL);
+						nmatch = substring(v, tsize,
+							*pattern ? pattern : "~(E)$",
+							match,
+							flag & STR_MAXIMAL);
 					else
-						nmatch=strngrpmatch(v,vsize,pattern,(ssize_t*)match,elementsof(match)/2,flag|STR_INT);
+						nmatch = strngrpmatch(v, vsize,
+							*pattern ? pattern : "~(E)^",
+							(ssize_t*)match,
+							elementsof(match) / 2,
+							flag | STR_INT);
 					if(nmatch && repstr && !mp->macsub)
 						sh_setmatch(v,vsize,nmatch,match,index++);
 					if(nmatch)
