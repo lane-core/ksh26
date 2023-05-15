@@ -456,8 +456,8 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	ep->e_fd = fd;
 	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
 	sh.winch = 0;
-	ep->e_stkoff = staktell();
-	ep->e_stkptr = stakfreeze(0);
+	ep->e_stkoff = stktell(sh.stk);
+	ep->e_stkptr = stkfreeze(sh.stk,0);
 #if SHOPT_MULTIBYTE
 	ep->e_savedwidth = 0;
 #endif /* SHOPT_MULTIBYTE */
