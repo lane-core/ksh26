@@ -125,6 +125,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_NOLOG	28
 #define SH_NOTIFY	29
 #define SH_DICTIONARY	30
+#define SH_GLOBEX	31
 #define SH_PIPEFAIL	32
 #define SH_GLOBSTARS	33
 #if SHOPT_GLOBCASEDET || !defined(SHOPT_GLOBCASEDET)

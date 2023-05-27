@@ -2618,9 +2618,9 @@ and
 This is also known as \f2globbing\fP
 or sometimes \f2filename generation\fP.
 Pathname expansion is disabled if the
-.B -f
+.B \-f
 a.k.a.
-.B --noglob
+.B \-\-noglob
 shell option is on.
 Otherwise, if certain special characters are found in a
 .I word
@@ -2644,10 +2644,16 @@ are scanned only for the characters
 .BR ? ,
 and
 .B \*(OK\^
+for compatibility reasons
 (in which case the
 .B (
 character is not special and any pattern syntax described below
 that involves parentheses does not apply).
+The
+.B \-\-globex
+option eliminates that difference by enabling this extended pattern
+syntax with parentheses also for fields resulting from field splitting.
+.PP
 Each file name component that contains a recognized pattern character
 is replaced with a lexicographically sorted set of names
 that matches the pattern
@@ -7799,6 +7805,17 @@ is treated as \fB~(i:\fR\fIp\fR\fB)\fR
 if its parent directory exists on a case-insensitive file system.
 This option is only present on operating systems that support
 case-insensitive file systems.
+.TP 8
+.B globex
+When this is enabled, extended patterns,
+i.e. those that use a syntax involving parentheses (see
+.I "Pathname Expansion"
+above), are expanded in fields that result from field splitting
+(see
+.I "Field Splitting"
+above).
+These pattern types are disabled by default in field splitting contexts
+for compatibility reasons.
 .TP 8
 .B globstar
 Same as

@@ -49,6 +49,7 @@ const Shtable_t shtab_options[] =
 #if SHOPT_GLOBCASEDET || !defined(SHOPT_GLOBCASEDET)
 	"globcasedetect",		SH_GLOBCASEDET,
 #endif
+	"globex",			SH_GLOBEX,
 	"globstar",			SH_GLOBSTARS,
 #if SHOPT_ESH
 	"gmacs",			SH_GMACS,

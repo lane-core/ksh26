@@ -3,4 +3,13 @@
 * finished state and some information may be missing, obsolete or wrong. *
 **************************************************************************
 
-The announcement text for ksh 93u+m/1.1 is not being developed yet.
+The announcement text for ksh 93u+m/1.1 is under development.
+
+### MAIN CHANGES between ksh 93u+m/1.0.x and 93u+m/1.1.0 ###
+
+New features in shell options:
+
+- A new --globex shell option allows pathname expansion of extended patterns
+  (those with a syntax involving parentheses) from fields resulting from
+  field splitting (e.g., unquoted variables as command arguments). This
+  remains disabled by default for compatibility with POSIX and ksh88.
