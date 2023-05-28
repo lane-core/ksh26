@@ -655,6 +655,7 @@ noreturn void sh_done(int sig)
 {
 	char *t;
 	int savxit = sh.exitval;
+	unsigned char savlastsig = sh.lastsig;
 	sh.trapnote = 0;
 	indone=1;
 	if(sig)
@@ -686,7 +687,7 @@ noreturn void sh_done(int sig)
 	sfsync((Sfio_t*)sfstdin);
 	sfsync((Sfio_t*)sh.outpool);
 	sfsync((Sfio_t*)sfstdout);
-	if((sh.chldexitsig && sh.realsubshell) || (savxit&SH_EXITSIG && (savxit&SH_EXITMASK) == sh.lastsig))
+	if((sh.chldexitsig && sh.realsubshell) || (savxit&SH_EXITSIG && (savxit&SH_EXITMASK) == savlastsig))
 		sig = savxit&SH_EXITMASK;
 	if(sig)
 	{
