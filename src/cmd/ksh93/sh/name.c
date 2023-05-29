@@ -2282,8 +2282,6 @@ void	sh_envnolocal (Namval_t *np, void *data)
 		return;
 	if(np==L_ARGNOD)
 		return;
-	if(np==FPATHNOD)
-		return;
 	if(np == sh.namespace)
 		return;
 	if(nv_isref(np))
