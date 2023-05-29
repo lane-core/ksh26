@@ -429,10 +429,43 @@ test_glob '<[^N]>' ["^"N]
 test_glob '<[a-c]>' [a\-c]
 test_glob '<[!N]>' [\!N]
 test_glob '<[^N]>' [\^N]
+# same tests again with ~(S) prefixed (sh pattern)
+# also check that S cancels out previous E
+test_glob '<~(ES)[a-c]>' ~(ES)[a'-'c]
+test_glob '<~(ES)[!N]>' ~(ES)['!'N]
+test_glob '<~(ES)[^N]>' ~(ES)['^'N]
+test_glob '<~(ES)[a-c]>' ~(ES)[a$'-'c]
+test_glob '<~(ES)[!N]>' ~(ES)[$'!'N]
+test_glob '<~(ES)[^N]>' ~(ES)[$'^'N]
+test_glob '<~(ES)[a-c]>' ~(ES)[a"-"c]
+test_glob '<~(ES)[!N]>' ~(ES)["!"N]
+test_glob '<~(ES)[^N]>' ~(ES)["^"N]
+test_glob '<~(ES)[a-c]>' ~(ES)[a\-c]
+test_glob '<~(ES)[!N]>' ~(ES)[\!N]
+test_glob '<~(ES)[^N]>' ~(ES)[\^N]
+# same tests again with ~(K) prefixed (ksh pattern)
+test_glob '<~(K)[a-c]>' ~(K)[a'-'c]
+test_glob '<~(K)[!N]>' ~(K)['!'N]
+test_glob '<~(K)[^N]>' ~(K)['^'N]
+test_glob '<~(K)[a-c]>' ~(K)[a$'-'c]
+test_glob '<~(K)[!N]>' ~(K)[$'!'N]
+test_glob '<~(K)[^N]>' ~(K)[$'^'N]
+test_glob '<~(K)[a-c]>' ~(K)[a"-"c]
+test_glob '<~(K)[!N]>' ~(K)["!"N]
+test_glob '<~(K)[^N]>' ~(K)["^"N]
+test_glob '<~(K)[a-c]>' ~(K)[a\-c]
+test_glob '<~(K)[!N]>' ~(K)[\!N]
+test_glob '<~(K)[^N]>' ~(K)[\^N]
 # quoting should also work for the end character ']'
 test_glob '<[]-z]>' [\]\-z]
 test_glob '<[]-z]>' [']-z']
 test_glob '<[]-z]>' ["]-z"]
+test_glob '<~(S)[]-z]>' ~(S)[\]\-z]
+test_glob '<~(S)[]-z]>' ~(S)[']-z']
+test_glob '<~(S)[]-z]>' ~(S)["]-z"]
+test_glob '<~(K)[]-z]>' ~(K)[\]\-z]
+test_glob '<~(K)[]-z]>' ~(K)[']-z']
+test_glob '<~(K)[]-z]>' ~(K)["]-z"]
 # check internal escaping of bracket expression in glob pattern resulting from field splitting
 # https://github.com/ksh93/ksh/issues/549
 unquoted_patvar='[\!N]'; test_glob '<[\!N]>' $unquoted_patvar
@@ -442,6 +475,26 @@ unquoted_patvar='[a\-c]'; test_glob '<[a\-c]>' $unquoted_patvar
 : > a > c; test_glob '<-> <a> <c>' $unquoted_patvar
 : > !; unquoted_patvar='[\!N]'; test_glob '<!>' $unquoted_patvar
 : > ^; unquoted_patvar='[\^N]'; test_glob '<^>' $unquoted_patvar
+if	[[ -o ?globex ]]
+then	set -o globex
+	rm ./- a c ! ^
+	unquoted_patvar='~(S)[\!N]'; test_glob '<~(S)[\!N]>' $unquoted_patvar
+	unquoted_patvar='~(S)[\^N]'; test_glob '<~(S)[\^N]>' $unquoted_patvar
+	unquoted_patvar='~(S)[a\-c]'; test_glob '<~(S)[a\-c]>' $unquoted_patvar
+	: > -; test_glob '<->' $unquoted_patvar
+	: > a > c; test_glob '<-> <a> <c>' $unquoted_patvar
+	: > !; unquoted_patvar='~(S)[\!N]'; test_glob '<!>' $unquoted_patvar
+	: > ^; unquoted_patvar='~(S)[\^N]'; test_glob '<^>' $unquoted_patvar
+	rm ./- a c ! ^
+	unquoted_patvar='~(K)[\!N]'; test_glob '<~(K)[\!N]>' $unquoted_patvar
+	unquoted_patvar='~(K)[\^N]'; test_glob '<~(K)[\^N]>' $unquoted_patvar
+	unquoted_patvar='~(K)[a\-c]'; test_glob '<~(K)[a\-c]>' $unquoted_patvar
+	: > -; test_glob '<->' $unquoted_patvar
+	: > a > c; test_glob '<-> <a> <c>' $unquoted_patvar
+	: > !; unquoted_patvar='~(K)[\!N]'; test_glob '<!>' $unquoted_patvar
+	: > ^; unquoted_patvar='~(K)[\^N]'; test_glob '<^>' $unquoted_patvar
+	set +o globex
+fi
 cd ..
 
 # ======
