@@ -17,12 +17,12 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
 
 ## Policy
 
-1. Fixing bugs is main focus of the 1.x series.
-   Major feature development is for future versions (2.x and up).
+1. Fixing bugs is main focus of the 1.0 series.
+   Major feature development is for future versions (1.1 and up).
 2. No major rewrites. No refactoring code that is not fully understood.
-3. No changes in documented behaviour, except if required for compliance with the
+3. Maintain documented behaviour. Changes required for compliance with the
    [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
-   which David Korn [intended](http://www.kornshell.com/info/) for ksh to follow.
+   are implemented for the `posix` mode only to avoid breaking legacy scripts.
 4. No 100% bug compatibility. Broken and undocumented behaviour gets fixed.
 5. No bureaucracy, no formalities. Just fix it, or report it: create issues,
    send pull requests. Every interested party is invited to contribute.
@@ -71,6 +71,7 @@ Then `cd` to the top directory and run:
 ```sh
 bin/package make
 ```
+To suppress compiler output, use `quiet make` instead of `make`.
 In some non-POSIX shells you might need to prepend `sh` to all calls to `bin/package`.
 
 The compiled binaries are stored in the `arch` directory, in a subdirectory
@@ -119,6 +120,11 @@ For ksh, use the `shtests` command directly to control the regression test runs.
 Start by reading the information printed by:
 ```sh
 bin/shtests --man
+```
+To hand-test ksh (as well as the utilities and the autoloadable functions
+that come with it) without installing, run:
+```sh
+bin/package use
 ```
 
 ### Install
