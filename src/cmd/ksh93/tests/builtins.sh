@@ -1227,9 +1227,9 @@ function test_usage
 # https://bugzilla.redhat.com/1176670
 if	(builtin alarm) 2>/dev/null
 then	got=$( { "$SHELL" -c '
+		typeset -sui i=0
 		builtin alarm
-		alarm -r alarm_handler +.005
-		i=0
+		alarm -r alarm_handler +.02
 		function alarm_handler.alarm
 		{
 			let "(++i) > 20" && exit
