@@ -1950,6 +1950,9 @@ a numeric seed value to
 Each time a new shell or subshell environment is entered (see
 .I Subshells\^
 above), the sequence is automatically reset to a different point.
+If true randomness is required,
+.B SRANDOM
+should be used instead.
 .TP
 .B
 .SM REPLY
@@ -1977,6 +1980,25 @@ If
 .B SHLVL
 is not in the environment when the shell is invoked, it is set
 to 1.
+.TP
+.B
+.SM SRANDOM
+Each time this variable is referenced, a securely random integer
+between 0 and 4294967295 (the 32-bit unsigned integer range) is generated.
+By default, each random number is obtained
+from the native OS implementation of
+.IR arc4random (3)
+or, absent that, an integrated OpenBSD-based version
+that uses the ChaCha20 cipher.
+The sequence of random numbers is not reproducible.
+The generator is automatically initialized using various sources of entropy.
+An upper bound can be set by assigning its value to
+.BR SRANDOM ;
+subsequent numbers will then be obtained using
+.IR arc4random_uniform (3),
+which means that they will be uniformly distributed between 0 and the
+value of the upper bound minus one, in a way that avoids "modulo bias".
+Assigning a value of 0 restores default operation.
 .PD
 .RE
 .PP
@@ -9037,6 +9059,7 @@ Unsetting
 .BR OPTIND ,
 .BR RANDOM ,
 .BR SECONDS ,
+.BR SRANDOM ,
 .BR TMOUT ,
 and
 .SM
@@ -9438,6 +9461,7 @@ The null device.
 .IR strftime (3),
 .IR wctrans (3),
 .IR rand (3),
+.IR arc4random (3),
 .IR a.out (5),
 .IR profile (5),
 .IR environ (7).

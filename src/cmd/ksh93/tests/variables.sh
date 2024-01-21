@@ -1123,7 +1123,7 @@ $SHELL -c '
 	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1
 	for var
 	do	case $var in
-		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
+		RANDOM | SRANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
 			# these are expected to fail below as their values change; just test against crashing
 			typeset -u "$var"
 			typeset -l "$var"
@@ -1614,6 +1614,33 @@ got=$(set +x; { "$SHELL" -c '
 [[ e=$? -eq 0 && $got == "$exp" ]] || err_exit '$_ corruption' \
 	"(expected status 0, $(printf %q "$exp");" \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
+got=${ typeset -p SRANDOM; }
+exp='typeset -u -i SRANDOM='
+[[ $got == "$exp"* ]] || err_exit "SRANDOM is the wrong type" \
+	"(expected match of $(printf %q "$exp")*, got $(printf %q "$got"))"
+
+case ${SRANDOM+s},${SRANDOM-} in
+, )	err_exit "SRANDOM not set" ;;
+s, | s,*[!0123456789]* )
+	err_exit "SRANDOM has an invalid value"  ;;
+s,* )	case $SRANDOM,$SRANDOM,$SRANDOM,$SRANDOM in
+	"$SRANDOM,$SRANDOM,$SRANDOM,$SRANDOM" )
+		err_exit "SRANDOM not working" ;;
+	esac ;;
+esac
+
+typeset -ui i=0 got=0 bound=100
+SRANDOM=bound
+for ((i=0; i<bound; i++))
+do	if	let "got = SRANDOM, got >= bound"
+	then	err_exit "SRANDOM upper bound not working ($got >= $bound)"
+		break
+	fi
+done
+unset i got bound
+SRANDOM=0
 
 # ======
 exit $((Errors<125?Errors:125))

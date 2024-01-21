@@ -13,3 +13,11 @@ New features in shell options:
   (those with a syntax involving parentheses) from fields resulting from
   field splitting (e.g., unquoted variables as command arguments). This
   remains disabled by default for compatibility with POSIX and ksh88.
+
+New features in shell variables:
+
+- SRANDOM is a secure random number generator. It uses the OS implementation
+  of arc4random(3) or, absent that, an integrated OpenBSD-based version that
+  uses the ChaCha20 cipher. An upper bound can be set by assigning its value
+  to SRANDOM; subsequent numbers will be uniformly distributed between 0 and
+  the value of the upper bound minus one, in a way that avoids "modulo bias".

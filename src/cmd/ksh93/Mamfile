@@ -779,6 +779,7 @@ make install
 					prev include/fault.h
 					prev include/path.h
 					prev include/variables.h
+					prev ${PACKAGE_ast_INCLUDE}/ast_random.h
 					prev ${PACKAGE_ast_INCLUDE}/regex.h
 					prev ${PACKAGE_ast_INCLUDE}/tmx.h
 					prev ${PACKAGE_ast_INCLUDE}/ccode.h

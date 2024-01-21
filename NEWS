@@ -4,6 +4,13 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2024-01-21:
 
+- [v1.1] New feature added: SRANDOM is a secure random number generator.
+  It uses the native OS implementation of arc4random(3) or, absent that, an
+  integrated OpenBSD-based version that uses the ChaCha20 cipher. An upper
+  bound can be set by assigning its value to SRANDOM; subsequent numbers will
+  be uniformly distributed between 0 and the value of the upper bound minus
+  one, in a way that avoids "modulo bias". Assigning 0 restores default mode.
+
 - A bug was fixed that caused both the 'set' and 'get'/'getn' discipline
   functions of a variable to be triggered when performing an assignment in
   an arithmetic expression; only the 'set' discipline is now triggered when

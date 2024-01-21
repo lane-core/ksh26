@@ -34,6 +34,7 @@
 #include        <tmx.h>
 #include        <regex.h>
 #include	<math.h>
+#include	<ast_random.h>
 #include        "variables.h"
 #include        "path.h"
 #include        "fault.h"
@@ -202,6 +203,7 @@ typedef struct _init_
 	Namfun_t	OPTINDEX_init;
 	Namfun_t	SECONDS_init;
 	struct rand	RAND_init;
+	Namfun_t	SRAND_init;
 	Namfun_t	LINENO_init;
 	Namfun_t	L_ARG_init;
 	Namfun_t	SH_VERSION_init;
@@ -716,13 +718,40 @@ static char* get_rand(Namval_t* np, Namfun_t *fp)
 
 void sh_reseed_rand(struct rand *rp)
 {
-	struct tms		tp;
-	unsigned int		time;
-	static unsigned int	seq;
-	timeofday(&tp);
-	time = (unsigned int)remainder(dtime(&tp) * 10000.0, (double)UINT_MAX);
-	srand(rp->rand_seed = (unsigned int)sh.current_pid ^ time ^ ++seq);
+	srand(rp->rand_seed = arc4random());
 	rp->rand_last = -1;
+}
+
+/*
+ * The following three functions are for SRANDOM
+ */
+static uint32_t srand_upper_bound;
+
+static void put_srand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
+{
+	if(!val)  /* unset */
+	{
+		fp = nv_stack(np, NULL);
+		if(fp && !fp->nofree)
+			free(fp);
+		_nv_unset(np,NV_RDONLY);
+		return;
+	}
+	if(flags&NV_INTEGER)
+		srand_upper_bound = *(Sfdouble_t*)val;
+	else
+		srand_upper_bound = sh_arith(val);
+}
+
+static Sfdouble_t nget_srand(Namval_t* np, Namfun_t *fp)
+{
+	return (Sfdouble_t)(srand_upper_bound ? arc4random_uniform(srand_upper_bound) : arc4random());
+}
+
+static char* get_srand(Namval_t* np, Namfun_t *fp)
+{
+	intmax_t n = (intmax_t)(srand_upper_bound ? arc4random_uniform(srand_upper_bound) : arc4random());
+	return fmtbase(n, 10, 0);
 }
 
 /*
@@ -1025,6 +1054,7 @@ static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
 static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
 static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
+static const Namdisc_t SRAND_disc	= {  sizeof(Namfun_t), put_srand, get_srand, nget_srand };
 static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
 static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
 
@@ -1837,6 +1867,8 @@ static Init_t *nv_init(void)
 	ip->SECONDS_init.nofree = 1;
 	ip->RAND_init.hdr.disc = &RAND_disc;
 	ip->RAND_init.hdr.nofree = 1;
+	ip->SRAND_init.disc = &SRAND_disc;
+	ip->SRAND_init.nofree = 1;
 	ip->SH_MATCH_init.hdr.disc = &SH_MATCH_disc;
 	ip->SH_MATCH_init.hdr.nofree = 1;
 	ip->SH_MATH_init.disc = &SH_MATH_disc;
@@ -1880,6 +1912,7 @@ static Init_t *nv_init(void)
 	nv_putval(SECONDS, (char*)&d, NV_DOUBLE);
 	nv_stack(RANDNOD, &ip->RAND_init.hdr);
 	nv_putval(RANDNOD, (char*)&d, NV_DOUBLE);
+	nv_stack(SRANDNOD, &ip->SRAND_init);
 	sh_invalidate_rand_seed();
 	nv_stack(LINENO, &ip->LINENO_init);
 	SH_MATCHNOD->nvfun =  &ip->SH_MATCH_init.hdr;
