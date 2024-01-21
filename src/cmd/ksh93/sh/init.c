@@ -672,7 +672,7 @@ static Sfdouble_t nget_seconds(Namval_t* np, Namfun_t *fp)
 static void put_rand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
-	long n;
+	Sfdouble_t n;
 	sh_save_rand_seed(rp, 0);
 	if(!val)
 	{
@@ -683,7 +683,7 @@ static void put_rand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		return;
 	}
 	if(flags&NV_INTEGER)
-		n = *(double*)val;
+		n = *(Sfdouble_t*)val;
 	else
 		n = sh_arith(val);
 	srand(rp->rand_seed = (unsigned int)n);
@@ -752,7 +752,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		return;
 	}
 	if(flags&NV_INTEGER)
-		n = (Sfdouble_t)(*(double*)val);
+		n = *(Sfdouble_t*)val;
 	else
 		n = sh_arith(val);
 	sh.st.firstline += (int)(nget_lineno(np,fp) + 1 - n);
@@ -777,7 +777,7 @@ static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	if(flags&NV_INTEGER)
 	{
-		sfprintf(sh.strbuf,"%.*g",12,*((double*)val));
+		sfprintf(sh.strbuf,"%.*Lg",12,*((Sfdouble_t*)val));
 		val = sfstruse(sh.strbuf);
 	}
 	if(val)
