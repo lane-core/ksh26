@@ -10,7 +10,6 @@ pth random /dev
 # directly emit externs if they are needed
 set nodefine
 npt arc4random,arc4random_buf,arc4random_uniform stdlib.h
-npt explicit_bzero string.h
 
 tst note{ does the system have a source of secure randomness }end run{
 	test "$_npt_arc4random" = '1' && echo "extern uint32_t arc4random(void);"
