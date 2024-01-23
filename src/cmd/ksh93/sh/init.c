@@ -737,6 +737,8 @@ static void put_srand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		_nv_unset(np,NV_RDONLY);
 		return;
 	}
+	if(sh_isstate(SH_INIT))
+		return;
 	if(flags&NV_INTEGER)
 		srand_upper_bound = *(Sfdouble_t*)val;
 	else

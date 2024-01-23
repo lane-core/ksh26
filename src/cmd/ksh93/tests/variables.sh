@@ -1639,6 +1639,14 @@ do	if	let "got = SRANDOM, got >= bound"
 		break
 	fi
 done
+env "SRANDOM=$bound" "$SHELL" -c 'typeset -i i
+	for ((i=0; i<100; i++))
+	do	print $SRANDOM
+	done' |
+while	read i
+do	((got = i>=bound)) && break
+done
+((got)) || err_exit "SRANDOM upper bound inherited from environment"
 unset i got bound
 SRANDOM=0
 
