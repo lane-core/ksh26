@@ -15,7 +15,6 @@ tst note{ does the system have a source of secure randomness }end run{
 	test "$_npt_arc4random" = '1' && echo "extern uint32_t arc4random(void);"
 	test "$_npt_arc4random_buf" = '1' && echo "extern void arc4random_buf(void*,size_t);"
 	test "$_npt_arc4random_uniform" = '1' && echo "extern unsigned int arc4random_uniform(unsigned int);"
-	test "$_npt_explicit_bzero" = '1' && echo "extern void explicit_bzero(void*,size_t);"
 	case $_lib_arc4random$_lib_getentropy$_lib_getrandom$_pth_urandom$_pth_random in
 	00000)	exit 1 ;;  # result: "no"
 	esac
