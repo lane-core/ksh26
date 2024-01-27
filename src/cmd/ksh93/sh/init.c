@@ -1537,7 +1537,6 @@ int sh_reinit(char *argv[])
 	Dt_t	*dp;
 	int	nofree;
 	char	*savfpath = NULL;
-	sh_onstate(SH_INIT);
 	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
 	sh.envlist = NULL;
 	sh.last_root = sh.var_tree;
@@ -1546,6 +1545,8 @@ int sh_reinit(char *argv[])
 		sfclose(sh.heredocs);
 		sh.heredocs = 0;
 	}
+	/* Unset tilde expansion disciplines */
+	_nv_unset(SH_TILDENOD,NV_RDONLY);
 	/* save FPATH and treat specially */
 	if(nv_isattr(FPATHNOD,NV_EXPORT))
 		savfpath = sh_strdup(nv_getval(FPATHNOD));
@@ -1584,9 +1585,6 @@ int sh_reinit(char *argv[])
 			nv_setattr(np,NV_EXPORT);			/* turn off everything except export */
 			if(cp)
 				np->nvalue.cp = cp;			/* replace by string value */
-			/* unset discipline */
-			if(np->nvfun && np->nvfun->disc)
-				np->nvfun->disc = NULL;
 		}
 		else
 		{
@@ -1704,7 +1702,6 @@ int sh_reinit(char *argv[])
 	/* call user init function, if any */
 	if(sh.userinit)
 		(*sh.userinit)(&sh, 1);
-	sh_offstate(SH_INIT);
 	return 1;
 }
 
