@@ -24,6 +24,7 @@ tst note{ does the system have a source of secure randomness }end run{
 # https://cygwin.com/pipermail/cygwin/2024-January/255245.html
 # https://github.com/ksh93/ksh/issues/711
 tst note{ does arc4random(3) become predictable after forking }end output{
+	#include <stdint.h>
 	#include <fcntl.h>
 	#include <stdlib.h>
 	#include <string.h>
