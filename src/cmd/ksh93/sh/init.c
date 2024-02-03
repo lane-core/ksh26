@@ -713,7 +713,7 @@ static Sfdouble_t nget_rand(Namval_t* np, Namfun_t *fp)
 static char* get_rand(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_rand(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 void sh_reseed_rand(struct rand *rp)
@@ -752,7 +752,7 @@ static Sfdouble_t nget_srand(Namval_t* np, Namfun_t *fp)
 static char* get_srand(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 /*
@@ -791,7 +791,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 static char* get_lineno(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_lineno(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 static char* get_lastarg(Namval_t* np, Namfun_t *fp)
