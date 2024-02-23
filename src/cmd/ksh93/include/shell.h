@@ -383,6 +383,7 @@ struct Shell_s
 	char		*mathnodes;
 	char		*bltin_dir;
 	char		tilde_block;	/* set to block .sh.tilde.{get,set} discipline */
+	char		dont_optimize_builtins;
 	/* nv_putsub() hack for nv_create() to avoid double arithmetic evaluation */
 	char		nv_putsub_already_called_sh_arith;
 	int		nv_putsub_idx;	/* saves array index obtained by nv_putsub() using sh_arith() */

@@ -865,15 +865,59 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
  */
 int sh_exec(const Shnode_t *t, int flags)
 {
+	int		type;
+	int 		mainloop;
 	sh_sigcheck();
-	if(t && sh.st.breakcnt==0 && !sh_isoption(SH_NOEXEC))
+	/* Bail out on no command, break/continue, or noexec */
+	if(!t || sh.st.breakcnt || sh_isoption(SH_NOEXEC))
+		return sh.exitval;
+	/* Set up state */
+	sh.exitval = 0;
+	sh.lastsig = 0;
+	sh.chldexitsig = 0;
+	type = t->tre.tretyp;
+	mainloop = (flags&sh_state(SH_INTERACTIVE));
+	if(mainloop)
 	{
-		int 		type = t->tre.tretyp;
+		if(pipejob==2)
+			job_unlock();
+		nlock = 0;
+		pipejob = 0;
+		job.curpgid = 0;
+		job.curjobid = 0;
+		flags &= ~sh_state(SH_INTERACTIVE);
+	}
+	/* Optimize a simple literal ':', 'true', 'false', 'break', 'continue' if the conditions are right */
+	else if(type==TCOM && !sh.dont_optimize_builtins)		/* no COMSCAN bit in 'type' => no expansions */
+	{
+		Namval_t	*np;
+		Shbltin_f	fp;
+		if((np = (Namval_t*)t->com.comnamp) && (fp = funptr(np))
+		&& (fp==b_true || (fp==b_false && !sh_isoption(SH_ERREXIT) && !sh.st.trap[SH_ERRTRAP])
+		   || fp==b_break && t->com.comarg->argchn.len==1)	/* for break/continue: 1 arg (command name) */
+		&& !t->com.comset					/* no variable assignments list */
+		&& !t->com.comio					/* no I/O redirections */
+		&& !sh_isoption(SH_XTRACE)
+		&& !sh.st.trap[SH_DEBUGTRAP])
+		{
+			/* Execute optimized basic versions of the builtins */
+			if(fp==b_false)
+				++sh.exitval;
+			else if(fp==b_break && sh.st.loopcnt)
+				sh.st.breakcnt = np==SYSCONT ? -1 : 1;
+			/* Set $?, possibly execute traps, and we're out of here */
+			exitset();
+			if(sh.trapnote)
+				sh_chktrap();
+			return sh.exitval;
+		}
+	}
+	/* Normal command execution */
+	{
 		char		*com0 = 0;
 		int 		errorflg = (flags&sh_state(SH_ERREXIT))|(flags & ARG_OPTIMIZE);
 		int 		execflg = (flags&sh_state(SH_NOFORK));
 		int 		execflg2 = (flags&sh_state(SH_FORKED));
-		int 		mainloop = (flags&sh_state(SH_INTERACTIVE));
 		int		topfd = sh.topfd;
 		char 		*sav=stkfreeze(sh.stk,0);
 		char		*cp=0, **com=0, *comn;
@@ -883,22 +927,9 @@ int sh_exec(const Shnode_t *t, int flags)
 		volatile int	was_errexit = sh_isstate(SH_ERREXIT);
 		volatile int	was_monitor = sh_isstate(SH_MONITOR);
 		volatile int	echeck = 0;
-		if(flags&sh_state(SH_INTERACTIVE))
-		{
-			if(pipejob==2)
-				job_unlock();
-			nlock = 0;
-			pipejob = 0;
-			job.curpgid = 0;
-			job.curjobid = 0;
-			flags &= ~sh_state(SH_INTERACTIVE);
-		}
 		sh_offstate(SH_DEFPATH);
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		sh.exitval=0;
-		sh.lastsig = 0;
-		sh.chldexitsig = 0;
 		switch(type&COMMSK)
 		{
 		    /*
@@ -1157,17 +1188,23 @@ int sh_exec(const Shnode_t *t, int flags)
 				/* check for builtins */
 				if(np && is_abuiltin(np))
 				{
-					volatile char scope=0, share=0, was_mktype=(sh.mktype!=NULL);
-					volatile void *save_ptr;
-					volatile void *save_data;
-					int save_prompt;
-					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
-					struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
+					volatile char	scope, share, was_mktype, was_nofork;
+					volatile void	*save_ptr;
+					volatile void	*save_data;
+					int		save_prompt;
+					struct checkpt	*buffp;
+					/* Fallback optimization for ':'/'true' and 'false' */
+					if(!io && !argp && (funptr(np)==b_true || funptr(np)==b_false && ++sh.exitval))
+						goto setexit;
+					scope = 0, share = 0;
+					was_mktype = sh.mktype!=NULL;
+					was_nofork = execflg && sh_isstate(SH_NOFORK);
 					bp = &sh.bltindata;
 					save_ptr = bp->ptr;
 					save_data = bp->data;
 					if(execflg)
 						sh_onstate(SH_NOFORK);
+					buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
 					sh_pushcontext(buffp,SH_JMPCMD);
 					jmpval = sigsetjmp(buffp->buff,0);
 					if(jmpval == 0)
@@ -2080,6 +2117,9 @@ int sh_exec(const Shnode_t *t, int flags)
 			volatile int 	r=0;
 			int first = ARG_OPTIMIZE;
 			Shnode_t *tt = t->wh.whtre;
+			char always_true;
+			Namval_t *np;
+			Shbltin_f fp;
 #if SHOPT_FILESCAN
 			Sfio_t *iop=0;
 			int savein=-1;
@@ -2110,6 +2150,15 @@ int sh_exec(const Shnode_t *t, int flags)
 				iop = openstream(tt->com.comio,&savein);
 			}
 #endif /* SHOPT_FILESCAN */
+			/* Optimization: don't call sh_exec() for simple 'while :', 'while true' or 'until false' */
+			always_true = (tt->tre.tretyp==TCOM		/* one simple command (no COMSCAN = no expansions) */
+				&& !sh.dont_optimize_builtins
+				&& (np = (Namval_t*)tt->com.comnamp) && (fp = funptr(np))
+				&& (type==TWH && fp==b_true || type==TUN && fp==b_false)
+				&& !tt->com.comset			/* no variable assignments list */
+				&& !tt->com.comio			/* no I/O redirections */
+				&& !sh_isoption(SH_XTRACE)
+				&& !sh.st.trap[SH_DEBUGTRAP]);
 			sh.st.loopcnt++;
 			while(sh.st.breakcnt==0)
 			{
@@ -2121,7 +2170,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				else
 #endif /* SHOPT_FILESCAN */
-				if((sh_exec(tt,first)==0)!=(type==TWH))
+				if(!always_true && (sh_exec(tt,first)==0)!=(type==TWH))
 					break;
 				r = sh_exec(t->wh.dotre,first|errorflg);
 				/* decrease 'continue' level */
@@ -2390,7 +2439,6 @@ int sh_exec(const Shnode_t *t, int flags)
 #endif /* SHOPT_NAMESPACE */
 			/* look for discipline functions */
 			error_info.line = t->funct.functline-sh.st.firstline;
-			/* Function names cannot be special builtin */
 			if(cp || sh.prefix)
 			{
 				int offset = stktell(sh.stk);
@@ -2412,10 +2460,15 @@ int sh_exec(const Shnode_t *t, int flags)
 				sfprintf(sh.stk,"%s.%s%c",nv_name(npv),cp,0);
 				fname = stkptr(sh.stk,offset);
 			}
-			else if((mp=nv_search(fname,sh.bltin_tree,0)) && nv_isattr(mp,BLT_SPC))
+			else if((mp=nv_search(fname,sh.bltin_tree,0)))
 			{
-				errormsg(SH_DICT,ERROR_exit(1),e_badfun,fname);
-				UNREACHABLE();
+				if(nv_isattr(mp,BLT_SPC))
+				{	/* Function names cannot be special builtin */
+					errormsg(SH_DICT,ERROR_exit(1),e_badfun,fname);
+					UNREACHABLE();
+				}
+				if(funptr(mp)==b_true || funptr(mp)==b_false || funptr(mp)==b_break)
+					sh.dont_optimize_builtins = 1;
 			}
 #if SHOPT_NAMESPACE
 			if(sh.namespace && !sh.prefix && *fname!='.')

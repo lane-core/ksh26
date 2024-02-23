@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-23:
+
+- [v1.1] The commands ':', 'true', 'false', 'break' and 'continue' have been
+  optimised to run faster in loops in certain common cases. For example, the
+  'true' in 'while true; do some_stuff || break; done' now runs faster.
+
 2024-02-22:
 
 - Fixed a crash that occurred when starting ksh with no TERM variable in the

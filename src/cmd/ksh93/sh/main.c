@@ -609,6 +609,7 @@ static void	exfile(Sfio_t *iop,int fno)
 			{
 					execflags |= sh_state(SH_NOFORK);
 			}
+			sh.dont_optimize_builtins = 0;
 			sh.st.breakcnt = 0;
 			sh_exec(t,execflags);
 			if(sh.forked)
