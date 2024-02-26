@@ -1723,8 +1723,6 @@ Namfun_t *nv_cover(Namval_t *np)
 	return NULL;
 }
 
-static const char *shdiscnames[] = { "tilde", 0};
-
 #if SHOPT_STATS
 struct Stats
 {
@@ -1937,7 +1935,6 @@ static Init_t *nv_init(void)
 	sh.fun_base = sh.fun_tree = dtopen(&_Nvdisc,Dtoset);
 	dtview(sh.fun_tree,sh.bltin_tree);
 	nv_mount(DOTSHNOD, "type", sh.typedict=dtopen(&_Nvdisc,Dtoset));
-	nv_adddisc(DOTSHNOD, shdiscnames, NULL);
 	DOTSHNOD->nvalue.cp = Empty;
 	nv_onattr(DOTSHNOD,NV_RDONLY);
 	SH_LINENO->nvalue.ip = &sh.st.lineno;
