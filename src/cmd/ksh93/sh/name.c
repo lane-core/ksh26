@@ -2181,7 +2181,7 @@ char **sh_envgen(void)
 	nv_offattr(L_ARGNOD,NV_EXPORT);
 	namec = nv_scan(sh.var_tree,nullscan,NULL,NV_EXPORT,NV_EXPORT);
 	namec += sh.nenv;
-	er = (char**)stkalloc(sh.stk,(namec+4)*sizeof(char*));
+	er = stkalloc(sh.stk,(namec+4)*sizeof(char*));
 	data.argnam = (er+=2) + sh.nenv;
 	if(sh.nenv)
 		memcpy(er,environ,sh.nenv*sizeof(char*));
