@@ -1211,7 +1211,7 @@ make install virtual
 	shim - }
 
 	make ksh
-		prev libshell.a
+		bind -lshell
 		make pmain.o
 			prev sh/pmain.c
 			exec - ${compile} ${<}
@@ -1220,7 +1220,7 @@ make install virtual
 	done ksh
 
 	make shcomp
-		prev libshell.a
+		bind -lshell
 		make shcomp.o
 			prev sh/shcomp.c
 			exec - ${compile} ${<}
@@ -1232,7 +1232,6 @@ make install virtual
 	note * Pre-install
 	note *
 
-	prev libshell.a
 	loop DIR bin include/ast lib/lib man/man1 man/man3 fun etc
 		make ${INSTALLROOT}/${DIR}
 			exec - mkdir -p ${@}
