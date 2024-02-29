@@ -818,7 +818,7 @@ static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		nv_offattr(np,NV_NOFREE);
 	sh.lastarg = (char*)val;
 	nv_offattr(np,NV_EXPORT);
-	np->nvenv = 0;
+	np->nvmeta = NULL;
 }
 
 static void match2d(struct match *mp)
@@ -1973,7 +1973,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 			np->nvname = (char*)tp->sh_name;
 			treep = base_treep;
 		}
-		np->nvenv = 0;
+		np->nvmeta = NULL;
 		if(name_vals==(const struct shtable2*)shtab_builtins)
 			np->nvalue.bfp = (void*)((struct shtable3*)tp)->sh_value;
 		else
@@ -2001,7 +2001,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
  * read in the process environment and set up name-value pairs
  * skip over items that are not name-value pairs
  */
-void env_init(void)
+static void env_init(void)
 {
 	char		*cp;
 	char		**ep=environ;
