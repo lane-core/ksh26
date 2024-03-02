@@ -617,7 +617,7 @@ void sh_exit(int xno)
 	}
 	/* unlock output pool */
 	sh_offstate(SH_NOTRACK);
-	if(!(pool=sfpool(NULL,sh.outpool,SF_WRITE)))
+	if(!(pool=sfpool(NULL,sh.outpool,SFIO_WRITE)))
 		pool = sh.outpool; /* can't happen? */
 	sfclrlock(pool);
 	if(sh.lastsig==SIGPIPE)
