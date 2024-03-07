@@ -32,7 +32,7 @@
 #include	<ccode.h>
 #include	<fault.h>
 #include	"FEATURE/time"
-#ifdef _hdr_utime
+#if _hdr_utime
 #   include	<utime.h>
 #   include	<ls.h>
 #endif
@@ -707,7 +707,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	}
 	if(rv < 0)
 	{
-#ifdef _hdr_utime
+#if _hdr_utime
 #		define fixtime()	if(isdevtty)utime(ep->e_tty,&utimes)
 		int	isdevtty=0;
 		struct stat statb;
@@ -1230,7 +1230,7 @@ int	ed_external(const genchar *src, char *dest)
 		char buffer[MAXLINE*sizeof(genchar)] = "";
 		c = ed_external(src,buffer);
 
-#ifdef _lib_wcscpy
+#if _lib_wcscpy
 		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
 #else
 		strcopy(dest,buffer);
