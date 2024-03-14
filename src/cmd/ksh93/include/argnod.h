@@ -91,7 +91,6 @@ struct argnod
 	{
 		struct argnod	*ap;
 		char		*cp;
-		int		len;
 	}		argchn;
 	unsigned char	argflag;
 	char		argval[4];

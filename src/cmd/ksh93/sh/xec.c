@@ -894,7 +894,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		Shbltin_f	fp;
 		if((np = (Namval_t*)t->com.comnamp) && (fp = funptr(np))
 		&& (fp==b_true || (fp==b_false && !sh_isoption(SH_ERREXIT) && !sh.st.trap[SH_ERRTRAP])
-		   || fp==b_break && t->com.comarg->argchn.len==1)	/* for break/continue: 1 arg (command name) */
+		   || fp==b_break && ((struct dolnod*)t->com.comarg)->dolnum==1) /* for break/continue: 1 arg (command name) */
 		&& !t->com.comset					/* no variable assignments list */
 		&& !t->com.comio					/* no I/O redirections */
 		&& !sh_isoption(SH_XTRACE)
