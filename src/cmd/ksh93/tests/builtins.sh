@@ -1611,13 +1611,13 @@ do	case $bltin in
 	fc | hist )
 		((SHOPT_SCRIPTONLY)) && continue ;;
 	esac
-	got=$({ "$bltin" --\?-version; } 2>&1)  # the extra { } are needed for 'redirect'
+	got=$(set +x; { "$bltin" --\?-version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --\\?-version (got $(printf %q "$got"))"
 	case $bltin in
 	uname | */uname )
 		continue ;;
 	esac
-	got=$({ "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
+	got=$(set +x; { "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"
 done 3< <(builtin)
 
