@@ -104,6 +104,7 @@ set --posix
 # In addition, while on, the posix option:
 #
 # disables the special handling of repeated isspace class characters in the IFS variable;
+IFS.get() { :; }  # tests if sh_invalidate_ifs() in init.c correctly gets IFS_disc
 IFS=$'x\t\ty' val=$'\tun\t\tduo\ttres\t'
 got=$(set $val; echo "$#")
 exp=3
@@ -117,6 +118,7 @@ got=$(set --default; set $val; echo "$#")
 [[ $got == "$exp" ]] || err_exit "repeated IFS whitespace char (default): incorrect number of fields" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 IFS=$' \t\n' # default
+unset -f IFS.get
 
 # causes file descriptors > 2 to be left open when invoking another program;
 exp='ok'
