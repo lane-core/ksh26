@@ -30,6 +30,10 @@ New features in built-in commands:
 - A new 'alarm' built-in command allows executing any commands at regular
   intervals. TODO: https://github.com/ksh93/ksh/issues/422
 
+- The 'hash' and 'alias -t' commands now issue an error message for each
+  command given that was not found on PATH, and return a non-zero exit
+  status if any of the commands given were not found.
+
 New features in shell options:
 
 - A new --arrowkeysearch option, on by default, causes the up and down arrow

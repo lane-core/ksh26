@@ -2,6 +2,15 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-06-30:
+
+- Fixed: the 'hash' and 'alias -t' commands no longer autoload functions
+  from executable files on FPATH as an unintended side effect.
+
+- [v1.1] The 'hash' and 'alias -t' commands now issue an error message for
+  each command given that was not found on PATH, and return a non-zero exit
+  status if any of the commands given were not found.
+
 2024-06-27:
 
 - Fixed: a builtin activated with the 'builtin' command was not found if

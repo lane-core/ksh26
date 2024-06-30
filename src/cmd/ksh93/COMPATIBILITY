@@ -11,6 +11,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 2.	Defining a function called '.sh.tilde' is an error. To customize tilde
 	expansion, use .sh.tilde.get instead (see the manual page for details).
 
+3.	The 'hash' and 'alias -t' commands now issue an error message for
+	each command given that was not found on PATH, and return a non-zero
+	exit status if any of the commands given were not found.
+
 ____________________________________________________________________________
 
 		ksh 93u+m/1.0.9 vs. ksh 93u+
