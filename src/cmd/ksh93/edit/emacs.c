@@ -113,11 +113,6 @@ typedef struct _emacs_
 	char	lastdraw;	/* last update type */
 	int	offset;		/* Screen offset */
 	char	ehist;		/* hist handling required */
-	enum
-	{
-		CRT=0,	/* Crt terminal */
-		PAPER	/* Paper terminal */
-	} terminal;
 	Histloc_t _location;
 	int	prevdirection; 
 	Edit_t	*ed;	/* pointer to edit data */
@@ -594,28 +589,6 @@ update:
 #endif /* ESH_KAPPEND */
 			out[i] = 0;
 			draw(ep,UPDATE);
-			if (c == KILLCHAR)
-			{
-				if (ep->terminal == PAPER)
-				{
-					putchar(ep->ed,'\n');
-					ed_putstring(ep->ed,Prompt);
-				}
-				c = ed_getchar(ep->ed,0);
-				if (c != usrkill)
-				{
-					ed_ungetchar(ep->ed,c);
-					continue;
-				}
-				if (ep->terminal == PAPER)
-					ep->terminal = CRT;
-				else
-				{
-					ep->terminal = PAPER;
-					putchar(ep->ed,'\n');
-					ed_putstring(ep->ed,Prompt);
-				}
-			}
 			continue;
 		case cntl('L'):
 			putchar(ep->ed,'\n');

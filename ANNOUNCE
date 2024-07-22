@@ -14,6 +14,9 @@ New command line editor features:
   The arrow-up and arrow-down keys now act like PageUp and PageDown, unless
   the new --arrowkeysearch option is turned off (see below).
 
+- In the emacs line editor, pressing ^U (kill) twice no longer causes further
+  ^U presses to start a new line (this was a feature for paper terminals).
+
 New shell language features:
 
 - The 'time' reserved word now outputs timings in a precision of 3 digits
