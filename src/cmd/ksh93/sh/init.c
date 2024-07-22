@@ -1686,7 +1686,6 @@ void sh_reinit(void)
 	freeup_tree(sh.var_tree);
 #if SHOPT_STATS
 	free(sh.stats);
-	sh.stats = NULL;
 #endif
 	/* Re-init variables, functions and built-ins */
 	free(sh.bltin_cmds);
@@ -1938,8 +1937,7 @@ static Init_t *nv_init(void)
 	nv_onattr(VERSIONNOD,NV_REF);
 	math_init();
 #if SHOPT_STATS
-	if(!sh.stats)
-		stat_init();
+	stat_init();
 #endif
 	return ip;
 }
