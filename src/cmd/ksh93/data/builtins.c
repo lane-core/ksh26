@@ -1254,7 +1254,7 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2024-02-11 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2024-07-24 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1386,7 +1386,8 @@ const char sh_optprintf[] =
 	"[+-?The escape sequence \b\\C[.\b\aname\a\b.]]\b expands to "
 		"the collating element \aname\a.]"
 	"[+-?The escape sequence \b\\x{\b\ahex\a\b}\b expands to the "
-		"character corresponding to the hexadecimal value \ahex\a.]"
+		"single-byte character corresponding to the one- or "
+		"two-digit hexadecimal value \ahex\a.]"
 	"[+-?The escape sequence \b\\u{\b\ahex\a\b}\b expands to the unicode "
 		"character corresponding to the hexadecimal value \ahex\a.]"
 	"[+-?The format modifier flag \b=\b can be used to center a field to "
