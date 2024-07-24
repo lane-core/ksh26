@@ -15,6 +15,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 	each command given that was not found on PATH, and return a non-zero
 	exit status if any of the commands given were not found.
 
+4.	In printf formatters and C-style $'quoted' strings, \xNN is now
+	limited to two hexadecimal digits (yielding one byte). For
+	multi-byte characters, \u and \U should be used instead.
+
 ____________________________________________________________________________
 
 		ksh 93u+m/1.0.9 vs. ksh 93u+
