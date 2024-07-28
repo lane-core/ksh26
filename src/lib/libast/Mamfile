@@ -2619,14 +2619,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make lstat.o
-			make comp/lstat.c
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make statvfs.o
 			make comp/statvfs.c
 				prev include/error.h
@@ -2658,23 +2650,6 @@ make install virtual
 				prev ast_stdio.h
 				prev include/ast.h
 				prev FEATURE/float
-			done
-			exec - compile %{<}
-		done
-
-		make setpgid.o
-			make comp/setpgid.c
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make setsid.o
-			make comp/setsid.c
-				prev include/error.h
-				prev ast_tty.h
-				prev include/ast.h
 			done
 			exec - compile %{<}
 		done
@@ -2715,14 +2690,6 @@ make install virtual
 				prev dir/dirlib.h
 			done
 			exec - compile %{<} -Idir
-		done
-
-		make dup2.o
-			make comp/dup2.c
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
 		done
 
 		make errno.o
