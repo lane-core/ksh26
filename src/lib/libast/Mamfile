@@ -96,6 +96,7 @@ make install virtual
 	note *
 
 	note * The standards test influences all subsequent iffe feature tests, so must be made first
+	note * Block parallellisation here by nesting FEATURE/standards in ast_standards.h
 	make ast_standards.h
 		make FEATURE/standards
 			makp features/standards
@@ -121,30 +122,36 @@ make install virtual
 		makp features/lib
 		exec - invoke_iffe %{<}
 	done
+
 	make FEATURE/eaccess
 		makp features/eaccess
 		exec - invoke_iffe %{<}
 	done
+
 	make FEATURE/mmap
 		makp features/mmap
 		exec - invoke_iffe %{<}
 	done
+
 	make FEATURE/options
 		makp features/options
 		exec - invoke_iffe %{<}
 	done
+
+	note * sig.h: AST replacement for <signal.h>
+	make FEATURE/sig
+		makp features/sig.sh
+		exec - invoke_iffe %{<}
+	done
+
 	make FEATURE/fs
 		makp features/fs
 		exec - invoke_iffe %{<}
 	done
 
-	note * AST replacement for <signal.h>
-	make sig.h
-		make FEATURE/sig
-			makp features/sig.sh
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
+	make FEATURE/sfio
+		makp features/sfio
+		exec - invoke_iffe %{<}
 	done
 
 	note * Copy some of the FEATURE/* output scripts to canonical header files.
@@ -169,6 +176,10 @@ make install virtual
 	done
 	make ast_fs.h
 		prev FEATURE/fs
+		exec - cp -f %{<} %{@}
+	done
+	make sig.h
+		prev FEATURE/sig
 		exec - cp -f %{<} %{@}
 	done
 
@@ -207,6 +218,11 @@ make install virtual
 	make FEATURE/aso
 		prev FEATURE/common
 		makp features/aso
+		exec - invoke_iffe %{<}
+	done
+
+	make FEATURE/asometh
+		makp features/asometh
 		exec - invoke_iffe %{<}
 	done
 
@@ -279,6 +295,18 @@ make install virtual
 		prev ast_common.h
 	done
 
+	note * slow *
+	make FEATURE/omitted
+		makp features/omitted
+		exec - invoke_iffe %{<}
+	done
+
+	note * slow *
+	make FEATURE/tvlib
+		makp features/tvlib
+		exec - invoke_iffe %{<}
+	done
+
 	note *
 	note * Generate system library dependency information
 	note *
@@ -327,6 +355,31 @@ make install virtual
 		exec - *)	touch %{@} ;;
 		exec - esac
 	done ast.req
+
+	make FEATURE/errno
+		makp features/errno
+		exec - invoke_iffe %{<}
+	done
+
+	make FEATURE/libpath
+		makp features/libpath.sh
+		exec - invoke_iffe %{<}
+	done
+
+	make FEATURE/prog
+		makp features/prog
+		exec - invoke_iffe %{<}
+	done
+
+	make FEATURE/locale
+		makp features/locale
+		exec - invoke_iffe %{<}
+	done
+
+	make FEATURE/siglist
+		makp features/siglist
+		exec - invoke_iffe %{<}
+	done
 
 	note *
 	note * Probe all manner of configuration values from conf.tab
@@ -418,59 +471,6 @@ make install virtual
 	note * Generate more header files based on iffe feature tests
 	note *
 
-	make ast_dirent.h
-		prev include/ast_std.h
-		make FEATURE/dirent
-			prev include/ast_std.h
-			makp features/dirent
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
-	done
-
-	make ast_wctype.h
-		make FEATURE/wctype
-			makp features/wctype
-			exec - invoke_iffe %{<}
-			prev std/endian.h
-			make std/wchar.h
-				prev ast_wchar.h
-			done
-		done
-		exec - cp -f %{<} %{@}
-	done
-
-	make ast_stdio.h
-		prev include/sfio_s.h
-		prev include/ast_std.h
-		make FEATURE/stdio
-			prev include/sfio_s.h
-			prev include/ast_std.h
-			makp features/stdio
-			exec - invoke_iffe %{<}
-		done FEATURE/stdio
-		exec - cp -f %{<} %{@}
-	done ast_stdio.h
-
-	make ast_nl_types.h
-		make FEATURE/nl_types
-			makp features/nl_types
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
-	done
-
-	make ast_mode.h
-		make FEATURE/mode
-			make features/mode.c
-				makp include/modecanon.h
-				prev FEATURE/param
-			done
-			exec - invoke_iffe %{<} -I. -Iinclude -Istd
-		done
-		exec - cp -f %{<} %{@}
-	done
-
 	make FEATURE/syscall
 		makp features/syscall
 		exec - invoke_iffe %{<}
@@ -483,49 +483,164 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
-	make ast_ccode.h
-		make FEATURE/ccode
-			makp features/ccode
-			exec - invoke_iffe %{<}
+	make FEATURE/signal
+		make features/signal.c
+			prev FEATURE/siglist
+			prev FEATURE/standards
 		done
-		exec - cp -f %{<} %{@}
+		exec - invoke_iffe %{<} -I.
 	done
 
-	make ast_time.h
-		make FEATURE/time
-			makp features/time
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
+	make FEATURE/tmlib
+		makp features/tmlib
+		exec - invoke_iffe %{<}
 	done
 
-	make tv.h
+	note * ast_float.h *
+	make FEATURE/float
+		prev ast_common.h
+		makp features/float
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_dirent.h *
+	make FEATURE/dirent
+		prev include/ast_std.h
+		makp features/dirent
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_wctype.h *
+	make FEATURE/wctype
+		makp features/wctype
+		exec - invoke_iffe %{<}
+		prev std/endian.h
+		make std/wchar.h
+			prev ast_wchar.h
+		done
+	done
+
+	note * ast_stdio.h *
+	make FEATURE/stdio
+		prev include/sfio_s.h
+		prev include/ast_std.h
+		makp features/stdio
+		exec - invoke_iffe %{<}
+	done FEATURE/stdio
+
+	note * ast_nl_types.h *
+	make FEATURE/nl_types
+		makp features/nl_types
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_mode.h *
+	make FEATURE/mode
+		make features/mode.c
+			makp include/modecanon.h
+			prev FEATURE/param
+		done
+		exec - invoke_iffe %{<} -I. -Iinclude -Istd
+	done
+
+	note * ast_ccode.h *
+	make FEATURE/ccode
+		makp features/ccode
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_time.h *
+	make FEATURE/time
+		makp features/time
+		exec - invoke_iffe %{<}
+	done
+
+	note * tv.h *
+	make FEATURE/tv
 		prev include/ast.h
-		make FEATURE/tv
+		makp features/tv
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_ndbm.h *
+	make FEATURE/ndbm
+		prev std/stdio.h
+		makp features/ndbm
+		exec - invoke_iffe %{<}
+	done
+
+	note * ast_sizeof.h *
+	make FEATURE/sizeof
+		makp features/sizeof
+		exec - invoke_iffe %{<}
+	done
+
+	note * align.h *
+	make FEATURE/align
+		make features/align.c
+			prev FEATURE/common
+		done
+		exec - invoke_iffe %{<} -I.
+	done
+
+	note * ast_random.h *
+	make FEATURE/random
+		makp features/random
+		exec - invoke_iffe %{<}
+	done
+
+	note * copy most of the FEATURE/* results above to canonically named header files; separating
+	note * this allows all of the above tests, which don't depend on each other, to run in parallel
+
+	loop NAME dirent wctype stdio nl_types mode ccode time float ndbm sizeof random
+		make ast_%{NAME}.h
+			prev FEATURE/%{NAME}
+			exec - cp -f %{<} %{@}
+		done
+	done
+	loop NAME tv align
+		make %{NAME}.h
+			prev FEATURE/%{NAME}
+			exec - cp -f %{<} %{@}
+		done
+	done
+
+	note * tmx.h *
+	make FEATURE/tmx
+		prev tv.h
+		make include/tm.h
+			make include/times.h
+				prev ast_time.h
+				prev include/ast.h
+			done
 			prev include/ast.h
-			makp features/tv
-			exec - invoke_iffe %{<}
 		done
-		exec - cp -f %{<} %{@}
+		make features/tmx
+			prev FEATURE/common
+		done
+		exec - invoke_iffe %{<}
 	done
 
-	make ast_random.h
-		make FEATURE/random
-			makp features/random
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
-	done
-
-	make ast_float.h
-		make FEATURE/float
+	note * ast_iconv.h *
+	make FEATURE/iconv
+		make include/ccode.h
+			prev ast_ccode.h
 			prev ast_common.h
-			makp features/float
-			exec - invoke_iffe %{<}
 		done
-		exec - cp -f %{<} %{@}
+		prev ast_common.h
+		makp features/iconv
+		exec - invoke_iffe %{<}
 	done
 
+	make FEATURE/sfinit
+		make features/sfinit.c
+			prev FEATURE/float
+			prev FEATURE/common
+		done
+		exec - invoke_iffe %{<} -I. -Istd
+	done
+
+	note * another one that's hard to parallelise *
 	make lc.h
 		prev include/ast.h
 		makp port/lc.tab
@@ -558,30 +673,13 @@ make install virtual
 		prev include/ast.h
 	done
 
-	make ast_ndbm.h
-		make FEATURE/ndbm
-			prev std/stdio.h
-			makp features/ndbm
-			exec - invoke_iffe %{<}
-		done
+	make ast_iconv.h
+		prev FEATURE/iconv
 		exec - cp -f %{<} %{@}
 	done
 
-	make ast_sizeof.h
-		make FEATURE/sizeof
-			makp features/sizeof
-			exec - invoke_iffe %{<}
-		done
-		exec - cp -f %{<} %{@}
-	done
-
-	make align.h
-		make FEATURE/align
-			make features/align.c
-				prev FEATURE/common
-			done
-			exec - invoke_iffe %{<} -I.
-		done
+	make tmx.h
+		prev FEATURE/tmx
 		exec - cp -f %{<} %{@}
 	done
 
@@ -784,10 +882,7 @@ make install virtual
 
 		make stracmp.o
 			make string/stracmp.c
-				make include/ccode.h
-					prev ast_ccode.h
-					prev ast_common.h
-				done
+				prev include/ccode.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -1048,10 +1143,7 @@ make install virtual
 
 		make pathcheck.o
 			make path/pathcheck.c
-				make include/times.h
-					prev ast_time.h
-					prev include/ast.h
-				done
+				prev include/times.h
 				prev include/error.h
 				prev include/ls.h
 				prev include/ast.h
@@ -1127,10 +1219,7 @@ make install virtual
 		make pathtemp.o
 			make path/pathtemp.c
 				prev include/error.h
-				make include/tm.h
-					prev include/times.h
-					prev include/ast.h
-				done
+				prev include/tm.h
 				prev tv.h
 				prev include/ls.h
 				prev include/ast.h
@@ -1197,10 +1286,7 @@ make install virtual
 
 		make pathprog.o
 			make path/pathprog.c
-				make FEATURE/prog
-					makp features/prog
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/prog
 				prev include/ast_windows.h
 				prev include/ast.h
 			done
@@ -1466,17 +1552,7 @@ make install virtual
 		make catopen.o
 			make comp/catopen.c
 				make std/iconv.h
-					make ast_iconv.h
-						make FEATURE/iconv
-							prev include/ccode.h
-							prev ast_common.h
-							makp features/iconv
-							exec - invoke_iffe %{<}
-						done
-						exec - cp -f %{<} %{@}
-						prev include/ccode.h
-						prev ast_common.h
-					done
+					prev ast_iconv.h
 				done
 				prev std/nl_types.h
 				prev include/mc.h
@@ -1500,10 +1576,7 @@ make install virtual
 
 		make lc.o
 			make port/lc.c
-				make FEATURE/locale
-					makp features/locale
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/locale
 				prev port/lclang.h
 				prev port/lclib.h
 			done
@@ -1536,10 +1609,7 @@ make install virtual
 					done
 					prev FEATURE/common
 					prev FEATURE/mmap
-					make FEATURE/sfio
-						makp features/sfio
-						exec - invoke_iffe %{<}
-					done
+					prev FEATURE/sfio
 				done
 			done
 			exec - compile %{<} %{DEBUG+-DDEBUG=%{DEBUG}} -Iport -Isfio
@@ -1765,19 +1835,7 @@ make install virtual
 		make fmttmx.o
 			make string/fmttmx.c
 				prev tv.h
-				make tmx.h
-					make FEATURE/tmx
-						prev tv.h
-						prev include/tm.h
-						make features/tmx
-							prev FEATURE/common
-						done
-						exec - invoke_iffe %{<}
-					done
-					exec - cp -f %{<} %{@}
-					prev tv.h
-					prev include/tm.h
-				done
+				prev tmx.h
 			done
 			exec - compile %{<}
 		done
@@ -1888,16 +1946,7 @@ make install virtual
 
 		make sigdata.o
 			make misc/sigdata.c
-				make FEATURE/signal
-					make features/signal.c
-						make FEATURE/siglist
-							makp features/siglist
-							exec - invoke_iffe %{<}
-						done
-						prev FEATURE/standards
-					done
-					exec - invoke_iffe %{<} -I.
-				done
+				prev FEATURE/signal
 				prev sig.h
 				prev include/ast.h
 			done
@@ -2006,10 +2055,7 @@ make install virtual
 
 		make tminit.o
 			make tm/tminit.c
-				make FEATURE/tmlib
-					makp features/tmlib
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/tmlib
 				prev include/namval.h
 				prev include/tm.h
 			done
@@ -2208,10 +2254,7 @@ make install virtual
 
 		make tvgettime.o
 			make tm/tvgettime.c
-				make FEATURE/tvlib
-					makp features/tvlib
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/tvlib
 				prev include/tm.h
 				prev tv.h
 			done
@@ -2531,10 +2574,7 @@ make install virtual
 
 		make strerror.o
 			make string/strerror.c
-				make FEATURE/errno
-					makp features/errno
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/errno
 				prev port/lclib.h
 			done
 			exec - compile %{<} -Iport
@@ -2631,10 +2671,7 @@ make install virtual
 			make comp/omitted.c
 				prev include/ast_windows.h
 				prev include/ls.h
-				make FEATURE/omitted
-					makp features/omitted
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/omitted
 				prev include/tm.h
 				prev include/error.h
 				prev ast_stdio.h
@@ -3550,13 +3587,7 @@ make install virtual
 
 		make sftable.o
 			make sfio/sftable.c
-				make FEATURE/sfinit
-					make features/sfinit.c
-						prev FEATURE/float
-						prev FEATURE/common
-					done
-					exec - invoke_iffe %{<} -I. -Istd
-				done
+				prev FEATURE/sfinit
 				prev FEATURE/float
 				prev sfio/sfhdr.h
 			done
@@ -4433,10 +4464,7 @@ make install virtual
 
 		make astconf.o
 			make port/astconf.c
-				make FEATURE/libpath
-					makp features/libpath.sh
-					exec - invoke_iffe %{<}
-				done
+				prev FEATURE/libpath
 				prev conftab.h
 				prev include/ls.h
 				prev include/proc.h
@@ -4492,10 +4520,7 @@ make install virtual
 				prev FEATURE/aso
 				make aso/asohdr.h
 					prev include/aso.h
-					make FEATURE/asometh
-						makp features/asometh
-						exec - invoke_iffe %{<}
-					done
+					prev FEATURE/asometh
 					make include/fnv.h
 						prev ast_common.h
 					done
