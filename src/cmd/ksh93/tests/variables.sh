@@ -1665,4 +1665,17 @@ unset i got bound
 SRANDOM=0
 
 # ======
+# https://github.com/ksh93/ksh/issues/435
+"$SHELL" <<\EOF >/dev/null 2>&1; (((e=$?)==1)) || err_exit "getn/get discipline crash" \
+	"(expected status 1, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+unset nonexistent_var
+foo=nonexistent_var
+foo.getn() { :; }
+foo.get() { :; }
+unset -f foo.getn
+trap 'echo $((foo))' EXIT   # throw the echo $((foo)) 'unset parameter' error twice
+echo $((foo))
+EOF
+
+# ======
 exit $((Errors<125?Errors:125))
