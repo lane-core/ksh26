@@ -138,12 +138,6 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
-	note * ast_random.h *
-	make FEATURE/random
-		makp features/random
-		exec - invoke_iffe %{<}
-	done
-
 	note * sig.h: AST replacement for <signal.h>
 	make FEATURE/sig
 		makp features/sig.sh
@@ -193,7 +187,6 @@ make install virtual
 		make FEATURE/map
 			make features/map.c
 				prev sig.h
-				prev FEATURE/random
 				prev FEATURE/api
 				prev FEATURE/eaccess
 				prev FEATURE/options
@@ -581,6 +574,12 @@ make install virtual
 			prev FEATURE/common
 		done
 		exec - invoke_iffe %{<} -I.
+	done
+
+	note * ast_random.h *
+	make FEATURE/random
+		makp features/random
+		exec - invoke_iffe %{<}
 	done
 
 	note * copy most of the FEATURE/* results above to canonically named header files; separating

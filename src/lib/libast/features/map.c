@@ -30,7 +30,6 @@
 #include "FEATURE/options"
 #include "FEATURE/eaccess"
 #include "FEATURE/api"
-#include "FEATURE/random"
 #include <sig.h>
 
 #if _opt_map_libc && !defined(_map_libc)
@@ -66,20 +65,6 @@ main(void)
 #define _map_malloc	1
 	printf("\n");
 	printf("#define	_map_libc	1\n");
-#endif
-#if _map_libc
-#if !_lib_arc4random
-	printf("#undef	arc4random\n");
-	printf("#define arc4random	_ast_arc4random\n");
-#endif
-#if !_lib_arc4random_buf
-	printf("#undef	arc4random_buf\n");
-	printf("#define arc4random_buf	_ast_arc4random_buf\n");
-#endif
-#if !_lib_arc4random_uniform
-	printf("#undef	arc4random_uniform\n");
-	printf("#define arc4random_uniform	_ast_arc4random_uniform\n");
-#endif
 #endif
 #if _map_libc || defined(__linux__)
 	printf("#undef	basename\n");
