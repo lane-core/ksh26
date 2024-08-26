@@ -4,6 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2024-08-26:
 
+- Fixed an infinite loop that occurred when a syntax error was thrown
+  for an arithmetic 'for' loop on the interactive command line.
+
 - [v1.1] Backported a change to '_' in types from the unreleased ksh 93v-
   beta. If a 'typeset -T' type declaration sets a discipline function for
   one of its subvariables (such as var.get() or var.getn()), then, within
