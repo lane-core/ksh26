@@ -23,6 +23,10 @@ New shell language features:
   after the decimal point if the TIMEFORAMT variable is not set. See also
   TIMEFORMAT under 'New features in shell variables' below.
 
+- With in 'typeset -T' type declarations, the '_' automatic self-reference
+  variable now always refers to the type variable, even within discipline
+  function (such as .get or .getn) that are set for its subvariables.
+
 New features in built-in commands:
 
 - When printing a function definition, 'typeset -f function_name' now

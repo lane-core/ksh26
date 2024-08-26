@@ -1682,7 +1682,10 @@ file when checking for mail.
 While defining a compound variable or a type,
 .B _
 is initialized as a reference to the compound variable or type.
-When a discipline function is invoked,
+When a discipline function is invoked
+for a variable that is not a type subvariable in the sense of
+.I "Type Variables"\^
+below, then
 .B _
 is initialized as a reference to the variable associated with
 the call to this function.
@@ -4208,7 +4211,9 @@ is the subscript of the variable, and
 will contain the value being assigned inside the
 .B set
 discipline function.
-The variable
+If the variable is not a type subvariable in the sense of
+.I "Type Variables"\^
+below, then the variable
 .B _
 is a reference to the variable including the subscript if any.
 For the \f3set\fP discipline,

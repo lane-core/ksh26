@@ -19,6 +19,13 @@ For more details, see the NEWS file and for complete details, see the git log.
 	limited to two hexadecimal digits (yielding one byte). For
 	multi-byte characters, \u and \U should be used instead.
 
+5.	If a 'typeset -T' type declaration sets a discipline function for
+	one of its subvariables (such as var.get() or var.getn()), then,
+	within that discipline function, the automatic '_' nameref now
+	refers to the type variable and no longer to the subvariable that
+	the discipline function was set for. This means '_' now always
+	refers to the type variable when used in a type declaration.
+
 ____________________________________________________________________________
 
 		ksh 93u+m/1.0.9 vs. ksh 93u+

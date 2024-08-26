@@ -852,4 +852,31 @@ exp=$'( typeset TYPEVAR )\nOK'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# As of 93u+m/1.1, _ in types always refers to the type variable, even within a member discipline function.
+# Change backported from ksh 93v- 2013-07-27 and 2013-08-29.
+case ${.sh.version} in
+Version*93u+m/1.0* | Version*93??\ * | Version*93?\ *)
+	;;
+*)
+	typeset -T argnod_discfunc_test_t=(
+		typeset x
+		integer y=5
+		function x.getn
+		{
+			((.sh.value = ++_.y))
+			typeset -p _
+		}
+	)
+	argnod_discfunc_test_t argnod_discfunc_obj
+	exp=$'typeset -n _=argnod_discfunc_obj\n6'
+	got=$(set +x; redirect 2>&1; print -r -- "${argnod_discfunc_obj.x}")
+	[[ $got == "$exp" ]] || err_exit "_ does not refer to the type variable in a member discipline function" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	got=$(set +x; redirect 2>&1; print -r -- "$((argnod_discfunc_obj.x))")
+	[[ $got == "$exp" ]] || err_exit "_ does not refer to the type variable in a member discipline function" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+esac
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -715,6 +715,8 @@ static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 	Namval_t	*np;
 	if(!nv_isattr(nq,NV_MINIMAL|NV_EXPORT|NV_ARRAY) && (np = nq->nvmeta) && nv_isarray(np))
 		nq = np;
+	else if(nv_isattr(nq,NV_MINIMAL)==NV_MINIMAL && !nv_type(nq) && (np = nv_typeparent(nq)))
+		nq = np;
 	cp = nv_name(nq);
 	memset(nr,0,sizeof(*nr));
 	nr->np = nq;
