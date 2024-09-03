@@ -67,6 +67,12 @@ to package it as their default version of ksh93.
 To build ksh with a custom configuration of features, edit
 [`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh93/SHOPT.sh).
 
+On systems such as NetBSD and OpenBSD, where `/bin/ksh` is not ksh93 and the
+preinstalled `/etc/ksh.kshrc` profile script is incompatible with ksh93, you'll
+want to disable `SHOPT_SYSRC` to avoid loading it on startup -- unless you can
+edit it to make it compatible with ksh93. This geneerally involves differences
+in the declaration and usage of local variables in functions.
+
 Then `cd` to the top directory and run:
 
 ```
