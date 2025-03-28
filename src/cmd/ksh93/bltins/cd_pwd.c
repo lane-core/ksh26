@@ -260,7 +260,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	{
 		if(saverrno)
 			errno = saverrno;
-		errormsg(SH_DICT,ERROR_system(ret),"%s:",dir);
+		errormsg(SH_DICT,ERROR_exit(ret),"%s: %s",dir,strerror(errno));
 		UNREACHABLE();
 	}
 success:
@@ -272,7 +272,7 @@ success:
 		if (!(dir=pathcanon(dir,PATH_PHYSICAL)))
 		{
 			dir = stkptr(sh.stk,PATH_OFFSET);
-			errormsg(SH_DICT,ERROR_system(ret),"%s:",dir);
+			errormsg(SH_DICT,ERROR_exit(ret),"%s: %s",dir,strerror(errno));
 			UNREACHABLE();
 		}
 		stkseek(sh.stk,dir-stkptr(sh.stk,0));

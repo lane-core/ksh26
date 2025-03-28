@@ -14,6 +14,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   - correctly recognise a word that is quoted with the $'...' syntax,
     even when it includes a backslash-escaped single quote.
 
+- [v1.1] The 'cd' command no longer adds brackets to system error messages.
+
 2025-03-24:
 
 - Fixed a crash that occurred in specific circumstances when processing a
