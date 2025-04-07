@@ -15,6 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *               Anuradha Weeraman <anuradha@debian.org>                *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
+*            SHIMIZU Akifumi <shimizu.akifumi@fujitsu.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -759,6 +760,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 		}
 		else
 		{
+			char *prevp = p;
 		again:
 			if((c=mbchar(p)) >=0)
 			{
@@ -766,19 +768,20 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 				if(type)
 					c = -c;
 			}
-#ifdef EILSEQ
-			else if(errno == EILSEQ)
-				errno = 0;
-#endif
 			else if((endp-p) < mbmax())
 			{
+				if(errno == EILSEQ)
+					errno = 0;
 				if ((c=ed_read(ep,ep->e_fd,endp, 1,0)) == 1)
 				{
+					p = prevp;
 					*++endp = 0;
 					goto again;
 				}
 				return c;
 			}
+			else if(errno == EILSEQ)
+				errno = 0;
 			else
 			{
 				ed_ringbell();
@@ -828,7 +831,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 int ed_getchar(Edit_t *ep,int mode)
 {
 	int n = 0, c;
-	char readin[LOOKAHEAD+1];
+	char *readin = fmtbuf(LOOKAHEAD + mbmax());
 	if(!ep->e_lookahead)
 	{
 		ed_flush(ep);
