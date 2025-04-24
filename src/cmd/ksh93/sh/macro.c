@@ -1685,7 +1685,7 @@ retry1:
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
 				UNREACHABLE();
 			}
-			if(c==',' || c=='^' || c=='/' || c==':' || ((!v || (nulflg && *v==0)) ^ (c=='+'||c=='#'||c=='%')))
+			if(c=='/' || c==':' || ((!v || (nulflg && *v==0)) ^ (c=='+' || newops)))
 			{
 				int newquote = mp->quote;
 				int split = mp->split;

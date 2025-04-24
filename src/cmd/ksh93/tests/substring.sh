@@ -788,4 +788,12 @@ then	err_exit "string2%%a"
 fi
 
 # ======
+# https://github.com/ksh93/ksh/discussions/846#discussioncomment-12936650
+unset v
+for op in '#' '##' % %% ^ ^^ , ,,
+do	eval "got=\${v${op}WRONG}"
+	[[ -z $got ]] || err_exit "\${v${op}WRONG} not empty for unset v (got $(printf %q "$got"))"
+done
+
+# ======
 exit $((Errors<125?Errors:125))
