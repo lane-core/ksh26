@@ -1632,6 +1632,32 @@ In this case, the
 portion of
 .I word\^
 will be re-evaluated for each element.
+.TP
+.PD 0
+\f3${\fP\f2parameter\^\fP\f3^\fP\f2pattern\^\fP\f3}\fP
+.TP
+\f3${\fP\f2parameter\^\fP\f3^^\fP\f2pattern\^\fP\f3}\fP
+.TP
+\f3${\fP\f2parameter\^\fP\f3,\fP\f2pattern\^\fP\f3}\fP
+.TP
+\f3${\fP\f2parameter\^\fP\f3,,\fP\f2pattern\^\fP\f3}\fP
+.PD
+Case modification.
+If the shell \f2pattern\fP matches the value of \f2parameter\fP,
+then this expansion is the value of the \f2parameter\fP
+with alphabetic characters in the matched portion changed
+to uppercase for \f3^\fP and \f3^^\fP,
+or to lowercase for \f3,\fP and \f3,,\fP.
+For \f3^\fP and \f3,\fP
+the transformation is applied only
+if the match is at the beginning of the string.
+For \f3^^\fP and \f3,,\fP
+all matches are transformed.
+If \f2pattern\fP is unmatched,
+then \f2parameter\fP is substituted unmodified.
+When \f2parameter\fP is \f3@\fP, \f3*\fP,
+or an array variable with subscript \f3@\fP or \f3*\fP,
+the transformation is applied to each element in turn.
 .SS Shell Variables.
 The following
 parameters

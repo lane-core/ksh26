@@ -17,6 +17,7 @@
 *                   Marc Wilson <posguy99@gmail.com>                   *
 *                      Phi <phi.debian@gmail.com>                      *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
+*                Perette Barella <perette@barella.org>                 *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -1677,14 +1678,14 @@ retry1:
 		}
 		if(c!=RBRACE)
 		{
-			int newops = (c=='#' || c == '%' || c=='/');
+			int newops = sh_lexstates[ST_BRACE][c]==S_MOD2;
 			offset = stktell(stkp);
 			if(newops && sh_isoption(SH_NOUNSET) && *id && id!=idbuff  && (!np || nv_isnull(np)))
 			{
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
 				UNREACHABLE();
 			}
-			if(c=='/' ||c==':' || ((!v || (nulflg && *v==0)) ^ (c=='+'||c=='#'||c=='%')))
+			if(c==',' || c=='^' || c=='/' || c==':' || ((!v || (nulflg && *v==0)) ^ (c=='+'||c=='#'||c=='%')))
 			{
 				int newquote = mp->quote;
 				int split = mp->split;
@@ -1862,7 +1863,7 @@ retry1:
 		argp = 0;
 	}
 	/* check for substring operations */
-	else if(c == '#' || c == '%' || c=='/')
+	else if(sh_lexstates[ST_BRACE][c]==S_MOD2)
 	{
 		if(c=='/')
 		{
@@ -1966,6 +1967,60 @@ retry2:
 					sh_setmatch(vlast,vsize_last,nmatch,match,index++);
 				if(!mp->macsub && index>0 && c=='/' && type)
 					sh_setmatch(0,0,nmatch,0,-1);
+			}
+			if (c == '^' || c == ',')
+			{
+				/* case modification: ${var^pat} ${var^^pat} ${var,pat} ${var,,pat} */
+				vsize = strlen(v);
+				while (vsize > 0)
+				{
+					flag = STR_GROUP | STR_MAXIMAL | (type ? 0 : STR_LEFT);
+					nmatch = strngrpmatch(v, vsize,
+						*pattern ? pattern : "?",
+						(ssize_t *)match, elementsof(match) / 2,
+						flag | STR_INT);
+					if (nmatch == 0)
+						break;
+					if (match[0])
+						mac_copy(mp, v, match[0]);
+					if (mbwide())  /* locale uses multibyte characters? */
+					{
+						int	wc, nwc;
+						char	*mbuf = 0;
+						char	*cp = v + match[0], *ocp;
+						while (cp < v + match[1])
+						{
+							ocp = cp;
+							wc = mbchar(cp);  /* this advances cp by one multibyte character */
+							if (wc < 0)
+								nwc = '?';
+							else if (c == '^')
+								nwc = towupper(wc);
+							else
+								nwc = towlower(wc);
+							if (nwc < 128)  /* ASCII? */
+								sfputc(stkp, nwc);
+							else if (nwc == wc)  /* performance: avoid converting it back */
+								sfwrite(stkp, ocp, cp - ocp);
+							else  /* convert new wide character to multibyte representation */
+							{
+								if (!mbuf)
+									mbuf = fmtbuf(mbmax());
+								sfwrite(stkp, mbuf, mbconv(mbuf, nwc));
+							}
+						}						
+					}
+					else /* no multibyte */
+					{
+						char	*cp;
+						for (cp = v + match[0]; cp < v + match[1]; cp++)
+							sfputc(stkp, c == '^' ? toupper(*cp) : tolower(*cp));
+					}
+					v += match[1];
+					vsize -= match[1];
+					if (!type)
+						break;
+				}
 			}
 			if(vsize)
 				mac_copy(mp,v,vsize>0?vsize:strlen(v));

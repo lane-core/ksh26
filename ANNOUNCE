@@ -30,6 +30,11 @@ New shell language features:
 - The appending redirection operator &>>FILE is now available. It is a
   shorthand for: >>FILE 2>&1
 
+- Ksh now supports the bash-like case modification expansions
+  ${var^pattern}, ${var^^pattern}, ${var,pattern} and ${var,,pattern}.
+  These change alphabetic characters in the variable to upper or lower case.
+  Unlike in bash, the pattern may match any number of characters.
+
 - The 'time' reserved word now outputs timings in a precision of 3 digits
   after the decimal point if the TIMEFORAMT variable is not set. See also
   TIMEFORMAT under 'New features in shell variables' below.
