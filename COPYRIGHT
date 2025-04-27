@@ -3,7 +3,7 @@ ksh 93u+m general copyright notice
 ########################################################################
 #                                                                      #
 #                   The KornShell 93u+m distribution                   #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                    <https://github.com/ksh93/ksh>                    #
 #             Derived from AT&T's ast package (see below)              #
 #       Licensed under the Eclipse Public License, Version 2.0         #
@@ -36,7 +36,6 @@ ksh 93u+m general copyright notice
 #                Govind Kamat <govind_kamat@yahoo.com>                 #
 #                     Cy Schubert <cy@FreeBSD.org>                     #
 #                  Andy Fiddaman <andy@omniosce.org>                   #
-#                Perette Barella <perette@barella.org>                 #
 #                                                                      #
 #              ALSO INCLUDES BACKPORTED CONTRIBUTIONS BY               #
 #                                                                      #
@@ -48,6 +47,7 @@ ksh 93u+m general copyright notice
 #               Roland Mainz <roland.mainz@nrubsig.org>                #
 #                Finnbarr P. Murphy <fpm@hotmail.com>                  #
 #               Lijo George <lijo.x.george@oracle.com>                 #
+#                Perette Barella <perette@barella.org>                 #
 #                   OpenSUSE ksh 93u+ patch authors                    #
 #                   Red Hat ksh 93u+ patch authors                     #
 #                   Solaris ksh 93u+ patch authors                     #
