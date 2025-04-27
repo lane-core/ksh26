@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-04-27:
+
+- [v1.1] The emacs mode now accepts a numeric repeat parameter for ordinary
+  character insertion. For example, ESC 10 x will insert 'x' 10 times.
+
 2025-04-24:
 
 - Fixed a bug in the expansion of $* within a here-document: the positional
