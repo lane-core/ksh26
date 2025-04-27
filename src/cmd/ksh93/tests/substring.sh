@@ -788,12 +788,81 @@ then	err_exit "string2%%a"
 fi
 
 # ======
-# https://github.com/ksh93/ksh/discussions/846#discussioncomment-12936650
-unset v
-for op in '#' '##' % %% ^ ^^ , ,,
-do	eval "got=\${v${op}WRONG}"
-	[[ -z $got ]] || err_exit "\${v${op}WRONG} not empty for unset v (got $(printf %q "$got"))"
-done
+# case modification tests
+
+if	[[ ${.sh.version} == *93u+m/* && ${.sh.version} != *93u+m/1.0.* ]] && ((.sh.version >= 20250426))
+then
+	# https://github.com/ksh93/ksh/discussions/846#discussioncomment-12936650
+
+	unset v
+	for op in '#' '##' % %% ^ ^^ , ,,
+	do	eval "got=\${v${op}WRONG}"
+		[[ -z $got ]] || err_exit "\${v${op}WRONG} not empty for unset v (got $(printf %q "$got"))"
+	done
+
+	# https://github.com/ksh93/ksh/discussions/846#discussioncomment-12941578
+
+	unset value test exp got
+	while IFS=';' read -r value test exp
+	do
+		eval "got=$test" || { err_exit "$test doesn't eval"; continue; }
+		[[ $got == "$exp" ]] || err_exit "$test for value $(printf %q "$value"): expected $(printf %q "$exp"), got $(printf %q "$got")"
+	done <<-"EOF"
+		abcdef;${value};abcdef
+		abcdef;${value^};Abcdef
+		abcdef;${value^?};Abcdef
+		abcdef;${value^????};ABCDef
+		abcdef;${value^*};ABCDEF
+		abcdef;${value^^};ABCDEF
+		abcdef;${value^^+(?)};ABCDEF
+		abcdef;${value^+([a-cA-C])};ABCdef
+		abcdef;${value^[a-e]};Abcdef
+		abcdef;${value^[b-e]};abcdef
+		abcdef;${value^^+([a-cA-C])};ABCdef
+		abcdef;${value^^+(?[bd])};ABCDef
+		abcdef;${value^^ab+([^ef])};ABCDef
+		abcdef;${value^^[a-e]};ABCDEf
+		abcdef;${value^^[b-e]};aBCDEf
+		abc def ghi;${value^};Abc def ghi
+		abc def ghi;${value^^};ABC DEF GHI
+		abcdef;${value,?};abcdef
+		abcdef;${value,????};abcdef
+		abcdef;${value,+([a-cA-C])};abcdef
+		abcdef;${value,,+([a-cA-C])};abcdef
+		CAPITALS;${value};CAPITALS
+		CAPITALS;${value,?};cAPITALS
+		CAPITALS;${value,????};capiTALS
+		CAPITALS;${value,+([a-cA-C])};caPITALS
+		CAPITALS;${value,,+([a-cA-C])};caPITaLS
+	EOF
+
+	unset arr test exp got
+	typeset -a arr=(Arrr thar be PIRATES!)
+	oIFS=${IFS-$' \t\n'}
+	IFS=/
+	while IFS=';' read -r test exp
+	do
+		eval "got=$test" || { err_exit "$test doesn't eval"; continue; }
+		[[ $got == "$exp" ]] || err_exit "$test: expected $(printf %q "$exp"), got $(printf %q "$got")"
+	done <<-"EOF"
+		${arr[*]};Arrr/thar/be/PIRATES!
+		${arr[*]^?};Arrr/Thar/Be/PIRATES!
+		${arr[*]^^?};ARRR/THAR/BE/PIRATES!
+		${arr[*]^*};ARRR/THAR/BE/PIRATES!
+		${arr[*]^^*};ARRR/THAR/BE/PIRATES!
+		${arr[*],?};arrr/thar/be/pIRATES!
+		${arr[*],,?};arrr/thar/be/pirates!
+		${arr[*],*};arrr/thar/be/pirates!
+		${arr[*],,*};arrr/thar/be/pirates!
+		${arr[*]^????};ARRR/THAR/be/PIRATES!
+		${arr[*],????};arrr/thar/be/piraTES!
+		${arr[*],,*([A-Ma-m])};arrr/thar/be/PiRaTeS!
+		${arr[*],,[A-Oa-o]};arrr/thar/be/PiRaTeS!
+	EOF
+	IFS=$oIFS
+else
+	warning 'ksh too old for case modification expansions; skipping those tests'
+fi
 
 # ======
 exit $((Errors<125?Errors:125))
