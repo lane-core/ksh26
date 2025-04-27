@@ -1987,6 +1987,17 @@ retry2:
 						flag | STR_INT);
 					if (nmatch == 0)
 						break;
+					if (match[1] == 0 && type)  /* avoid infinite loop */
+					{
+						int	sz;
+						/* copy, and advance v by, one character */
+						if ((sz = mbsize(v)) < 1)
+							sz = 1;
+						mac_copy(mp, v, sz);
+						v += sz;
+						vsize -= sz;
+						continue;
+					}
 					if (match[0])
 						mac_copy(mp, v, match[0]);
 					if (mbwide())  /* locale uses multibyte characters? */
