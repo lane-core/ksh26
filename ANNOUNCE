@@ -22,8 +22,10 @@ New command line editor features:
   saved before exiting the editor. This removes the need to empty the file
   and save just to cancel execution.
 
-- The emacs ^Y command now accepts a numeric parameter. For example,
-  ESC 10 ^Y will now "yank" (paste) the latest deleted text 10 times.
+- The emacs mode now accepts a numeric repeat count parameter for:
+  * ordinary character insertion (e.g., ESC 10 x now inserts 'x' 10 times);
+  * the ^Y command (e.g., ESC 10 Ctrl+Y will now "yank" or paste the latest
+    sequence of deletions 10 times).
 
 New shell language features:
 

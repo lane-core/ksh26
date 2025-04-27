@@ -326,8 +326,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			}
 		do_default_processing:
 		default:
-			/* ordinary typing: insert one character */
-			if ((eol+1) >= (scend)) /* will not fit on line */
+			/* ordinary typing: insert one character, 'count' times */
+			if (eol + count >= scend) /* will not fit on line */
 			{
 				beep();
 				lookahead = 0;
@@ -335,11 +335,12 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 					draw(ep,UPDATE);
 				continue;
 			}
-			for(i= ++eol; i>cur; i--)
-				out[i] = out[i-1];
-			backslash = (c == '\\' && !sh_isoption(SH_NOBACKSLCTRL));
-			out[cur++] = c;
-			draw(ep,APPEND);
+			for (i = (eol += count); i > cur; i--)
+				out[i] = out[i - count];
+			backslash = (c == '\\' && !sh_isoption(SH_NOBACKSLCTRL) && count==1);
+			for (i = 0; i < count; i++)
+				out[cur++] = c;
+			draw(ep, count > 1 ? UPDATE : APPEND);
 			continue;
 		case cntl('Y') :
 			c = count * genlen(kstack);
