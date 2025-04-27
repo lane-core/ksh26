@@ -278,15 +278,20 @@ int job_reap(int sig)
 			if(waitevent && (*waitevent)(-1,-1L,0))
 				flags |= WNOHANG;
 		}
-		pid = waitpid((pid_t)-1,&wstat,flags);
-
-		/*
-		 * some systems (Linux 2.6) may return EINVAL
-		 * when there are no continued children
-		 */
-
-		if (pid<0 && errno==EINVAL && (flags&WCONTINUED))
-			pid = waitpid((pid_t)-1,&wstat,flags&=~WCONTINUED);
+		while(1)
+		{
+			pid = waitpid((pid_t)-1,&wstat,flags);
+			/* some systems (Linux 2.6) may return EINVAL when there are no continued children */
+			if (pid<0 && errno==EINVAL && (flags&WCONTINUED))
+				pid = waitpid((pid_t)-1,&wstat,flags&=~WCONTINUED);
+			/* run any alarm traps triggered while waiting */
+			if (pid<0 && errno==EINTR && (sh.trapnote&SH_SIGALRM))
+			{
+				sh_timetraps();
+				continue;
+			}
+			break;
+		}
 		sh_sigcheck();
 		if(pid<0)
 		{
@@ -1394,8 +1399,6 @@ int	job_wait(pid_t pid)
 			continue;
 		if(nochild)
 			break;
-		if(sh.sigflag[SIGALRM]&SH_SIGTRAP)
-			sh_timetraps();
 		if((intr && sh.trapnote) || (pid==1 && !intr))
 			break;
 	}

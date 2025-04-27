@@ -341,7 +341,11 @@ make install virtual
 	make c_sources virtual
 		make bltins/alarm.c
 			prev FEATURE/time
+			prev include/jobs.h
+			prev include/shlex.h
+			prev include/fcin.h
 			prev include/builtins.h
+			prev %{INCLUDE_AST}/tmx.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
 			prev shopt.h

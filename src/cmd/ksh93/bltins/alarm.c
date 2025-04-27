@@ -23,20 +23,14 @@
  *
  */
 
-/*
- * TODO: 2014 email from David Korn cited at <https://bugzilla.redhat.com/1176670>:
- *
- * > I never documented the alarm builtin because it is problematic.  The
- * > problem is that traps can't safely be handled asynchronously.  What should
- * > happen is that the trap is marked for execution (sh.trapnote) and run after
- * > the current command completes.  The time trap should wake up the shell if
- * > it is blocked and it should return and then handle the trap.
- */
-
 #include	"shopt.h"
 #include	"defs.h"
 #include	<error.h>
+#include	<tmx.h>
 #include	"builtins.h"
+#include	"fcin.h"
+#include	"shlex.h"
+#include	"jobs.h"
 #include	"FEATURE/time"
 
 #define R_FLAG	1
@@ -100,6 +94,13 @@ static 	void *time_delete(struct tevent *item, void *list)
 	return list;
 }
 
+static Time_t getnow(void)
+{
+	struct timeval tmp;
+	timeofday(&tmp);
+	return tmp.tv_sec + 1.e-6 * tmp.tv_usec;
+}
+
 static void	print_alarms(void *list)
 {
 	struct tevent *tp = (struct tevent*)list;
@@ -114,7 +115,10 @@ static void	print_alarms(void *list)
 				sfprintf(sfstdout,e_alrm1,name,d/1000.);
 			}
 			else
-				sfprintf(sfstdout,e_alrm2,name,nv_getnum(tp->node));
+			{
+				Time_t num = nv_getnum(tp->node), now = getnow();
+				sfprintf(sfstdout,e_alrm2,name,(double)(num - now));
+			}
 		}
 		tp = tp->next;
 	}
@@ -127,7 +131,6 @@ static void	trap_timeout(void* handle)
 	if(!(tp->flags&R_FLAG))
 		tp->timeout = 0;
 	tp->flags |= L_FLAG;
-	sh.sigflag[SIGALRM] |= SH_SIGALRM;
 	if(sh_isstate(SH_TTYWAIT))
 		sh_timetraps();
 }
@@ -138,22 +141,63 @@ void	sh_timetraps(void)
 	struct tevent *tptop;
 	while(1)
 	{
-		sh.sigflag[SIGALRM] &= ~SH_SIGALRM;
+		sh.trapnote &= ~SH_SIGALRM;
 		tptop= (struct tevent*)sh.st.timetrap;
 		for(tp=tptop;tp;tp=tpnext)
 		{
 			tpnext = tp->next;
 			if(tp->flags&L_FLAG)
 			{
-				tp->flags &= ~L_FLAG;
 				if(tp->action)
-					sh_fun(tp->action,tp->node,NULL);
+				{
+					/* Call the alarm discipline function. This may occur at any time including parse time,
+					 * so save the lexer state and push/pop context to make sure we can restore it. */
+					struct checkpt	checkpoint;
+					int		jmpval;
+					int		exitval = sh.exitval, savexit = sh.savexit;
+					Shopt_t		opts = sh.options;
+					int		states = sh.st.states;
+					char		*dbg = sh.st.trap[SH_DEBUGTRAP];
+					Lex_t		*lexp = sh.lex_context, savelex = *lexp;
+					char		jc = job.jobcontrol;
+					int		savesig = job.savesig;
+					struct process	*pw = job.pwlist;
+					Fcin_t		savefc;
+					int		oerrno = errno;
+					fcsave(&savefc);
+					job.jobcontrol = 0;
+					job.pwlist = NULL;	/* avoid external commands in the disc funct affecting job list */
+					sh_lexopen(lexp,0);	/* fully reset lexer state */
+					sh_offoption(SH_XTRACE);
+					sh_offoption(SH_VERBOSE);
+					sh_offstate(SH_INTERACTIVE);
+					sh_offstate(SH_TTYWAIT);
+					sh.st.trap[SH_DEBUGTRAP] = NULL;
+					sh_pushcontext(&checkpoint,SH_JMPTRAP);
+					jmpval = sigsetjmp(checkpoint.buff,0);
+					if(!jmpval)
+						sh_fun(tp->action,tp->node,NULL);
+					sh_popcontext(&checkpoint);
+					*lexp = savelex;
+					sh.exitval = exitval;
+					sh.savexit = savexit;
+					sh.st.trap[SH_DEBUGTRAP] = dbg;
+					sh.options = opts;
+					sh.st.states = states;
+					job.pwlist = pw;
+					job.savesig = savesig;
+					job.jobcontrol = jc;
+					fcrestore(&savefc);
+					errno = oerrno;
+					if(jmpval>SH_JMPTRAP)
+						siglongjmp(*sh.jmplist,jmpval);
+				}
 				tp->flags &= ~L_FLAG;
 				if(!tp->flags)
 					nv_unset(tp->node);
 			}
 		}
-		if(!(sh.sigflag[SIGALRM]&SH_SIGALRM))
+		if(!(sh.trapnote&SH_SIGALRM))
 			break;
 	}
 }
@@ -185,22 +229,33 @@ static char *setdisc(Namval_t *np, const char *event, Namval_t* action, Namfun_t
 static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 {
 	struct tevent	*tp = (struct tevent*)fp;
-	double d;
+	double		d, x;
+	char		*pp;
 	if(val)
 	{
-		double now;
-		struct timeval tmp;
-		timeofday(&tmp);
-		now = tmp.tv_sec + 1.e-6*tmp.tv_usec;
-		nv_putv(np,val,flag,fp);
-		d = nv_getnum(np);
+		Time_t now = getnow();
+		char *last;
 		if(*val=='+')
 		{
-			double x = d + now;
-			nv_putv(np,(char*)&x,NV_INTEGER|NV_DOUBLE,fp);
+			d = strtod(val+1, &last);
+			x = d + now;
+			nv_putv(np,val,flag,fp);
 		}
 		else
-			d -= now;
+		{
+			d = strtod(val, &last);
+			if(*last)
+			{
+				if(pp = sfprints("exact %s", val))
+					d = tmxdate(pp, &last, TMX_NOW);
+				if(*last && (pp = sfprints("p%s", val)))
+					d = tmxdate(pp, &last, TMX_NOW);
+				d /= 1000000000;
+				x = d;
+				d -= now;
+			}
+		}
+		nv_putv(np,(char*)&x,NV_INTEGER|NV_DOUBLE,fp);
 		tp->milli = 1000*(d+.0005);
 		if(tp->timeout)
 			sh.st.timetrap = time_delete(tp,sh.st.timetrap);

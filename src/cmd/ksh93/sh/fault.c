@@ -399,6 +399,8 @@ void	sh_chktrap(void)
 {
 	int	sig=sh.st.trapmax;
 	char	*trap;
+	if(sh.trapnote&SH_SIGALRM)
+		sh_timetraps();
 	if(!sh.trapnote)
 		sig=0;
 	sh.trapnote &= ~SH_SIGTRAP;
@@ -422,8 +424,6 @@ void	sh_chktrap(void)
 			sh_exit(sh.exitval);
 		}
 	}
-	if(sh.sigflag[SIGALRM]&SH_SIGALRM)
-		sh_timetraps();
 #if SHOPT_BGX
 	if((sh.sigflag[SIGCHLD]&SH_SIGTRAP) && sh.st.trapcom[SIGCHLD])
 		job_chldtrap(1);
