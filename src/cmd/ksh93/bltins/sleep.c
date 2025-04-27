@@ -130,8 +130,6 @@ skip:
 		if(tloc < (now=time(NULL)))
 			break;
 		d = (double)(tloc-now);
-		if(sh.sigflag[SIGALRM]&SH_SIGTRAP)
-			sh_timetraps();
 	}
 	return 0;
 }
@@ -151,6 +149,8 @@ void sh_delay(double t, int sflag)
 		while (1)
 		{
 			pause();
+			if (sh.trapnote & SH_SIGALRM)
+				sh_timetraps();
 			if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
 				return;
 		}
@@ -170,6 +170,8 @@ void sh_delay(double t, int sflag)
 #endif
 	while(tvsleep(&ts, &tx) < 0)
 	{
+		if (sh.trapnote & SH_SIGALRM)
+			sh_timetraps();
 		if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
 			break;
 		ts = tx;
