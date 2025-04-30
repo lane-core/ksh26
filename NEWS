@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-04-29:
+
+- [v1.1] The 'case' compound command now supports the ;;& control operator
+  as on bash 4.0+. The ;;& operator falls through like ;& but executes the
+  next matching list instead of simply executing the next list.
+
 2025-04-27:
 
 - [v1.1] The emacs mode now accepts a numeric repeat parameter for ordinary

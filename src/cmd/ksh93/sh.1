@@ -443,6 +443,15 @@ If
 is used in place of
 .B ;;
 the next subsequent list, if any,  is executed.
+If
+.B ;;&
+is used in place of
+.B ;;
+the subsequent list whose
+.I pattern\^
+matches
+.IR word ,
+if any, is executed.
 .TP
 \f3if\fP \f2list\^\fP \f3;then\fP \f2list\^\fP \*(OK \
 \f3;elif\fP \f2list\^\fP \f3;then\fP \f2list\^\fP \*(CK .\|.\|. \

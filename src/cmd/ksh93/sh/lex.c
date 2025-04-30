@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -509,6 +509,12 @@ int sh_lex(Lex_t* lp)
 							return r;
 						}
 						c |= SYMREP;
+						/* Check for repeated operator character plus &, like ;;& (FALLMATCHSYM) */
+						fcgetc();
+						if(fcpeek(0)=='&')
+							c |= SYMAMP;
+						else
+							fcseek(-1);
 						/* Here document redirection operator '<<' */
 						if(c==IODOCSYM)
 							lp->lexd.docword = 1;
@@ -578,7 +584,7 @@ int sh_lex(Lex_t* lp)
 					if(n)
 					{
 						fcseek(1);
-						lp->lex.incase = (c==BREAKCASESYM || c==FALLTHRUSYM);
+						lp->lex.incase = (c==BREAKCASESYM || c==FALLTHRUSYM || c==FALLMATCHSYM);
 					}
 					else
 					{
@@ -2070,7 +2076,11 @@ static char	*fmttoken(Lex_t *lp, int sym)
 	stkfreeze(sh.stk,0);
 	sfputc(sh.stk,sym);
 	if(sym&SYMREP)
+	{
 		sfputc(sh.stk,sym);
+		if(sym&SYMAMP)
+			sfputc(sh.stk,'&');
+	}
 	else
 	{
 		switch(sym&SYMMASK)

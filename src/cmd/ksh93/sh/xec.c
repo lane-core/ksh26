@@ -2221,10 +2221,11 @@ int sh_exec(const Shnode_t *t, int flags)
 						s = rex->argval;
 					if(raw && strcmp(r,s)==0 || !raw && strmatch(r,s))
 					{
-						do
+						do				/* execute; keep going while ;& */
 							sh_exec(t->reg.regcom, t->reg.regflag ? eflag : flags);
-						while(t->reg.regflag && (t = (Shnode_t*)t->reg.regnxt));
-						t=0;
+						while(t->reg.regflag==1 && (t = (Shnode_t*)t->reg.regnxt));
+						if(t && t->reg.regflag==0)	/* if not end or ;;& */
+							t = 0;			/* break outer loop */
 						break;
 					}
 					else
