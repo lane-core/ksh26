@@ -29,6 +29,10 @@ New command line editor features:
 
 New shell language features:
 
+- The 'case' compound command now supports the ;;& control operator as on
+  bash 4.0+. The ;;& operator falls through like ;& but executes the next
+  matching list instead of simply executing the next list.
+
 - The appending redirection operator &>>FILE is now available. It is a
   shorthand for: >>FILE 2>&1
 

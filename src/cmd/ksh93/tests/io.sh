@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1063,6 +1063,13 @@ exp=$'===\nOK'
 let "$? <= 128" || err_exit "crash on huge RLIMIT_NOFILE"
 (ulimit -n 8; "$SHELL" --version) 2>/dev/null
 let "$? <= 128" || err_exit "crash on tiny RLIMIT_NOFILE"
+
+
+# ======
+got=$(eval ': >>&2' 2>&1)
+[[ e=$? -eq 3 && $got == *'syntax error'* ]] || err_exit ">>&2 should be a syntax error (got \$?==$e, $(printf %q "$got"))"
+got=$(eval ': <<&2' 2>&1)
+[[ e=$? -eq 3 && $got == *'syntax error'* ]] || err_exit "<<&2 should be a syntax error (got \$?==$e, $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

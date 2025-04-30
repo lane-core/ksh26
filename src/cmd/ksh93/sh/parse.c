@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -707,15 +707,18 @@ static struct regnod*	syncase(Lex_t *lexp,int esym)
 			sh_syntax(lexp,0);
 	}
 	r->regcom=sh_cmd(lexp,0,SH_NL|SH_EMPTY|SH_SEMI);
-	if((tok=lexp->token)==BREAKCASESYM)
-		r->regnxt=syncase(lexp,esym);
-	else if(tok==FALLTHRUSYM)
+	switch (tok = lexp->token)
 	{
+	case FALLMATCHSYM:	/* ;;& */
 		r->regflag++;
+		/* FALLTHROUGH */
+	case FALLTHRUSYM:	/* ;& */
+		r->regflag++;
+		/* FALLTHROUGH */
+	case BREAKCASESYM:	/* ;; */
 		r->regnxt=syncase(lexp,esym);
-	}
-	else
-	{
+		break;
+	default:
 		if(tok!=esym && tok!=EOFSYM)
 			sh_syntax(lexp,0);
 		r->regnxt=0;
@@ -1687,6 +1690,8 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 			else if(n>0)
 				fcseek(-1);
 		}
+		else if((token&UCHAR_MAX)!=token)  /* unhandled SYM* bits */
+			sh_syntax(lexp,0);
 		break;
 
 	    case '>':
@@ -1706,6 +1711,8 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 			iof |= IOLSEEK;
 		else if((token&SYMSEMI) == SYMSEMI)
 			iof |= IOREWRITE;
+		else if((token&UCHAR_MAX)!=token)  /* unhandled SYM* bits */
+			sh_syntax(lexp,0);
 		break;
 
 	    default:

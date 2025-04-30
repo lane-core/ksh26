@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -194,6 +194,30 @@ got=$(set +x; eval '
 ' 2>&1)
 [[ $got == "$exp" ]] || err_exit "spurious syntax error in case with extended expression" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# ;;& -- fall through to next matching pattern -- new as of 93u+m/1.1
+got=
+case ${.sh.version} in
+*93u+m/1.[!0]* | *93u+m/[!1].* | 93u+m/?[!.]* )
+	eval '
+		case foo.txt in
+		foo*)	got+=yes1 ;;&
+		bar*)	got+=no1 ;;
+		*.txt)	got+=yes2 ;&
+		*.asc)	got+=yes3 ;;&
+		*.jpg)	got+=no2 ;;
+		*.gif)	got+=no3 ;;
+		*.tx*)	got+=yes4 ;;
+		*)	got+=no4 ;;
+		esac
+	'
+	exp=yes1yes2yes3yes4
+	[[ $got == "$exp" ]] || err_exit ";;& case operator" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+*)	warning ";;& operator supported as of 93u+m/1.1 but we're on ${.sh.version} -- skipping test"
+esac
 
 # ======
 exit $((Errors<125?Errors:125))
