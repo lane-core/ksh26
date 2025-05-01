@@ -194,7 +194,7 @@ void	sh_timetraps(void)
 				}
 				tp->flags &= ~L_FLAG;
 				if(!tp->flags)
-					nv_unset(tp->node);
+					nv_unset(tp->node,0);
 			}
 		}
 		if(!(sh.trapnote&SH_SIGALRM))
@@ -266,7 +266,7 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 	{
 		tp = (struct tevent*)nv_stack(np, NULL);
 		sh.st.timetrap = time_delete(tp,sh.st.timetrap);
-		nv_unset(np);
+		nv_unset(np,0);
 		free(fp);
 	}
 }
@@ -317,7 +317,7 @@ int	b_alarm(int argc,char *argv[],Shbltin_t *context)
 	}
 	np = nv_open(argv[0],sh.var_tree,NV_NOARRAY|NV_VARNAME);
 	if(!nv_isnull(np))
-		nv_unset(np);
+		nv_unset(np,0);
 	nv_setattr(np, NV_DOUBLE);
 	tp = sh_newof(NULL,struct tevent,1,0);
 	tp->fun.disc = &alarmdisc;
