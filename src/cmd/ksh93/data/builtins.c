@@ -731,7 +731,7 @@ const char sh_optexport[] =
 ;
 
 const char sh_optgetopts[] =
-":[-1c?\n@(#)$Id: getopts (AT&T Research) 2005-01-01 $\n]"
+":[-1c?\n@(#)$Id: getopts (ksh 93u+m) 2025-05-02 $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - parse utility options]"
@@ -769,7 +769,6 @@ const char sh_optgetopts[] =
   "that the text should displayed in a fixed width font. "
   "Text between two \\f (formfeed) characters will be replaced by the "
     "output from the shell function whose name is that of the enclosed text.]"
-"[+?All output from this interface is written to the standard error.]"
 "[+?There are several group types:]{"
   "[+1.?A group of the form "
     "[-[\aversion\a]][\aflag\a[\anumber\a]]]]...[?\atext\a]]]] "
@@ -894,9 +893,9 @@ const char sh_optgetopts[] =
 "\noptstring name [args...]\n"
 "\n"
 "[+EXIT STATUS]{"
-	"[+0?An option specified was found.]"
+	"[+0?An option specified was found, or an information message was generated.]"
 	"[+1?An end of options was encountered.]"
-	"[+2?A usage or information message was generated.]"
+	"[+2?A usage message was generated.]"
 "}"
 ;
 

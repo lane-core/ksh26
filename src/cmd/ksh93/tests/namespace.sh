@@ -184,7 +184,12 @@ fi
 # ======
 # Test 'unset -f' in subshell in namespace
 # https://github.com/ksh93/ksh/issues/648
-# NOTE: for ast commands, '--version' is expected to exit with status 2
+# NOTE: for ast commands, '--version' is expected to exit with status 2 on 93u+m/1.0, 0 on 93u+m/1.1 and up
+case ${.sh.version} in
+*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+	s=0 ;;
+*)	s=2 ;;
+esac
 exp='^  version         [[:alpha:]]{2,} (.*) ....-..-..$'
 for b in cd disown fg getopts printf pwd read ulimit umask whence
 do
@@ -196,8 +201,8 @@ do
 			exit	# avoid optimizing out the subshell
 		}
 	)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1a)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1a)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	namespace ns
 	{
@@ -207,8 +212,8 @@ do
 			exit	# avoid optimizing out the subshell
 		)
 	}
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1b)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1b)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	# bug introduced on 2023-06-02
 	got=$(
@@ -219,8 +224,14 @@ do
 			exit	# avoid optimizing out the subshell
 		}
 	)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1c)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	# for ast commands, '--version' is expected to exit with status 2 on 93u+m/1.0, 0 on 93u+m/1.1 and up
+	case ${.sh.version} in
+	*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+		s=0 ;;
+	*)	s=2 ;;
+	esac
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1c)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	got=$(
 		namespace ns
@@ -230,8 +241,8 @@ do
 			exit	# avoid optimizing out the subshell
 		}
 	)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f .ns.$b' fails in subshell (2a)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f .ns.$b' fails in subshell (2a)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	namespace ns
 	{
@@ -241,8 +252,8 @@ do
 			exit	# avoid optimizing out the subshell
 		)
 	}
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f .ns.$b' fails in subshell (2b)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f .ns.$b' fails in subshell (2b)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 done
 
 # ======

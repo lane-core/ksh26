@@ -108,8 +108,9 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+			/* self-doc: write to standard output */
+			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			return 0;
 	}
 	if(error_info.errors)
 	{
@@ -175,9 +176,10 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 			break;
 		    case '?':
 			if(sh.shcomp)
-				return 2;
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+				return 0;
+			/* self-doc: write to standard output */
+			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			return 0;
 		}
 		if(error_info.errors)
 		{
@@ -440,9 +442,10 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
 				break;
 			case '?':
-				errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
 				opt_info.disc = 0;
-				return 2;
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 	}
 endargs:
@@ -1167,8 +1170,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		UNREACHABLE();
+		/* self-doc: write to standard output */
+		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		return 0;
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -1271,7 +1275,7 @@ int    b_set(int argc,char *argv[],Shbltin_t *context)
 	if(argv[1])
 	{
 		if(sh_argopts(argc,argv) < 0)
-			return 2;
+			return 0;  /* self-doc was written to standard output */
 		if(sh_isoption(SH_VERBOSE))
 			sh_onstate(SH_VERBOSE);
 		else
@@ -1333,8 +1337,9 @@ static int unall(int argc, char **argv, Dt_t *troot)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+			/* self-doc: write to standard output */
+			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			return 0;
 	}
 	argv += opt_info.index;
 	if(error_info.errors || (*argv==0 &&!all))

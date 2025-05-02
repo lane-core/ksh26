@@ -111,6 +111,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
  *  The options "PDicr" are illegal from set command.
  *  The -o option is used to set option by name
  *  This routine returns the number of non-option arguments
+ *  or -1 if a self-documentation option was found and handled.
  */
 int sh_argopts(int argc,char *argv[])
 {
@@ -224,7 +225,8 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			continue;
 		    case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
+			/* self-doc: write to standard output */
+			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
 			return -1;
 		}
 		if(f)

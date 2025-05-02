@@ -51,6 +51,11 @@ New shell language features:
 
 New features in built-in commands:
 
+- Self-documentation output from any command's --man, --help, and other
+  options is no longer written to standard error with exit status 2, but
+  now goes to standard output and sets exit status 0. For an overview of
+  self-documentation features, type 'print "--???"'.
+
 - When printing a function definition, 'typeset -f function_name' now
   regenerates and reformats the code instead of dumping it from a fixed
   offset in the original source file. The output is no longer corrupted

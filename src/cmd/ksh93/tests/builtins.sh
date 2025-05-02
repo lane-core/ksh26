@@ -288,10 +288,10 @@ fi
 if	printf "%d %d\n" 123bad 78 >/dev/null 2>/dev/null
 then	err_exit "printf not exiting non-zero with conversion errors"
 fi
-if	[[ $(trap --version 2> /dev/null;print done) != done ]]
+if	[[ $(trap --version >/dev/null 2>&1;print done) != done ]]
 then	err_exit 'trap builtin terminating after --version'
 fi
-if	[[ $(set --version 2> /dev/null;print done) != done ]]
+if	[[ $(set --version >/dev/null 2>&1;print done) != done ]]
 then	err_exit 'set builtin terminating after --version'
 fi
 unset -f foobar
@@ -713,8 +713,12 @@ fi
 
 if((!SHOPT_SCRIPTONLY));then
 export ENV=/./dev/null
-v=$($SHELL 2> /dev/null +o rc -ic $'getopts a:bc: opt --man\nprint $?')
-[[ $v == 2* ]] || err_exit 'getopts --man does not exit 2 for interactive shells'
+v=$($SHELL +o rc -ic $'getopts a:bc: opt --man >/dev/null 2>&1\nprint $?')
+case ${.sh.version} in
+*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+	[[ $v == 0 ]] || err_exit 'getopts --man does not exit 0 for interactive shells' "(got $(printf %q "$v"))" ;;
+*)	[[ $v == 2 ]] || err_exit 'getopts --man does not exit 2 for interactive shells' "(got $(printf %q "$v"))" ;;
+esac
 fi # !SHOPT_SCRIPTONLY
 
 read baz <<< 'foo\\\\bar'
@@ -745,7 +749,12 @@ fi
 # ======
 # 'time' keyword and 'times' builtin
 
-exp=$'^user\t0m00.[0-9]{3}s\nsys\t0m00.[0-9]{3}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$'
+CCn=$'\n'
+case ${.sh.version} in
+*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+	exp=$'^user\t0m00.[0-9]{3}s\nsys\t0m00.[0-9]{3}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$' ;;
+*)	exp=$'^user\t0m00.[0-9]{2}s\nsys\t0m00.[0-9]{2}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$' ;;
+esac
 got=$("$SHELL" -c '{ time; } 2>&1; times')
 [[ $got =~ $exp ]] || err_exit "times output: expected match of $(printf %q "$exp"), got $(printf %q "$got")"
 
@@ -1075,32 +1084,32 @@ function testusage {
 	getopts "$USAGE" dummy 2>&1
 }
 
-actual=$(testusage -\?)
-expect='Usage: testusage [-xyz] [ name=value ... ]
-   Or: testusage -y [ name ... ]
- Help: testusage [ --help | --man ] 2>&1'
-[[ $actual == "$expect" ]] || err_exit "getopts: '-?' output" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+got=$(testusage -\?)
+exp='Usage: testusage \[-xyz] \[ name=value ... ]
+   Or: testusage -y \[ name ... ]
+ Help: testusage \[ --help | --man ]*'
+[[ $got == $exp ]] || err_exit "getopts: '-?' output" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 
-actual=$(testusage --\?x)
-expect='Usage: testusage [ options ] [ name=value ... ]
-   Or: testusage -y [ name ... ]
- Help: testusage [ --help | --man ] 2>&1
+got=$(testusage --\?x)
+exp='Usage: testusage \[ options ] \[ name=value ... ]
+   Or: testusage -y \[ name ... ]
+ Help: testusage \[ --help | --man ]*
 OPTIONS
   -x, --xylophone Lorem.'
-[[ $actual == "$expect" ]] || err_exit "getopts: '--?x' output" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+[[ $got == $exp ]] || err_exit "getopts: '--?x' output" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 
-actual=$(testusage --help)
-expect='Usage: testusage [ options ] [ name=value ... ]
-   Or: testusage -y [ name ... ]
- Help: testusage [ --help | --man ] 2>&1
+got=$(testusage --help)
+exp='Usage: testusage \[ options ] \[ name=value ... ]
+   Or: testusage -y \[ name ... ]
+ Help: testusage \[ --help | --man ]*
 OPTIONS
   -x, --xylophone Lorem.
   -y, --ypsilon   Ipsum.
   -z, --zeta      Sit.'
-[[ $actual == "$expect" ]] || err_exit "getopts: '--help' output" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+[[ $got == $exp ]] || err_exit "getopts: '--help' output" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 
 actual=$(testusage --man)
 expect='NAME

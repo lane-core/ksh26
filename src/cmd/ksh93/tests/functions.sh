@@ -257,10 +257,10 @@ function winpath
 	done
 	print done
 }
-if	[[ $( (winpath --man 2>/dev/null); print ok) != ok ]]
+if	[[ $( (winpath --man 2>&1); print ok) != Usage:\ winpath*ok ]]
 then	err_exit 'getopts --man in functions not working'
 fi
-if	[[ $( (winpath -z 2>/dev/null); print ok) != ok ]]
+if	[[ $( (winpath -z 2>&1); print ok) != *unknown\ option*ok ]]
 then	err_exit 'getopts with bad option in functions not working'
 fi
 unset -f x
@@ -1554,27 +1554,32 @@ unset -v "${!v2@}"
 # ======
 # Test 'unset -f' in subshell
 # https://github.com/ksh93/ksh/issues/646
-# NOTE: for ast commands, '--version' is expected to exit with status 2
+# NOTE: for ast commands, '--version' is expected to exit with status 2 on 93u+m/1.0, 0 on 93u+m/1.1 and up
+case ${.sh.version} in
+*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+	s=0 ;;
+*)	s=2 ;;
+esac
 exp='^  version         [[:alpha:]]{2,} (.*) ....-..-..$'
 for b in cd disown fg getopts printf pwd read ulimit umask whence
 do	got=$(unset -f "$b"; PATH=/dev/null; "$b" --version 2>&1)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1a)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1a)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	# the extra 'exit' is needed to avoid optimising out the subshell
 	got=$("$SHELL" -c "(unset -f $b; PATH=/dev/null; $b --version); exit" 2>&1)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1b)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1b)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 	eval "$b() { echo BAD; }"
 	got=$(unset -f "$b"; PATH=/dev/null; "$b" --version 2>&1)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (2a)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (2a)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 	unset -f "$b"
 
 	got=$("$SHELL" -c "$b() { :; }; (unset -f $b; PATH=/dev/null; $b --version); exit" 2>&1)
-	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (2b)" \
-		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (2b)" \
+		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 done
 
 # ======

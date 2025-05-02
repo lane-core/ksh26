@@ -1059,9 +1059,9 @@ exp=$'===\nOK'
 
 # ======
 # https://github.com/ksh93/ksh/issues/591
-(ulimit -n 2147483648; "$SHELL" --version) 2>/dev/null
+(ulimit -n 2147483648; "$SHELL" --version) >/dev/null 2>&1
 let "$? <= 128" || err_exit "crash on huge RLIMIT_NOFILE"
-(ulimit -n 8; "$SHELL" --version) 2>/dev/null
+(ulimit -n 8; "$SHELL" --version) >/dev/null 2>&1
 let "$? <= 128" || err_exit "crash on tiny RLIMIT_NOFILE"
 
 

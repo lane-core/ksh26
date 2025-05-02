@@ -53,8 +53,9 @@ int	b_return(int n, char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 		goto done;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-		return 2;
+		/* self-doc: write to standard output */
+		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		return 0;
 	}
 done:
 	if(error_info.errors)
@@ -111,8 +112,9 @@ int	b_break(int n, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-		return 2;
+		/* self-doc: write to standard output */
+		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		return 0;
 	}
 	if(error_info.errors)
 	{

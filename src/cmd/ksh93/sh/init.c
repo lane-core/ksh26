@@ -1332,7 +1332,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 		/* sh.st.dolc is $#	*/
 		if((sh.st.dolc = sh_argopts(-argc,argv)) < 0)
 		{
-			sh.exitval = 2;
+			sh.exitval = 0;  /* self-doc was written to stdout */
 			sh_done(0);
 		}
 		opt_info.disc = 0;
