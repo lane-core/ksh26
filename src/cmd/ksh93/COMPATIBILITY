@@ -4,6 +4,10 @@ The following is a list of changes between ksh 93u+m/1.1.* and the previous
 93u+m/1.0.* series that could cause incompatibilities in rare corner cases.
 For more details, see the NEWS file and for complete details, see the git log.
 
+0.	Self-documentation output from any command's --man, --help, and
+	other options is no longer written to standard error with exit
+	status 2, but now goes to standard output and sets exit status 0.
+
 1.	Type attributes of variables are no longer exported to or imported
 	from the environment. Any script that depends on this will need to
 	be changed to typeset the expected attributes itself.
@@ -25,6 +29,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 	refers to the type variable and no longer to the subvariable that
 	the discipline function was set for. This means '_' now always
 	refers to the type variable when used in a type declaration.
+
 
 ____________________________________________________________________________
 

@@ -402,8 +402,8 @@ DONE
 # ======
 TEST title='showing --man info'
 DO
-	set --man 2>/dev/null
-	ulimit --man 2>/dev/null
+	set --man >/dev/null 2>&1
+	ulimit --man >/dev/null 2>&1
 DONE
 
 # ======

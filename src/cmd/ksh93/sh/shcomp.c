@@ -100,8 +100,9 @@ int main(int argc, char *argv[])
 		errormsg(SH_DICT,2,"%s",opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(2),"%s",opt_info.arg);
-		UNREACHABLE();
+		/* self-doc: write to standard output */
+		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		return 0;
 	}
 	sh_init(argc,argv,NULL);
 	script_id = error_info.id;  /* set by sh_init() */

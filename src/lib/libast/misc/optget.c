@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2024-03-05"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2025-05-02"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -208,7 +208,6 @@ static const List_t	help_head[] =
 for all \bAST\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
 supported by a given command then it is equivalent to \b--\?\?\b\aitem\a. The \
 \b--\?\?\b form should be used for portability. \
-All output is written to the standard error. \
 Note that question marks should be quoted to avoid pathanme expansion."),
 };
 
@@ -260,8 +259,8 @@ if not."),
 	':',	C("\?\?\?\?\?\?EMPHASIS"),
 		C("Equivalent to \b--\?\?\?ESC\b."),
 	':',	C("\?\?\?\?\?\?ESC"),
-		C("Emit ANSI escape codes for emphasis even if standard error is not on a terminal. \
-Use \b--\?\?noESC\b to emit no escape codes even if standard error is on a terminal."),
+		C("Emit ANSI escape codes for emphasis even if standard output is not on a terminal. \
+Use \b--\?\?noESC\b to emit no escape codes even if standard output is on a terminal."),
 	':',	C("\?\?\?\?\?\?MAN[=\asection\a]]"),
 		C("List the \bman\b(1) section title for \asection\a [the \
 current command]]."),
@@ -1672,7 +1671,7 @@ args(Sfio_t* sp, char* p, int n, int flags, int style, Sfio_t* ip, int version, 
 	/* In usage/--help messages, tell the user how to get more help */
 	if (style < STYLE_man)
 	{
-		sfprintf(sp, "\n%*.*s%s%s [%s--help%s|%s--man%s] 2>&1",
+		sfprintf(sp, "\n%*.*s%s%s [%s--help%s|%s--man%s]",
 			OPT_USAGE - 1, OPT_USAGE - 1, T(NULL, ID, "Help:"), b, a, b, b, b, b);
 	}
 }
@@ -2532,7 +2531,7 @@ opthelp(const char* oopts, const char* what)
 					break;
 				}
 			}
-			if (isatty(sffileno(sfstderr)) && (x = getenv("TERM"))
+			if (isatty(sffileno(sfstdout)) && (x = getenv("TERM"))
 			&& strmatch(x, "(ansi|cons|dtterm|linux|qansi|rxvt|screen|sun|vt[1-5][0-4][0125]|wsvt|xterm)*"))
 				state.emphasis = 1;
 		}
