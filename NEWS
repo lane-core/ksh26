@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-05:
+
+- [v1.1] grep(1) has been added as a path-bound built-in command. It is now
+  available by default on ksh linked against dynamic libcmd, and may
+  optionally be included in ksh linked against static libcmd. This grep
+  supports eight kinds of regex, including sh and ksh glob patterns.
+
 2025-05-02:
 
 - [v1.1] Self-documentation output from any command's --man, --help, and
