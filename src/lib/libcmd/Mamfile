@@ -255,6 +255,20 @@ make install virtual
 		make lib.c
 			prev cmd.h
 		done
+		make context.c
+			make context.h
+				prev %{INCLUDE_AST}/ast.h
+			done
+		done
+		make grep.c
+			prev cmd.h
+			prev %{INCLUDE_AST}/ccode.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/fts.h
+			prev %{INCLUDE_AST}/regex.h
+			prev %{INCLUDE_AST}/vmalloc.h
+			prev context.h
+		done
 		setv _c_source_files_ %{^}
 	done c_sources
 
