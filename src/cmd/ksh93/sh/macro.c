@@ -17,7 +17,6 @@
 *                   Marc Wilson <posguy99@gmail.com>                   *
 *                      Phi <phi.debian@gmail.com>                      *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
-*                Perette Barella <perette@barella.org>                 *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -2015,23 +2014,24 @@ retry2:
 								nwc = towupper(wc);
 							else
 								nwc = towlower(wc);
-							if (nwc < 128)  /* ASCII? */
-								sfputc(stkp, nwc);
-							else if (nwc == wc)  /* performance: avoid converting it back */
-								sfwrite(stkp, ocp, cp - ocp);
+							if (nwc == wc)  /* performance: avoid converting it back */
+								mac_copy(mp, ocp, cp - ocp);
 							else  /* convert new wide character to multibyte representation */
 							{
 								if (!mbuf)
 									mbuf = fmtbuf(mbmax());
-								sfwrite(stkp, mbuf, mbconv(mbuf, nwc));
+								mac_copy(mp, mbuf, mbconv(mbuf, nwc));
 							}
 						}						
 					}
 					else /* no multibyte */
 					{
-						char	*cp;
-						for (cp = v + match[0]; cp < v + match[1]; cp++)
-							sfputc(stkp, c == '^' ? toupper(*cp) : tolower(*cp));
+						char	*cp, *cq, *buf;
+						buf = sh_malloc(match[1] - match[0]);
+						for (cp = v + match[0], cq = buf; cp < v + match[1]; cp++, cq++)
+							*cq = c == '^' ? toupper(*cp) : tolower(*cp);
+						mac_copy(mp, buf, match[1] - match[0]);
+						free(buf);
 					}
 					v += match[1];
 					vsize -= match[1];

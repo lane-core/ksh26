@@ -860,6 +860,11 @@ then
 		${arr[*],,[A-Oa-o]};arrr/thar/be/PiRaTeS!
 	EOF
 	IFS=$oIFS
+
+	got='een twee drie . vier vijf zes'
+	printf -v got '<%s> ' ${got^*([!.])}
+	exp='<EEN> <TWEE> <DRIE> <.> <vier> <vijf> <zes> '
+	[[ $got == "$exp" ]] || err_exit "field splitting of \${v^*([!.])} (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 else
 	warning 'ksh too old for case modification expansions; skipping those tests'
 fi
