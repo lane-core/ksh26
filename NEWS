@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-08:
+
+- [v1.1] Fixed: case modification expansions (added on 2025-04-23) were not
+  properly subject to field splitting and pathname expansion if unquoted.
+
 2025-05-05:
 
 - [v1.1] grep(1) has been added as a path-bound built-in command. It is now
