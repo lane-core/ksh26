@@ -987,7 +987,7 @@ const char sh_opthash[] =
 
 #if !SHOPT_SCRIPTONLY
 const char sh_opthist[]	=
-"[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2024-12-23 $\n]"
+"[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2025-05-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - process command history list]"
 "[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands  "

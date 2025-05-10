@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-10:
+
+- Fixed a memory leak in history expansion.
+
+- Fixed a crash in 'fc -p'/'hist -p' that occurred when an incorrect history
+  expansion followed a correct one in the command operands.
+
 2025-05-08:
 
 - [v1.1] Fixed: case modification expansions (added on 2025-04-23) were not

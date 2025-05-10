@@ -123,8 +123,6 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 				sfputr(sfstdout, replace, '\n');
 			else
 				pflag = 1;
-			if(replace)
-				free(replace);
 			argv++;
 		}
 		return pflag;
