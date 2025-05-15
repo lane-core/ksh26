@@ -401,18 +401,20 @@ then	LC_ALL=en_US.UTF-8
 	fi
 fi
 
+export LC_ALL=C.UTF-8
 typeset -r utf8_euro_char1=$'\u[20ac]'
 typeset -r utf8_euro_char2=$'\342\202\254'
 (( (${#utf8_euro_char1} == 1) && (${#utf8_euro_char2} == 1) )) \
         || export LC_ALL='en_US.UTF-8'
 [[ "$(printf '\u[20ac]')" == $'\342\202\254' ]]  || err_exit 'locales not handled correctly in command substitution'
+unset LC_ALL
 
 # ======
 # The locale should be restored along with locale variables when leaving a virtual subshell.
 # https://github.com/ksh93/ksh/issues/253#issuecomment-815290154
 if	((SHOPT_MULTIBYTE))
 then
-	unset "${!LC_@}"
+	unset LANG "${!LC_@}"
 	LANG=C.UTF-8
 	exp=$'5\n10\n5'
 	got=$(eval 'var=äëïöü'; echo ${#var}; (LANG=C; echo ${#var}); echo ${#var})
