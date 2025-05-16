@@ -461,7 +461,6 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 	/* handle // operator specially */
 	if(mp->pattern==2 && *cp=='/')
 		cp++;
-	mbinit();
 	while(1)
 	{
 		if(mbwide())
@@ -1815,7 +1814,6 @@ retry1:
 				v = 0;
 			else if(mbwide())
 			{
-				mbinit();
 				for(c = sliceoffset; c; c--)
 					mbchar(v);
 				c = ':';
@@ -1847,7 +1845,6 @@ retry1:
 				if(mbwide())
 				{
 					char *vp = v;
-					mbinit();
 					while(slicelength-- > 0)
 					{
 						if((c=mbsize(vp))<1)
@@ -2744,7 +2741,6 @@ static int substring(const char *string,size_t len,const char *pat,int match[], 
 	{
 		char *str = (char*)string;
 		int c;
-		mbinit();
 		while(*str)
 		{
 			if((c=mbsize(str))<0)
@@ -2764,7 +2760,6 @@ static int	charlen(const char *string,int len)
 	{
 		const char *str = string, *strmax=string+len;
 		int n=0;
-		mbinit();
 		if(len>0)
 		{
 			while(str<strmax && mbchar(str))
