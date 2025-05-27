@@ -110,29 +110,6 @@ static int test_strmatch(const char *str, const char *pat)
 	return n;
 }
 
-static inline void check_toomanyops(int argc, char *argv[])
-{
-	unsigned n;
-	if(argc<4 || c_eq(argv[0],'('))
-		return;
-	/* superfluous args after simple binary expression */
-	if((n = sh_lookup(argv[2],shtab_testops)) && !(n & TEST_ANDOR))
-	{
-		if(argc>4 && !(sh_lookup(argv[4],shtab_testops) & TEST_ANDOR))
-		{
-			errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
-			UNREACHABLE();
-		}
-		return;
-	}
-	/* superfluous args after simple unary expression */
-	if(argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
-	{
-		errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
-		UNREACHABLE();
-	}
-}
-
 int b_test(int argc, char *argv[],Shbltin_t *context)
 {
 	struct test tdata;
@@ -167,8 +144,6 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 	}
 	not = c_eq(cp,'!');
-	/* kludge to fix https://github.com/ksh93/ksh/issues/739 */
-	check_toomanyops(argc - not, argv + not);
 	/* POSIX portion for test */
 	switch(argc)
 	{
@@ -192,7 +167,11 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		{
 			int op = sh_lookup(cp=argv[2],shtab_testops);
 			if(op&TEST_ANDOR)
+			{
+				if(sh_isoption(SH_POSIX))
+					return !(op==TEST_AND ? *argv[1] && *argv[3] : *argv[1] || *argv[3]);
 				break;
+			}
 			if(!op)
 			{
 				if(argc==5)
@@ -252,11 +231,9 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
  * flag is 0 on outer level
  * flag & FLAG_PARENS when in parentheses
  * flag & FLAG_AND when evaluating -a (TEST_AND)
- * flag & FLAG_OR when evaluating -o (TEST_OR)
  */
 #define FLAG_PARENS	0x01
 #define FLAG_AND	0x02
-#define FLAG_OR		0x04
 static int expr(struct test *tp,int flag)
 {
 	int r;
@@ -280,7 +257,7 @@ static int expr(struct test *tp,int flag)
 					tp->ap--;
 					break;
 				}
-				r |= expr(tp,flag&FLAG_PARENS|FLAG_OR);
+				r |= expr(tp,flag&FLAG_PARENS);
 				continue;
 			}
 			else if(*p == 'a')
@@ -289,8 +266,6 @@ static int expr(struct test *tp,int flag)
 				continue;
 			}
 		}
-		if(flag==0)
-			break;
 		errormsg(SH_DICT,ERROR_exit(2),e_badsyntax);
 		UNREACHABLE();
 	}
