@@ -4,6 +4,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-01-28:
 
+- [v1.1] Backported 'builtin -p' and 'umask -p' from ksh93v-, which
+  can be used to print reinputtable commands for recreating the builtin
+  table state and umask.
+
+- [v1.1] Backported 'trap -l' from ksh93v- for listing signals.
+
 - Fixed a regression, introduced with the printf fixes on 2023-05-18, that
   broke date specs relative to now, such as: printf '%T\n' 'in 10 weeks'
 
