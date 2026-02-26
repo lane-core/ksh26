@@ -870,7 +870,7 @@ int sh_lex(Lex_t* lp)
 				poplevel(lp);
 				break;
 			case S_DOT:
-				if(varnamelength && fcpeek(-LEN - 1)==']')
+				if(varnamelength && lp->lexd.level==inlevel && fcpeek(-LEN - 1)==']')
 					varnamelength = 0;
 				/* make sure next character is alpha */
 				if((n = fcgetc()) > 0)
