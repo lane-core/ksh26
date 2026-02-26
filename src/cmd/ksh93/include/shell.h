@@ -227,6 +227,17 @@ struct sh_scoped
 	struct Ufunction *real_fun;	/* current 'function name' function */
 };
 
+/*
+ * Polarity frame: saved state for value-to-computation boundary crossings.
+ * Complements struct checkpt (which handles the continuation/longjmp stack).
+ * See REDESIGN.md for the theoretical motivation.
+ */
+struct sh_polarity
+{
+	char		*prefix;	/* saved sh.prefix */
+	struct sh_scoped st;		/* saved sh.st */
+};
+
 struct limits
 {
 	int		open_max;	/* maximum number of file descriptors */
