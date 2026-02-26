@@ -460,6 +460,9 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
 /*
  * Polarity frame API: save/restore state at value-to-computation boundaries.
  * sh_polarity_enter saves sh.prefix and sh.st, then clears sh.prefix.
+ * sh_polarity_leave restores them, but preserves the handler's trap state:
+ * the handler may have freed or replaced trap strings (e.g. 'trap - DEBUG'),
+ * making the frame's saved trap[] entries dangling.
  * Policy (e.g., disabling DEBUG trap to prevent re-entrancy) is left to callers.
  */
 void sh_polarity_enter(struct sh_polarity *frame)
@@ -471,7 +474,13 @@ void sh_polarity_enter(struct sh_polarity *frame)
 
 void sh_polarity_leave(struct sh_polarity *frame)
 {
+	char *traps[SH_DEBUGTRAP+1];
+	int i;
+	for(i = 0; i <= SH_DEBUGTRAP; i++)
+		traps[i] = sh.st.trap[i];
 	sh.st = frame->st;
+	for(i = 0; i <= SH_DEBUGTRAP; i++)
+		sh.st.trap[i] = traps[i];
 	sh.prefix = frame->prefix;
 }
 
@@ -520,13 +529,17 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
 	sh_polarity_enter(&polframe);
-	sh.st.trap[SH_DEBUGTRAP] = 0;	/* policy: prevent re-entrant DEBUG */
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
-	/* run the trap */
-	n = sh_trap(trap,0);
+	/* run the trap: duplicate the string because the handler may
+	 * free it via 'trap - DEBUG' while sh_trap reads it in-place */
+	{
+		char *trap_dup = sh_strdup(trap);
+		n = sh_trap(trap_dup,0);
+		free(trap_dup);
+	}
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	np->nvalue = NULL;
 	sh.indebug = 0;
@@ -870,12 +883,33 @@ int sh_exec(const Shnode_t *t, int flags)
 		sh_offstate(SH_DEFPATH);
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
+		/*
+		 * Polarity classification of sh_exec cases.
+		 *
+		 * Value mode (producers): TARITH, TSW, TTST
+		 *   Word expansion, pattern matching, arithmetic evaluation.
+		 *   These produce values that flow into contexts. sh_debug calls
+		 *   here cross into computation mode via polarity frame.
+		 *
+		 * Computation mode (consumers/statements): TFORK, TPAR, TFIL,
+		 *   TLST, TAND, TORF, TIF, TTIME
+		 *   Command execution, process management, control flow.
+		 *   No value-mode state (sh.prefix) to protect.
+		 *
+		 * Mixed (cuts): TCOM, TFOR, TWH, TSETIO, TFUN
+		 *   Both value expansion and command execution. These are the
+		 *   critical cases -- polarity boundaries exist within the handler.
+		 *   TCOM is the most complex: assignments (value) + execution
+		 *   (computation) in the same handler, with sh_debug crossings.
+		 *
+		 * See REDESIGN.md "Classify sh_exec cases by polarity" (Direction 2).
+		 */
 		switch(type&COMMSK)
 		{
 		    /*
 		     * Simple command
 		     */
-		    case TCOM:
+		    case TCOM:	/* mixed: assignments (value) + execution (computation) */
 		    {
 			struct argnod	*argp;
 			char		*trap;
@@ -1416,7 +1450,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Any command that needs the shell to fork (e.g. background or external)
 		     */
-		    case TFORK:
+		    case TFORK:	/* computation: fork/exec */
 		    {
 			pid_t parent;
 			int no_fork,jobid;
@@ -1643,7 +1677,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		     * don't create a new process, just
 		     * save and restore io-streams
 		     */
-		    case TSETIO:
+		    case TSETIO:	/* mixed: redirection setup (value) + subtree execution */
 		    {
 			pid_t	pid = 0;
 			int 	jmpval, waitall = 0;
@@ -1732,7 +1766,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Parentheses subshell block
 		     */
-		    case TPAR:
+		    case TPAR:	/* computation: subshell boundary */
 			echeck = 1;
 			flags &= ~ARG_OPTIMIZE;
 			if(!sh.subshell && !sh.st.trapdontexec && (flags&sh_state(SH_NOFORK)))
@@ -1771,7 +1805,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		     * All elements of the pipe are started by the parent.
 		     * The last element is executed in the current environment.
 		     */
-		    case TFIL:
+		    case TFIL:	/* computation: pipeline */
 		    {
 			int	pvo[3];	/* old pipe for multi-stage */
 			int	pvn[3];	/* current set up pipe */
@@ -1884,7 +1918,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * List of semicolon-separated commands
 		     */
-		    case TLST:
+		    case TLST:	/* computation: sequential list */
 		    {
 			do
 			{
@@ -1899,7 +1933,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Logical and: command && command
 		     */
-		    case TAND:
+		    case TAND:	/* computation: logical AND */
 			if(type&TTEST)
 				skipexitset++;
 			if(sh_exec(t->lst.lstlef, flags & ARG_OPTIMIZE)==0)
@@ -1909,7 +1943,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Logical or: command || command
 		     */
-		    case TORF:
+		    case TORF:	/* computation: logical OR */
 			if(type&TTEST)
 				skipexitset++;
 			if(sh_exec(t->lst.lstlef, flags & ARG_OPTIMIZE)!=0)
@@ -1919,7 +1953,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Loop: iterative 'for' or 'select'
 		     */
-		    case TFOR:
+		    case TFOR:	/* mixed: list expansion (value) + loop body (computation) */
 		    {
 			char **args;
 			int nargs;
@@ -2055,7 +2089,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Loop: 'while', 'until', or arithmetic 'for'
 		     */
-		    case TWH:
+		    case TWH:	/* mixed: condition (value) + loop body (computation) */
 		    {
 			volatile int 	r=0;
 			int first = ARG_OPTIMIZE;
@@ -2158,7 +2192,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Arithmetic command: ((expression))
 		     */
-		    case TARITH:
+		    case TARITH:	/* value: arithmetic evaluation */
 		    {
 			char *trap;
 			char *arg[4];
@@ -2187,7 +2221,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Conditional block: if ... fi
 		     */
-		    case TIF:
+		    case TIF:	/* computation: conditional */
 			if(sh_exec(t->if_.iftre, flags & ARG_OPTIMIZE)==0)
 				sh_exec(t->if_.thtre,flags);
 			else if(t->if_.eltre)
@@ -2199,7 +2233,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Switch block: case ... esac
 		     */
-		    case TSW:
+		    case TSW:	/* value: case pattern matching */
 		    {
 			const int eflag = flags & sh_state(SH_ERREXIT);
 			char *r = sh_macpat(t->sw.swarg, flags & ARG_OPTIMIZE);
@@ -2246,7 +2280,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * The 'time' keyword: time a pipeline
 		     */
-		    case TTIME:
+		    case TTIME:	/* computation: timing */
 		    {
 			const char *format = e_timeformat;
 			struct timeval ta, tb;
@@ -2294,7 +2328,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * Function definition
 		     */
-		    case TFUN:
+		    case TFUN:	/* mixed: symbol table (value) + namespace body (computation) */
 		    {
 			Namval_t *np=0;
 			struct slnod *slp;
@@ -2487,7 +2521,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		    /*
 		     * The [[ keyword: new test compound command
 		     */
-		    case TTST:
+		    case TTST:	/* value: test expression evaluation */
 		    {
 			int n;
 			char *left;

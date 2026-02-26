@@ -1136,4 +1136,15 @@ then	# $0 should be the /dev/fd script name when the script is a process substit
 fi
 
 # ======
+# 'trap - DEBUG' inside a DEBUG handler must have a lasting effect
+# https://github.com/ksh93/ksh/issues/802
+got=$(set +x; "$SHELL" -c '
+	typeset -i n=0
+	trap "if ((++n > 1)); then trap - DEBUG; fi" DEBUG
+	:; :; :; :; :; :
+	trap
+')
+[[ $got == '' ]] || err_exit "'trap - DEBUG' inside handler has no lasting effect (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
