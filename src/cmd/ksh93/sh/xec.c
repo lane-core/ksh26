@@ -458,15 +458,33 @@ static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };
 static Namfun_t level_disc_fun = { &level_disc, 1 };
 
 /*
+ * Polarity frame API: save/restore state at value-to-computation boundaries.
+ * sh_polarity_enter saves sh.prefix and sh.st, then clears sh.prefix.
+ * Policy (e.g., disabling DEBUG trap to prevent re-entrancy) is left to callers.
+ */
+void sh_polarity_enter(struct sh_polarity *frame)
+{
+	frame->prefix = sh.prefix;
+	frame->st = sh.st;
+	sh.prefix = NULL;
+}
+
+void sh_polarity_leave(struct sh_polarity *frame)
+{
+	sh.st = frame->st;
+	sh.prefix = frame->prefix;
+}
+
+/*
  * Execute the DEBUG trap:
  * write the current command on the stack and make it available as .sh.command
  */
 int sh_debug(const char *trap, const char *name, const char *subscript, char *const argv[], int flags)
 {
 	Namval_t		*np = SH_COMMANDNOD;
+	struct sh_polarity	polframe;
 	int			n=4, offset=stktell(sh.stk);
 	void			*sav = stkfreeze(sh.stk,0);
-	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	const char		*cp = "+=( ";
 	if(sh.indebug)
 		return 0;
@@ -501,12 +519,8 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
-	*savst = sh.st;
-	sh.st.trap[SH_DEBUGTRAP] = 0;
-	/* save and clear compound assignment prefix so that typeset
-	 * in trap handler functions doesn't prepend a stale prefix */
-	char *savprefix = sh.prefix;
-	sh.prefix = NULL;
+	sh_polarity_enter(&polframe);
+	sh.st.trap[SH_DEBUGTRAP] = 0;	/* policy: prevent re-entrant DEBUG */
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
@@ -520,8 +534,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
 	/* restore scope */
 	update_sh_level();
-	sh.st = *savst;
-	sh.prefix = savprefix;
+	sh_polarity_leave(&polframe);
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
@@ -3200,7 +3213,8 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
  */
 int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 {
-	struct checkpt	*checkpoint;
+	struct checkpt		*checkpoint;
+	struct sh_polarity	polframe;
 	int		jmpval = 0;
 	int		jmpthresh;
 	int		offset = 0;
@@ -3208,14 +3222,13 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	Namval_t	node;
 	struct Namref	nr;
 	long		mode = 0;
-	char		*prefix = sh.prefix;
 	int		n=0;
 	char		*av[3];
 	Fcin_t		save;
 	fcsave(&save);
 	if((offset=stktell(sh.stk))>0)
 		base=stkfreeze(sh.stk,0);
-	sh.prefix = 0;
+	sh_polarity_enter(&polframe);
 	if(!argv)
 	{
 		argv = av+1;
@@ -3253,7 +3266,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	fcrestore(&save);
 	if(offset>0)
 		stkset(sh.stk,base,offset);
-	sh.prefix = prefix;
+	sh_polarity_leave(&polframe);
 	if(jmpval >= jmpthresh)
 		siglongjmp(*sh.jmplist,jmpval);
 	return sh.exitval;

@@ -107,6 +107,8 @@ extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
+extern void		sh_polarity_enter(struct sh_polarity*);
+extern void		sh_polarity_leave(struct sh_polarity*);
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);
 extern void		*sh_arithcomp(char*);
