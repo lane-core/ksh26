@@ -734,4 +734,19 @@ exp=$'(\n\ttypeset -C -a c\n)'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Expansion of compound-associative member in typeset assignment RHS
+# should not cause "invalid variable name" error.
+# The lexer's S_DOT handler was incorrectly resetting varnamelength
+# for dots inside ${} expansions (e.g. ${#T[k].arr[@]}), causing the
+# parser to produce an empty variable name in the builtin's argv.
+got=$("$SHELL" -c '
+	typeset -C -A T
+	T[k]="(typeset -a arr=())"
+	typeset -i i n=${#T[k].arr[@]}
+	print ok
+' 2>&1) || err_exit "typeset with compound-assoc expansion in RHS fails (got $(printf %q "$got"))"
+[[ $got == ok ]] || err_exit "typeset with compound-assoc expansion in RHS produces unexpected output" \
+	"(expected 'ok', got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
