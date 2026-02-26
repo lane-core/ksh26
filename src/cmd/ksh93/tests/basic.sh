@@ -937,6 +937,17 @@ else
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# 'trap - DEBUG' inside handler must permanently remove the trap
+exp=$'DEBUG fired\nfirst\nsecond'
+got=$(set +x; { "$SHELL" -c '
+	PATH=/dev/null
+	trap '\''trap - DEBUG; print "DEBUG fired"'\'' DEBUG
+	print "first"
+	print "second"
+'; } 2>&1)
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "'trap - DEBUG' inside handler fails to remove trap" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
 # ======
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells
 # https://github.com/att/ast/issues/1452
