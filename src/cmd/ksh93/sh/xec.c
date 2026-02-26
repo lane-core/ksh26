@@ -503,6 +503,10 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
 	sh.st.trap[SH_DEBUGTRAP] = 0;
+	/* save and clear compound assignment prefix so that typeset
+	 * in trap handler functions doesn't prepend a stale prefix */
+	char *savprefix = sh.prefix;
+	sh.prefix = NULL;
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
@@ -517,6 +521,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	/* restore scope */
 	update_sh_level();
 	sh.st = *savst;
+	sh.prefix = savprefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else

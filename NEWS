@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-26:
+
+- Fixed a bug where a DEBUG trap executing during a compound variable
+  assignment (e.g. typeset -C var=(a=1 b=2)) would corrupt local variable
+  creation in functions called from the trap handler, causing spurious
+  'parameter not set' errors under 'set -o nounset'. The sh_debug()
+  function did not save and restore sh.prefix across trap execution.
+
 2026-02-24:
 
 - The routine that prints the menu for the 'select' loop has been made aware
