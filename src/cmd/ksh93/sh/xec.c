@@ -3247,6 +3247,8 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	{
 		if(is_abuiltin(np))
 		{
+			/* polarity frame is the only sh.st save/restore for builtins;
+			 * sh_funct/sh_funscope handles it for the non-builtin path */
 			Shbltin_t *bp = &sh.bltindata;
 			bp->bnode = np;
 			bp->ptr = nv_context(np);
