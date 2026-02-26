@@ -1811,5 +1811,25 @@ do	got=$(eval "
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 
+# sh_debug() did not save/restore sh.prefix, so typeset in a function
+# called from a DEBUG trap during a compound variable assignment would
+# prepend the compound variable's name to the local variable, causing
+# 'parameter not set' errors under 'set -o nounset'.
+got=$(set -o nounset
+	function handler
+	{
+		typeset v="${1:-}"
+		print -r -- "$v"
+	}
+	trap 'handler testval' DEBUG
+	typeset -C cfg=(
+		a=1
+		b=2
+	)
+	trap - DEBUG
+) 2>&1
+[[ $got != *'parameter not set'* ]] || err_exit "DEBUG trap during compound assignment" \
+	"corrupts typeset in called function (got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))
