@@ -502,17 +502,21 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
-	sh.st.trap[SH_DEBUGTRAP] = 0;
 	/* save and clear compound assignment prefix so that typeset
 	 * in trap handler functions doesn't prepend a stale prefix */
 	char *savprefix = sh.prefix;
 	sh.prefix = NULL;
+	/* Duplicate the trap string for sh_trap: the handler may free
+	 * the original via 'trap - DEBUG', and sh_trap reads it
+	 * in-place via sfopen(). The copy keeps the stream safe. */
+	char *trap_dup = sh_strdup(trap);
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
 	/* run the trap */
-	n = sh_trap(trap,0);
+	n = sh_trap(trap_dup,0);
+	free(trap_dup);
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	np->nvalue = NULL;
 	sh.indebug = 0;
@@ -520,7 +524,13 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
 	/* restore scope */
 	update_sh_level();
+	/* Preserve the handler's DEBUG trap state across the scope
+	 * restore. Without this, 'trap - DEBUG' inside the handler
+	 * has no lasting effect -- the blanket sh.st restore would
+	 * bring back the old (now freed) pointer. */
+	char *handler_debugtrap = sh.st.trap[SH_DEBUGTRAP];
 	sh.st = *savst;
+	sh.st.trap[SH_DEBUGTRAP] = handler_debugtrap;
 	sh.prefix = savprefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
