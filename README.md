@@ -22,6 +22,7 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
 
 * [Policy](#user-content-policy)
 * [Why?](#user-content-why)
+* [The ksh26 branch](#user-content-the-ksh26-branch)
 * [Installing from source](#user-content-installing-from-source)
     * [Supported systems](#user-content-supported-systems)
     * [Prepare](#user-content-prepare)
@@ -82,6 +83,98 @@ we are confident at this point that 93u+m is already the least buggy version
 of ksh93 ever released.
 As of late 2021, distributions such as Debian and Slackware have begun
 to package it as their default version of ksh93.
+
+## The ksh26 branch
+
+This fork's `ksh26` branch is a structural refactoring effort guided by
+ideas from sequent calculus and polarized type theory. The goal is not to
+rewrite ksh93 but to make its existing internal structure explicit, named,
+and enforced — so that the recurring class of state-corruption bugs becomes
+structurally preventable rather than individually patched.
+
+### The problem
+
+ksh93's interpreter operates in two modes that alternate constantly:
+
+- **Value mode**: word expansion, parameter substitution, name resolution
+  (macro.c, name.c)
+- **Computation mode**: command execution, trap dispatch, function calls
+  (xec.c)
+
+Crossing between these modes requires saving and restoring global state
+(`sh.prefix`, `sh.namespace`, `sh.st`). The original code does this ad-hoc
+at each call site. When a site is missed or the restore is incomplete, the
+result is subtle corruption — stale pointers, leaked context, traps that
+silently stop working.
+
+### The insight
+
+This two-mode structure with explicit boundary crossings is not novel. It is
+the same structure that sequent calculus and call-by-push-value describe
+formally: values and computations are distinct categories, and moving between
+them requires a *shift* — a save/clear/restore discipline that mediates the
+transition. ksh93 already implements this discipline; it just does so without
+naming it.
+
+The ksh26 branch names it. A *polarity frame* API (`sh_polarity_enter`,
+`sh_polarity_leave`) consolidates the ad-hoc save/restore patterns into a
+single mechanism that handles state preservation uniformly — including
+preserving trap mutations made by handlers, which the ad-hoc approach got
+wrong in multiple places.
+
+### What has changed
+
+- **Polarity frame API**: a `struct sh_polarity` that saves and restores
+  `sh.prefix`, `sh.namespace`, and the full scoped interpreter state
+  (`sh.st`) at value-to-computation boundaries. Trap slots are preserved
+  across the restore so that handlers like `trap - DEBUG` take lasting
+  effect.
+- **Converted call sites**: `sh_debug()` (DEBUG trap dispatch), `sh_fun()`
+  (discipline function dispatch), and the `getenv`/`putenv`/`setenviron`
+  overrides all use the frame API instead of hand-rolled save/restore.
+- **sh_exec taxonomy**: all 16 case labels in the main eval loop are
+  annotated with their polarity classification (value, computation, or
+  mixed), making the implicit three-sorted structure visible in the code.
+- **Divergence documentation**: when a bugfix lands on the upstream-tracking
+  `dev` branch and ksh26 handles it differently (or doesn't need it at all),
+  the situation is documented in `notes/divergences/`.
+
+See [REDESIGN.md](REDESIGN.md) for the full analysis, including the
+correspondence between ksh93 internals and the formal framework.
+
+### Theoretical background
+
+The formal ideas that inform this work come from several papers in the
+programming languages research literature:
+
+- Pierre-Louis Curien and Hugo Herbelin, "The duality of computation,"
+  *ICFP*, 2000 — introduced the λμμ̃-calculus as a term assignment for
+  classical sequent calculus, establishing the three-sorted structure
+  (terms, coterms, statements) that maps onto ksh93's producer/consumer/cut
+  architecture.
+- Philip Wadler, "Call-by-Value is Dual to Call-by-Name, Reloaded," *RTA*,
+  2005 — showed that CBV and CBN are De Morgan duals via sequent calculus,
+  and identified the critical pair where evaluation order matters. The
+  `sh.prefix` corruption bugs are concrete instances of this critical pair.
+- Guillaume Munch-Maccagnoni, "Syntax and Models of a non-Associative
+  Composition of Programs and Proofs," PhD thesis, Université Paris
+  Diderot, 2013 — originated the duploid framework, giving semantics to
+  non-associative composition. The non-associativity of ksh93's compound
+  assignment nesting is an instance of this.
+- Éléonore Mangel, Paul-André Melliès, and Guillaume Munch-Maccagnoni,
+  "Classical notions of computation and the Hasegawa-Thielecke theorem,"
+  *POPL*, 2026 — connected duploids to classical notions of computation,
+  providing the semantic basis for polarity-aware state management.
+- Paul Blain Levy, *Call-by-Push-Value: A Functional/Imperative Synthesis*,
+  Springer, 2004 — the original value/computation stratification that
+  underlies the polarity frame concept.
+- Arnaud Spiwack, "A Dissection of L," 2014 — a polarized variant of the
+  sequent calculus with explicit shift operators, directly informing the
+  save/clear/restore pattern.
+- David Binder, Marco Tzschentke, Marius Müller, and Klaus Ostermann,
+  "Grokking the Sequent Calculus (Functional Pearl)," *ICFP*, 2024 —
+  a practical presentation of the λμμ̃ as a compilation target, framing
+  the let/control duality that maps onto ksh93's assignment/trap symmetry.
 
 ## Installing from source
 
