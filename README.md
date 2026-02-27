@@ -15,19 +15,52 @@ move the interpreter's structural invariants from comments into the
 compiler.
 
 
-## What is different
+## Approach
 
 ksh93 has the strongest scripting engine in the Bourne shell family:
 compound variables, disciplines, arithmetic, parameter expansion. ksh26
-keeps the engine and removes what has accumulated around it.
+keeps the engine and reduces what has accumulated around it. The
+strategy is three-fold: fewer lines, stronger types, external
+dependencies. Each reinforces the others — a smaller codebase is
+easier to type-annotate, and replacing hand-rolled libraries with
+maintained projects shrinks the audit surface further.
 
-Dead library code for HP-UX, AIX, IRIX, MVS, and pre-POSIX systems is
-removed. The AT&T nmake/MAM build system is replaced with just + samu.
-The interpreter's implicit state invariants are made explicit via a
-polarity frame API informed by sequent calculus. Three upstream bugs
-were found this way. The reduced codebase is audited for stack buffer
-overflows, format string vulnerabilities, signal handler safety, and
-integer overflow.
+**Fewer lines.** ksh93u+m carries library code for platforms and
+subsystems that no longer exist: a stdio reimplementation, hash
+library, atomic ops abstraction, vmalloc, dlopen wrappers. These were
+necessary when targeting HP-UX, AIX, IRIX, and pre-POSIX systems
+simultaneously. ksh26 targets five modern platforms and deletes the
+rest. The AT&T nmake/MAM build system (~12,000 lines) is replaced with
+just + samu + a POSIX configure script (~1,600 lines).
+
+**Stronger types.** C23 makes the compiler enforce invariants that
+ksh93 maintained by convention and comments. The interpreter's longjmp
+modes — an ordered severity scale that determines which errors
+propagate and which are caught locally — were `#define` constants
+compared with raw integers. They are now a typed enum with `constexpr`
+boundary markers and `static_assert` on the ordering. `[[noreturn]]`
+and `[[nodiscard]]` catch misuse at compile time. `nullptr`
+distinguishes null pointers from integer zero. Less defensive code is
+needed when the type system prevents the mistakes the defense was
+guarding against.
+
+**External dependencies.** Where ksh93 reimplemented, ksh26 depends.
+[samu](https://github.com/michaelforney/samurai) replaces AT&T nmake.
+[utf8proc](https://github.com/JuliaStrings/utf8proc) (MIT, same
+library Neovim uses) replaces hand-rolled Unicode width tables.
+[scdoc](https://git.sr.ht/~sircmpwn/scdoc) replaces custom troff
+generation. Each is a small, actively maintained project aligned with
+Unix design: do one thing well, expose a clean interface, compose.
+Auditing a focused dependency is cheaper than maintaining a sprawling
+reimplementation — and when the dependency improves, we get the fix
+for free.
+
+**Structural clarity.** The interpreter's implicit state invariants
+are made explicit via a polarity frame API informed by sequent
+calculus — three upstream bugs were found this way before users hit
+them. The reduced, type-annotated codebase is then audited for stack
+buffer overflows, format string vulnerabilities, signal handler
+safety, and integer overflow.
 
 Details: [REDESIGN.md](REDESIGN.md). Theory: [SPEC.md](SPEC.md).
 Feature direction: [COMPARISON.md](COMPARISON.md). Behavioral
