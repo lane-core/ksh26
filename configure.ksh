@@ -133,6 +133,7 @@ run_iffe()
 	# ref -I$INCDIR: make generated headers findable.
 	(
 		cd "$workdir"
+		PATH="$BUILDDIR_ABS/bin:$PATH" \
 		sh "$BUILDDIR_ABS/bin/iffe" -v -X ast -X std \
 			-c "$CC_PATH $CFLAGS" \
 			ref -I"$PACKAGEROOT_ABS/$INCDIR" -I"$BUILDDIR_ABS/include" \
@@ -274,12 +275,18 @@ run_libast_features()
 	run_iffe "$workdir" "$srcdir/features/wchar"
 	copy_feature "$feat/wchar" "$INCDIR/ast_wchar.h"
 
-	# More feature tests (can be parallel but sequential for simplicity)
+	# limits (depends on param, common, lib, standards + conf.sh)
+	# Must run before nl_types (which includes FEATURE/limits)
+	run_libast_conf
+	run_iffe "$workdir" "$srcdir/features/limits.c" \
+		-I"$srcdir/comp" -I"$srcdir/include"
+	copy_feature "$feat/limits" "$INCDIR/ast_limits.h"
+
+	# More feature tests
 	run_iffe "$workdir" "$srcdir/features/omitted"
 	run_iffe "$workdir" "$srcdir/features/tvlib"
 	run_iffe "$workdir" "$srcdir/features/syscall"
 	run_iffe "$workdir" "$srcdir/features/hack"
-	run_iffe "$workdir" "$srcdir/features/signal.c"
 	run_iffe "$workdir" "$srcdir/features/tmlib"
 	run_iffe "$workdir" "$srcdir/features/float"
 	run_iffe "$workdir" "$srcdir/features/dirent"
@@ -295,7 +302,9 @@ run_libast_features()
 	run_iffe "$workdir" "$srcdir/features/sizeof"
 	run_iffe "$workdir" "$srcdir/features/align.c"
 	run_iffe "$workdir" "$srcdir/features/random"
+	# siglist before signal.c (signal.c includes FEATURE/siglist)
 	run_iffe "$workdir" "$srcdir/features/siglist"
+	run_iffe "$workdir" "$srcdir/features/signal.c"
 
 	# Copy FEATURE results to canonical headers
 	for name in dirent wctype stdio nl_types mode ccode time float ndbm sizeof random; do
@@ -321,12 +330,6 @@ run_libast_features()
 
 	# libpath
 	run_iffe "$workdir" "$srcdir/features/libpath.sh"
-
-	# limits (depends on param, common, lib, standards + conf.sh)
-	run_libast_conf
-	run_iffe "$workdir" "$srcdir/features/limits.c" \
-		-I"$srcdir/comp" -I"$srcdir/include"
-	copy_feature "$feat/limits" "$INCDIR/ast_limits.h"
 
 	# Copy all FEATURE results to the main feature dir
 	cp -f "$feat"/* "$FEATDIR/" 2>/dev/null || true
