@@ -507,10 +507,10 @@ static int outexcept(Sfio_t *iop,int type,void *data,Sfdisc_t *handle)
 		default:
 			if(!active)
 			{
-				int mode = ((struct checkpt*)sh.jmplist)->mode;
+				enum sh_jmpmode mode = ((struct checkpt*)sh.jmplist)->mode;
 				int save = errno;
 				active = 1;
-				((struct checkpt*)sh.jmplist)->mode = 0;
+				((struct checkpt*)sh.jmplist)->mode = SH_JMPNONE;
 				sfpurge(iop);
 				sfpool(iop,NULL,SFIO_WRITE);
 				errno = save;

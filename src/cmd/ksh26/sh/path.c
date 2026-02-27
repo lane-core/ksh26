@@ -43,7 +43,7 @@
 
 static int		canexecute(char*,int);
 static void		funload(int,const char*);
-static void noreturn	exscript(char*, char*[]);
+[[noreturn]] static void	exscript(char*, char*[]);
 static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
 static void		checkdup(Pathcomp_t*);
 static Pathcomp_t	*defpath(void);
@@ -955,7 +955,7 @@ char *path_relative(const char* file)
 	return (char*)file;
 }
 
-noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
+[[noreturn]] void path_exec(const char *arg0,char *argv[],struct argnod *local)
 {
 	char **envp;
 	const char *opath;
@@ -1292,7 +1292,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
  * File is executable but not machine code.
  * Assume file is a shell script and execute it.
  */
-static noreturn void exscript(char *path,char *argv[])
+[[noreturn]] static void exscript(char *path,char *argv[])
 {
 	Sfio_t *sp;
 	path = path_relative(path);

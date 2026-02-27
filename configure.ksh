@@ -134,7 +134,7 @@ print "configure: AR=${mam_cc_AR:-ar}"
 
 # ── Compiler flags ────────────────────────────────────────────────────
 
-typeset CFLAGS="${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-}"
+typeset CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-}"
 typeset AR="${mam_cc_AR:-ar}"
 typeset AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
 

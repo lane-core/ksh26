@@ -96,7 +96,7 @@ typedef struct  _mac_
 #define M_NAMECOUNT	7	/* ${#var*}	*/
 #define M_TYPE		8	/* ${@var}	*/
 
-static noreturn void	mac_error(void);
+[[noreturn]] static void	mac_error(void);
 static int	substring(const char*, size_t, const char*, int[], int);
 static void	copyto(Mac_t*, int, int);
 static void	comsubst(Mac_t*, Shnode_t*, int);
@@ -2950,7 +2950,7 @@ static char *special(int c)
 /*
  * Handle macro expansion errors
  */
-static noreturn void mac_error(void)
+[[noreturn]] static void mac_error(void)
 {
 	errormsg(SH_DICT,ERROR_exit(1),e_subst,fcfirst());
 	UNREACHABLE();

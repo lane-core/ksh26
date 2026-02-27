@@ -134,7 +134,7 @@ void	sh_fault(int sig)
 		}
 	}
 	errno = 0;
-	if(pp->mode==SH_JMPCMD || (pp->mode==1 && sh.bltinfun) && !(flag&SH_SIGIGNORE))
+	if(pp->mode==SH_JMPCMD || (pp->mode==SH_JMPBLT && sh.bltinfun) && !(flag&SH_SIGIGNORE))
 		sh.lastsig = sig;
 	if(trap)
 	{
@@ -551,7 +551,7 @@ void sh_exit(int xno)
 		sh.exitval = xno;
 	if(xno==SH_EXITSIG)
 		sh.exitval |= (sig=sh.lastsig);
-	if(pp && pp->mode>1)
+	if(pp && pp->mode>SH_JMPBLT)
 		cursig = -1;
 	sh_offstate(SH_EXEC);
 	if((sh.trapnote&SH_SIGTSTP) && job.jobcontrol)
@@ -610,14 +610,14 @@ void sh_exit(int xno)
 		sh_done(sig);
 	sh.arithrecursion = 0;
 	sh.intrace = 0;
-	sh.prefix = 0;
+	sh.prefix = nullptr;
 	/* Direction 8: restore L_ARGNOD if longjmp escapes compound assignment */
 	if(sh.argnod_guard.nvalue)
 	{
 		L_ARGNOD->nvalue = sh.argnod_guard.nvalue;
 		L_ARGNOD->nvflag = sh.argnod_guard.nvflag;
 		L_ARGNOD->nvfun = sh.argnod_guard.nvfun;
-		sh.argnod_guard.nvalue = NULL;
+		sh.argnod_guard.nvalue = nullptr;
 	}
 	sh.mktype = 0;
 	sh.invoc_local = 0;
@@ -641,7 +641,7 @@ static void array_notify(Namval_t *np, void *data)
 /*
  * This is the exit routine for the shell
  */
-noreturn void sh_done(int sig)
+[[noreturn]] void sh_done(int sig)
 {
 	char *t;
 	int savxit = sh.exitval;

@@ -207,6 +207,43 @@ union Shnode_u
 	struct arithnod	ar;
 };
 
+/*
+ * Polarity classification for AST node types (Direction 2).
+ *
+ * SH_POL_VALUE:   Word expansion, pattern matching, arithmetic.
+ *                 Produce values; sh_debug calls cross via polarity frame.
+ * SH_POL_COMPUTE: Command execution, process management, control flow.
+ *                 No value-mode state (sh.prefix) to protect.
+ * SH_POL_MIXED:   Both value expansion and command execution.
+ *                 Polarity boundaries exist within the handler.
+ */
+enum sh_polartype : int
+{
+	SH_POL_VALUE	= 0,	/* value producer */
+	SH_POL_COMPUTE	= 1,	/* computation consumer */
+	SH_POL_MIXED	= 2,	/* cut: both modes, internal boundaries */
+};
+
+constexpr enum sh_polartype sh_node_polarity[] =
+{
+	[TCOM]		= SH_POL_MIXED,	/* assignments (value) + execution (computation) */
+	[TPAR]		= SH_POL_COMPUTE,	/* subshell */
+	[TFIL]		= SH_POL_COMPUTE,	/* pipeline */
+	[TLST]		= SH_POL_COMPUTE,	/* command list */
+	[TIF]		= SH_POL_COMPUTE,	/* if/then/else */
+	[TWH]		= SH_POL_MIXED,	/* while/until: condition (value) + body (computation) */
+	[TTST]		= SH_POL_VALUE,		/* [[ ... ]] */
+	[TSW]		= SH_POL_VALUE,		/* case */
+	[TAND]		= SH_POL_COMPUTE,	/* && */
+	[TORF]		= SH_POL_COMPUTE,	/* || */
+	[TFORK]		= SH_POL_COMPUTE,	/* fork */
+	[TFOR]		= SH_POL_MIXED,	/* for/select: list expansion (value) + body (computation) */
+	[TARITH]	= SH_POL_VALUE,		/* (( ... )) */
+	[TTIME]		= SH_POL_COMPUTE,	/* time */
+	[TSETIO]	= SH_POL_MIXED,	/* redirection setup (value) + subtree */
+	[TFUN]		= SH_POL_MIXED,	/* function definition: symbol table + namespace body */
+};
+
 extern void			sh_freeup(void);
 extern void			sh_funstaks(struct slnod*,int);
 extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, int);

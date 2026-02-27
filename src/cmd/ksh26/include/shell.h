@@ -496,7 +496,7 @@ extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);
 extern int 		sh_funscope(int,char*[],int(*)(void*),void*,int);
 extern Sfio_t		*sh_iogetiop(int,int);
-extern noreturn void	sh_main(int, char*[], Shinit_f);
+[[noreturn]] extern void	sh_main(int, char*[], Shinit_f);
 extern int		sh_run(int, char*[]);
 extern void		sh_menu(Sfio_t*, int, char*[]);
 extern Namval_t		*sh_addbuiltin(const char*, int(*)(int, char*[],Shbltin_t*), void*);
@@ -553,5 +553,47 @@ extern Shell_t		sh;
 #define SH_SIGSET	4
 #define SH_EXITSIG	0400	/* signal exit bit */
 #define SH_EXITMASK	(SH_EXITSIG-1)	/* normal exit status bits */
+
+#if _BLD_ksh
+/*
+ * Compile-time invariants for Directions 8, 9, and polarity frames.
+ */
+
+/* Direction 8: argnod_guard must match Namval_t field types exactly.
+ * The guard saves/restores nvalue, nvflag, nvfun across longjmp. */
+static_assert(
+	sizeof(((Shell_t*)0)->argnod_guard.nvalue) == sizeof(((Namval_t*)0)->nvalue),
+	"argnod_guard.nvalue size must match Namval_t.nvalue"
+);
+static_assert(
+	sizeof(((Shell_t*)0)->argnod_guard.nvflag) == sizeof(((Namval_t*)0)->nvflag),
+	"argnod_guard.nvflag size must match Namval_t.nvflag"
+);
+static_assert(
+	sizeof(((Shell_t*)0)->argnod_guard.nvfun) == sizeof(((Namval_t*)0)->nvfun),
+	"argnod_guard.nvfun size must match Namval_t.nvfun"
+);
+
+/* Polarity lite must save at least the fields polarity full saves
+ * (minus sh.st which is delegated to sh_trap's inner frame). */
+static_assert(
+	sizeof(((struct sh_polarity_lite*)0)->prefix) == sizeof(((struct sh_polarity*)0)->prefix),
+	"polarity_lite.prefix must match polarity.prefix"
+);
+static_assert(
+	sizeof(((struct sh_polarity_lite*)0)->namespace) == sizeof(((struct sh_polarity*)0)->namespace),
+	"polarity_lite.namespace must match polarity.namespace"
+);
+static_assert(
+	sizeof(((struct sh_polarity_lite*)0)->var_tree) == sizeof(((struct sh_polarity*)0)->var_tree),
+	"polarity_lite.var_tree must match polarity.var_tree"
+);
+
+/* Longjmp mode ordering: ⊕/⅋ boundary must separate recoverable from propagating. */
+static_assert(SH_JMPCMD < SH_JMP_PROPAGATE, "SH_JMPCMD must be below propagation threshold");
+static_assert(SH_JMPFUN == SH_JMP_PROPAGATE, "SH_JMPFUN defines the propagation threshold");
+static_assert(SH_JMPSCRIPT > SH_JMP_PROPAGATE, "SH_JMPSCRIPT must be above propagation threshold");
+
+#endif /* _BLD_ksh */
 
 #endif /* !shell_h_defined */

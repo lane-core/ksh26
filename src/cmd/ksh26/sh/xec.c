@@ -473,8 +473,8 @@ void sh_polarity_enter(struct sh_polarity *frame)
 	frame->namespace = sh.namespace;
 	frame->st = sh.st;
 	frame->var_tree = sh.var_tree;
-	sh.prefix = NULL;
-	sh.namespace = NULL;
+	sh.prefix = nullptr;
+	sh.namespace = nullptr;
 }
 
 void sh_polarity_leave(struct sh_polarity *frame)
@@ -509,8 +509,8 @@ static void sh_polarity_lite_enter(struct sh_polarity_lite *frame)
 	frame->trapdontexec = sh.st.trapdontexec;
 	for(i = 0; i <= SH_DEBUGTRAP; i++)
 		frame->trap[i] = sh.st.trap[i];
-	sh.prefix = NULL;
-	sh.namespace = NULL;
+	sh.prefix = nullptr;
+	sh.namespace = nullptr;
 }
 
 static void sh_polarity_lite_leave(struct sh_polarity_lite *frame)
@@ -590,7 +590,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		free(trap_dup);
 	}
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
-	np->nvalue = NULL;
+	np->nvalue = nullptr;
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
@@ -748,8 +748,8 @@ static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 	memcpy(node,L_ARGNOD,sizeof(*node));
 	L_ARGNOD->nvalue = nr;
 	L_ARGNOD->nvflag = NV_REF|NV_NOFREE;
-	L_ARGNOD->nvfun = NULL;
-	L_ARGNOD->nvmeta = NULL;
+	L_ARGNOD->nvfun = nullptr;
+	L_ARGNOD->nvmeta = nullptr;
 	if(sp)
 	{
 		nv_putval(SH_SUBSCRNOD,nr->sub=sp,NV_NOFREE);
@@ -934,27 +934,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		/* ⊕→⅋ suppression: strip SH_ERREXIT in conditional contexts (Direction 5) */
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		/*
-		 * Polarity classification of sh_exec cases.
-		 *
-		 * Value mode (producers): TARITH, TSW, TTST
-		 *   Word expansion, pattern matching, arithmetic evaluation.
-		 *   These produce values that flow into contexts. sh_debug calls
-		 *   here cross into computation mode via polarity frame.
-		 *
-		 * Computation mode (consumers/statements): TFORK, TPAR, TFIL,
-		 *   TLST, TAND, TORF, TIF, TTIME
-		 *   Command execution, process management, control flow.
-		 *   No value-mode state (sh.prefix) to protect.
-		 *
-		 * Mixed (cuts): TCOM, TFOR, TWH, TSETIO, TFUN
-		 *   Both value expansion and command execution. These are the
-		 *   critical cases -- polarity boundaries exist within the handler.
-		 *   TCOM is the most complex: assignments (value) + execution
-		 *   (computation) in the same handler, with sh_debug crossings.
-		 *
-		 * See REDESIGN.md "Classify sh_exec cases by polarity" (Direction 2).
-		 */
+		/* Polarity classification: see sh_node_polarity[] in shnodes.h (Direction 2). */
 		switch(type&COMMSK)
 		{
 		    /*
