@@ -343,6 +343,13 @@ struct Shell_s
 	char		*shname;	/* shell name */
 	char		*comdiv;	/* points to sh -c argument */
 	char		*prefix;	/* prefix for compound assignment */
+	/* Direction 8: L_ARGNOD restore guard for longjmp safety */
+	struct
+	{
+		void		*nvalue;
+		unsigned short	nvflag;
+		Namfun_t	*nvfun;
+	} argnod_guard;
 	sigjmp_buf	*jmplist;	/* longjmp return stack */
 	pid_t		bckpid;		/* background process id */
 	pid_t		cpid;

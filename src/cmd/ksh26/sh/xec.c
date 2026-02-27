@@ -3205,8 +3205,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh_unscope();
 		sh.namespace = nspace;
 	}
-	sh.var_tree = (Dt_t*)prevscope->own_tree;
-	sh.st.own_tree = sh.var_tree;	/* scope identity sync (Direction 9) */
+	sh_scope_set((Dt_t*)prevscope->own_tree);
 	if((posix_fun && jmpval!=SH_JMPSCRIPT) || !posix_fun)
 		sh_argreset(argsav,saveargfor);
 	else
