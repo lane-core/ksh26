@@ -224,6 +224,11 @@ enum sh_polartype : int
 	SH_POL_MIXED	= 2,	/* cut: both modes, internal boundaries */
 };
 
+/*
+ * Indexed by base node type (tretyp & COMMSK).  Callers MUST mask
+ * with COMMSK before indexing — composite types like TUN (TWH|COMSCAN)
+ * and TSELECT (TFOR|COMSCAN) carry flag bits beyond the table range.
+ */
 constexpr enum sh_polartype sh_node_polarity[] =
 {
 	[TCOM]		= SH_POL_MIXED,	/* assignments (value) + execution (computation) */
@@ -243,6 +248,10 @@ constexpr enum sh_polartype sh_node_polarity[] =
 	[TSETIO]	= SH_POL_MIXED,	/* redirection setup (value) + subtree */
 	[TFUN]		= SH_POL_MIXED,	/* function definition: symbol table + namespace body */
 };
+static_assert(
+	sizeof(sh_node_polarity)/sizeof(sh_node_polarity[0]) == COMMSK+1,
+	"sh_node_polarity[] must have exactly COMMSK+1 entries (index with tretyp & COMMSK)"
+);
 
 extern void			sh_freeup(void);
 extern void			sh_funstaks(struct slnod*,int);

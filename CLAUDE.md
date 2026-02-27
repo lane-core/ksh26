@@ -129,10 +129,10 @@ These `Shell_t` fields require save/restore discipline at polarity boundaries:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `sh.prefix` (shell.h:305) | `char*` | Compound assignment context marker |
-| `sh.st` (shell.h:282) | `struct sh_scoped` | Scoped interpreter state |
-| `sh.jmplist` (shell.h:306) | `sigjmp_buf*` | Continuation stack head |
-| `sh.var_tree` (shell.h:246) | `Dt_t*` | Current variable scope |
+| `sh.prefix` (shell.h:342) | `char*` | Compound assignment context marker |
+| `sh.st` (shell.h:319) | `struct sh_scoped` | Scoped interpreter state |
+| `sh.jmplist` (shell.h:350) | `sigjmp_buf*` | Continuation stack head |
+| `sh.var_tree` (shell.h:283) | `Dt_t*` | Current variable scope |
 
 ## Bug documentation
 

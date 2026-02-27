@@ -111,7 +111,7 @@ The AT&T MAM build system (~12,000 lines: Mamfiles, mamake, bin/package)
 is replaced with:
 
 - `justfile` — user-facing recipes (~50 lines)
-- `configure.sh` — platform probing, generates `build.ninja` (~1,000 lines)
+- `configure.sh` — platform probing, generates `build.ninja` (~1,600 lines)
 - `samu` — vendored ninja implementation
 
 ### Script compatibility

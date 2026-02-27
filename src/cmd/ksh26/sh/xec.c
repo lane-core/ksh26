@@ -496,35 +496,24 @@ void sh_polarity_leave(struct sh_polarity *frame)
 
 /*
  * Lightweight polarity frame for sh_debug.
- * Only saves fields that sh_debug itself modifies (prefix, namespace)
- * plus fields the handler may mutate (trap slots, trapdontexec).
- * Full sh.st protection is provided by sh_trap's inner polarity frame.
+ * Only saves fields that sh_debug itself modifies (prefix, namespace,
+ * var_tree).  Trap state is handled by sh_trap's inner full frame.
  */
 static void sh_polarity_lite_enter(struct sh_polarity_lite *frame)
 {
-	int i;
 	frame->prefix = sh.prefix;
 	frame->namespace = sh.namespace;
 	frame->var_tree = sh.var_tree;
-	frame->trapdontexec = sh.st.trapdontexec;
-	for(i = 0; i <= SH_DEBUGTRAP; i++)
-		frame->trap[i] = sh.st.trap[i];
 	sh.prefix = nullptr;
 	sh.namespace = nullptr;
 }
 
 static void sh_polarity_lite_leave(struct sh_polarity_lite *frame)
 {
-	/* Preserve handler's trap mutations (e.g. 'trap - DEBUG') */
-	char *traps[SH_DEBUGTRAP+1];
-	char trapdontexec = sh.st.trapdontexec;
-	int i;
-	for(i = 0; i <= SH_DEBUGTRAP; i++)
-		traps[i] = sh.st.trap[i];
-	/* Restore caller state, then apply handler's trap changes */
-	for(i = 0; i <= SH_DEBUGTRAP; i++)
-		sh.st.trap[i] = traps[i];
-	sh.st.trapdontexec = trapdontexec;
+	/* Trap state (trap[], trapdontexec) is NOT restored here.
+	 * sh_trap's inner full polarity frame (sh_polarity_leave)
+	 * already handles the save/restore/preserve-mutations dance.
+	 * The lite frame only restores fields sh_debug itself modifies. */
 	sh.var_tree = frame->var_tree;
 	sh.prefix = frame->prefix;
 	sh.namespace = frame->namespace;
