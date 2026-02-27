@@ -1,12 +1,12 @@
-#!/usr/bin/env ksh
+#!/bin/sh
 
-# configure.ksh — probe platform, detect features, generate build.ninja
+# configure.sh — probe platform, detect features, generate build.ninja
 #
-# Part of the ksh26 build system: just (porcelain) → configure.ksh → samu
+# Part of the ksh26 build system: just (porcelain) → configure.sh → samu
 # This script replaces the MAM (Make Abstract Machine) build infrastructure
 # with a single-pass configure step that emits a ninja build file.
 #
-# Usage: ksh configure.ksh [--force]
+# Usage: sh configure.sh [--force]
 #   Probes the compiler, runs iffe feature tests, and writes
 #   build/$HOSTTYPE/build.ninja
 #
@@ -14,11 +14,11 @@
 # Without it, probes are skipped when their output is fresher than
 # their input — typically cutting reconfigure from minutes to seconds.
 
-set -o nounset -o errexit -o pipefail
+set -o nounset -o errexit
 
 # ── Options ───────────────────────────────────────────────────────────
 
-typeset FORCE=false
+FORCE=false
 for _arg in "$@"; do
 	case $_arg in
 	--force) FORCE=true ;;
@@ -31,7 +31,7 @@ done
 
 detect_hosttype()
 {
-	typeset os arch bits
+	local os arch bits
 	os=$(uname -s | tr 'A-Z' 'a-z')
 	arch=$(uname -m)
 	case $arch in
@@ -39,7 +39,7 @@ detect_hosttype()
 	i?86)    arch=i386 ;;
 	esac
 	bits=$(getconf LONG_BIT 2>/dev/null) || bits=64
-	print "${os}.${arch}-${bits}"
+	printf '%s\n' "${os}.${arch}-${bits}"
 }
 
 # ── Paths ──────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ chmod +x "$PROBE_DIR/lib/probe/C/make/probe"
 # Parse mamprobe 'setv name value' output into shell variables
 parse_probe_output()
 {
-	typeset varname value
+	local varname value
 	while IFS= read -r line; do
 		case $line in
 		setv\ mam_cc_*)
@@ -103,50 +103,51 @@ parse_probe_output()
 	done
 }
 
-typeset mam_cc_AR mam_cc_DEBUG mam_cc_OPTIMIZE mam_cc_NOSTRICTALIASING
-typeset mam_cc_TARGET mam_cc_DLL mam_cc_PIC mam_cc_HOSTTYPE
-typeset mam_cc_SUFFIX_SHARED mam_cc_SUFFIX_DYNAMIC mam_cc_PREFIX_DYNAMIC
-typeset mam_cc_PREFIX_SHARED mam_cc_LD_STRIP mam_cc_AR_ARFLAGS
-typeset mam_cc_WARN
+mam_cc_AR= mam_cc_DEBUG= mam_cc_OPTIMIZE= mam_cc_NOSTRICTALIASING=
+mam_cc_TARGET= mam_cc_DLL= mam_cc_PIC= mam_cc_HOSTTYPE=
+mam_cc_SUFFIX_SHARED= mam_cc_SUFFIX_DYNAMIC= mam_cc_PREFIX_DYNAMIC=
+mam_cc_PREFIX_SHARED= mam_cc_LD_STRIP= mam_cc_AR_ARFLAGS=
+mam_cc_WARN=
 
 # Cache: reuse config.probe if compiler binary hasn't changed
-typeset probe_cache=$BUILDDIR/config.probe
-if ! $FORCE && [[ -f "$probe_cache" ]] && [[ -s "$probe_cache" ]] \
-   && [[ "$probe_cache" -nt "$CC_PATH" ]] \
-   && [[ "$probe_cache" -nt configure.ksh ]]; then
-	print "configure: using cached compiler probe"
+probe_cache=$BUILDDIR/config.probe
+if ! $FORCE && [ -f "$probe_cache" ] && [ -s "$probe_cache" ] \
+   && [ "$probe_cache" -nt "$CC_PATH" ] \
+   && [ "$probe_cache" -nt configure.sh ]; then
+	printf '%s\n' "configure: using cached compiler probe"
 	parse_probe_output < "$probe_cache"
 else
-	print "configure: probing compiler $CC_PATH ..."
-	typeset probe_output
+	printf '%s\n' "configure: probing compiler $CC_PATH ..."
 	probe_output=$(PATH="$PACKAGEROOT_ABS/$PROBE_DIR/bin/ok:$PATH" \
 		sh src/cmd/INIT/mamprobe.sh - "$CC_PATH" 2>/dev/null)
-	parse_probe_output <<< "$probe_output"
-	print "$probe_output" > "$probe_cache"
+	parse_probe_output <<EOF
+$probe_output
+EOF
+	printf '%s\n' "$probe_output" > "$probe_cache"
 fi
 
 # mamprobe may detect a different HOSTTYPE; use ours
 mam_cc_HOSTTYPE=$HOSTTYPE
 
-print "configure: HOSTTYPE=$HOSTTYPE"
-print "configure: CC=$CC_PATH"
-print "configure: AR=${mam_cc_AR:-ar}"
+printf '%s\n' "configure: HOSTTYPE=$HOSTTYPE"
+printf '%s\n' "configure: CC=$CC_PATH"
+printf '%s\n' "configure: AR=${mam_cc_AR:-ar}"
 
 # ── Compiler flags ────────────────────────────────────────────────────
 
-typeset CFLAGS="${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-}"
-typeset AR="${mam_cc_AR:-ar}"
-typeset AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
+CFLAGS="${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-}"
+AR="${mam_cc_AR:-ar}"
+AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
 
 # ── Cache key ─────────────────────────────────────────────────────────
 # Invalidate all cached probes when compiler or flags change.
 
-typeset CONFIGURE_SELF=$PACKAGEROOT_ABS/configure.ksh
-typeset CACHE_KEY="$CC_PATH $CFLAGS"
-typeset CACHE_KEY_FILE=$BUILDDIR_ABS/.configure_cache_key
+CONFIGURE_SELF=$PACKAGEROOT_ABS/configure.sh
+CACHE_KEY="$CC_PATH $CFLAGS"
+CACHE_KEY_FILE=$BUILDDIR_ABS/.configure_cache_key
 
 if $FORCE; then
-	print "configure: --force: invalidating all cached probes"
+	printf '%s\n' "configure: --force: invalidating all cached probes"
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libsum_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libdll_work/FEATURE/* \
@@ -154,11 +155,11 @@ if $FORCE; then
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
-elif [[ -f "$CACHE_KEY_FILE" ]] && [[ "$(cat "$CACHE_KEY_FILE")" == "$CACHE_KEY" ]]; then
+elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
 	: # cache key matches — individual probes check their own freshness
 else
-	if [[ -f "$CACHE_KEY_FILE" ]]; then
-		print "configure: compiler or flags changed, invalidating probe cache"
+	if [ -f "$CACHE_KEY_FILE" ]; then
+		printf '%s\n' "configure: compiler or flags changed, invalidating probe cache"
 	fi
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libsum_work/FEATURE/* \
@@ -167,21 +168,21 @@ else
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache 2>/dev/null || true
 fi
-print "$CACHE_KEY" > "$CACHE_KEY_FILE"
+printf '%s\n' "$CACHE_KEY" > "$CACHE_KEY_FILE"
 
 # ── Library detection ─────────────────────────────────────────────────
 # Detect optional external libraries not always in the default search path.
 # On Nix-based macOS, libiconv is a separate derivation outside the
 # linker's default -L paths. On stock macOS, it's reexported via libSystem.
 
-typeset ICONV_FLAGS=""
-typeset iconv_cache=$BUILDDIR_ABS/.iconv_cache
+ICONV_FLAGS=""
+iconv_cache=$BUILDDIR_ABS/.iconv_cache
 
-if [[ -f "$iconv_cache" ]] && [[ "$iconv_cache" -nt "$CONFIGURE_SELF" ]]; then
+if [ -f "$iconv_cache" ] && [ "$iconv_cache" -nt "$CONFIGURE_SELF" ]; then
 	ICONV_FLAGS=$(cat "$iconv_cache")
-	print "configure: iconv: ${ICONV_FLAGS:-(in libc)} (cached)"
+	printf '%s\n' "configure: iconv: ${ICONV_FLAGS:-(in libc)} (cached)"
 else
-	typeset iconv_test='#include <iconv.h>
+	iconv_test='#include <iconv.h>
 int main(void) { iconv_open("",""); return 0; }'
 
 	if printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null 2>/dev/null; then
@@ -189,22 +190,25 @@ int main(void) { iconv_open("",""); return 0; }'
 	elif printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -liconv 2>/dev/null; then
 		ICONV_FLAGS="-liconv"
 	else
-		typeset _nix_dirs=""
-		if [[ -d /nix/store ]]; then
+		_nix_dirs=""
+		if [ -d /nix/store ]; then
 			_nix_dirs=$(find /nix/store -maxdepth 1 -name '*libiconv-*' \
 				-not -name '*-dev' -not -name '*.drv' 2>/dev/null \
 				| sort -r | head -3 | sed 's|$|/lib|')
 		fi
-		typeset _d
 		for _d in /usr/local/lib /opt/homebrew/lib $_nix_dirs; do
-			if [[ -d "$_d" ]] && printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -L"$_d" -liconv 2>/dev/null; then
+			if [ -d "$_d" ] && printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -L"$_d" -liconv 2>/dev/null; then
 				ICONV_FLAGS="-L$_d -liconv"
 				break
 			fi
 		done
 	fi
-	print -r -- "$ICONV_FLAGS" > "$iconv_cache"
-	[[ -n "$ICONV_FLAGS" ]] && print "configure: iconv: $ICONV_FLAGS" || print "configure: iconv: not found (AST fallback)"
+	printf '%s\n' "$ICONV_FLAGS" > "$iconv_cache"
+	if [ -n "$ICONV_FLAGS" ]; then
+		printf '%s\n' "configure: iconv: $ICONV_FLAGS"
+	else
+		printf '%s\n' "configure: iconv: not found (AST fallback)"
+	fi
 fi
 
 # ── iffe helper ───────────────────────────────────────────────────────
@@ -217,17 +221,17 @@ chmod +x "$BUILDDIR/bin/iffe"
 
 _run_iffe_uncached()
 {
-	typeset workdir=$1 input=$2
+	local workdir=$1 input=$2
 	shift 2
 
 	mkdir -p "$workdir/FEATURE"
 
 	# Separate compiler/linker flags from script args
-	typeset -a iffe_flags=() script_args=()
-	while (( $# )); do
+	local iffe_flags="" script_args=""
+	while [ $# -gt 0 ]; do
 		case $1 in
-		-[IlL]*) iffe_flags+=("$1") ;;
-		*)       script_args+=("$1") ;;
+		-[IlL]*) iffe_flags="$iffe_flags $1" ;;
+		*)       script_args="$script_args $1" ;;
 		esac
 		shift
 	done
@@ -236,43 +240,47 @@ _run_iffe_uncached()
 	# -X ast -X std: exclude ast/ and std/ dirs from include search
 	# (prevents finding libast wrapper headers before they're generated).
 	# ref -I$INCDIR: make generated headers findable.
+	# DEFPATH: iffe needs this for system utility lookup. Normally
+	# set via getconf(1), but getconf may not be available (e.g. Nix sandbox).
+	: "${DEFPATH:=$(getconf PATH 2>/dev/null || printf '%s' '/usr/bin:/bin')}"
+	export DEFPATH
 	(
 		cd "$workdir"
 		PATH="$BUILDDIR_ABS/bin:$PATH" \
 		sh "$BUILDDIR_ABS/bin/iffe" -v -X ast -X std \
 			-c "$CC_PATH $CFLAGS" \
 			ref -I"$PACKAGEROOT_ABS/$INCDIR" -I"$BUILDDIR_ABS/include" \
-			"${iffe_flags[@]}" \
-			: run "$input" "${script_args[@]}"
+			$iffe_flags \
+			: run "$input" $script_args
 	) 2>/dev/null || true
 }
 
 # Probe tracking: background jobs can't update shell variables,
 # so we log cache hits/misses to a file and count at the end.
-typeset _iffe_log=$BUILDDIR_ABS/.iffe_log
+_iffe_log=$BUILDDIR_ABS/.iffe_log
 : > "$_iffe_log"
 
 run_iffe()
 {
 	# $1 = working directory, $2 = input features/name file, $3... = extra args
-	typeset workdir=$1 input=$2
+	local workdir=$1 input=$2
 
 	# Derive the FEATURE output name from the input filename
-	typeset featname=${input##*/}
+	local featname=${input##*/}
 	featname=${featname%.sh}
 	featname=${featname%.c}
-	typeset outfile=$workdir/FEATURE/$featname
+	local outfile=$workdir/FEATURE/$featname
 
 	# Cache check: skip if output exists, is non-empty, and is newer
-	# than both the input file and configure.ksh itself
-	if ! $FORCE && [[ -f "$outfile" ]] && [[ -s "$outfile" ]] \
-	   && [[ "$outfile" -nt "$input" ]] \
-	   && [[ "$outfile" -nt "$CONFIGURE_SELF" ]]; then
-		print cached >> "$_iffe_log"
+	# than both the input file and configure.sh itself
+	if ! $FORCE && [ -f "$outfile" ] && [ -s "$outfile" ] \
+	   && [ "$outfile" -nt "$input" ] \
+	   && [ "$outfile" -nt "$CONFIGURE_SELF" ]; then
+		printf '%s\n' cached >> "$_iffe_log"
 		return 0
 	fi
 
-	print ran >> "$_iffe_log"
+	printf '%s\n' ran >> "$_iffe_log"
 	_run_iffe_uncached "$@"
 }
 
@@ -280,7 +288,7 @@ run_iffe()
 # Creates an empty file if the source doesn't exist (some tests are optional).
 copy_feature()
 {
-	if [[ -f "$1" ]] && [[ -s "$1" ]]; then
+	if [ -f "$1" ] && [ -s "$1" ]; then
 		cp -f "$1" "$2"
 	else
 		: > "$2"
@@ -294,8 +302,8 @@ copy_feature()
 
 probe_c()
 {
-	typeset src=$BUILDDIR_ABS/probe$$.c
-	typeset bin=$BUILDDIR_ABS/probe$$
+	local src=$BUILDDIR_ABS/probe$$.c
+	local bin=$BUILDDIR_ABS/probe$$
 	trap 'rm -f "$src" "$bin" "${src%.c}.d"' EXIT
 	cat > "$src"
 	if $CC_PATH $CFLAGS \
@@ -303,9 +311,9 @@ probe_c()
 		-o "$bin" "$src" "$@" 2>/dev/null
 	then
 		"$bin" 2>/dev/null
-		typeset rc=$?
+		local rc=$?
 	else
-		typeset rc=1
+		local rc=1
 	fi
 	rm -f "$src" "$bin" "${src%.c}.d"
 	trap - EXIT
@@ -318,37 +326,37 @@ probe_c()
 
 run_libast_features()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/lib/libast
-	typeset workdir=$BUILDDIR_ABS/libast_work
-	typeset feat=$workdir/FEATURE
+	local srcdir=$PACKAGEROOT_ABS/src/lib/libast
+	local workdir=$BUILDDIR_ABS/libast_work
+	local feat=$workdir/FEATURE
 
 	mkdir -p "$workdir/FEATURE"
 
-	print "configure: running libast feature tests ..."
+	printf '%s\n' "configure: running libast feature tests ..."
 
 	# Generate ast_release.h
 	(
 		if git_branch=$(git branch 2>/dev/null); then
-			print '/* generated by configure.ksh */'
+			printf '%s\n' '/* generated by configure.sh */'
 			case $git_branch in
 			*\*\ [0-9]*.[0-9]*)
 				if git diff-index --quiet HEAD 2>/dev/null; then
-					print '#ifndef _AST_release'
-					print '#    define _AST_release	1'
-					print '#endif'
+					printf '%s\n' '#ifndef _AST_release'
+					printf '%s\n' '#    define _AST_release	1'
+					printf '%s\n' '#endif'
 				else
-					print '/* on release branch, but changes made */'
+					printf '%s\n' '/* on release branch, but changes made */'
 				fi
 				;;
 			*)
-				print '/* not on a release branch */'
+				printf '%s\n' '/* not on a release branch */'
 				;;
 			esac
 		else
-			print '/* not in a git repo */'
-			print '#ifndef _AST_release'
-			print '#    define _AST_release	1'
-			print '#endif'
+			printf '%s\n' '/* not in a git repo */'
+			printf '%s\n' '#ifndef _AST_release'
+			printf '%s\n' '#    define _AST_release	1'
+			printf '%s\n' '#endif'
 		fi
 	) > "$INCDIR/ast_release.h"
 
@@ -450,27 +458,27 @@ run_libast_features()
 	# Copy all FEATURE results to the main feature dir
 	cp -f "$feat"/* "$FEATDIR/" 2>/dev/null || true
 
-	print "configure: libast feature tests done"
+	printf '%s\n' "configure: libast feature tests done"
 }
 
 # Generate conf headers (conflim.h, conftab.h, conftab.c) and lc.h
 run_libast_conf()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/lib/libast
-	typeset workdir=$BUILDDIR/libast_work
-	typeset conftab=$srcdir/comp/conf.tab
+	local srcdir=$PACKAGEROOT_ABS/src/lib/libast
+	local workdir=$BUILDDIR/libast_work
+	local conftab=$srcdir/comp/conf.tab
 	mkdir -p "$workdir"
 
 	# Cache: skip if conftab.h exists and is newer than inputs
-	if ! $FORCE && [[ -f "$workdir/conftab.h" ]] \
-	   && [[ "$workdir/conftab.h" -nt "$conftab" ]] \
-	   && [[ "$workdir/conftab.h" -nt "$srcdir/comp/conf.sh" ]] \
-	   && [[ "$workdir/conftab.h" -nt "$CONFIGURE_SELF" ]]; then
+	if ! $FORCE && [ -f "$workdir/conftab.h" ] \
+	   && [ "$workdir/conftab.h" -nt "$conftab" ] \
+	   && [ "$workdir/conftab.h" -nt "$srcdir/comp/conf.sh" ] \
+	   && [ "$workdir/conftab.h" -nt "$CONFIGURE_SELF" ]; then
 		return 0
 	fi
 
 	# Create the conf script (prepends HOSTTYPE to comp/conf.sh)
-	print "HOSTTYPE='$HOSTTYPE'" > "$workdir/conf"
+	printf '%s\n' "HOSTTYPE='$HOSTTYPE'" > "$workdir/conf"
 	cat "$srcdir/comp/conf.sh" >> "$workdir/conf"
 	chmod +x "$workdir/conf"
 
@@ -484,13 +492,13 @@ run_libast_conf()
 
 	# Copy generated conf headers
 	for f in conflim.h conftab.h conftab.c; do
-		[[ -f "$workdir/$f" ]] && cp -f "$workdir/$f" "$INCDIR/../$f"
+		[ -f "$workdir/$f" ] && cp -f "$workdir/$f" "$INCDIR/../$f"
 	done
 
 	# Generate lc.h and lctab.c using lcgen
-	if [[ -f "$srcdir/port/lcgen.c" ]]; then
+	if [ -f "$srcdir/port/lcgen.c" ]; then
 		$CC_PATH $CFLAGS -o "$workdir/lcgen" "$srcdir/port/lcgen.c" 2>/dev/null || true
-		if [[ -x "$workdir/lcgen" ]]; then
+		if [ -x "$workdir/lcgen" ]; then
 			"$workdir/lcgen" "$INCDIR/../lc.h" "$INCDIR/../lctab.c" \
 				< "$srcdir/port/lc.tab" 2>/dev/null || true
 		fi
@@ -501,42 +509,42 @@ run_libast_conf()
 
 run_libdll_features()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/lib/libdll
-	typeset workdir=$BUILDDIR_ABS/libdll_work
+	local srcdir=$PACKAGEROOT_ABS/src/lib/libdll
+	local workdir=$BUILDDIR_ABS/libdll_work
 
 	mkdir -p "$workdir/FEATURE"
 
-	print "configure: running libdll feature tests ..."
+	printf '%s\n' "configure: running libdll feature tests ..."
 	run_iffe "$workdir" "$srcdir/features/dll"
-	[[ -f "$workdir/FEATURE/dll" ]] && cp -f "$workdir/FEATURE/dll" "$workdir/dlldefs.h"
-	[[ -f "$workdir/FEATURE/dll" ]] && cp -f "$workdir/FEATURE/dll" "$INCDIR/dlldefs.h"
-	[[ -f "$workdir/FEATURE/dll" ]] && cp -f "$workdir/FEATURE/dll" "$FEATDIR/dll"
+	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$workdir/dlldefs.h"
+	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$INCDIR/dlldefs.h"
+	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$FEATDIR/dll"
 }
 
 # ── Feature tests: libsum ─────────────────────────────────────────────
 
 run_libsum_features()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/lib/libsum
-	typeset workdir=$BUILDDIR_ABS/libsum_work
+	local srcdir=$PACKAGEROOT_ABS/src/lib/libsum
+	local workdir=$BUILDDIR_ABS/libsum_work
 
 	mkdir -p "$workdir/FEATURE"
 
-	print "configure: running libsum feature tests ..."
+	printf '%s\n' "configure: running libsum feature tests ..."
 	run_iffe "$workdir" "$srcdir/features/sum"
-	[[ -f "$workdir/FEATURE/sum" ]] && cp -f "$workdir/FEATURE/sum" "$FEATDIR/sum"
+	[ -f "$workdir/FEATURE/sum" ] && cp -f "$workdir/FEATURE/sum" "$FEATDIR/sum"
 }
 
 # ── Feature tests: libcmd ─────────────────────────────────────────────
 
 run_libcmd_features()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/lib/libcmd
-	typeset workdir=$BUILDDIR_ABS/libcmd_work
+	local srcdir=$PACKAGEROOT_ABS/src/lib/libcmd
+	local workdir=$BUILDDIR_ABS/libcmd_work
 
 	mkdir -p "$workdir/FEATURE"
 
-	print "configure: running libcmd feature tests ..."
+	printf '%s\n' "configure: running libcmd feature tests ..."
 	run_iffe "$workdir" "$srcdir/features/symlink" &
 	run_iffe "$workdir" "$srcdir/features/sockets" &
 	run_iffe "$workdir" "$srcdir/features/ids" &
@@ -558,12 +566,12 @@ run_libcmd_features()
 
 run_ksh26_features()
 {
-	typeset srcdir=$PACKAGEROOT_ABS/src/cmd/ksh26
-	typeset workdir=$BUILDDIR_ABS/ksh26_work
+	local srcdir=$PACKAGEROOT_ABS/src/cmd/ksh26
+	local workdir=$BUILDDIR_ABS/ksh26_work
 
 	mkdir -p "$workdir/FEATURE" "$workdir/probe_input"
 
-	print "configure: running ksh26 feature tests ..."
+	printf '%s\n' "configure: running ksh26 feature tests ..."
 
 	# math is the slowest ksh26 probe — run it in parallel with the rest
 	run_iffe "$workdir" "$srcdir/features/math.sh" -lm "$srcdir/data/math.tab" &
@@ -595,13 +603,13 @@ run_ksh26_features()
 # we feed iffe just the simple probes and handle the rest ourselves.
 probe_ksh26_externs()
 {
-	typeset workdir=$1 srcdir=$2
-	typeset feat=$workdir/FEATURE
+	local workdir=$1 srcdir=$2
+	local feat=$workdir/FEATURE
 
-	# Cache: externs input is embedded in configure.ksh, so check
-	# the FEATURE output against configure.ksh itself
-	if ! $FORCE && [[ -f "$feat/externs" ]] && [[ -s "$feat/externs" ]] \
-	   && [[ "$feat/externs" -nt "$CONFIGURE_SELF" ]]; then
+	# Cache: externs input is embedded in configure.sh, so check
+	# the FEATURE output against configure.sh itself
+	if ! $FORCE && [ -f "$feat/externs" ] && [ -s "$feat/externs" ] \
+	   && [ "$feat/externs" -nt "$CONFIGURE_SELF" ]; then
 		return 0
 	fi
 
@@ -690,15 +698,15 @@ PROBE
 	# _arg_extrabytes — extra bytes consumed per argv entry beyond strlen+1.
 	# The original did trial-and-error fork/exec using AST's stk allocator.
 	# sizeof(char*) is the correct value on modern macOS, Linux, and BSD.
-	print '#define _arg_extrabytes	sizeof(char*)' >> "$feat/externs"
+	printf '%s\n' '#define _arg_extrabytes	sizeof(char*)' >> "$feat/externs"
 }
 
 # SHOPT_GLOBCASEDET — can we detect filesystem case insensitivity?
 # The original called AST's pathicase(), which uses pathconf(2).
 probe_ksh26_options()
 {
-	typeset workdir=$1
-	typeset feat=$workdir/FEATURE/options
+	local workdir=$1
+	local feat=$workdir/FEATURE/options
 
 	# Already probed by iffe? Check if SHOPT_GLOBCASEDET is defined
 	grep -q SHOPT_GLOBCASEDET "$feat" 2>/dev/null && return
@@ -727,8 +735,8 @@ PROBE
 # The original used AST's O_SEARCH/O_cloexec macros.
 probe_ksh26_fchdir()
 {
-	typeset workdir=$1
-	typeset feat=$workdir/FEATURE/fchdir
+	local workdir=$1
+	local feat=$workdir/FEATURE/fchdir
 
 	# Already probed?
 	grep -q fchdir_osearch_compat "$feat" 2>/dev/null && return
@@ -781,16 +789,16 @@ PROBE
 # what sfpkrd uses internally on socket fds.
 probe_ksh26_poll()
 {
-	typeset workdir=$1
-	typeset feat=$workdir/FEATURE/poll
+	local workdir=$1
+	local feat=$workdir/FEATURE/poll
 
 	# Already probed?
 	grep -q pipe_socketpair "$feat" 2>/dev/null && return
 
 	# pipe_socketpair: can recv(MSG_PEEK) read from a socketpair fd?
 	# This is an execute-only test (exit code matters, no stdout).
-	typeset src=$BUILDDIR_ABS/probe_poll$$.c
-	typeset bin=$BUILDDIR_ABS/probe_poll$$
+	local src=$BUILDDIR_ABS/probe_poll$$.c
+	local bin=$BUILDDIR_ABS/probe_poll$$
 	trap 'rm -f "$src" "$bin" "${src%.c}.d"' EXIT
 	cat > "$src" <<'EXECPROBE'
 #include <stdio.h>
@@ -902,23 +910,23 @@ EXECPROBE
 
 generate_git_h()
 {
-	typeset outdir=$BUILDDIR/ksh26_work
+	local outdir=$BUILDDIR/ksh26_work
 	mkdir -p "$outdir"
 
-	typeset git_commit=""
+	local git_commit=""
 	git_commit=$(git rev-parse --short=8 HEAD 2>/dev/null) || true
 	case $git_commit in
 	[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
-		print '/* generated by configure.ksh */'
+		printf '%s\n' '/* generated by configure.sh */'
 		git update-index --really-refresh >/dev/null 2>&1 || true
 		if ! git diff-index --quiet HEAD 2>/dev/null; then
 			git_commit=$git_commit/MOD
 		fi
-		print "#define git_commit   \"$git_commit\""
+		printf '%s\n' "#define git_commit   \"$git_commit\""
 		;;
 	*)
-		print '/* not in a git repo */'
-		print '#undef git_commit'
+		printf '%s\n' '/* not in a git repo */'
+		printf '%s\n' '#undef git_commit'
 		;;
 	esac > "$outdir/git.h.new"
 
@@ -933,29 +941,29 @@ generate_git_h()
 
 generate_shopt_h()
 {
-	typeset outdir=$BUILDDIR/ksh26_work
+	local outdir=$BUILDDIR/ksh26_work
 	mkdir -p "$outdir"
 
 	# Define the SHOPT function that processes each option
 	writedef()
 	{
-		print "${3:-#ifndef SHOPT_$1}"
-		print "#   define SHOPT_$1	$2"
-		print '#endif'
-		print
+		printf '%s\n' "${3:-#ifndef SHOPT_$1}"
+		printf '%s\n' "#   define SHOPT_$1	$2"
+		printf '%s\n' '#endif'
+		printf '%s\n' ''
 	}
 
 	SHOPT()
 	{
-		typeset n=${1%%=*}
-		typeset v=${1#*=}
+		local n=${1%%=*}
+		local v=${1#*=}
 		case $1 in
 		'MULTIBYTE=')
 			writedef MULTIBYTE 1 '#if !defined(SHOPT_MULTIBYTE) && !AST_NOMULTIBYTE' ;;
 		'DEVFD=')
 			ls -d /dev/fd/9 9<&0 >/dev/null 2>&1 && writedef DEVFD 1 ;;
 		'TEST_L=')
-			typeset link=$BUILDDIR_ABS/link$$
+			local link=$BUILDDIR_ABS/link$$
 			ln -s /dev/null "$link" 2>/dev/null || true
 			if env test -l "$link" 2>/dev/null && env test ! -l . 2>/dev/null; then
 				writedef TEST_L 1
@@ -973,8 +981,8 @@ generate_shopt_h()
 	}
 
 	{
-		print '/* Generated from ksh26/SHOPT.sh by configure.ksh */'
-		print
+		printf '%s\n' '/* Generated from ksh26/SHOPT.sh by configure.sh */'
+		printf '%s\n' ''
 		. "$PACKAGEROOT/src/cmd/ksh26/SHOPT.sh"
 		cat <<-'EOF'
 		#include "FEATURE/options"
@@ -1005,16 +1013,16 @@ generate_shopt_h()
 
 generate_cmd_headers()
 {
-	typeset srcdir=src/lib/libcmd
-	typeset outdir=$BUILDDIR/libcmd_work
+	local srcdir=src/lib/libcmd
+	local outdir=$BUILDDIR/libcmd_work
 	mkdir -p "$outdir"
 
 	# cmdext.h — extern function prototypes for b_* commands
 	{
-		print '/*'
-		print ' * -lcmd extern function prototypes'
-		print ' */'
-		print
+		printf '%s\n' '/*'
+		printf '%s\n' ' * -lcmd extern function prototypes'
+		printf '%s\n' ' */'
+		printf '%s\n' ''
 		sed -e '/^b_[a-z_][a-z_0-9]*(/!d' \
 			-e 's/^b_//' \
 			-e 's/(.*//' \
@@ -1024,10 +1032,10 @@ generate_cmd_headers()
 
 	# cmdlist.h — CMDLIST() macros
 	{
-		print '/*'
-		print ' * -lcmd function list -- define your own CMDLIST()'
-		print ' */'
-		print
+		printf '%s\n' '/*'
+		printf '%s\n' ' * -lcmd function list -- define your own CMDLIST()'
+		printf '%s\n' ' */'
+		printf '%s\n' ''
 		sed -e '/^b_[a-z_][a-z_0-9]*(/!d' \
 			-e 's/^b_//' \
 			-e 's/(.*//' \
@@ -1036,7 +1044,7 @@ generate_cmd_headers()
 	} > "$outdir/cmdlist.h.new"
 
 	# Install to include dir only if changed (avoids triggering recompilation)
-	typeset changed=false
+	local changed=false
 	for h in cmdext.h cmdlist.h; do
 		if cmp -s "$outdir/$h.new" "$outdir/$h" 2>/dev/null; then
 			rm -f "$outdir/$h.new"
@@ -1068,7 +1076,7 @@ collect_libast_sources()
 collect_libsum_sources()
 {
 	# libsum compiles a single file: sumlib.c (which includes the rest)
-	print "src/lib/libsum/sumlib.c"
+	printf '%s\n' "src/lib/libsum/sumlib.c"
 }
 
 collect_libdll_sources()
@@ -1095,22 +1103,22 @@ collect_ksh26_sources()
 
 emit_ninja()
 {
-	typeset ninja=$BUILDDIR/build.ninja.new
-	typeset cc=$CC_PATH
-	typeset ar=${mam_cc_AR:-ar}
+	local ninja=$BUILDDIR/build.ninja.new
+	local cc=$CC_PATH
+	local ar=${mam_cc_AR:-ar}
 
 	# Include paths are absolute so they work from samu's -C directory.
 	# ast_std intercepts <stdio.h>, <wchar.h> etc. with AST's wrappers
 	# that handle the FILE → Sfio_t redirection.
-	typeset ast_inc="-I$PACKAGEROOT_ABS/$INCDIR"
-	typeset ast_std="-I$PACKAGEROOT_ABS/$BUILDDIR/include/std"
-	typeset ast_inc_parent="-I$PACKAGEROOT_ABS/$BUILDDIR/include"
-	typeset src_abs=$PACKAGEROOT_ABS
+	local ast_inc="-I$PACKAGEROOT_ABS/$INCDIR"
+	local ast_std="-I$PACKAGEROOT_ABS/$BUILDDIR/include/std"
+	local ast_inc_parent="-I$PACKAGEROOT_ABS/$BUILDDIR/include"
+	local src_abs=$PACKAGEROOT_ABS
 
-	print "configure: generating $ninja ..."
+	printf '%s\n' "configure: generating $ninja ..."
 
 	cat > "$ninja" <<NINJA
-# build.ninja — generated by configure.ksh
+# build.ninja — generated by configure.sh
 # HOSTTYPE: $HOSTTYPE
 # CC: $cc
 # All output paths are relative to this file's directory.
@@ -1134,15 +1142,15 @@ NINJA
 
 	# ── libast ──────────────────────────────────────────────────────
 
-	typeset libast_objs=""
-	typeset libast_cflags="-D_BLD_ast -DHOSTTYPE='\"$HOSTTYPE\"' $ast_inc $ast_inc_parent"
+	local libast_objs=""
+	local libast_cflags="-D_BLD_ast -DHOSTTYPE='\"$HOSTTYPE\"' $ast_inc $ast_inc_parent"
 
 	# Include libast subdirectories — source files cross-reference
 	# private headers across subdirectories (e.g. tm/tmlocale.c includes
 	# port/lclib.h). Exclude features/ and man/ — features/ would shadow
 	# the generated FEATURE/ headers on case-insensitive filesystems.
-	typeset libast_inc=""
-	typeset d
+	local libast_inc=""
+	local d
 	for d in $src_abs/src/lib/libast/*/; do
 		case $d in
 		*/features/|*/man/) continue ;;
@@ -1152,19 +1160,21 @@ NINJA
 	libast_inc="$libast_inc -I$src_abs/src/lib/libast"
 
 	while IFS= read -r src; do
-		typeset base=${src##*/}
-		typeset obj=obj/libast/${base%.c}.o
+		local base=${src##*/}
+		local obj=obj/libast/${base%.c}.o
 
 		cat >> "$ninja" <<NINJA
 build $obj: cc $src_abs/$src
   extra_cflags = $libast_cflags $libast_inc
 NINJA
 		libast_objs="$libast_objs $obj"
-	done < <(collect_libast_sources)
+	done <<EOF
+$(collect_libast_sources)
+EOF
 
 	# Generated source files (conftab.c, lctab.c)
-	if [[ -f "$BUILDDIR/include/conftab.c" ]]; then
-		typeset obj=obj/libast/conftab.o
+	if [ -f "$BUILDDIR/include/conftab.c" ]; then
+		local obj=obj/libast/conftab.o
 		cat >> "$ninja" <<NINJA
 build $obj: cc $BUILDDIR_ABS/include/conftab.c
   extra_cflags = $libast_cflags $libast_inc
@@ -1172,8 +1182,8 @@ NINJA
 		libast_objs="$libast_objs $obj"
 	fi
 
-	if [[ -f "$BUILDDIR/include/lctab.c" ]]; then
-		typeset obj=obj/libast/lctab.o
+	if [ -f "$BUILDDIR/include/lctab.c" ]; then
+		local obj=obj/libast/lctab.o
 		cat >> "$ninja" <<NINJA
 build $obj: cc $BUILDDIR_ABS/include/lctab.c
   extra_cflags = $libast_cflags $libast_inc
@@ -1189,7 +1199,7 @@ NINJA
 
 	# ── libsum ──────────────────────────────────────────────────────
 
-	typeset libsum_cflags="-I$src_abs/src/lib/libsum $ast_std $ast_inc $ast_inc_parent"
+	local libsum_cflags="-I$src_abs/src/lib/libsum $ast_std $ast_inc $ast_inc_parent"
 
 	cat >> "$ninja" <<NINJA
 build obj/libsum/sumlib.o: cc $src_abs/src/lib/libsum/sumlib.c
@@ -1201,18 +1211,20 @@ NINJA
 
 	# ── libdll ──────────────────────────────────────────────────────
 
-	typeset libdll_objs=""
-	typeset libdll_cflags="-D_BLD_dll -I$src_abs/src/lib/libdll $ast_std $ast_inc $ast_inc_parent"
+	local libdll_objs=""
+	local libdll_cflags="-D_BLD_dll -I$src_abs/src/lib/libdll $ast_std $ast_inc $ast_inc_parent"
 
 	while IFS= read -r src; do
-		typeset base=${src##*/}
-		typeset obj=obj/libdll/${base%.c}.o
+		local base=${src##*/}
+		local obj=obj/libdll/${base%.c}.o
 		cat >> "$ninja" <<NINJA
 build $obj: cc $src_abs/$src
   extra_cflags = $libdll_cflags
 NINJA
 		libdll_objs="$libdll_objs $obj"
-	done < <(collect_libdll_sources)
+	done <<EOF
+$(collect_libdll_sources)
+EOF
 
 	cat >> "$ninja" <<NINJA
 
@@ -1222,18 +1234,20 @@ NINJA
 
 	# ── libcmd ──────────────────────────────────────────────────────
 
-	typeset libcmd_objs=""
-	typeset libcmd_cflags="-D_BLD_cmd -DERROR_CATALOG='\"libcmd\"' -DHOSTTYPE='\"$HOSTTYPE\"' -I$src_abs/src/lib/libcmd -I$BUILDDIR_ABS/libcmd_work $ast_std $ast_inc $ast_inc_parent"
+	local libcmd_objs=""
+	local libcmd_cflags="-D_BLD_cmd -DERROR_CATALOG='\"libcmd\"' -DHOSTTYPE='\"$HOSTTYPE\"' -I$src_abs/src/lib/libcmd -I$BUILDDIR_ABS/libcmd_work $ast_std $ast_inc $ast_inc_parent"
 
 	while IFS= read -r src; do
-		typeset base=${src##*/}
-		typeset obj=obj/libcmd/${base%.c}.o
+		local base=${src##*/}
+		local obj=obj/libcmd/${base%.c}.o
 		cat >> "$ninja" <<NINJA
 build $obj: cc $src_abs/$src
   extra_cflags = $libcmd_cflags
 NINJA
 		libcmd_objs="$libcmd_objs $obj"
-	done < <(collect_libcmd_sources)
+	done <<EOF
+$(collect_libcmd_sources)
+EOF
 
 	# libcmd also needs sumlib.o for checksum builtins
 	libcmd_objs="$libcmd_objs obj/libsum/sumlib.o"
@@ -1246,18 +1260,18 @@ NINJA
 
 	# ── ksh26 (libshell + binaries) ────────────────────────────────
 
-	typeset ksh_objs=""
-	typeset ksh_srcdir=src/cmd/ksh26
-	typeset ksh_cflags="-D_BLD_ksh -DSH_DICT='\"libshell\"' -D_API_ast=20100309"
+	local ksh_objs=""
+	local ksh_srcdir=src/cmd/ksh26
+	local ksh_cflags="-D_BLD_ksh -DSH_DICT='\"libshell\"' -D_API_ast=20100309"
 	ksh_cflags="$ksh_cflags -I$BUILDDIR_ABS/ksh26_work"
 	ksh_cflags="$ksh_cflags -I$src_abs/$ksh_srcdir"
 	ksh_cflags="$ksh_cflags -I$src_abs/$ksh_srcdir/include"
 	ksh_cflags="$ksh_cflags $ast_std $ast_inc $ast_inc_parent"
 
 	while IFS= read -r src; do
-		typeset base=${src##*/}
-		typeset obj=obj/ksh26/${base%.c}.o
-		typeset extra=""
+		local base=${src##*/}
+		local obj=obj/ksh26/${base%.c}.o
+		local extra=""
 
 		case $base in
 		pmain.c|shcomp.c) continue ;;
@@ -1273,7 +1287,9 @@ build $obj: cc $src_abs/$src
   extra_cflags = $ksh_cflags $extra
 NINJA
 		ksh_objs="$ksh_objs $obj"
-	done < <(collect_ksh26_sources)
+	done <<EOF
+$(collect_ksh26_sources)
+EOF
 
 	cat >> "$ninja" <<NINJA
 
@@ -1298,8 +1314,8 @@ NINJA
 
 	# ── Test targets ──────────────────────────────────────────
 
-	typeset test_runner=$BUILDDIR_ABS/run-test.sh
-	typeset tests_dir=$src_abs/src/cmd/ksh26/tests
+	local test_runner=$BUILDDIR_ABS/run-test.sh
+	local tests_dir=$src_abs/src/cmd/ksh26/tests
 
 	cat >> "$ninja" <<NINJA
 
@@ -1322,17 +1338,17 @@ pool serial
 
 NINJA
 
-	typeset all_stamps=""
-	typeset setslocale="locale"
-	typeset timesensitive="options sigchld subshell"
+	local all_stamps=""
+	local setslocale="locale"
+	local timesensitive="options sigchld subshell"
 
 	for test_sh in "$tests_dir"/*.sh; do
-		[[ -f "$test_sh" ]] || continue
-		typeset name=${test_sh##*/}
+		[ -f "$test_sh" ] || continue
+		local name=${test_sh##*/}
 		name=${name%.sh}
 
 		# Time-sensitive tests use the serial rule
-		typeset rule="test"
+		local rule="test"
 		case " $timesensitive " in
 		*" $name "*) rule="test_serial" ;;
 		esac
@@ -1365,15 +1381,15 @@ NINJA
 build test: phony $all_stamps
 NINJA
 
-	typeset stmts
+	local stmts
 	stmts=$(grep -c '^build ' "$ninja")
-	typeset final=${ninja%.new}
+	local final=${ninja%.new}
 	if cmp -s "$ninja" "$final" 2>/dev/null; then
 		rm -f "$ninja"
-		print "configure: build.ninja unchanged ($stmts build statements)"
+		printf '%s\n' "configure: build.ninja unchanged ($stmts build statements)"
 	else
 		mv -f "$ninja" "$final"
-		print "configure: wrote $final ($stmts build statements)"
+		printf '%s\n' "configure: wrote $final ($stmts build statements)"
 	fi
 }
 
@@ -1383,22 +1399,22 @@ NINJA
 
 generate_test_env()
 {
-	typeset outdir=$BUILDDIR
-	typeset shopt_h=$outdir/ksh26_work/shopt.h
+	local outdir=$BUILDDIR
+	local shopt_h=$outdir/ksh26_work/shopt.h
 
 	{
-		print '# test-env.sh — generated by configure.ksh'
-		print '# Source this to get SHOPT_* environment variables.'
-		print
+		printf '%s\n' '# test-env.sh — generated by configure.sh'
+		printf '%s\n' '# Source this to get SHOPT_* environment variables.'
+		printf '%s\n' ''
 
 		# Feed SHOPT.sh through a subshell to capture the exports
 		(
 			SHOPT()
 			{
-				typeset n=${1%%=*}
-				typeset v=${1#*=}
+				local n=${1%%=*}
+				local v=${1#*=}
 				case $1 in
-				*=?*) print "export SHOPT_$n=$v" ;;
+				*=?*) printf '%s\n' "export SHOPT_$n=$v" ;;
 				esac
 			}
 			. "$PACKAGEROOT/src/cmd/ksh26/SHOPT.sh"
@@ -1406,7 +1422,7 @@ generate_test_env()
 
 		# Override with probed values from shopt.h
 		# Names already start with SHOPT_ so just prefix 'export '
-		if [[ -f "$shopt_h" ]]; then
+		if [ -f "$shopt_h" ]; then
 			sed -n '/^#[ 	]*define[ 	][ 	]*SHOPT_/ {
 				s/.*define[ 	][ 	]*//
 				s/[ 	][ 	]*/=/
@@ -1419,13 +1435,13 @@ generate_test_env()
 
 generate_test_runner()
 {
-	typeset outdir=$BUILDDIR
-	typeset runner=$outdir/run-test.sh
+	local outdir=$BUILDDIR
+	local runner=$outdir/run-test.sh
 
 	# Write header with configure-time paths, then quoted heredoc body
-	print '#!/bin/sh' > "$runner"
-	print "PACKAGEROOT='$PACKAGEROOT_ABS'" >> "$runner"
-	print "BUILDDIR='$BUILDDIR_ABS'" >> "$runner"
+	printf '%s\n' '#!/bin/sh' > "$runner"
+	printf '%s\n' "PACKAGEROOT='$PACKAGEROOT_ABS'" >> "$runner"
+	printf '%s\n' "BUILDDIR='$BUILDDIR_ABS'" >> "$runner"
 
 	cat >> "$runner" <<'RUNNER'
 
@@ -1494,7 +1510,7 @@ RUNNER
 
 install_headers()
 {
-	print "configure: installing public headers ..."
+	printf '%s\n' "configure: installing public headers ..."
 
 	# libast public headers
 	cp -f src/lib/libast/include/*.h "$INCDIR/"
@@ -1508,7 +1524,7 @@ install_headers()
 	# but we also need them in the build tree for generated code.
 	for d in comp sfio; do
 		for f in src/lib/libast/$d/*.h; do
-			[[ -f "$f" ]] && cp -f "$f" "$INCDIR/"
+			[ -f "$f" ] && cp -f "$f" "$INCDIR/"
 		done
 	done
 
@@ -1532,7 +1548,7 @@ install_headers()
 
 # ── Main ──────────────────────────────────────────────────────────────
 
-print "configure: starting configuration for $HOSTTYPE ..."
+printf '%s\n' "configure: starting configuration for $HOSTTYPE ..."
 
 # Phase 0: Install public headers (needed by feature tests and compilation)
 install_headers
@@ -1549,11 +1565,12 @@ run_ksh26_features &
 wait
 
 {
-	typeset _iffe_cached _iffe_ran
+	_iffe_cached=0
+	_iffe_ran=0
 	_iffe_cached=$(grep -c cached "$_iffe_log" 2>/dev/null) || _iffe_cached=0
 	_iffe_ran=$(grep -c ran "$_iffe_log" 2>/dev/null) || _iffe_ran=0
-	if (( _iffe_cached > 0 )); then
-		print "configure: feature probes: $_iffe_ran ran, $_iffe_cached cached"
+	if [ "$_iffe_cached" -gt 0 ]; then
+		printf '%s\n' "configure: feature probes: $_iffe_ran ran, $_iffe_cached cached"
 	fi
 }
 
@@ -1576,4 +1593,4 @@ mkdir -p "$BUILDDIR/test"
 mkdir -p "$BUILDDIR/src/cmd/ksh26"
 cp -f "$BUILDDIR/ksh26_work/shopt.h" "$BUILDDIR/src/cmd/ksh26/shopt.h"
 
-print "configure: done"
+printf '%s\n' "configure: done"
