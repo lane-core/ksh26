@@ -552,6 +552,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	}
 	sh.curenv = ++subenv;
 	savst = sh.st;
+	/* scope boundary: custom sh.st save/restore via savst (Direction 4) */
 	sh_pushcontext(&checkpoint,SH_JMPSUB);
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;	/* increase ${.sh.subshell} */

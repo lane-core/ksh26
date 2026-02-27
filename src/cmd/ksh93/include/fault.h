@@ -65,7 +65,24 @@ typedef void (*SH_SIGTYPE)(int,void(*)(int));
 #define SH_SIGRTMAX		1	/* sh.sigruntime[] index */
 
 /*
- * These are longjmp values
+ * Longjmp modes, ordered by severity. When jmpval > current frame's
+ * mode, the error propagates upward; when jmpval <= mode, it's caught
+ * locally. This ordering encodes the ⊕/⅋ boundary. (Direction 5)
+ *
+ * ⊕ (recoverable, caught locally):
+ *   SH_JMPDOT    (2)  — dot-script return
+ *   SH_JMPEVAL   (3)  — eval return
+ *   SH_JMPTRAP   (4)  — trap handler return
+ *   SH_JMPIO     (5)  — I/O redirection cleanup
+ *   SH_JMPCMD    (6)  — builtin error
+ *
+ * ⅋ (propagating, callee-driven):
+ *   SH_JMPFUN    (7)  — function return
+ *   SH_JMPERRFN  (8)  — function stack overflow
+ *   SH_JMPSUB    (9)  — subshell exit
+ *   SH_JMPERREXIT(10) — errexit (⊕→⅋ converted)
+ *   SH_JMPEXIT   (11) — exit builtin
+ *   SH_JMPSCRIPT (12) — script-level exit
  */
 
 #define SH_JMPDOT	2

@@ -392,6 +392,7 @@ void	sh_sigclear(int sig)
 
 /*
  * check for traps
+ * ⊕→⅋ bridge: convert nonzero exit status to ERR trap / errexit longjmp (Direction 5)
  */
 void	sh_chktrap(void)
 {
@@ -460,17 +461,23 @@ void	sh_chktrap(void)
 /*
  * parse and execute the given trap string, stream or tree depending on mode
  * mode==0 for string, mode==1 for stream, mode==2 for parse tree
- * The return value is the exit status of the trap action.
+ * ⊕ return: execute trap action; restores caller's sh.exitval (Direction 5)
  */
 int sh_trap(const char *trap, int mode)
 {
+	struct sh_polarity polframe;
 	int	jmpval, savxit = sh.exitval, savxit_return;
 	int	was_history = sh_isstate(SH_HISTORY);
 	int	was_verbose = sh_isstate(SH_VERBOSE);
 	char	was_no_trapdontexec = !sh.st.trapdontexec;
 	char	save_chldexitsig = sh.chldexitsig;
+	/* three-layer nesting: stk outermost, polarity middle, continuation innermost (Direction 6) */
 	int	staktop = stktell(sh.stk);
 	void	*savptr = stkfreeze(sh.stk,0);
+	/* skip polarity frame when called from sh_debug (which has its own
+	 * frame + update_sh_level); double-framing breaks scope restoration
+	 * because sh.var_tree is not in the polarity frame (Direction 4) */
+	int	use_polframe = !sh.indebug;
 	struct	checkpt buff;
 	Fcin_t	savefc;
 	fcsave(&savefc);
@@ -480,6 +487,9 @@ int sh_trap(const char *trap, int mode)
 	/* disable last-command exec optimisation so the caller gets to complete execution */
 	if(was_no_trapdontexec)
 		sh.st.trapdontexec = 's';  /* special value for direct sh_trap() call */
+	/* polarity boundary: trap handler runs in computation mode (Direction 4) */
+	if(use_polframe)
+		sh_polarity_enter(&polframe);
 	sh_pushcontext(&buff,SH_JMPTRAP);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
@@ -514,6 +524,8 @@ int sh_trap(const char *trap, int mode)
 		sh.intrap_exit_n = 0;
 	else
 		sh.exitval = savxit;
+	if(use_polframe)
+		sh_polarity_leave(&polframe);
 	stkset(sh.stk,savptr,staktop);
 	fcrestore(&savefc);
 	if(was_history)
@@ -529,6 +541,7 @@ int sh_trap(const char *trap, int mode)
 
 /*
  * exit the current scope and jump to an earlier one based on pp->mode
+ * ⅋ terminal: longjmp to sh.jmplist (Direction 5)
  */
 void sh_exit(int xno)
 {

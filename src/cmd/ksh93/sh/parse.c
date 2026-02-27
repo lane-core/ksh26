@@ -883,6 +883,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	if((flag && lexp->token!=LBRACE) || lexp->token==EOFSYM)
 		sh_syntax(lexp,0);
+	/* computation-only: parse error recovery for function body (Direction 4) */
 	sh_pushcontext(&buff,1);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)

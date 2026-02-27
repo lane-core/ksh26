@@ -239,6 +239,18 @@ struct sh_polarity
 	struct sh_scoped st;		/* saved sh.st */
 };
 
+/*
+ * Prefix guard: lightweight save/clear/restore for within-value
+ * operations. Unlike a polarity frame, this does NOT save sh.st
+ * (no mode crossing). See REDESIGN.md Direction 3.
+ */
+struct sh_prefix_guard
+{
+	char		*prefix;	/* saved sh.prefix */
+	Dt_t		*prefix_root;	/* saved sh.prefix_root */
+	Dt_t		*first_root;	/* saved sh.first_root */
+};
+
 struct limits
 {
 	int		open_max;	/* maximum number of file descriptors */

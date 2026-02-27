@@ -109,6 +109,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	if(mode= (*options==':'))
 		options++;
 	extended = *options=='\n' && *(options+1)=='[' || *options=='[' && *(options+1)=='-';
+	/* computation-only: optget error recovery (Direction 4) */
 	sh_pushcontext(&buff,1);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval)

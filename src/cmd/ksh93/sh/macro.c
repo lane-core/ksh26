@@ -132,6 +132,7 @@ char *sh_mactry(char *string)
 		int		savexit = sh.savexit;
 		struct checkpt	buff;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex = *lexp;
+		/* computation-only: error recovery for macro expansion (Direction 4) */
 		sh_pushcontext(&buff,SH_JMPSUB);
 		jmp_val = sigsetjmp(buff.buff,0);
 		if(jmp_val == 0)
@@ -2313,6 +2314,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 			int r=0;
 			struct checkpt buff;
 			struct ionod *ip=0;
+			/* computation-only: I/O for $(<file) (Direction 4) */
 			sh_pushcontext(&buff,SH_JMPIO);
 			if((ip=t->tre.treio) &&
 				((ip->iofile&IOLSEEK) || !(ip->iofile&IOUFD)) &&
