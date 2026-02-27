@@ -69,56 +69,19 @@ differences from upstream: [DEVIATIONS.md](DEVIATIONS.md).
 
 ## Changes from ksh93u+m
 
-### Bug fixes
-
-Three bugs found via polarity analysis, all in the interpreter's
-state management:
-
-1. **typeset + compound-associative expansion** — `typeset -i`
-   combined with `${REGISTRY[$key].field}` corrupted `sh.prefix`
-   during name resolution, producing "invalid variable name" errors.
-2. **DEBUG trap + compound assignment** — `typeset` inside a function
-   called from a DEBUG trap during compound assignment failed because
-   `sh_debug()` didn't save/restore `sh.prefix`.
-3. **DEBUG trap self-removal** — `trap - DEBUG` inside a handler had
-   no lasting effect; the blanket `sh.st` restore overwrote the
-   handler's trap removal.
-
-All three are fixed in ksh26. Fixes for bugs 1–2 were submitted
+The interpreter's state management is restructured so that boundary
+crossings between value mode (expansion, assignment) and computation
+mode (traps, discipline functions) are handled by explicit frame APIs
+rather than ad-hoc save/restore. This eliminates a class of bugs where
+state leaks across mode boundaries — three such bugs were found by the
+analysis and fixed before users hit them. Fixes for two were submitted
 upstream.
 
-### Interpreter architecture
+The AT&T MAM build system (~12,000 lines) is replaced with just +
+samu + a POSIX configure script. Dead library code for obsolete
+platforms is removed. Every ksh93u+m script runs unmodified.
 
-The implicit state invariants in ksh93's interpreter are made explicit
-via a polarity frame API (9 directions, documented in REDESIGN.md):
-
-- **Polarity frames** (`sh_polarity_enter`/`leave`) reify
-  value/computation boundary crossings. Converted at trap dispatch,
-  function calls, environment operations (6 sites).
-- **Prefix guards** (`sh_prefix_enter`/`leave`) isolate inner name
-  resolution from outer compound assignment context (5 sites).
-- **Scope unification** (`sh_scope_set`) keeps `sh.var_tree` and
-  `sh.st.own_tree` atomically synchronized.
-- **Scope dictionary pool** — 8-entry LIFO cache for function scope
-  dictionaries. ~8.5% improvement on tight call loops.
-- **Compound assignment longjmp safety** — `L_ARGNOD` cleanup
-  registered in `sh_exit()`, preventing dangling pointers after
-  longjmp during `nv_setlist`.
-
-### Build system
-
-The AT&T MAM build system (~12,000 lines: Mamfiles, mamake, bin/package)
-is replaced with:
-
-- `justfile` — user-facing recipes (~50 lines)
-- `configure.sh` — platform probing, generates `build.ninja` (~1,600 lines)
-- `samu` — vendored ninja implementation
-
-### Script compatibility
-
-Every ksh93u+m script runs unmodified. The three bug fixes improve
-correctness without breaking valid scripts. ksh26 reports
-`ksh26/0.1.0-alpha` in `${.sh.version}`.
+Implementation details: [REDESIGN.md](REDESIGN.md).
 
 
 ## Building
