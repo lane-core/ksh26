@@ -60,6 +60,8 @@
           export HOSTTYPE="''${os}.''${arch}-''${bits}"
         '';
 
+        passthru.shellPath = "/bin/ksh";
+
         meta = with pkgs.lib; {
           description = "ksh26 — independent fork of the KornShell (ksh93u+m)";
           homepage = "https://github.com/lane-core/ksh";
@@ -69,6 +71,11 @@
         };
       };
     });
+
+    overlays.default = final: prev: {
+      ksh26 = self.packages.${prev.stdenv.hostPlatform.system}.default;
+      ksh = final.ksh26;
+    };
 
     devShells = forAllSystems (system:
     let
