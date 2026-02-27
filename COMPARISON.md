@@ -1,11 +1,9 @@
-# Shell Interactive Feature Comparison and ksh26 Opportunities
+# ksh26: Feature Vision
 
-A comparative analysis of interactive features across the Bourne shell family
-and modern shells, mapped onto ksh93's architecture and ksh26's polarity frame
-infrastructure. Intended as a reference for implementation planning.
-
-For the theoretical foundation: [SPEC.md](SPEC.md).
-For current refactor status: [REDESIGN.md](REDESIGN.md).
+What ksh26 should do for users. Interactive features, scripting extensions,
+and design principles for a Unix shell in 2026. For how we're getting there:
+[REDESIGN.md](REDESIGN.md). For the theoretical analysis informing the
+architecture: [SPEC.md](SPEC.md).
 
 
 ## Vision: the Unix shell in 2026

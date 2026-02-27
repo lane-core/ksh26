@@ -1,15 +1,23 @@
-# ksh26: A Sequent Calculus-Guided Redesign of ksh93
+# ksh26: Theoretical Foundation
 
 ## What this document is
 
-A vision and analysis document for the ksh26 branch — a structural refactor of
-ksh93u+m guided by ideas from sequent calculus, polarized type theory, and
-duploid semantics. It maps the theoretical framework onto the actual codebase,
-identifies where the existing architecture's implicit structure breaks down, and
-sketches the refactoring direction.
+ksh93's interpreter has structure that the original authors built correctly
+but never named. Two execution modes, boundary crossings with state
+discipline, dual error conventions, a continuation stack — these aren't
+abstractions we're imposing; they're patterns already present in the C code,
+maintained by careful programming across three decades.
 
-This is not an implementation spec. It's an analytical lens — a way to see
-what's already there and name the patterns that are currently unnamed.
+Sequent calculus, polarized type theory, and duploid semantics give us
+precise vocabulary for these patterns. This document maps the theory onto
+the codebase: where the modes are, where the boundaries fall, what invariants
+hold at each crossing, and what goes wrong when they're violated. The
+analysis found bugs [001]–[003] and informs every direction in
+[REDESIGN.md](REDESIGN.md).
+
+[001]: ../bugs/001-typeset-compound-assoc-expansion.ksh
+[002]: ../bugs/002-typeset-debug-trap-compound-assign.ksh
+[003]: ../bugs/003-debug-trap-self-unset.ksh
 
 
 ## The observation
