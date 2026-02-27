@@ -14,10 +14,18 @@ refactor guided by System L / duploid theory (see `REDESIGN.md`).
 ## Building and testing
 
 ```sh
-bin/package make        # build
-bin/package test        # full test suite
-bin/shtests             # ksh regression tests directly
+just build              # build (default recipe)
+just test               # parallel test suite (111 tests)
+just test-one basic     # run a single test
+just clean              # remove build artifacts
+just configure          # (re)run feature detection
+just reconfigure        # force all probes to rerun
 ```
+
+The build system is three layers: `just` (porcelain) → `configure.ksh` (probes
++ generates `build.ninja`) → `samu` (vendored ninja, executes `build.ninja`).
+Output goes to `build/$HOSTTYPE/`. Feature probes are cached — reconfigure takes
+~5s when nothing changed.
 
 Tests live in `src/cmd/ksh26/tests/`. Use the `err_exit` pattern for assertions.
 
