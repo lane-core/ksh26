@@ -46,7 +46,6 @@ FEATURE/
 /src/lib/libast/t.c
 /src/lib/libcmd/cmdext.h
 /src/lib/libcmd/cmdlist.h
-/src/lib/libdll/dlldefs.h
 
 # Miscellaneous artefacts
 *.stackdump

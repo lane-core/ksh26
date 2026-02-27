@@ -64,7 +64,7 @@ PACKAGEROOT_ABS=$(cd "$PACKAGEROOT" && pwd)
 BUILDDIR_ABS=$PACKAGEROOT_ABS/$BUILDDIR
 
 mkdir -p "$BUILDDIR/bin" "$OBJDIR" "$INCDIR" "$LIBDIR" "$FEATDIR" \
-	"$OBJDIR/libast" "$OBJDIR/libsum" "$OBJDIR/libdll" "$OBJDIR/libcmd" \
+	"$OBJDIR/libast" "$OBJDIR/libcmd" \
 	"$OBJDIR/ksh26"
 
 # ── Compiler probe ────────────────────────────────────────────────────
@@ -149,11 +149,10 @@ CACHE_KEY_FILE=$BUILDDIR_ABS/.configure_cache_key
 if $FORCE; then
 	printf '%s\n' "configure: --force: invalidating all cached probes"
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
-		"$BUILDDIR_ABS"/libsum_work/FEATURE/* \
-		"$BUILDDIR_ABS"/libdll_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
+		"$BUILDDIR_ABS"/.utf8proc_cache \
 		"$BUILDDIR_ABS"/config.probe \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
 elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
@@ -163,11 +162,10 @@ else
 		printf '%s\n' "configure: compiler or flags changed, invalidating probe cache"
 	fi
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
-		"$BUILDDIR_ABS"/libsum_work/FEATURE/* \
-		"$BUILDDIR_ABS"/libdll_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
-		"$BUILDDIR_ABS"/.iconv_cache 2>/dev/null || true
+		"$BUILDDIR_ABS"/.iconv_cache \
+		"$BUILDDIR_ABS"/.utf8proc_cache 2>/dev/null || true
 fi
 printf '%s\n' "$CACHE_KEY" > "$CACHE_KEY_FILE"
 
@@ -210,6 +208,70 @@ int main(void) { iconv_open("",""); return 0; }'
 	else
 		printf '%s\n' "configure: iconv: not found (AST fallback)"
 	fi
+fi
+
+# ── Optional dependency: utf8proc ─────────────────────────────────────
+# utf8proc provides correct Unicode grapheme/width support for the line
+# editor (Direction 15). Check system first, fall back to fetching.
+
+UTF8PROC_CFLAGS=""
+UTF8PROC_LIBS=""
+HAVE_UTF8PROC=0
+utf8proc_cache=$BUILDDIR_ABS/.utf8proc_cache
+
+UTF8PROC_VERSION="v2.9.0"
+UTF8PROC_REPO="https://github.com/JuliaStrings/utf8proc.git"
+
+if [ -f "$utf8proc_cache" ] && [ "$utf8proc_cache" -nt "$CONFIGURE_SELF" ]; then
+	eval "$(cat "$utf8proc_cache")"
+	if [ "$HAVE_UTF8PROC" = 1 ]; then
+		printf '%s\n' "configure: utf8proc: found (cached)"
+	else
+		printf '%s\n' "configure: utf8proc: not found (cached)"
+	fi
+else
+	utf8proc_test='#include <utf8proc.h>
+int main(void) { utf8proc_grapheme_break(0,0); return 0; }'
+
+	if printf '%s' "$utf8proc_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -lutf8proc 2>/dev/null; then
+		UTF8PROC_LIBS="-lutf8proc"
+		HAVE_UTF8PROC=1
+		printf '%s\n' "configure: utf8proc: system (-lutf8proc)"
+	elif command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libutf8proc 2>/dev/null; then
+		UTF8PROC_CFLAGS=$(pkg-config --cflags libutf8proc)
+		UTF8PROC_LIBS=$(pkg-config --libs libutf8proc)
+		HAVE_UTF8PROC=1
+		printf '%s\n' "configure: utf8proc: pkg-config ($UTF8PROC_LIBS)"
+	else
+		# Fetch and build from source
+		depdir=$BUILDDIR_ABS/deps/utf8proc
+		if [ ! -f "$depdir/utf8proc.c" ]; then
+			printf '%s\n' "configure: utf8proc: fetching $UTF8PROC_VERSION ..."
+			mkdir -p "$BUILDDIR_ABS/deps"
+			git clone --depth 1 --branch "$UTF8PROC_VERSION" \
+				"$UTF8PROC_REPO" "$depdir" 2>/dev/null \
+				|| { printf '%s\n' "configure: utf8proc: fetch failed (optional)"; }
+		fi
+		if [ -f "$depdir/utf8proc.c" ]; then
+			printf '%s\n' "configure: utf8proc: building from source ..."
+			$CC_PATH $CFLAGS -c -o "$depdir/utf8proc.o" \
+				-I"$depdir" "$depdir/utf8proc.c" 2>/dev/null \
+			&& ar rcs "$depdir/libutf8proc.a" "$depdir/utf8proc.o" 2>/dev/null \
+			&& {
+				UTF8PROC_CFLAGS="-I$depdir"
+				UTF8PROC_LIBS="-L$depdir -lutf8proc"
+				HAVE_UTF8PROC=1
+				printf '%s\n' "configure: utf8proc: built from source"
+			} || printf '%s\n' "configure: utf8proc: build failed (optional)"
+		else
+			printf '%s\n' "configure: utf8proc: not available (optional)"
+		fi
+	fi
+	cat > "$utf8proc_cache" <<EOF
+UTF8PROC_CFLAGS="$UTF8PROC_CFLAGS"
+UTF8PROC_LIBS="$UTF8PROC_LIBS"
+HAVE_UTF8PROC=$HAVE_UTF8PROC
+EOF
 fi
 
 # ── iffe helper ───────────────────────────────────────────────────────
@@ -504,36 +566,6 @@ run_libast_conf()
 				< "$srcdir/port/lc.tab" 2>/dev/null || true
 		fi
 	fi
-}
-
-# ── Feature tests: libdll ─────────────────────────────────────────────
-
-run_libdll_features()
-{
-	local srcdir=$PACKAGEROOT_ABS/src/lib/libdll
-	local workdir=$BUILDDIR_ABS/libdll_work
-
-	mkdir -p "$workdir/FEATURE"
-
-	printf '%s\n' "configure: running libdll feature tests ..."
-	run_iffe "$workdir" "$srcdir/features/dll"
-	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$workdir/dlldefs.h"
-	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$INCDIR/dlldefs.h"
-	[ -f "$workdir/FEATURE/dll" ] && cp -f "$workdir/FEATURE/dll" "$FEATDIR/dll"
-}
-
-# ── Feature tests: libsum ─────────────────────────────────────────────
-
-run_libsum_features()
-{
-	local srcdir=$PACKAGEROOT_ABS/src/lib/libsum
-	local workdir=$BUILDDIR_ABS/libsum_work
-
-	mkdir -p "$workdir/FEATURE"
-
-	printf '%s\n' "configure: running libsum feature tests ..."
-	run_iffe "$workdir" "$srcdir/features/sum"
-	[ -f "$workdir/FEATURE/sum" ] && cp -f "$workdir/FEATURE/sum" "$FEATDIR/sum"
 }
 
 # ── Feature tests: libcmd ─────────────────────────────────────────────
@@ -1074,20 +1106,17 @@ collect_libast_sources()
 		| sort
 }
 
-collect_libsum_sources()
-{
-	# libsum compiles a single file: sumlib.c (which includes the rest)
-	printf '%s\n' "src/lib/libsum/sumlib.c"
-}
-
-collect_libdll_sources()
-{
-	find src/lib/libdll -name '*.c' -not -path '*/features/*' | sort
-}
-
 collect_libcmd_sources()
 {
-	find src/lib/libcmd -name '*.c' -not -path '*/features/*' | sort
+	# Static builtin set (9) + support files (cmdinit, lib).
+	# Remaining libcmd sources stay in tree for builtin -f if
+	# dynamic loading is re-enabled.
+	for f in \
+		basename cat cp cut dirname getconf ln mktemp mv \
+		cmdinit lib \
+	; do
+		printf '%s\n' "src/lib/libcmd/$f.c"
+	done
 }
 
 collect_ksh26_sources()
@@ -1198,41 +1227,6 @@ build lib/libast.a: ar $libast_objs
 
 NINJA
 
-	# ── libsum ──────────────────────────────────────────────────────
-
-	local libsum_cflags="-I$src_abs/src/lib/libsum $ast_std $ast_inc $ast_inc_parent"
-
-	cat >> "$ninja" <<NINJA
-build obj/libsum/sumlib.o: cc $src_abs/src/lib/libsum/sumlib.c
-  extra_cflags = $libsum_cflags
-
-build lib/libsum.a: ar obj/libsum/sumlib.o
-
-NINJA
-
-	# ── libdll ──────────────────────────────────────────────────────
-
-	local libdll_objs=""
-	local libdll_cflags="-D_BLD_dll -I$src_abs/src/lib/libdll $ast_std $ast_inc $ast_inc_parent"
-
-	while IFS= read -r src; do
-		local base=${src##*/}
-		local obj=obj/libdll/${base%.c}.o
-		cat >> "$ninja" <<NINJA
-build $obj: cc $src_abs/$src
-  extra_cflags = $libdll_cflags
-NINJA
-		libdll_objs="$libdll_objs $obj"
-	done <<EOF
-$(collect_libdll_sources)
-EOF
-
-	cat >> "$ninja" <<NINJA
-
-build lib/libdll.a: ar $libdll_objs
-
-NINJA
-
 	# ── libcmd ──────────────────────────────────────────────────────
 
 	local libcmd_objs=""
@@ -1249,9 +1243,6 @@ NINJA
 	done <<EOF
 $(collect_libcmd_sources)
 EOF
-
-	# libcmd also needs sumlib.o for checksum builtins
-	libcmd_objs="$libcmd_objs obj/libsum/sumlib.o"
 
 	cat >> "$ninja" <<NINJA
 
@@ -1302,12 +1293,12 @@ build obj/ksh26/pmain.o: cc $src_abs/$ksh_srcdir/sh/pmain.c
 build obj/ksh26/shcomp.o: cc $src_abs/$ksh_srcdir/sh/shcomp.c
   extra_cflags = $ksh_cflags
 
-build bin/ksh: link obj/ksh26/pmain.o | lib/libshell.a lib/libcmd.a lib/libast.a lib/libdll.a lib/libsum.a
-  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm $ICONV_FLAGS
+build bin/ksh: link obj/ksh26/pmain.o | lib/libshell.a lib/libcmd.a lib/libast.a
+  libs = -Llib -lshell -lcmd -last -lm $ICONV_FLAGS
   ldflags =
 
-build bin/shcomp: link obj/ksh26/shcomp.o | lib/libshell.a lib/libcmd.a lib/libast.a lib/libdll.a lib/libsum.a
-  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm $ICONV_FLAGS
+build bin/shcomp: link obj/ksh26/shcomp.o | lib/libshell.a lib/libcmd.a lib/libast.a
+  libs = -Llib -lshell -lcmd -last -lm $ICONV_FLAGS
   ldflags =
 
 default bin/ksh bin/shcomp
@@ -1529,12 +1520,6 @@ install_headers()
 		done
 	done
 
-	# libsum public headers
-	cp -f src/lib/libsum/sum.h "$INCDIR/"
-
-	# libdll public headers
-	# dlldefs.h is generated from FEATURE/dll (handled in run_libdll_features)
-
 	# libcmd public headers
 	cp -f src/lib/libcmd/cmd.h "$INCDIR/" 2>/dev/null || true
 
@@ -1557,10 +1542,8 @@ install_headers
 # Phase 1: Feature detection
 run_libast_features
 
-# libsum, libdll, libcmd, ksh26 are independent of each other
+# libcmd, ksh26 are independent of each other
 # (they only depend on libast feature headers being installed)
-run_libsum_features &
-run_libdll_features &
 run_libcmd_features &
 run_ksh26_features &
 wait
