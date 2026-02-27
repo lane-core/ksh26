@@ -1,7 +1,7 @@
 # ksh26
 
 ksh26 is a Unix shell. It is an independent fork of
-[ksh 93u+m](https://github.com/ksh93/ksh), redesigned from ksh93 to
+[ksh93u+m](https://github.com/ksh93/ksh), redesigned from ksh93 to
 modern standards. ksh26 is a superset of ksh93: every ksh93 script
 runs unmodified, but the internals, build system, and platform
 targeting are rebuilt for current systems.
@@ -34,21 +34,78 @@ Feature direction: [COMPARISON.md](COMPARISON.md). Behavioral
 differences from upstream: [DEVIATIONS.md](DEVIATIONS.md).
 
 
+## Changes from ksh93u+m
+
+### Bug fixes
+
+Three bugs found via polarity analysis, all in the interpreter's
+state management:
+
+1. **typeset + compound-associative expansion** — `typeset -i`
+   combined with `${REGISTRY[$key].field}` corrupted `sh.prefix`
+   during name resolution, producing "invalid variable name" errors.
+2. **DEBUG trap + compound assignment** — `typeset` inside a function
+   called from a DEBUG trap during compound assignment failed because
+   `sh_debug()` didn't save/restore `sh.prefix`.
+3. **DEBUG trap self-removal** — `trap - DEBUG` inside a handler had
+   no lasting effect; the blanket `sh.st` restore overwrote the
+   handler's trap removal.
+
+All three are fixed in ksh26. Fixes for bugs 1–2 were submitted
+upstream.
+
+### Interpreter architecture
+
+The implicit state invariants in ksh93's interpreter are made explicit
+via a polarity frame API (9 directions, documented in REDESIGN.md):
+
+- **Polarity frames** (`sh_polarity_enter`/`leave`) reify
+  value/computation boundary crossings. Converted at trap dispatch,
+  function calls, environment operations (6 sites).
+- **Prefix guards** (`sh_prefix_enter`/`leave`) isolate inner name
+  resolution from outer compound assignment context (5 sites).
+- **Scope unification** (`sh_scope_set`) keeps `sh.var_tree` and
+  `sh.st.own_tree` atomically synchronized.
+- **Scope dictionary pool** — 8-entry LIFO cache for function scope
+  dictionaries. ~8.5% improvement on tight call loops.
+- **Compound assignment longjmp safety** — `L_ARGNOD` cleanup
+  registered in `sh_exit()`, preventing dangling pointers after
+  longjmp during `nv_setlist`.
+
+### Build system
+
+The AT&T MAM build system (~12,000 lines: Mamfiles, mamake, bin/package)
+is replaced with:
+
+- `justfile` — user-facing recipes (~50 lines)
+- `configure.ksh` — platform probing, generates `build.ninja` (~1,000 lines)
+- `samu` — vendored ninja implementation
+
+### Script compatibility
+
+Every ksh93u+m script runs unmodified. The three bug fixes improve
+correctness without breaking valid scripts. ksh26 reports
+`ksh26/0.1.0-alpha` in `${.sh.version}`.
+
+
 ## Building
 
-    bin/package make
-    bin/package test
+    just build
+    just test
+
+Requires: C23 compiler (GCC 14+ / Clang 18+), `just`, POSIX shell.
 
 
 ## Branches
 
-`main` is the development branch. `upstream` tracks `ksh93/ksh` dev.
-Bugfixes found during ksh26 work are submitted back to upstream as PRs.
+`main` is the development branch. `legacy` tracks the pre-fork
+`ksh93/ksh` dev branch. Bugfixes found during ksh26 work are
+submitted back to upstream as PRs.
 
 
 ## Origin
 
-David Korn, AT&T Bell Labs, 1983. ksh 93u+ (2012). ksh 93u+m
+David Korn, AT&T Bell Labs, 1983. ksh 93u+ (2012). ksh93u+m
 (2020–present, Martijn Dekker et al.). ksh26 (2025, Lane Biocini).
 
 

@@ -1,15 +1,15 @@
-# ksh — ksh93u+m fork (ksh26 branch)
+# ksh26
 
-Fork of ksh93u+m (upstream: `ksh93/ksh`). The `ksh26` branch is a structural
-refactor guided by System L / duploid theory (see `REDESIGN.md`).
+Independent fork of ksh93u+m (upstream: `ksh93/ksh`), redesigned to
+modern standards. Guided by System L / duploid theory (see `REDESIGN.md`).
 
 ## Branches
 
 | Branch | Purpose |
 |--------|---------|
-| `dev` | Tracks upstream `ksh93/ksh` dev. Bugfixes land here first. |
-| `ksh26` | Structural refactor branch. Diverges from dev over time. |
-| `fix/*` | Bugfix branches off dev, submitted as PRs to upstream. |
+| `main` | Primary development branch. |
+| `legacy` | Tracks upstream `ksh93/ksh` dev. Pre-fork state. |
+| `fix/*` | Bugfix branches off legacy, submitted as PRs to upstream. |
 
 ## Building and testing
 
@@ -29,21 +29,21 @@ Output goes to `build/$HOSTTYPE/`. Feature probes are cached — reconfigure tak
 
 Tests live in `src/cmd/ksh26/tests/`. Use the `err_exit` pattern for assertions.
 
-## Coding conventions (upstream)
+## Coding conventions
 
 - Indent with tabs (8-space width)
 - Opening braces on own line
 - `/* */` comments only (no `//`)
-- C89 dialect
+- C23 dialect (GCC 14+ / Clang 18+)
 - Each upstream PR is squashed into a single commit
 
-## Merge flow: dev → ksh26
+## Merge flow: legacy → main
 
-Bugfixes are developed on `fix/*` branches off `dev` and submitted as PRs to
-upstream (`ksh93/ksh`). When fixes land on dev, they should be evaluated for
-incorporation into ksh26.
+Bugfixes are developed on `fix/*` branches off `legacy` and submitted as PRs to
+upstream (`ksh93/ksh`). When fixes land on legacy, they should be evaluated for
+incorporation into main.
 
-### When a dev fix applies cleanly
+### When a legacy fix applies cleanly
 
 Cherry-pick or merge. No special documentation needed beyond the commit message.
 
@@ -51,9 +51,9 @@ Cherry-pick or merge. No special documentation needed beyond the commit message.
 git cherry-pick <commit>    # if it applies cleanly
 ```
 
-### When a dev fix doesn't apply
+### When a legacy fix doesn't apply
 
-When ksh26 has diverged enough that a dev fix can't be cherry-picked, document
+When main has diverged enough that a legacy fix can't be cherry-picked, document
 the situation. Create a note in `notes/divergences/` with:
 
 - **What the dev fix does**: commit hash, summary, which files it touches
@@ -66,7 +66,7 @@ Example filename: `NNN-short-description.md`
 
 ### Structural prevention
 
-Some dev bugfixes will be unnecessary on ksh26 because the refactored
+Some legacy bugfixes will be unnecessary on main because the refactored
 architecture prevents the bug class entirely. These are worth documenting as
 evidence that the refactor is working — they're the payoff.
 
@@ -86,9 +86,9 @@ handles this boundary crossing. The manual save/restore that the dev
 fix adds is unnecessary because [specific reason].
 ```
 
-## ksh26 documentation workflow
+## Documentation workflow
 
-The ksh26 branch maintains two companion documents:
+The main branch maintains two companion documents:
 
 - **SPEC.md** — The stable theoretical analysis. Sequent calculus correspondence,
   duploid framework, critical pair diagnosis, boundary violation taxonomy. This
@@ -98,8 +98,8 @@ The ksh26 branch maintains two companion documents:
   this as work progresses.
 
 When implementing a direction or converting a call site, update REDESIGN.md to
-reflect the new state. When a dev bugfix is handled differently (or structurally
-prevented) on ksh26, add a note to `notes/divergences/` and update the
+reflect the new state. When a legacy bugfix is handled differently (or structurally
+prevented) on main, add a note to `notes/divergences/` and update the
 divergence table in REDESIGN.md.
 
 ## Reference papers
@@ -109,12 +109,10 @@ Theoretical background for the ksh26 refactor lives in `~/src/ksh/`:
 - `dissection-of-l.gist.txt` — Dissection of L (System L / duploid structure)
 - `wadler-cbv-dual-cbn-reloaded.pdf` — Wadler, "Call-by-value is dual to call-by-name, reloaded"
 
-See also `SPEC.md` and `REDESIGN.md` in the ksh26 worktree for the full
-theoretical analysis and implementation status.
+See also `SPEC.md` and `REDESIGN.md` for the full theoretical analysis
+and implementation status.
 
-## ksh26-specific notes
-
-### Key source files
+## Key source files
 
 | File | Role | Polarity relevance |
 |------|------|--------------------|
@@ -125,7 +123,7 @@ theoretical analysis and implementation status.
 | `src/cmd/ksh26/include/fault.h` | checkpt, push/pop context | Continuation stack |
 | `src/cmd/ksh26/include/shnodes.h` | Shnode_t AST union, type tags | Two-sorted syntax |
 
-### Polarity-sensitive global state
+## Polarity-sensitive global state
 
 These `Shell_t` fields require save/restore discipline at polarity boundaries:
 
@@ -136,9 +134,9 @@ These `Shell_t` fields require save/restore discipline at polarity boundaries:
 | `sh.jmplist` (shell.h:306) | `sigjmp_buf*` | Continuation stack head |
 | `sh.var_tree` (shell.h:246) | `Dt_t*` | Current variable scope |
 
-### Bug documentation (ksh26-specific)
+## Bug documentation
 
-Bugs specific to the ksh26 refactor go in `notes/bugs/`, following the same
-format as the parent project's `bugs/` directory (self-contained reproducer
-scripts with header comments, analysis, and workaround). These are separate
-from upstream bugs.
+Bugs specific to ksh26 go in `notes/bugs/`, following the same format as
+the parent project's `bugs/` directory (self-contained reproducer scripts
+with header comments, analysis, and workaround). These are separate from
+upstream bugs.
