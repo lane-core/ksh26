@@ -242,7 +242,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             ignored. \bfailed\b lists failures only and \bpath\b lists the
             results file path name only.]
         [+test\b [ \b\adir\a\b ]]\b?Run all available default regression tests.
-            If the optional \adir\a argument (such as \bsrc/cmd/ksh93\b) is given,
+            If the optional \adir\a argument (such as \bsrc/cmd/ksh26\b) is given,
             only the tests in that directory are run.
             If the standard output is a terminal then the
             output is also captured in \b$INSTALLROOT/lib/package/gen/test.out\b.
@@ -493,7 +493,7 @@ DESCRIPTION
           lists the results file path name only.
     test [ dir ]
           Run all available default regression tests. If the optional dir
-          argument (such as src/cmd/ksh93) is given, only the tests in that
+          argument (such as src/cmd/ksh26) is given, only the tests in that
           directory are run. If the standard output is a terminal then the
           output is also captured in $INSTALLROOT/lib/package/gen/test.out.
           Programs must be made before they can be tested. For ksh, a separate
@@ -2325,9 +2325,9 @@ do_install() # dir [ command ... ]
 		fi
 		# install manual pages and autoloadable functions
 		case $f in
-		ksh)	trace cp "$PACKAGEROOT/src/cmd/ksh93/sh.1" "$DESTDIR$man1dir/ksh.1" || exit
+		ksh)	trace cp "$PACKAGEROOT/src/cmd/ksh26/sh.1" "$DESTDIR$man1dir/ksh.1" || exit
 			trace mkdir -p "$DESTDIR$fundir" || exit
-			(set +o noglob; trace cp "$PACKAGEROOT"/src/cmd/ksh93/fun/* "$DESTDIR$fundir/") || exit
+			(set +o noglob; trace cp "$PACKAGEROOT"/src/cmd/ksh26/fun/* "$DESTDIR$fundir/") || exit
 			;;
 		*)	manfile=$DESTDIR$man1dir/${f##*/}.1
 			bin/ksh -c '"$@" 2>&1' _ "bin/$f" --\?\?nroff >$manfile

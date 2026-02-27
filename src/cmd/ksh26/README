@@ -9,7 +9,7 @@ ksh-93 has been compiled and run on several machines with several
 operating systems.  The end of this file contains a partial list of
 operating systems and machines that ksh-93 has been known to run on.
 
-Most of the source code for ksh is in the src/cmd/ksh93/sh
+Most of the source code for ksh is in the src/cmd/ksh26/sh
 directory. For information on what's where, see the file DESIGN.
 
 #### COMPILE-TIME OPTIONS ####

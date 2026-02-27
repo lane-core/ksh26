@@ -2,7 +2,7 @@
 # Compile-time SHOPT_* options for ksh93.
 # 1 to enable, 0 to disable, empty value to probe.
 #
-# For a more complete description of the options, see src/cmd/ksh93/README.
+# For a more complete description of the options, see src/cmd/ksh26/README.
 #
 
 SHOPT ACCT=0				# accounting

@@ -11,7 +11,7 @@ make install virtual
 	done
 	make announce_build_done virtual notrace
 		prev all
-		makp cmd/ksh93/ksh
+		makp cmd/ksh26/ksh
 		exec - %{<} -c 'print "# KornShell $KSH_VERSION"'
 		exec - echo "# Type 'bin/package use' to try it out"
 	done

@@ -304,7 +304,7 @@ then	unset -v LD_LIBRARY_PATH LIBPATH SHLIB_PATH DYLD_LIBRARY_PATH LIBRARY_PATH 
 fi
 
 tmp=$(
-	d=${TMPDIR:-/tmp}/ksh93.shtests.$$.${RANDOM:-0}
+	d=${TMPDIR:-/tmp}/ksh26.shtests.$$.${RANDOM:-0}
 	mkdir -m700 -- "$d" && CDPATH= cd -P -- "$d" && pwd
 ) || {
 	echo 'mkdir failed' >&2
@@ -329,13 +329,13 @@ SHOPT()
 unset -f SHOPT
 # override with probed values from shopt.h:
 # change '#define SHOPT_foo = bar' to 'export SHOPT_foo=bar' and evaluate
-if	[[ -f $INSTALLROOT/src/cmd/ksh93/shopt.h ]] &&
+if	[[ -f $INSTALLROOT/src/cmd/ksh26/shopt.h ]] &&
 	i=$(sed -n $'/^#[ \t]*define[ \t][ \t]*SHOPT_/ {
 				s/.*define[ \t][ \t]*//
 				s/[ \t][ \t]*/=/
 				s/^/export /
 				p
-			}' "$INSTALLROOT"/src/cmd/ksh93/shopt.h)
+			}' "$INSTALLROOT"/src/cmd/ksh26/shopt.h)
 then	eval "$i" || exit
 else	echo "$0: cannot grep shopt.h" >&2
 	exit 1
@@ -470,7 +470,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 done
 print "Total errors: $total_e"
 
-# This test harness should continue to work with old and buggy versions of ksh93, so check
+# This test harness should continue to work with old and buggy versions of ksh, so check
 # if we have the 'times' builtin and can use process substitution with output redirection.
 # See:	https://github.com/ksh93/ksh/commit/65d363fd
 #	https://github.com/ksh93/ksh/issues/2
