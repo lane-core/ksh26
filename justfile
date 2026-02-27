@@ -16,8 +16,8 @@ SAMU := BUILDDIR / "bin" / "samu"
 # Build ksh26 (default recipe)
 build: bootstrap
     @test -f {{BUILDDIR}}/build.ninja \
-        -a {{BUILDDIR}}/build.ninja -nt configure.ksh \
-        || ksh configure.ksh
+        -a {{BUILDDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh
     {{SAMU}} -C {{BUILDDIR}}
 
 # Bootstrap just the build tool
@@ -29,11 +29,11 @@ bootstrap:
 # (Re)run feature detection and generate build.ninja
 # Probes are cached — only stale probes rerun (~5s when nothing changed)
 configure: bootstrap
-    ksh configure.ksh
+    sh configure.sh
 
 # Force all probes to rerun (ignores cache)
 reconfigure: bootstrap
-    ksh configure.ksh --force
+    sh configure.sh --force
 
 # Run all regression tests in parallel via samu
 # -k 0 = keep going on failure so all tests run
