@@ -107,6 +107,28 @@ static char *getbuf(size_t len)
 }
 
 /*
+ * Prefix guard: save and clear sh.prefix context for within-value
+ * operations that must not inherit the outer compound assignment
+ * prefix.  Companion fields prefix_root and first_root are included
+ * because they track the scope associated with sh.prefix.
+ * See REDESIGN.md Direction 3.
+ */
+void sh_prefix_enter(struct sh_prefix_guard *guard)
+{
+	guard->prefix = sh.prefix;
+	guard->prefix_root = sh.prefix_root;
+	guard->first_root = sh.first_root;
+	sh.prefix = NULL;
+}
+
+void sh_prefix_leave(struct sh_prefix_guard *guard)
+{
+	sh.prefix = guard->prefix;
+	sh.prefix_root = guard->prefix_root;
+	sh.first_root = guard->first_root;
+}
+
+/*
  * output variable name in format for re-input
  */
 void nv_outname(Sfio_t *out, char *name, int len)
@@ -268,10 +290,11 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		sh.used_pos = 0;
 		if(arg->argflag&ARG_MAC)
 		{
-			/* within-value: clear prefix for sub-expansion (Direction 3) */
-			sh.prefix = 0;
+			/* within-value: isolate prefix for sub-expansion (Direction 3) */
+			struct sh_prefix_guard pfg;
+			sh_prefix_enter(&pfg);
 			cp = sh_mactrim(arg->argval,(flags&NV_NOREF)?-3:-1);
-			sh.prefix = prefix;
+			sh_prefix_leave(&pfg);
 		}
 		else
 		{
@@ -301,9 +324,12 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					array |= (tp->com.comset->argflag&ARG_MESSAGE)?NV_IARRAY:NV_ARRAY;
 				if(prefix && tp->com.comset && *cp=='[')
 				{
-					sh.prefix = 0;
+					/* within-value: isolate prefix for subscript resolution (Direction 3)
+					 * note: nv_open can longjmp; prefix stays cleared (same as before) */
+					struct sh_prefix_guard pfg;
+					sh_prefix_enter(&pfg);
 					np = nv_open(prefix,sh.last_root,flag);
-					sh.prefix = prefix;
+					sh_prefix_leave(&pfg);
 					if(np)
 					{
 						if(nv_isvtree(np) && !nv_isarray(np))
@@ -1520,16 +1546,18 @@ skip:
 			nv_putval(np, cp, NV_RDONLY);
 		else
 		{
-			char *sub=0, *prefix= sh.prefix;
+			/* within-value: isolate prefix for assignment (Direction 3) */
+			char *sub=0;
+			struct sh_prefix_guard pfg;
 			Namval_t *mp;
 			Namarr_t *ap;
 			int isref;
-			sh.prefix = 0;
+			sh_prefix_enter(&pfg);
 			if((flags&NV_STATIC) && !sh.mktype)
 			{
 				if(!nv_isnull(np))
 				{
-					sh.prefix = prefix;
+					sh_prefix_leave(&pfg);
 					return np;
 				}
 			}
@@ -1573,7 +1601,7 @@ skip:
 				nv_setref(np,NULL,NV_VARNAME);
 			}
 			savesub = sub;
-			sh.prefix = prefix;
+			sh_prefix_leave(&pfg);
 		}
 		nv_onattr(np, flags&NV_ATTRIBUTES);
 	}
@@ -2815,6 +2843,7 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 	Namarr_t *ap = 0;
 	int oldsize,oldatts,trans;
 	Namfun_t *fp= (newatts&NV_NODISC)?np->nvfun:0;
+	/* defensive save: preserves prefix across attribute change, does not clear (Direction 3) */
 	char *prefix = sh.prefix;
 	newatts &= ~NV_NODISC;
 
@@ -3092,7 +3121,6 @@ int nv_rename(Namval_t *np, int flags)
 	Dt_t			*last_root = sh.last_root;
 	Dt_t			*hp = 0;
 	void			*nvmeta = NULL;
-	char			*prefix = sh.prefix;
 	Namarr_t		*ap;
 	if(nv_isattr(np,NV_PARAM) && sh.st.prevst)
 	{
@@ -3120,23 +3148,28 @@ int nv_rename(Namval_t *np, int flags)
 	arraynr = cp[strlen(cp)-1] == ']';
 	if(nv_isarray(np) && !(mp=nv_opensub(np)))
 		index=nv_aindex(np);
-	sh.prefix = 0;
-	if(!hp)
-		hp = sh.var_tree;
-	if(!(nr = nv_open(cp, hp, flags|NV_ARRAY|NV_NOSCOPE|NV_NOADD|NV_NOFAIL)))
+	/* within-value: isolate prefix for compound ref resolution (Direction 3)
+	 * note: nv_open can longjmp; prefix stays cleared (same as before) */
 	{
+		struct sh_prefix_guard pfg;
+		sh_prefix_enter(&pfg);
+		if(!hp)
+			hp = sh.var_tree;
+		if(!(nr = nv_open(cp, hp, flags|NV_ARRAY|NV_NOSCOPE|NV_NOADD|NV_NOFAIL)))
+		{
 #if SHOPT_NAMESPACE
-		if(sh.namespace)
-			hp = nv_dict(sh.namespace);
-		else
+			if(sh.namespace)
+				hp = nv_dict(sh.namespace);
+			else
 #endif /* SHOPT_NAMESPACE */
-		hp = sh.var_base;
+			hp = sh.var_base;
+		}
+		else if(sh.last_root)
+			hp = sh.last_root;
+		if(!nr)
+			nr= nv_open(cp, hp, flags|NV_NOREF|((flags&NV_MOVE)?0:NV_NOFAIL));
+		sh_prefix_leave(&pfg);
 	}
-	else if(sh.last_root)
-		hp = sh.last_root;
-	if(!nr)
-		nr= nv_open(cp, hp, flags|NV_NOREF|((flags&NV_MOVE)?0:NV_NOFAIL));
-	sh.prefix = prefix;
 	if(!nr)
 	{
 		if(!nv_isvtree(np))

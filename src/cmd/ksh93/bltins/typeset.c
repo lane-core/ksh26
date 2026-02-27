@@ -1385,6 +1385,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	}
 	while(name = *argv++)
 	{
+		/* computation-only: error recovery for typeset/export/readonly (Direction 4) */
 		sh_pushcontext(&buff,1);
 		jmpval = sigsetjmp(buff.buff,0);
 		np = 0;

@@ -296,6 +296,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
+		/* indirect: sh_fun has its own polarity frame (Direction 4) */
 		sh_pushcontext(&checkpoint, SH_JMPFUN);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
@@ -411,6 +412,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		}
 		block(bp,type);
 		block(bp, UNASSIGN);   /* make sure nv_setdisc doesn't invalidate 'vp' by freeing it */
+		/* indirect: sh_fun has its own polarity frame (Direction 4) */
 		sh_pushcontext(&checkpoint, SH_JMPFUN);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)

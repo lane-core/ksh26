@@ -355,6 +355,7 @@ static void	exfile(Sfio_t *iop,int fno)
 	int maxtry=IOMAXTRY, tdone=0, execflags;
 	int states,jmpval;
 	struct checkpt buff;
+	/* computation-only: top-level script execution loop (Direction 4) */
 	sh_pushcontext(&buff,SH_JMPERREXIT);
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);

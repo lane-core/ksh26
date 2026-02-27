@@ -82,32 +82,16 @@ These functions previously did ad-hoc save/restore of some combination of
 | `putenv()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
 | `sh_setenviron()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
 
-### Callers that don't need conversion
+### Callers that don't need polarity frames
 
-Not every save/restore site is a polarity boundary. The remaining ad-hoc
-sites fall into two categories that are handled by future directions:
+Not every save/restore site is a polarity boundary. The remaining sites
+are handled by their own Directions:
 
-**Within-value prefix management** (Direction 3) — these clear `sh.prefix`
-temporarily during sub-expansion or path resolution, without crossing into
-computation mode:
+**Within-value prefix management** (Direction 3) — now converted to
+`sh_prefix_enter`/`sh_prefix_leave`. See [Direction 3](#direction-3-within-value-prefix-isolation).
 
-| Site | File:line | What it does |
-|------|-----------|--------------|
-| `nv_setlist()` | name.c:271 | Clears prefix for macro expansion of assignment values |
-| `nv_open()` | name.c:1522 | Prefix around NV_STATIC assignment |
-| `nv_newattr()` | name.c:2817 | Prefix across attribute change |
-| `nv_rename()` | name.c:3096 | Prefix during compound ref resolution |
-| TFUN handler | xec.c:2389 | Clears prefix for discipline `nv_open` lookup |
-
-**Scope management** (Direction 4) — these do full `sh.st` + scope chain
-save/restore for function and subshell boundaries:
-
-| Site | File | What it does |
-|------|------|--------------|
-| `sh_funscope()` | xec.c:2953 | Full scoped state for function execution |
-| `sh_subshell()` | subshell.c:535 | Full scoped state for subshell execution |
-
-These sites are annotated in the code with their Direction classification.
+**Scope management** (Direction 4) — annotated with their classification.
+See [Direction 4](#direction-4-polarity-frames-at-continuation-boundaries).
 
 
 ## sh_exec polarity taxonomy
@@ -136,6 +120,72 @@ A block comment at the top of the switch documents the full taxonomy.
 |------|------|----------------|
 | `trap - DEBUG` self-removal | basic.sh:1139 | Handler removes its own trap; must persist after `sh_polarity_leave` restores `sh.st` |
 | Namespace + DEBUG trap | basic.sh:1149 | Namespace variable set while DEBUG trap active inside namespace block; verifies namespace context survives polarity boundary |
+| ERR trap during compound assignment | basic.sh:1159 | `sh.prefix` must not leak into ERR trap handler (Direction 4) |
+| Trap sets new trap in handler | basic.sh:1172 | `trapdontexec` must survive polarity frame restore (Direction 4) |
+| Compound assignment + macro expansion | basic.sh:1183 | Prefix guard preserves context across `sh_mactrim` (Direction 3) |
+| Nested compound-associative assignment | basic.sh:1191 | Prefix guard handles nested subscript resolution (Direction 3) |
+
+
+## Error conventions (⊕/⅋ duality)
+
+ksh93 has two error-handling conventions that coexist throughout the
+interpreter. They are duals in the sequent calculus sense (SPEC.md §⊕/⅋):
+
+- **⊕ (exit status)**: a command returns a status code; the *caller*
+  decides what to do. Like `Result<T,E>` — data that gets pattern-matched.
+- **⅋ (trap/continuation)**: on error, the *callee* invokes a handler
+  registered by the caller. Like passing `onSuccess`/`onFailure` callbacks.
+
+`set -e` (errexit) is the bridge: it converts ⊕ into ⅋ by automatically
+invoking the ERR trap (or exiting) when a command returns nonzero.
+
+### Function convention table
+
+| Function | Convention | Mechanism |
+|----------|-----------|-----------|
+| `sh_exec()` | ⊕ return + ⅋ dispatch | Returns `sh.exitval`; calls `sh_chktrap()` at fault.c:396 |
+| `sh_trap()` | ⊕ return | Returns handler's exit status; restores caller's `sh.exitval` |
+| `sh_chktrap()` | ⅋ dispatch | ERR trap → `sh_exit()` longjmp if errexit option on |
+| `sh_debug()` | ⊕ return | Returns trap status (2 = skip command) |
+| `sh_fun()` | ⊕ return | Returns `sh.exitval` after polarity frame leave |
+| `sh_funscope()` | ⊕ return | Returns r (from `sh.exitval` or jmpval) |
+| `sh_eval()` | ⊕ return | Returns `sh.exitval` |
+| `sh_exit()` | ⅋ longjmp | `siglongjmp` to `sh.jmplist` |
+| `sh_done()` | ⅋ terminal | Runs EXIT trap, terminates process |
+| `sh_fault()` | ⅋ deferred | Sets `sh.trapnote` flags; trap runs later at safe point |
+| `b_return()` | ⅋ longjmp | Converts exit status to `SH_JMPFUN`/`SH_JMPEXIT` jump |
+| `nv_open()` | ⅋ longjmp | `ERROR_exit()` on failure (no ⊕ return path) |
+| builtins (`b_*`) | ⊕ return | Return int exit code; `sh_exec` captures in `sh.exitval` |
+
+### The errexit bridge (⊕→⅋ conversion)
+
+The state/option split:
+- `sh_isstate(SH_ERREXIT)` — transient, suppressed in conditionals
+- `sh_isoption(SH_ERREXIT)` — persistent `set -e`
+
+Suppression: `&&`, `||`, `if`/`while` condition, `!` — these pass
+`flags & ARG_OPTIMIZE` without `sh_state(SH_ERREXIT)` to recursive
+`sh_exec()`, which clears the state at xec.c:887-888.
+
+`skipexitset` (xec.c:881): prevents `exitset()` from committing to `$?`
+in contexts where it shouldn't (test expressions inside conditionals).
+
+`echeck`: gates whether `sh_chktrap()` runs after a construct.
+
+### Dual-channel exit status flow
+
+```
+sh.exitval (transient, per-command)
+    → sh.savexit (stable, $?) via exitset()
+    → sh_chktrap() check at xec.c:2614
+```
+
+### Longjmp mode taxonomy
+
+The `SH_JMP*` constants (fault.h) are ordered by severity. Higher values
+propagate further up the continuation stack. The split between locally-caught
+(⊕) and propagating (⅋) modes is at `SH_JMPFUN` (7) — see fault.h for the
+full classified table.
 
 
 ## Divergence from dev
@@ -158,12 +208,12 @@ Progress against the six refactoring directions from
 
 **Status: active**
 
-The polarity frame API is implemented and in use at 5 call sites.
+The polarity frame API is implemented and in use at 6 call sites
+(sh_debug, sh_fun, sh_getenv, putenv, sh_setenviron, sh_trap).
 `sh.prefix`, `sh.namespace`, and `sh.st` are covered. Trap slot
-preservation is handled uniformly by `sh_polarity_leave`.
+and `trapdontexec` preservation handled uniformly by `sh_polarity_leave`.
 
 **Remaining work:**
-- Convert additional boundary sites as they're identified
 - Evaluate whether `sh.jmplist` (continuation stack head) belongs in the
   frame — currently managed separately via `sh_pushcontext`/`sh_popcontext`
 - Evaluate whether `sh.var_tree` scope state belongs in the frame
@@ -175,42 +225,182 @@ preservation is handled uniformly by `sh_polarity_leave`.
 All 16 case labels annotated. Block comment with taxonomy added. No further
 code changes planned unless the taxonomy needs revision.
 
-### Direction 3: Shift-aware name resolution
+### Direction 3: Within-value prefix isolation
 
-**Status: planned**
+**Status: done**
 
-The 5 within-value prefix management sites are annotated but not yet
-refactored. The goal is to decouple `nv_create()`'s path-resolution context
-from the global `sh.prefix`, so that inner traversal can't corrupt the outer
-assignment context.
+The 5 within-value prefix management sites are converted to use the
+`sh_prefix_enter`/`sh_prefix_leave` API. A 6th site (`nv_newattr`) does a
+defensive save without clearing and is annotated but not converted.
 
-This is where `sh.prefix` has 30+ occurrences in name.c — the densest
-concentration of ad-hoc state management in the codebase.
+#### Prefix guard API
 
-### Direction 4: Unify continuation stack with polarity frames
+`struct sh_prefix_guard` (shell.h) saves 3 fields: `sh.prefix`,
+`sh.prefix_root`, and `sh.first_root`. `sh_prefix_enter` saves and clears
+`sh.prefix`; `sh_prefix_leave` restores all three.
 
-**Status: planned**
+This is deliberately lighter than a polarity frame (no `sh.st` save). These
+sites stay within value mode — they just prevent inner name resolution from
+inheriting the outer compound assignment context.
 
-The scope-management sites (`sh_funscope`, `sh_subshell`) are annotated.
-The goal is to make `struct checkpt` and `struct sh_polarity` work together
-so that entering a new continuation frame automatically saves polarity
-state — the μ-binding and the polarity shift become a single operation.
+Why `prefix_root` and `first_root`: they're companion fields to `sh.prefix`.
+When prefix is null, both are cleared (name.c:286). `prefix_root` is set
+from `first_root` during name resolution (name.c:498-499). Saving only
+prefix would leave stale root pointers.
+
+#### Converted sites
+
+| # | File:function | Operation guarded |
+|---|---------------|-------------------|
+| 1 | name.c:`nv_setlist` | sh_mactrim (macro expansion of assignment value) |
+| 2 | name.c:`nv_setlist` | nv_open (nested array subscript resolution) |
+| 3 | name.c:`nv_open` | nv_putval (value assignment with NV_STATIC check) |
+| 4 | name.c:`nv_rename` | nv_open (compound ref resolution, two calls) |
+| 5 | xec.c:`sh_exec` (TFUN) | nv_open (discipline function lookup) |
+
+#### Not converted
+
+`nv_newattr` (name.c) does `char *prefix = sh.prefix` without clearing —
+a defensive save across attribute change, not a guard. Annotated only.
+
+#### Longjmp risk
+
+Sites 2 and 4 call `nv_open()` which can `ERROR_exit()` (longjmp). The
+guard doesn't make this worse: if nv_open longjmps, the unwinding lands at
+a computation-mode checkpt that manages its own state. The prefix stays
+cleared across the longjmp, same as the original inline code.
+
+### Direction 4: Polarity frames at continuation boundaries
+
+**Status: done**
+
+All 27 `sh_pushcontext` sites are classified. Only one needed a polarity
+frame added: `sh_trap()` in fault.c. Embedding `struct sh_polarity` in
+`struct checkpt` was evaluated and rejected: ~200 bytes overhead at 27
+sites for a benefit at 3 (sh_debug, sh_fun, sh_trap). Sites that need
+polarity declare it locally.
+
+**trapdontexec preservation fix:** `sh_polarity_leave` now preserves
+`sh.st.trapdontexec` across the `sh.st` restore, matching the existing
+trap slot preservation. Without this, a trap handler that sets a new trap
+(incrementing trapdontexec at trap.c:199) would have the change silently
+reverted by the blanket struct restore. Affects all polarity frame callers.
+
+**sh_trap conversion:** sh_trap runs signal/ERR/EXIT trap handlers. When
+called during compound assignment, `sh.prefix` was leaking into handlers.
+The polarity frame prevents this. Nesting order: stk (outermost) →
+polarity (middle) → continuation (innermost).
+
+The polarity frame is conditional: `use_polframe = !sh.indebug`. When
+sh_trap is called from sh_debug (DEBUG trap dispatch), sh_debug already
+has its own polarity frame with post-handler scope repair via
+`update_sh_level()` → `sh_setscope()`. A second polarity frame inside
+sh_trap would restore `sh.st` prematurely, making `update_sh_level()`
+believe the scope level is already correct and skip the `sh_setscope()`
+call that repairs `sh.var_tree`. The root issue: `sh.var_tree` and
+`sh.st` encode the same scope concept in two places — `sh_setscope()`
+synchronizes them, but a polarity frame only saves/restores `sh.st`.
+This split is a candidate for future structural work (scope chain as
+explicit substitution).
+
+#### Continuation frame polarity classification
+
+| Site | File | Type | Classification |
+|------|------|------|----------------|
+| `sh_init` | init.c | SH_JMPSCRIPT | computation-only |
+| `exfile` | main.c | SH_JMPERREXIT | computation-only |
+| `sh_mactry` | macro.c | SH_JMPSUB | computation-only |
+| `sh_mactrim` ($(<file)) | macro.c | SH_JMPIO | computation-only |
+| `parse_function` | parse.c | 1 | computation-only |
+| `sh_eval` | xec.c | SH_JMPEVAL | computation-only |
+| `sh_exec` (TCOM assign) | xec.c | SH_JMPCMD | computation-only |
+| `sh_exec` (TCOM builtin) | xec.c | SH_JMPCMD | computation-only |
+| `sh_exec` (TCOM I/O) | xec.c | SH_JMPIO | computation-only |
+| `sh_exec` (TFORK child) | xec.c | SH_JMPEXIT | computation-only |
+| `sh_exec` (TFORK I/O) | xec.c | SH_JMPIO | computation-only |
+| `sh_exec` (TPAR) | xec.c | SH_JMPEXIT | computation-only |
+| `sh_exec` (TFOR opt) | xec.c | inherited | computation-only |
+| `sh_exec` (TWH opt) | xec.c | inherited | computation-only |
+| `sh_exec` (TFUN ns) | xec.c | SH_JMPCMD | computation-only |
+| `sh_funct` | xec.c | SH_JMPFUN | scope boundary |
+| `sh_fun` | xec.c | SH_JMPFUN/CMD | **polarity boundary** |
+| `sh_ntfork` | xec.c | SH_JMPCMD | computation-only |
+| `sh_debug` | xec.c | (none) | **polarity boundary** |
+| `sh_trap` | fault.c | SH_JMPTRAP | **polarity boundary** |
+| `sh_subshell` | subshell.c | SH_JMPSUB | scope boundary |
+| `sh_funscope` | xec.c | SH_JMPFUN | scope boundary |
+| `nv_setdisc` (APPEND) | nvdisc.c | SH_JMPFUN | indirect (sh_fun) |
+| `nv_setdisc` (LOOKUPN) | nvdisc.c | SH_JMPFUN | indirect (sh_fun) |
+| `sh_timetraps` | alarm.c | SH_JMPTRAP | indirect (sh_fun) |
+| `b_dot_cmd` | misc.c | SH_JMPDOT | scope boundary |
+| `b_read` | read.c | 1 | computation-only |
+| `b_getopts` | getopts.c | 1 | computation-only |
+| `b_typeset` | typeset.c | 1 | computation-only |
+
+**polarity boundary**: has a `struct sh_polarity` frame (saves `sh.prefix`,
+`sh.namespace`, `sh.st`). These are the value→computation boundary crossings.
+
+**scope boundary**: does full custom `sh.st` management (save/restore via
+local variable). Too intertwined with scope chain setup to use a polarity
+frame directly.
+
+**indirect**: wraps a call to `sh_fun`, which has its own polarity frame.
+
+**computation-only**: no value→computation boundary crossing. Error recovery,
+I/O setup, loop optimization, or child process management within computation
+mode.
 
 ### Direction 5: Name the dual error conventions
 
-**Status: planned**
+**Status: done**
 
-Document which functions use ⊕ (exit status / caller inspects) vs ⅋
-(trap/continuation / callee invokes). Recognize that `set -e` bridges the
-two by converting ⊕ to ⅋.
+Function convention table, errexit bridge analysis, and longjmp mode
+taxonomy documented in [Error conventions](#error-conventions-⊕⅋-duality)
+above. Inline annotations added to fault.h (longjmp mode block comment),
+fault.c (`sh_chktrap`, `sh_trap`, `sh_exit`), xec.c (errexit suppression,
+`skipexitset`, central dispatch), and cflow.c (`b_return`).
 
 ### Direction 6: Stack allocator boundaries
 
-**Status: planned**
+**Status: done**
 
-Align `sh.stk` (Stk_t) region boundaries with polarity frame boundaries.
-Value-mode allocations live on the stack and are freed when the enclosing
-computation frame ends.
+The stk boundaries are already well-aligned at polarity boundary sites.
+Documentation added; no functional code changes.
+
+#### Three-layer nesting convention
+
+At polarity boundary sites, three layers nest in a fixed order:
+
+1. **stk** (outermost): `stkfreeze` / `stkset` bracket the entire operation
+2. **polarity** (middle): `sh_polarity_enter` / `sh_polarity_leave`
+3. **continuation** (innermost): `sh_pushcontext` / `sh_popcontext`
+
+This ordering is structurally required: stk must be outermost because if a
+longjmp unwinds past `sh_polarity_leave`, the stk restore in the sigsetjmp
+recovery path handles cleanup. If polarity were outermost, the stk state
+could point to freed memory after the polarity frame restored a different
+base pointer.
+
+#### Boundary site coverage
+
+| Site | stk | polarity | continuation | Notes |
+|------|-----|----------|--------------|-------|
+| `sh_debug` | stkfreeze/stkset | sh_polarity_enter/leave | (none) | No inner checkpt; uses sh_trap which has its own |
+| `sh_fun` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
+| `sh_trap` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
+
+#### Why stk is NOT in the polarity frame
+
+Different callers have different stk lifetime requirements. `sh_debug`
+freezes before building the `.sh.command` string on the stack. `sh_fun`
+conditionally freezes only if `stktell > 0`. `sh_trap` always freezes.
+Embedding stk in the polarity frame would force a single policy.
+
+#### ARG_OPTIMIZE exception
+
+`sh_exec` (xec.c TCOM) suppresses stk restore when `ARG_OPTIMIZE` is set.
+This is intentional: loop body allocations persist for the optimizer. Not
+a leak — the optimizer manages its own stk lifetime.
 
 
 ## References
