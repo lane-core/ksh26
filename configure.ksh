@@ -97,6 +97,32 @@ typeset CFLAGS="${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASIN
 typeset AR="${mam_cc_AR:-ar}"
 typeset AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
 
+# ── Library detection ─────────────────────────────────────────────────
+# Detect optional external libraries not always in the default search path.
+# On Nix-based macOS, libiconv is a separate derivation outside the
+# linker's default -L paths. On stock macOS, it's reexported via libSystem.
+
+typeset ICONV_FLAGS=""
+typeset iconv_test='#include <iconv.h>
+int main(void) { iconv_open("",""); return 0; }'
+
+if printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null 2>/dev/null; then
+	ICONV_FLAGS=""
+elif printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -liconv 2>/dev/null; then
+	ICONV_FLAGS="-liconv"
+else
+	# Search common paths (Homebrew, Nix derivations, etc.)
+	typeset _d
+	for _d in /usr/local/lib /opt/homebrew/lib \
+		$(find /nix/store -maxdepth 1 -name '*libiconv-*' -not -name '*-dev' -not -name '*.drv' 2>/dev/null | sort -rV | head -3 | sed 's|$|/lib|'); do
+		if [[ -d "$_d" ]] && printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -L"$_d" -liconv 2>/dev/null; then
+			ICONV_FLAGS="-L$_d -liconv"
+			break
+		fi
+	done
+fi
+[[ -n "$ICONV_FLAGS" ]] && print "configure: iconv: $ICONV_FLAGS" || print "configure: iconv: not found (AST fallback)"
+
 # ── iffe helper ───────────────────────────────────────────────────────
 # Install the iffe script so we can use it for feature detection.
 # iffe is the "if feature exists" probe tool from the AST project.
@@ -317,8 +343,8 @@ run_libast_features()
 	# tmx depends on tv
 	run_iffe "$workdir" "$srcdir/features/tmx"
 
-	# iconv
-	run_iffe "$workdir" "$srcdir/features/iconv"
+	# iconv — pass detected library flags (Nix needs explicit -L path)
+	run_iffe "$workdir" "$srcdir/features/iconv" $ICONV_FLAGS
 	copy_feature "$feat/iconv" "$INCDIR/ast_iconv.h"
 	copy_feature "$feat/tmx" "$INCDIR/tmx.h"
 
@@ -444,19 +470,24 @@ run_ksh26_features()
 
 	run_iffe "$workdir" "$srcdir/features/time"
 
-	# These work fine without AST (simple probes, no output{} blocks,
-	# or graceful fallback when output{} blocks fail)
-	for f in options fchdir locale cmds poll rlimits; do
+	# Simple probes — no AST linkage needed
+	for f in options fchdir locale cmds rlimits; do
 		run_iffe "$workdir" "$srcdir/features/$f"
 	done
+
+	# poll — iffe handles simple probes (headers, libs, types, cat{}).
+	# The execute{} tests (pipe_socketpair etc.) need sfpkrd() from
+	# libast which isn't built yet; probe_ksh26_poll() handles those.
+	run_iffe "$workdir" "$srcdir/features/poll"
 
 	# externs — needs special handling (see probe_ksh26_externs)
 	probe_ksh26_externs "$workdir" "$srcdir"
 
-	# Supplement options and fchdir with probes for their AST-dependent
-	# output tests that iffe couldn't run without libast
+	# Supplement options, fchdir, and poll with probes for their
+	# AST-dependent tests that iffe couldn't run without libast
 	probe_ksh26_options "$workdir"
 	probe_ksh26_fchdir "$workdir"
+	probe_ksh26_poll "$workdir"
 
 	# ksh26 FEATURE files stay in ksh26_work/FEATURE/ — do NOT copy
 	# them to the shared FEATDIR. ksh26 and libast both generate
@@ -641,6 +672,127 @@ int main(void) {
 	return 0;
 }
 PROBE
+}
+
+# poll socketpair probes — the original features/poll has execute{} blocks
+# that call sfpkrd() and ast_close() from libast, which isn't built yet.
+# We test socketpair peekability using recv(MSG_PEEK) directly — that's
+# what sfpkrd uses internally on socket fds.
+probe_ksh26_poll()
+{
+	typeset workdir=$1
+	typeset feat=$workdir/FEATURE/poll
+
+	# Already probed?
+	grep -q pipe_socketpair "$feat" 2>/dev/null && return
+
+	# pipe_socketpair: can recv(MSG_PEEK) read from a socketpair fd?
+	# This is an execute-only test (exit code matters, no stdout).
+	typeset src=$BUILDDIR_ABS/probe_poll$$.c
+	typeset bin=$BUILDDIR_ABS/probe_poll$$
+	cat > "$src" <<'EXECPROBE'
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#ifndef SHUT_RD
+#define SHUT_RD		0
+#endif
+#ifndef SHUT_WR
+#define SHUT_WR		1
+#endif
+static void handler(int sig) { _exit(0); }
+int main(void) {
+	int sfd[2];
+	char buf[256];
+	pid_t pid;
+	static char msg[] = "hello world\n";
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
+	    shutdown(sfd[1], SHUT_RD) < 0 ||
+	    shutdown(sfd[0], SHUT_WR) < 0)
+		return 1;
+	if ((pid = fork()) < 0)
+		return 1;
+	if (pid) {
+		int n;
+		close(sfd[1]);
+		wait(&n);
+		if (recv(sfd[0], buf, sizeof(buf), MSG_PEEK) < 0)
+			return 1;
+		close(sfd[0]);
+		signal(SIGPIPE, handler);
+		if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
+		    shutdown(sfd[1], SHUT_RD) < 0 ||
+		    shutdown(sfd[0], SHUT_WR) < 0)
+			return 1;
+		close(sfd[0]);
+		write(sfd[1], msg, sizeof(msg) - 1);
+		return 1;
+	} else {
+		close(sfd[0]);
+		write(sfd[1], msg, sizeof(msg) - 1);
+		return 0;
+	}
+}
+EXECPROBE
+	if $CC_PATH $CFLAGS -o "$bin" "$src" 2>/dev/null && "$bin" 2>/dev/null; then
+		printf '#define _pipe_socketpair\t1\t/* use socketpair() for peekable pipe() */\n' >> "$feat"
+	fi
+	rm -f "$src" "$bin" "${src%.c}.d"
+
+	# socketpair_devfd: can /dev/fd/N access socketpair fds?
+	cat > "$src" <<'EXECPROBE'
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+int main(void) {
+	int n, sfd[2];
+	close(0);
+	open("/dev/null", O_RDONLY);
+	if ((n = open("/dev/fd/0", O_RDONLY)) < 0) return 1;
+	close(n);
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
+	    shutdown(sfd[0], 1) < 0 || shutdown(sfd[1], 0) < 0) return 1;
+	close(0);
+	dup(sfd[0]);
+	close(sfd[0]);
+	if ((n = open("/dev/fd/0", O_RDONLY)) < 0) return 1;
+	return 0;
+}
+EXECPROBE
+	if $CC_PATH $CFLAGS -o "$bin" "$src" 2>/dev/null && "$bin" 2>/dev/null; then
+		printf '#define _socketpair_devfd\t1\t/* /dev/fd/N handles socketpair() */\n' >> "$feat"
+	fi
+	rm -f "$src" "$bin" "${src%.c}.d"
+
+	# socketpair_shutdown_mode: does fchmod work after shutdown?
+	cat > "$src" <<'EXECPROBE'
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+int main(void) {
+	int sfd[2];
+	struct stat st0, st1;
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
+	    shutdown(sfd[0], 1) < 0 || shutdown(sfd[1], 0) < 0) return 1;
+	if (fstat(sfd[0], &st0) < 0 || fstat(sfd[1], &st1) < 0) return 1;
+	if ((st0.st_mode & (S_IRUSR|S_IWUSR)) == S_IRUSR &&
+	    (st1.st_mode & (S_IRUSR|S_IWUSR)) == S_IWUSR) return 1;
+	if (fchmod(sfd[0], S_IRUSR) < 0 || fstat(sfd[0], &st0) < 0 ||
+	    (st0.st_mode & (S_IRUSR|S_IWUSR)) != S_IRUSR) return 1;
+	if (fchmod(sfd[1], S_IWUSR) < 0 || fstat(sfd[1], &st1) < 0 ||
+	    (st1.st_mode & (S_IRUSR|S_IWUSR)) != S_IWUSR) return 1;
+	return 0;
+}
+EXECPROBE
+	if $CC_PATH $CFLAGS -o "$bin" "$src" 2>/dev/null && "$bin" 2>/dev/null; then
+		printf '#define _socketpair_shutdown_mode\t1\t/* fchmod() after socketpair() shutdown() */\n' >> "$feat"
+	fi
+	rm -f "$src" "$bin" "${src%.c}.d"
 }
 
 # ── Generate headers: git.h ───────────────────────────────────────────
@@ -1014,11 +1166,11 @@ build obj/ksh26/shcomp.o: cc $src_abs/$ksh_srcdir/sh/shcomp.c
   extra_cflags = $ksh_cflags
 
 build bin/ksh: link obj/ksh26/pmain.o | lib/libshell.a lib/libcmd.a lib/libast.a lib/libdll.a lib/libsum.a
-  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm
+  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm $ICONV_FLAGS
   ldflags =
 
 build bin/shcomp: link obj/ksh26/shcomp.o | lib/libshell.a lib/libcmd.a lib/libast.a lib/libdll.a lib/libsum.a
-  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm
+  libs = -Llib -lshell -lcmd -last -ldll -lsum -lm $ICONV_FLAGS
   ldflags =
 
 default bin/ksh bin/shcomp

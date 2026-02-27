@@ -1,14 +1,18 @@
 # ksh26
 
 ksh26 is a Unix shell. It is an independent fork of
-[ksh 93u+m](https://github.com/ksh93/ksh).
-
-ksh26 aims to remain API-compatible with ksh93. Existing scripts,
-builtins, and POSIX behavior are preserved. Current target is 100%
-compatibility; future extensions will not break existing scripts.
+[ksh 93u+m](https://github.com/ksh93/ksh), redesigned from ksh93 to
+modern standards. ksh26 is a superset of ksh93: every ksh93 script
+runs unmodified, but the internals, build system, and platform
+targeting are rebuilt for current systems.
 
 ksh26 targets Linux (glibc, musl), macOS, FreeBSD, NetBSD, and OpenBSD.
-It requires C23 (GCC 14+ or Clang 18+).
+In hardening and security, we aspire to OpenBSD's standard: reduce
+code surface, audit what remains, treat every buffer and format string
+as a potential vulnerability. C23 (GCC 14+ / Clang 18+) is required —
+typed enums, constexpr, static_assert, and [[nodiscard]]/[[noreturn]]
+move the interpreter's structural invariants from comments into the
+compiler.
 
 
 ## What is different
@@ -21,7 +25,9 @@ Dead library code for HP-UX, AIX, IRIX, MVS, and pre-POSIX systems is
 removed. The AT&T nmake/MAM build system is replaced with just + samu.
 The interpreter's implicit state invariants are made explicit via a
 polarity frame API informed by sequent calculus. Three upstream bugs
-were found this way.
+were found this way. The reduced codebase is audited for stack buffer
+overflows, format string vulnerabilities, signal handler safety, and
+integer overflow.
 
 Details: [REDESIGN.md](REDESIGN.md). Theory: [SPEC.md](SPEC.md).
 Feature direction: [COMPARISON.md](COMPARISON.md). Behavioral
