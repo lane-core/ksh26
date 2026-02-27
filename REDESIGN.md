@@ -532,6 +532,76 @@ bookkeeping for safe reuse.
 | `sh_debug` | stkfreeze/stkset | **sh_polarity_lite** | (none) | Lite frame; sh_trap provides full sh.st protection |
 | `sh_fun` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
 | `sh_trap` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
+| `nv_setlist` | (none) | (none) | **sh_pushcontext** | Direction 8: L_ARGNOD longjmp safety |
+
+
+### Direction 8: Compound assignment longjmp safety
+
+**Status: done**
+
+`nv_setlist` (name.c) handles compound assignment by temporarily mutating
+the global `L_ARGNOD` to act as a nameref pointing to a stack-local
+`struct Namref nr`. It then calls `sh_exec` to evaluate the assignment
+body. If `sh_exec` longjmps (e.g., read-only variable error), `L_ARGNOD`
+retains `nvalue = &nr` — a dangling pointer to unwound stack memory.
+
+In the sequent calculus framing, `sh_exec` inside `nv_setlist` is a cut
+between a value context (the assignment target being configured) and a
+computation context (the assignment body being evaluated). The temporary
+`L_ARGNOD` mutation is a substitution that must be unwound regardless of
+how the computation terminates — exactly the guarantee a continuation
+frame provides.
+
+The fix wraps the `sh_exec` call in a `checkpt` frame (SH_JMPCMD),
+following the pattern established in Direction 4 (xec.c assignment error
+recovery). On longjmp:
+
+1. Restore `L_ARGNOD` fields (nvalue, nvflag, nvfun) from saved copy
+2. Restore `sh.prefix` to the pre-compound-assignment value
+3. If `jmpval > SH_JMPCMD`, re-propagate to the next handler
+4. Otherwise, skip to `check_type` (type cleanup)
+
+The normal (non-longjmp) path is unchanged — the existing restore code
+runs after the checkpt block.
+
+**File:** `name.c` `nv_setlist`, around the `sh_exec` call for compound
+assignment body evaluation.
+
+
+### Direction 9: Scope representation unification (phase 1)
+
+**Status: done (phase 1)**
+
+`sh.var_tree` and `sh.st.own_tree` encode the same concept: the current
+scope dictionary. Only `sh_setscope` updates both atomically. Three sites
+change scope identity without syncing `own_tree`, creating windows where
+the two fields disagree:
+
+| Site | Function | What happens |
+|------|----------|-------------|
+| `sh_scope` (name.c) | New scope installed | `sh.var_tree = newscope` without `own_tree` |
+| `sh_unscope` (name.c) | Parent scope restored | `sh.var_tree = dp` without `own_tree` |
+| `sh_funscope` (xec.c) | Caller scope restored | `sh.var_tree = prevscope->own_tree` without `own_tree` |
+
+In the duploid framework, these are structural rules (context
+introduction/elimination). The scope dictionary is part of the evaluation
+context, and installing or removing a scope is a substitution that
+affects both the variable lookup path (`sh.var_tree` via CDT viewpath)
+and the interpreter's understanding of "where am I" (`sh.st.own_tree`).
+When these diverge, operations that consult `own_tree` (e.g., scope
+level detection in `update_sh_level`) see stale identity.
+
+The fix adds `sh.st.own_tree = <new value>` immediately after each
+identity-changing `sh.var_tree` assignment. Sites that temporarily
+navigate the viewpath chain (NV_GLOBAL lookups, nv_clone switches,
+namespace manipulation) are *not* synced — they don't change scope
+identity.
+
+This is phase 1. Phase 2 (future) would unify the two fields entirely,
+either by making `sh.var_tree` derived from `sh.st.own_tree` or by
+replacing both with a single scope handle.
+
+**Files:** `name.c` (`sh_scope`, `sh_unscope`), `xec.c` (`sh_funscope`).
 
 
 ## References
