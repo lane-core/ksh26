@@ -468,8 +468,10 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
 void sh_polarity_enter(struct sh_polarity *frame)
 {
 	frame->prefix = sh.prefix;
+	frame->namespace = sh.namespace;
 	frame->st = sh.st;
 	sh.prefix = NULL;
+	sh.namespace = NULL;
 }
 
 void sh_polarity_leave(struct sh_polarity *frame)
@@ -482,6 +484,7 @@ void sh_polarity_leave(struct sh_polarity *frame)
 	for(i = 0; i <= SH_DEBUGTRAP; i++)
 		sh.st.trap[i] = traps[i];
 	sh.prefix = frame->prefix;
+	sh.namespace = frame->namespace;
 }
 
 /*
@@ -2385,6 +2388,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			error_info.line = t->funct.functline-sh.st.firstline;
 			if(cp || sh.prefix)
 			{
+				/* within-value: clear prefix for discipline nv_open (Direction 3) */
 				int offset = stktell(sh.stk);
 				if(sh.prefix)
 				{
@@ -2946,9 +2950,10 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 }
 
 /*
- * This routine is used to execute the given function <fun> in a new scope
+ * This routine is used to execute the given function <fun> in a new scope.
  * If <fun> is NULL, then arg points to a structure containing a pointer
  * to a function that will be executed in the current environment.
+ * scope boundary: full sh.st save/restore (Direction 4)
  */
 int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {

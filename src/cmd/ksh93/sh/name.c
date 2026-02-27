@@ -268,6 +268,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		sh.used_pos = 0;
 		if(arg->argflag&ARG_MAC)
 		{
+			/* within-value: clear prefix for sub-expansion (Direction 3) */
 			sh.prefix = 0;
 			cp = sh_mactrim(arg->argval,(flags&NV_NOREF)?-3:-1);
 			sh.prefix = prefix;
@@ -2973,19 +2974,19 @@ static inline char *oldgetenv(const char *string)
  */
 char *sh_getenv(const char *name)
 {
-	Namval_t *np, *savns;
-	char *cp, *savpr;
+	Namval_t *np;
+	char *cp;
+	struct sh_polarity frame;
 	/* do not read from nval(3) storage before or during initialization */
 	if(!sh.var_tree || sh_isstate(SH_INIT))
 		return oldgetenv(name);
-	/* deactivate a possible namespace or compound assignment */
-	savns = sh.namespace, savpr = sh.prefix;
-	sh.namespace = NULL, sh.prefix = NULL;
+	/* polarity boundary: deactivate namespace/prefix for clean lookup */
+	sh_polarity_enter(&frame);
 	if((np = nv_search(name,sh.var_tree,0)) && nv_isattr(np,NV_EXPORT))
 		cp = nv_getval(np);
 	else
 		cp = NULL;
-	sh.namespace = savns, sh.prefix = savpr;
+	sh_polarity_leave(&frame);
 	return cp;
 }
 
@@ -3008,14 +3009,13 @@ int putenv(const char *name)
 	Namval_t *np;
 	if(name)
 	{
-		Namval_t *savns = sh.namespace;
-		char *savpr = sh.prefix;
-		/* deactivate a possible namespace or compound assignment */
-		sh.namespace = NULL, sh.prefix = NULL;
+		struct sh_polarity frame;
+		/* polarity boundary: deactivate namespace/prefix for clean lookup */
+		sh_polarity_enter(&frame);
 		np = nv_open(name,sh.var_tree,NV_EXPORT|NV_IDENT|NV_NOARRAY|NV_ASSIGN);
 		if(!strchr(name,'='))
 			nv_unset(np,0);
-		sh.namespace = savns, sh.prefix = savpr;
+		sh_polarity_leave(&frame);
 	}
 	return 0;
 }
@@ -3028,12 +3028,11 @@ char* sh_setenviron(const char *name)
 	Namval_t *np;
 	if(name)
 	{
-		Namval_t *savns = sh.namespace;
-		char *savpr = sh.prefix;
-		/* deactivate a possible namespace or compound assignment */
-		sh.namespace = NULL, sh.prefix = NULL;
+		struct sh_polarity frame;
+		/* polarity boundary: deactivate namespace/prefix for clean lookup */
+		sh_polarity_enter(&frame);
 		np = nv_open(name,sh.var_tree,NV_EXPORT|NV_IDENT|NV_NOARRAY|NV_ASSIGN);
-		sh.namespace = savns, sh.prefix = savpr;
+		sh_polarity_leave(&frame);
 		if(strchr(name,'='))
 			return nv_getval(np);
 		nv_unset(np,0);

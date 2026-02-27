@@ -1146,5 +1146,14 @@ got=$(set +x; "$SHELL" -c '
 ')
 [[ $got == '' ]] || err_exit "'trap - DEBUG' inside handler has no lasting effect (got $(printf %q "$got"))"
 
+# Namespace context must not leak across polarity boundaries (DEBUG trap)
+got=$("$SHELL" -c '
+	namespace foo {
+		trap ".sh.command; :" DEBUG
+		bar=1
+	}
+	[[ -v .foo.bar ]]
+' 2>&1) || err_exit "namespace variable not set when DEBUG trap active inside namespace block"
+
 # ======
 exit $((Errors<125?Errors:125))
