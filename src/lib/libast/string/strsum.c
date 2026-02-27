@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,11 +16,31 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
+/*
+ * Glenn Fowler
+ * AT&T Bell Laboratories
+ *
+ * return a running 32 bit checksum of string s
+ *
+ * c is the return value from a previous
+ * strsum() call, 0 on the first call
+ *
+ * the result is the same on all implementations
+ */
 
-#include "stdhdr.h"
+#include <ast.h>
+#include <hashpart.h>
 
-int
-pclose(Sfio_t* f)
+unsigned long
+strsum(const char* as, unsigned long c)
 {
-	return sfclose(f);
+	const unsigned char*	s = (const unsigned char*)as;
+	int			n;
+
+	while (n = *s++) HASHPART(c, n);
+#if LONG_MAX > 2147483647
+	return c & 0xffffffff;
+#else
+	return c;
+#endif
 }

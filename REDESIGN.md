@@ -43,14 +43,15 @@ feature vision.
 Directions 1–9 (below) established the engineering foundations: polarity
 frames, prefix guards, scope unification, longjmp safety.
 
-Directions 10 and 15 are done. Remaining directions clear the path for
-features:
+Directions 10, 11, and 15 are done. Remaining directions clear the path
+for features:
 - **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
-- **11**: Library reduction — strip ~25K lines of dead code
+- **11**: Library reduction — strip dead libraries and thin survivors (**done**)
 - **12**: sfio abstraction — prepare for lighter I/O backend
 - **13**: Platform targeting — declare what we support, delete the rest
 - **14**: Security hardening — audit the reduced codebase
 - **15**: Build system — just + samu, retire MAM (**done**)
+- **16**: Unicode — utf8proc integration for correct grapheme handling
 
 After that: interactive features (completions, autosuggestions, editor
 hooks) on a codebase that's small enough to audit and typed enough to
@@ -661,6 +662,142 @@ use the setter — it runs before the scope stack exists.
 
 **Files:** `defs.h` (`sh_scope_set`), `name.c` (`sh_scope`,
 `sh_unscope`), `xec.c` (`sh_funscope`).
+
+
+### Direction 10: C23 type enforcement
+
+**Status: done**
+
+Adopted C23 dialect (GCC 14+ / Clang 18+) across the codebase. Key changes:
+typed enums via `enum : type`, `constexpr` for compile-time tables (node
+polarity classification, longjmp severity), `static_assert` for invariant
+checking, `[[noreturn]]` replacing compiler-specific attributes, `nullptr`
+for pointer contexts.
+
+**Files:** Throughout. See commit history for the full changeset.
+
+
+### Direction 11: Library reduction
+
+**Status: done**
+
+Removed ~4,500 lines of dead library code and thinned survivors to match
+the actual build requirements. The binary size is unchanged (the linker
+was already stripping dead objects from static archives), but the build
+compiles 71 fewer objects (478 → 407 steps).
+
+#### 11a: Dead libast subsystems
+
+Deleted `libast/stdio/` (75 files — full stdio reimplementation on sfio,
+zero call sites) and `libast/hash/` (15 files — pre-CDT hash table ADT,
+superseded by libcdt). Two survivors (`strkey`, `strsum`) were relocated
+to `libast/string/` where they semantically belong.
+
+#### 11b: libdll
+
+Deleted `src/lib/libdll/` (12 files). `SHOPT_DYNAMIC=0` means all dynamic
+plugin loading is compiled out. Zero active call sites (all behind
+`#if SHOPT_DYNAMIC`). Removed from configure.sh: feature tests, source
+collection, compilation, link line. Vestigial `#include <dlldefs.h>` in
+`cdtlib.h` removed (CDT uses none of its symbols).
+
+#### 11c: libsum
+
+Deleted `src/lib/libsum/` (11 files). AT&T checksum library (MD5, SHA,
+CRC, BSD/AT&T sum). Only consumer was `cksum.c` in libcmd, which is not
+in the static builtin set.
+
+#### 11d: libcmd thinning
+
+Reduced compiled sources from 47 to 11 files. Only the 9 static builtins
+(basename, cat, cp, cut, dirname, getconf, ln, mktemp, mv) plus support
+files (cmdinit.c, lib.c) are compiled. Remaining sources stay in tree
+for future `builtin -f` if dynamic loading is re-enabled.
+
+#### 11e: libast/comp thinning
+
+Deleted 21 of 38 compatibility shims. Nine were pure NoN stubs (compile
+to empty functions on modern systems). Twelve compiled to real code but
+were never linked into the binary (the linker dropped them because
+nothing called them). The 17 survivors are AST interceptors that route
+standard library calls through AST-specific wrappers (conformance
+checking, locale awareness, error catalogs) and are actively linked.
+
+**Files:** `configure.sh` (source collection, feature tests, link line),
+deleted directories, `cdtlib.h`.
+
+
+### Direction 12: sfio abstraction
+
+**Status: planned**
+
+932 sfio call sites across 47 files. Phased approach:
+
+1. Survey and classify all call sites by function category (output,
+   input, lifecycle, control, query)
+2. Write `sh_io.h` — typedefs and inline wrappers providing an
+   indirection layer
+3. Convert incrementally — new/modified code first, legacy code
+   file-by-file as touched
+
+No behavioral change expected. This prepares for a future lighter I/O
+backend.
+
+
+### Direction 13: Platform targeting
+
+**Status: planned**
+
+configure.sh is already modernized. Remaining work:
+
+1. Audit `features/` iffe files — remove probes for dead platforms
+   (HP-UX, AIX, IRIX, pre-POSIX) and C23/POSIX-guaranteed features
+2. Delete `src/cmd/INIT/cc.*` profiles for unsupported compilers
+3. Document tier 1 (Linux, macOS) / tier 2 (*BSD) in README
+
+
+### Direction 14: Security hardening
+
+**Status: planned**
+
+After library reduction + platform audit (reduced scope):
+
+1. Stack buffer audit: `macro.c`, `io.c`, `lex.c`, `edit/*.c`
+2. Format string audit: `sfprintf`/`errormsg` literals
+3. Signal handler safety: `sh_fault()` code paths
+4. Integer overflow: array indices, stk sizes, loop counters
+
+Findings documented in `notes/security/`.
+
+
+### Direction 15: Build system
+
+**Status: done**
+
+Replaced the MAM (Make Abstract Machine) build infrastructure with a
+three-layer system: just (porcelain) → configure.sh (probes + generates
+build.ninja) → samu (vendored ninja). Full test suite (111 tests) passes.
+
+Build dependencies (utf8proc, scdoc) are detected at configure time:
+system versions preferred, with git-clone fallback into `build/deps/`.
+Nix flake provides these via `buildInputs` so the flake build path never
+needs the fallback.
+
+
+### Direction 16: Unicode via utf8proc
+
+**Status: planned**
+
+147 multibyte/wide-char call sites across 29 files. After library
+reduction and sfio abstraction.
+
+1. Write `sh_unicode.h` wrapping utf8proc: `sh_wcwidth()`,
+   `sh_grapheme_next()`, `sh_utf8_decode()` / `sh_utf8_encode()`
+2. Convert line editor (`edit/edit.c`, `edit/vi.c`, `edit/emacs.c`) —
+   highest value, fixes emoji and CJK cursor positioning
+3. Convert remaining call sites (pattern matching, `chresc()`)
+
+utf8proc build dep infrastructure is in place (Direction 15).
 
 
 ## References

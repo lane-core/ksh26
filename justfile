@@ -62,6 +62,33 @@ samu *args: bootstrap
 log:
     @find {{BUILDDIR}}/test -name '*.log' 2>/dev/null | xargs ls -t 2>/dev/null | head -5 | xargs cat 2>/dev/null || echo "No test logs found."
 
+# Build man pages from scdoc sources
+doc: build
+    #!/bin/sh
+    set -e
+    SCDOC=""
+    if command -v scdoc >/dev/null 2>&1; then
+        SCDOC=scdoc
+    elif [ -x {{BUILDDIR}}/deps/scdoc/scdoc ]; then
+        SCDOC={{BUILDDIR}}/deps/scdoc/scdoc
+    else
+        printf '%s\n' "scdoc not found, fetching ..."
+        mkdir -p {{BUILDDIR}}/deps
+        git clone --depth 1 --branch 1.11.3 \
+            https://github.com/ddevault/scdoc.git \
+            {{BUILDDIR}}/deps/scdoc 2>/dev/null
+        make -C {{BUILDDIR}}/deps/scdoc
+        SCDOC={{BUILDDIR}}/deps/scdoc/scdoc
+    fi
+    mkdir -p {{BUILDDIR}}/man/man1 {{BUILDDIR}}/man/man3
+    for scd in doc/*.scd; do
+        [ -f "$scd" ] || continue
+        base=$(basename "$scd" .scd)
+        section=${base##*.}
+        "$SCDOC" < "$scd" > "{{BUILDDIR}}/man/man${section}/${base}"
+        printf '%s\n' "  DOC $base"
+    done
+
 # Remove build artifacts for this host
 clean:
     rm -rf {{BUILDDIR}}

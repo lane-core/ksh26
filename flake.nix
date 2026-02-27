@@ -20,7 +20,13 @@
 
         src = self;
 
-        buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+        nativeBuildInputs = [
+          pkgs.scdoc
+        ];
+
+        buildInputs = [
+          pkgs.utf8proc
+        ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
           pkgs.libiconv
         ];
 

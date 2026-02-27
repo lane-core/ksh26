@@ -26,9 +26,6 @@
 */
 
 #include	<ast.h>
-#if !_BLD_cdt
-#include	<dlldefs.h>
-#endif
 
 #include	<cdt.h>
 #include	<unistd.h>
