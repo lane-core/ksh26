@@ -532,12 +532,12 @@ bookkeeping for safe reuse.
 | `sh_debug` | stkfreeze/stkset | **sh_polarity_lite** | (none) | Lite frame; sh_trap provides full sh.st protection |
 | `sh_fun` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
 | `sh_trap` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
-| `nv_setlist` | (none) | (none) | **sh_pushcontext** | Direction 8: L_ARGNOD longjmp safety |
+| `nv_setlist` | (none) | (none) | **sh_exit guard** | Direction 8: L_ARGNOD longjmp safety |
 
 
 ### Direction 8: Compound assignment longjmp safety
 
-**Status: done**
+**Status: done (v2 — sh_exit guard)**
 
 `nv_setlist` (name.c) handles compound assignment by temporarily mutating
 the global `L_ARGNOD` to act as a nameref pointing to a stack-local
@@ -549,28 +549,38 @@ In the sequent calculus framing, `sh_exec` inside `nv_setlist` is a cut
 between a value context (the assignment target being configured) and a
 computation context (the assignment body being evaluated). The temporary
 `L_ARGNOD` mutation is a substitution that must be unwound regardless of
-how the computation terminates — exactly the guarantee a continuation
-frame provides.
+how the computation terminates.
 
-The fix wraps the `sh_exec` call in a `checkpt` frame (SH_JMPCMD),
-following the pattern established in Direction 4 (xec.c assignment error
-recovery). On longjmp:
+**v1 (abandoned): checkpoint approach.** Wrapping `sh_exec` in a
+`sh_pushcontext`/`sh_popcontext` checkpoint (SH_JMPCMD) changed the error
+propagation *topology* — errors that previously landed at an outer handler
+were now caught by the inner checkpoint. This caused 13 test regressions
+(enum.sh, types.sh, pointtype.sh, io.sh). The problem is structural:
+inserting a new handler changes where every longjmp in the subtree lands,
+not just the ones we care about. No amount of "rethrow if severity >
+threshold" can fix this, because the catch-and-rethrow itself changes
+observable behavior (e.g., cleanup code runs at a different point).
 
-1. Restore `L_ARGNOD` fields (nvalue, nvflag, nvfun) from saved copy
-2. Restore `sh.prefix` to the pre-compound-assignment value
-3. If `jmpval > SH_JMPCMD`, re-propagate to the next handler
-4. Otherwise, skip to `check_type` (type cleanup)
+**v2 (implemented): sh_exit guard.** Instead of adding a handler, we
+register the L_ARGNOD restore in `sh_exit()` (fault.c) — the single
+funnel that ALL error paths pass through before longjmping. This adds no
+checkpoint, changes no topology. The error propagation chain stays exactly
+as it was; L_ARGNOD is simply cleaned up as a side effect of sh_exit,
+alongside `sh.prefix`, `sh.mktype`, etc.
 
-The normal (non-longjmp) path is unchanged — the existing restore code
-runs after the checkpt block.
+Implementation:
+1. `shell.h`: `argnod_guard` struct in `Shell_t` (nvalue, nvflag, nvfun)
+2. `name.c`: save L_ARGNOD fields to guard before mutation, clear after
+   normal restore
+3. `fault.c`: in `sh_exit`, if guard is active, restore L_ARGNOD fields
+   (placed next to `sh.prefix = 0`)
 
-**File:** `name.c` `nv_setlist`, around the `sh_exec` call for compound
-assignment body evaluation.
+**Files:** `shell.h` (Shell_t), `name.c` (nv_setlist), `fault.c` (sh_exit)
 
 
-### Direction 9: Scope representation unification (phase 1)
+### Direction 9: Scope representation unification
 
-**Status: done (phase 1)**
+**Status: done (phase 2)**
 
 `sh.var_tree` and `sh.st.own_tree` encode the same concept: the current
 scope dictionary. Only `sh_setscope` updates both atomically. Three sites
@@ -591,17 +601,32 @@ and the interpreter's understanding of "where am I" (`sh.st.own_tree`).
 When these diverge, operations that consult `own_tree` (e.g., scope
 level detection in `update_sh_level`) see stale identity.
 
-The fix adds `sh.st.own_tree = <new value>` immediately after each
+**Phase 1** added `sh.st.own_tree = <new value>` immediately after each
 identity-changing `sh.var_tree` assignment. Sites that temporarily
 navigate the viewpath chain (NV_GLOBAL lookups, nv_clone switches,
 namespace manipulation) are *not* synced — they don't change scope
 identity.
 
-This is phase 1. Phase 2 (future) would unify the two fields entirely,
-either by making `sh.var_tree` derived from `sh.st.own_tree` or by
-replacing both with a single scope handle.
+**Phase 2** introduced `sh_scope_set()` (defs.h), a static inline
+function that atomically updates both fields:
 
-**Files:** `name.c` (`sh_scope`, `sh_unscope`), `xec.c` (`sh_funscope`).
+```c
+static inline void sh_scope_set(Dt_t *tree)
+{
+    sh.var_tree = tree;
+    sh.st.own_tree = tree;
+}
+```
+
+The three phase 1 sync sites now call `sh_scope_set()` instead of
+writing two separate assignments. This makes the invariant
+self-enforcing: new scope-changing code uses the setter rather than
+remembering to update both fields manually. The one-time initialization
+in `init.c` (`sh.var_base = sh.var_tree = sh_inittree(...)`) does not
+use the setter — it runs before the scope stack exists.
+
+**Files:** `defs.h` (`sh_scope_set`), `name.c` (`sh_scope`,
+`sh_unscope`), `xec.c` (`sh_funscope`).
 
 
 ## References

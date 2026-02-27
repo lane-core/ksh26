@@ -111,6 +111,16 @@ extern void		sh_polarity_enter(struct sh_polarity*);
 extern void		sh_polarity_leave(struct sh_polarity*);
 extern void		sh_prefix_enter(struct sh_prefix_guard*);
 extern void		sh_prefix_leave(struct sh_prefix_guard*);
+/*
+ * Atomically set the current scope dictionary.
+ * Keeps sh.var_tree and sh.st.own_tree in sync (Direction 9).
+ * Use only at identity-changing sites, not temporary navigation.
+ */
+static inline void	sh_scope_set(Dt_t *tree)
+{
+	sh.var_tree = tree;
+	sh.st.own_tree = tree;
+}
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);
 extern void		*sh_arithcomp(char*);

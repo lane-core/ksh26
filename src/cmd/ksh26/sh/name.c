@@ -614,38 +614,18 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					nr.table = sh.last_table;
 					L_ARGNOD->nvflag = NV_REF|NV_NOFREE;
 					L_ARGNOD->nvfun = 0;
+					/* Direction 8: register guard so sh_exit restores on longjmp */
+					sh.argnod_guard.nvalue = node.nvalue;
+					sh.argnod_guard.nvflag = node.nvflag;
+					sh.argnod_guard.nvfun = node.nvfun;
 				}
-				/* compound assignment longjmp safety (Direction 8) */
-				{
-					struct checkpt *chkp = stkalloc(sh.stk,sizeof(struct checkpt));
-					int jmpval;
-					sh_pushcontext(chkp,SH_JMPCMD);
-					jmpval = sigsetjmp(chkp->buff,0);
-					if(jmpval)
-					{
-						if(sh.prefix)
-						{
-							L_ARGNOD->nvalue = node.nvalue;
-							L_ARGNOD->nvflag = node.nvflag;
-							L_ARGNOD->nvfun = node.nvfun;
-						}
-						sh.prefix = prefix;
-					}
-					if(!jmpval)
-						sh_exec(tp,sh_isstate(SH_ERREXIT));
-					sh_popcontext(chkp);
-					if(jmpval)
-					{
-						if(jmpval > SH_JMPCMD)
-							siglongjmp(*sh.jmplist,jmpval);
-						goto check_type;
-					}
-				}
+				sh_exec(tp,sh_isstate(SH_ERREXIT));
 				if(sh.prefix)
 				{
 					L_ARGNOD->nvalue = node.nvalue;
 					L_ARGNOD->nvflag = node.nvflag;
 					L_ARGNOD->nvfun = node.nvfun;
+					sh.argnod_guard.nvalue = NULL; /* clear guard after normal restore */
 				}
 				sh.prefix = prefix;
 				if(nv_isarray(np) && (mp=nv_opensub(np)))
@@ -2375,8 +2355,7 @@ void sh_scope(struct argnod *envlist, int fun)
 		newroot = rp->sdict;
 	}
 	dtview(newscope,(Dt_t*)newroot);
-	sh.var_tree = newscope;
-	sh.st.own_tree = newscope;	/* scope identity sync (Direction 9) */
+	sh_scope_set(newscope);
 }
 
 static void table_unset(Dt_t *root, int flags, Dt_t *oroot)
@@ -3525,8 +3504,7 @@ void sh_unscope(void)
 			dp = dtview(dp,NULL);
 			sh.st.real_fun->sdict->view = dp;
 		}
-		sh.var_tree=dp;
-		sh.st.own_tree = dp;		/* scope identity sync (Direction 9) */
+		sh_scope_set(dp);
 		sh_scope_release(root);
 	}
 }

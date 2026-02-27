@@ -611,6 +611,14 @@ void sh_exit(int xno)
 	sh.arithrecursion = 0;
 	sh.intrace = 0;
 	sh.prefix = 0;
+	/* Direction 8: restore L_ARGNOD if longjmp escapes compound assignment */
+	if(sh.argnod_guard.nvalue)
+	{
+		L_ARGNOD->nvalue = sh.argnod_guard.nvalue;
+		L_ARGNOD->nvflag = sh.argnod_guard.nvflag;
+		L_ARGNOD->nvfun = sh.argnod_guard.nvfun;
+		sh.argnod_guard.nvalue = NULL;
+	}
 	sh.mktype = 0;
 	sh.invoc_local = 0;
 	sh.tilde_block = 0;
