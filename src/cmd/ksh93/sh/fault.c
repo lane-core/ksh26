@@ -474,10 +474,6 @@ int sh_trap(const char *trap, int mode)
 	/* three-layer nesting: stk outermost, polarity middle, continuation innermost (Direction 6) */
 	int	staktop = stktell(sh.stk);
 	void	*savptr = stkfreeze(sh.stk,0);
-	/* skip polarity frame when called from sh_debug (which has its own
-	 * frame + update_sh_level); double-framing breaks scope restoration
-	 * because sh.var_tree is not in the polarity frame (Direction 4) */
-	int	use_polframe = !sh.indebug;
 	struct	checkpt buff;
 	Fcin_t	savefc;
 	fcsave(&savefc);
@@ -487,9 +483,10 @@ int sh_trap(const char *trap, int mode)
 	/* disable last-command exec optimisation so the caller gets to complete execution */
 	if(was_no_trapdontexec)
 		sh.st.trapdontexec = 's';  /* special value for direct sh_trap() call */
-	/* polarity boundary: trap handler runs in computation mode (Direction 4) */
-	if(use_polframe)
-		sh_polarity_enter(&polframe);
+	/* polarity boundary: trap handler runs in computation mode (Direction 4).
+	 * double-framing (sh_trap inside sh_debug) is safe because var_tree
+	 * is in the polarity frame, keeping sh.st and sh.var_tree in sync. */
+	sh_polarity_enter(&polframe);
 	sh_pushcontext(&buff,SH_JMPTRAP);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
@@ -524,8 +521,7 @@ int sh_trap(const char *trap, int mode)
 		sh.intrap_exit_n = 0;
 	else
 		sh.exitval = savxit;
-	if(use_polframe)
-		sh_polarity_leave(&polframe);
+	sh_polarity_leave(&polframe);
 	stkset(sh.stk,savptr,staktop);
 	fcrestore(&savefc);
 	if(was_history)
