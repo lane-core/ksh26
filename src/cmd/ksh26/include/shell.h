@@ -242,17 +242,14 @@ struct sh_polarity
 
 /*
  * Lightweight polarity frame for sh_debug: saves only the fields that
- * sh_debug modifies or that the handler may mutate through sh_trap's
- * inner frame.  The full sh.st is protected by sh_trap's own polarity
- * frame, so the outer boundary can be weakened.  See REDESIGN.md.
+ * sh_debug itself modifies (prefix, namespace, var_tree).  Trap state
+ * is handled by sh_trap's inner full polarity frame.  See REDESIGN.md.
  */
 struct sh_polarity_lite
 {
 	char		*prefix;
 	Namval_t	*namespace;
 	Dt_t		*var_tree;
-	char		trapdontexec;
-	char		*trap[SH_DEBUGTRAP+1];
 };
 
 /*

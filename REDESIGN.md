@@ -43,13 +43,14 @@ feature vision.
 Directions 1–9 (below) established the engineering foundations: polarity
 frames, prefix guards, scope unification, longjmp safety.
 
-Directions 10–15 (planned) clear the path for features:
-- **10**: C23 types — move invariants from comments into the compiler
+Directions 10 and 15 are done. Remaining directions clear the path for
+features:
+- **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
 - **11**: Library reduction — strip ~25K lines of dead code
 - **12**: sfio abstraction — prepare for lighter I/O backend
 - **13**: Platform targeting — declare what we support, delete the rest
 - **14**: Security hardening — audit the reduced codebase
-- **15**: Build system — just + samu, retire MAM
+- **15**: Build system — just + samu, retire MAM (**done**)
 
 After that: interactive features (completions, autosuggestions, editor
 hooks) on a codebase that's small enough to audit and typed enough to
@@ -70,6 +71,7 @@ struct sh_polarity
     char        *prefix;    /* saved sh.prefix */
     Namval_t    *namespace; /* saved sh.namespace */
     struct sh_scoped st;    /* saved sh.st */
+    Dt_t        *var_tree;  /* saved sh.var_tree */
 };
 ```
 
@@ -80,9 +82,9 @@ void sh_polarity_enter(struct sh_polarity *frame);
 void sh_polarity_leave(struct sh_polarity *frame);
 ```
 
-`sh_polarity_enter` saves `sh.prefix`, `sh.namespace`, and `sh.st`, then
-clears `prefix` and `namespace`. Computation-mode code runs in a clean
-context.
+`sh_polarity_enter` saves `sh.prefix`, `sh.namespace`, `sh.st`, and
+`sh.var_tree`, then clears `prefix` and `namespace`. Computation-mode
+code runs in a clean context.
 
 `sh_polarity_leave` restores the saved state, but with a critical
 refinement: it snapshots all live trap slots *before* restoring `sh.st`,
@@ -109,7 +111,8 @@ These functions previously did ad-hoc save/restore of some combination of
 
 | Function | File | What changed |
 |----------|------|--------------|
-| `sh_debug()` | xec.c | Was: manual `savprefix` + `*savst` + inline trap slot preservation. Now: `sh_polarity_enter`/`leave`. Trap dup for use-after-free protection retained separately. |
+| `sh_debug()` | xec.c | Was: manual `savprefix` + `*savst` + inline trap slot preservation. Now: lightweight polarity frame (`sh_polarity_lite_enter`/`leave`). Trap dup for use-after-free protection retained separately. |
+| `sh_trap()` | fault.c | Was: conditional polarity frame (`use_polframe = !sh.indebug` guard). Now: unconditional full polarity frame after `var_tree` was added to frame (Direction 1 resolution). |
 | `sh_fun()` | xec.c | Was: saved only `sh.prefix`. Now: full polarity frame (saves `sh.st` too). Documented behavioral change in `notes/divergences/001-sh-fun-st-save.md`. |
 | `sh_getenv()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
 | `putenv()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
@@ -144,7 +147,8 @@ execution (computation). `TFOR` has loop variable binding (value) and loop
 body (computation). `TFUN` has symbol table registration (value) and
 namespace body execution (computation).
 
-A block comment at the top of the switch documents the full taxonomy.
+The `sh_node_polarity[]` constexpr table in shnodes.h encodes this
+classification. Index with `tretyp & COMMSK`.
 
 
 ## Regression tests
@@ -176,7 +180,7 @@ invoking the ERR trap (or exiting) when a command returns nonzero.
 
 | Function | Convention | Mechanism |
 |----------|-----------|-----------|
-| `sh_exec()` | ⊕ return + ⅋ dispatch | Returns `sh.exitval`; calls `sh_chktrap()` at fault.c:396 |
+| `sh_exec()` | ⊕ return + ⅋ dispatch | Returns `sh.exitval`; calls `sh_chktrap()` at fault.c:397 |
 | `sh_trap()` | ⊕ return | Returns handler's exit status; restores caller's `sh.exitval` |
 | `sh_chktrap()` | ⅋ dispatch | ERR trap → `sh_exit()` longjmp if errexit option on |
 | `sh_debug()` | ⊕ return | Returns trap status (2 = skip command) |
@@ -198,7 +202,7 @@ The state/option split:
 
 Suppression: `&&`, `||`, `if`/`while` condition, `!` — these pass
 `flags & ARG_OPTIMIZE` without `sh_state(SH_ERREXIT)` to recursive
-`sh_exec()`, which clears the state at xec.c:887-888.
+`sh_exec()`, which clears the state at xec.c:925.
 
 `skipexitset` (xec.c:881): prevents `exitset()` from committing to `$?`
 in contexts where it shouldn't (test expressions inside conditionals).
@@ -210,7 +214,7 @@ in contexts where it shouldn't (test expressions inside conditionals).
 ```
 sh.exitval (transient, per-command)
     → sh.savexit (stable, $?) via exitset()
-    → sh_chktrap() check at xec.c:2614
+    → sh_chktrap() check at xec.c:2643
 ```
 
 ### Longjmp mode taxonomy
@@ -360,17 +364,14 @@ called during compound assignment, `sh.prefix` was leaking into handlers.
 The polarity frame prevents this. Nesting order: stk (outermost) →
 polarity (middle) → continuation (innermost).
 
-The polarity frame is conditional: `use_polframe = !sh.indebug`. When
-sh_trap is called from sh_debug (DEBUG trap dispatch), sh_debug already
-has its own polarity frame with post-handler scope repair via
-`update_sh_level()` → `sh_setscope()`. A second polarity frame inside
-sh_trap would restore `sh.st` prematurely, making `update_sh_level()`
-believe the scope level is already correct and skip the `sh_setscope()`
-call that repairs `sh.var_tree`. The root issue: `sh.var_tree` and
-`sh.st` encode the same scope concept in two places — `sh_setscope()`
-synchronizes them, but a polarity frame only saves/restores `sh.st`.
-This split is a candidate for future structural work (scope chain as
-explicit substitution).
+The polarity frame was initially conditional (`use_polframe =
+!sh.indebug`) to avoid double-framing desync when sh_trap is called
+from sh_debug. The issue: `sh.var_tree` and `sh.st` encode the same
+scope in two places, and a polarity frame that saved only `sh.st`
+would desynchronize them on the inner restore. Once `sh.var_tree` was
+added to the polarity frame (Direction 1 resolution), double-framing
+became safe and the conditional was removed. The frame is now
+unconditional.
 
 #### Continuation frame polarity classification
 

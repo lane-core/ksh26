@@ -138,8 +138,8 @@ patterns, the same failure modes, the same fix disciplines.
 |---|---|---|
 | Words (literals, expansions, quoted strings) | Terms / producers | macro.c — 2984-line expansion engine |
 | Contexts (pipe reader, redirect target, assignment LHS, trap handler) | Coterms / consumers | fault.h (checkpt), shell.h (sh.st.trap[]) |
-| Commands (simple, pipeline, compound) | Statements / cuts ⟨t \| e⟩ | sh_exec() in xec.c:793 — switch on Shnode_t type |
-| Shnode_t union (shnodes.h:190) | AST for all three sorts | Tagged by `tretyp & COMMSK` (shnodes.h:50–67) |
+| Commands (simple, pipeline, compound) | Statements / cuts ⟨t \| e⟩ | `sh_exec()` in xec.c — switch on Shnode_t type |
+| Shnode_t union (shnodes.h) | AST for all three sorts | Tagged by `tretyp & COMMSK` |
 
 The AST embeds this three-way distinction. `TCOM` (simple command) is a
 statement: it holds both `comarg` (producer — the arguments) and `comnamp` (the
@@ -208,14 +208,14 @@ same involutive negation that swaps CBV and CBN.
 
 | Shell mechanism | Sequent calculus analog | Where |
 |---|---|---|
-| `sigjmp_buf` / `struct checkpt` | Continuation frame (reified coterm) | fault.h:89–112 |
-| `sh.jmplist` (linked stack of checkpts) | Continuation stack (μ-variable binding) | shell.h:306 |
-| `sh_pushcontext` / `sh_popcontext` | Save/restore continuation | fault.h:99–112 |
-| Traps (DEBUG, ERR, EXIT) | Delimited continuations | sh.st.trap[] (shell.h:222) |
+| `sigjmp_buf` / `struct checkpt` | Continuation frame (reified coterm) | fault.h |
+| `sh.jmplist` (linked stack of checkpts) | Continuation stack (μ-variable binding) | shell.h (`Shell_t`) |
+| `sh_pushcontext` / `sh_popcontext` | Save/restore continuation | fault.h |
+| Traps (DEBUG, ERR, EXIT) | Delimited continuations | `sh.st.trap[]` (shell.h) |
 | `break` / `continue` / `return` | Named continuation jumps (goto α) | sh.st.breakcnt, SH_JMPFUN, etc. |
 | Subshell `(...)` | Classical contraction (fork continuation) | xec.c TPAR handler |
 
-The longjmp mode values (fault.h:71–81) are a taxonomy of continuation types:
+The longjmp mode values (`enum sh_jmpmode` in fault.h) are a taxonomy of continuation types:
 `SH_JMPEVAL` (eval return), `SH_JMPTRAP` (trap return), `SH_JMPFUN` (function
 return), `SH_JMPSUB` (subshell return), `SH_JMPEXIT` (exit). Each represents a
 different way to *cut* the current computation and resume at a captured context.
@@ -228,9 +228,9 @@ the current context as α and runs command c.
 
 | Shell mechanism | Categorical analog | Where |
 |---|---|---|
-| `sh.var_tree` / `sh.var_base` | Scoped environment (context extension) | shell.h:246,288 |
-| `dtview(child, parent)` | Viewpath linking (scope chain) | name.c:2280–2292 |
-| Function-local scope | New scope node in viewpath | name.c:2280 (`dtview(newscope, sh.var_tree)`) |
+| `sh.var_tree` / `sh.var_base` | Scoped environment (context extension) | shell.h (`Shell_t`) |
+| `dtview(child, parent)` | Viewpath linking (scope chain) | `sh_scope()` in name.c |
+| Function-local scope | New scope node in viewpath | `dtview(newscope, sh.var_tree)` in name.c |
 
 When a function is called, a new CDT dictionary is allocated and linked via
 `dtview()` to shadow the caller's scope. Lookup walks the chain. This is
@@ -239,16 +239,16 @@ binding, and lookup proceeds by searching the extended context first.
 
 ### The monolithic state: `Shell_t`
 
-The entire interpreter state lives in a single struct (`Shell_t`, shell.h:243).
+The entire interpreter state lives in a single struct (`Shell_t` in shell.h).
 The fields relevant to the polarity story:
 
 ```
-sh.prefix      (shell.h:305)  — compound assignment context (positive mode marker)
-sh.st          (shell.h:282)  — scoped state snapshot (sh_scoped, shell.h:198–228)
-sh.jmplist     (shell.h:306)  — continuation stack head
-sh.var_tree    (shell.h:246)  — current scope (mutable)
-sh.var_base    (shell.h:288)  — global scope (stable)
-sh.stk         (shell.h:283)  — stack allocator (bulk-freed at boundaries)
+sh.prefix    — compound assignment context (positive mode marker)
+sh.st        — scoped state snapshot (struct sh_scoped)
+sh.jmplist   — continuation stack head
+sh.var_tree  — current scope (mutable)
+sh.var_base  — global scope (stable)
+sh.stk       — stack allocator (bulk-freed at boundaries)
 ```
 
 The problem isn't that these fields exist — they correspond to real semantic
@@ -306,7 +306,7 @@ orders — exactly the non-determinism in the critical pair.
 
 **Bug 001** (`bugs/001-typeset-compound-assoc-expansion.ksh`): `typeset -i`
 combined with compound-associative array expansion produces "invalid variable
-name." Root cause: during `nv_create()` path resolution (name.c:749), walking
+name." Root cause: during `nv_create()` path resolution in name.c, walking
 a dotted path like `T[k].arr` requires entering a compound (positive) context
 via `sh.prefix`. When the lexer processes nested `${#...}` expansions, it
 resets `varnamelength` without accounting for the active prefix, causing
@@ -315,31 +315,30 @@ subsequent declarations to see an empty variable name. Fixed in commit
 
 **Bug 002** (`bugs/002-typeset-debug-trap-compound-assign.ksh`): `typeset`
 inside a function fails when called from a DEBUG trap during compound
-assignment. Root cause: `sh_debug()` (xec.c:464) executes the trap handler
+assignment. Root cause: `sh_debug()` in xec.c executes the trap handler
 without saving/restoring `sh.prefix`. The compound assignment context
 (`sh.prefix` set, positive mode) is a value-level operation; the DEBUG trap
 is a computation-level operation. Running the trap without clearing the prefix
-lets the computation context corrupt the value context. Fixed by adding the
-save/clear/restore pattern at xec.c:508–509,524.
+lets the computation context corrupt the value context. Fixed by the
+polarity lite frame in `sh_debug()`.
 
 ### The save/restore pattern IS the shift
 
 Look at the sh.prefix usage across the codebase (name.c has 30+ occurrences):
 
 ```c
-/* name.c:223 — entry to compound name resolution */
+/* name.c — entry to compound name resolution */
 char *prefix = sh.prefix;
 
-/* name.c:271,273 — around macro expansion within name resolution */
+/* name.c — around macro expansion within name resolution */
 sh.prefix = 0;
 /* ... expand ... */
 sh.prefix = prefix;
 
-/* xec.c:508-509,524 — around trap execution */
-char *savprefix = sh.prefix;
-sh.prefix = NULL;
+/* xec.c — around trap execution (now via polarity frame) */
+sh_polarity_enter(&frame);    /* saves and clears sh.prefix */
 /* ... run trap ... */
-sh.prefix = savprefix;
+sh_polarity_leave(&frame);    /* restores sh.prefix */
 ```
 
 This is not ad-hoc defensive programming. It is the *implementation* of a
@@ -348,9 +347,9 @@ polarity shift: entering a negative (computation) context from a positive
 then restoring it. The pattern recurs because the boundary crossing recurs — and
 every time someone forgets to add it, you get a new bug.
 
-The same pattern applies to the full scoped state (`sh.st`) in sh_debug()
-(xec.c:504–523), and to the continuation stack everywhere via
-`sh_pushcontext` / `sh_popcontext` (fault.h:99–112).
+The same pattern applies to the full scoped state (`sh.st`) in `sh_debug()`
+and `sh_trap()` (via polarity frames), and to the continuation stack
+everywhere via `sh_pushcontext` / `sh_popcontext` (fault.h).
 
 ### The taxonomy of boundary violations
 
@@ -423,7 +422,7 @@ to positions where they can be properly evaluated.
 
 **2. Classify sh_exec cases by polarity**
 
-The `sh_exec()` switch (xec.c:860) handles 16 node types. These fall into
+The `sh_exec()` switch in xec.c handles 16 node types. These fall into
 the three sorts:
 
 | Producers (value-producing) | Consumers (context-managing) | Statements (cut / mixed) |
@@ -442,7 +441,7 @@ which don't.
 
 **3. Shift-aware name resolution**
 
-`nv_create()` (name.c:749) walks dotted paths through compound variables. Each
+`nv_create()` in name.c walks dotted paths through compound variables. Each
 dot-separated component is a boundary crossing: entering a sub-namespace
 (positive context within a positive context). The function already manages
 `sh.prefix` carefully, but it does so with 30+ manual save/restore sites.
@@ -455,7 +454,7 @@ the outer prefix.
 
 **4. Unify the continuation stack with polarity frames**
 
-The `checkpt` stack (fault.h:89–112) is the continuation mechanism — the
+The `checkpt` stack (fault.h) is the continuation mechanism — the
 reified coterm/consumer [7]. The mode values (`SH_JMPDOT` through
 `SH_JMPSCRIPT`) classify continuations by type. The refactoring direction:
 

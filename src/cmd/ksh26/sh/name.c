@@ -625,8 +625,8 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					L_ARGNOD->nvalue = node.nvalue;
 					L_ARGNOD->nvflag = node.nvflag;
 					L_ARGNOD->nvfun = node.nvfun;
-					sh.argnod_guard.nvalue = nullptr; /* clear guard after normal restore */
 				}
+				sh.argnod_guard.nvalue = nullptr; /* clear guard unconditionally on normal return */
 				sh.prefix = prefix;
 				if(nv_isarray(np) && (mp=nv_opensub(np)))
 					np = mp;

@@ -135,7 +135,7 @@ printf '%s\n' "configure: AR=${mam_cc_AR:-ar}"
 
 # ── Compiler flags ────────────────────────────────────────────────────
 
-CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-}"
+CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-} ${CFLAGS:-}"
 AR="${mam_cc_AR:-ar}"
 AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
 
@@ -154,6 +154,7 @@ if $FORCE; then
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
+		"$BUILDDIR_ABS"/config.probe \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
 elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
 	: # cache key matches — individual probes check their own freshness
