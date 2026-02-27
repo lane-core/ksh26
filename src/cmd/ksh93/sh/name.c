@@ -48,6 +48,37 @@ static void	rightjust(char*, int, int);
 static char	*lastdot(char*, int);
 
 /*
+ * Scope dictionary pool: amortizes dtopen/dtclose for function scopes.
+ * Scopes are LIFO (strict stack discipline), so a fixed-size pool
+ * covers the common case.  Falls back to dtopen/dtclose when exhausted.
+ */
+#define SH_SCOPE_POOL_MAX	8
+
+static struct
+{
+	Dt_t	*dicts[SH_SCOPE_POOL_MAX];
+	int	count;
+} scope_pool;
+
+static Dt_t *sh_scope_acquire(void)
+{
+	if(scope_pool.count > 0)
+		return scope_pool.dicts[--scope_pool.count];
+	return dtopen(&_Nvdisc, Dtoset);
+}
+
+static void sh_scope_release(Dt_t *dict)
+{
+	if(scope_pool.count < SH_SCOPE_POOL_MAX)
+	{
+		dtclear(dict);
+		scope_pool.dicts[scope_pool.count++] = dict;
+	}
+	else
+		dtclose(dict);
+}
+
+/*
  * The first two fields must correspond with those in 'struct adata' in nvdisc.c and 'struct tdata' in typeset.c
  * (those fields are used via a type conversion in scanfilter() in name.c)
  */
@@ -2303,7 +2334,7 @@ void sh_scope(struct argnod *envlist, int fun)
 	if(sh.namespace)
 		newroot = nv_dict(sh.namespace);
 #endif /* SHOPT_NAMESPACE */
-	newscope = dtopen(&_Nvdisc,Dtoset);
+	newscope = sh_scope_acquire();
 	if(envlist)
 	{
 		dtview(newscope,(Dt_t*)sh.var_tree);
@@ -3469,7 +3500,7 @@ void sh_unscope(void)
 			sh.st.real_fun->sdict->view = dp;
 		}
 		sh.var_tree=dp;
-		dtclose(root);
+		sh_scope_release(root);
 	}
 }
 

@@ -439,6 +439,101 @@ This is intentional: loop body allocations persist for the optimizer. Not
 a leak — the optimizer manages its own stk lifetime.
 
 
+### Direction 7: Safe optimizations
+
+**Status: done**
+
+The polarity boundary framework (Directions 1–6) makes three optimizations
+provably safe that would have been risky in the ad-hoc codebase. Each
+eliminates redundant work on hot paths without changing observable behavior.
+
+#### 7a: Empty DEBUG trap early exit
+
+`sh_debug` is called on every command when a DEBUG trap is set. When the
+trap string is empty (`trap '' DEBUG`), it previously built the entire
+`.sh.command` string, entered a full polarity frame, allocated a trap
+duplicate, and called `sh_trap` — all for a no-op.
+
+In the sequent calculus framing, an empty trap body means the cut between
+the current command (value) and the trap handler (computation) reduces to
+identity. No polarity boundary crossing occurs, so the frame, continuation,
+and string construction are pure overhead.
+
+The fix adds `if(!*trap) return 0;` after the re-entrancy guard. `trap` is
+always non-NULL here (callers gate on `sh.st.trap[SH_DEBUGTRAP]`), and the
+`stkfreeze(sh.stk,0)` at the top is a read-only snapshot (arg 0 = no
+mutation), so early return needs no cleanup.
+
+**File:** `xec.c` `sh_debug`, after the `sh.indebug` guard.
+
+#### 7b: Lightweight polarity frame (sh_polarity_lite)
+
+`sh_debug` and `sh_trap` create nested polarity frames:
+
+```
+caller → sh_debug frame → sh_trap frame → handler → sh_trap leave → sh_debug leave
+```
+
+`sh_trap`'s inner frame already does a full `sh.st` save/restore (~184
+bytes on arm64). The outer frame's full `sh.st` copy is therefore redundant
+— `sh_debug`'s own operations (lines between enter/leave) only modify
+`sh.prefix` and `sh.namespace`.
+
+**Weakened outer boundary principle:** when nested cuts already provide the
+structural guarantee, the outer cut can save only the fields it personally
+modifies plus the fields the handler is allowed to mutate through the inner
+boundary.
+
+`struct sh_polarity_lite` (~56 bytes) replaces `struct sh_polarity` (~208
+bytes) in `sh_debug`, saving:
+
+| Field | Why saved |
+|-------|-----------|
+| `prefix` | sh_debug clears to NULL |
+| `namespace` | sh_debug clears to NULL |
+| `var_tree` | scope consistency across boundary |
+| `trap[]` | handler may mutate (e.g. `trap - DEBUG`) |
+| `trapdontexec` | handler may set new traps |
+
+Everything else in `sh.st` is invariant across `sh_debug`'s own code and
+protected by `sh_trap`'s full frame.
+
+`update_sh_level()` is reordered to run after `sh_polarity_lite_leave()`,
+since the scope checkpoint should happen after the caller's context is
+restored.
+
+**Files:** `shell.h` (struct), `xec.c` (enter/leave functions + sh_debug).
+
+#### 7c: Scope dictionary pool
+
+Every function call allocates a CDT dictionary via `dtopen` in `sh_scope`
+and frees it via `dtclose` in `sh_unscope`. Function scopes are strictly
+LIFO, so a fixed-size pool (8 entries) amortizes the malloc/free cost.
+
+In the sequent calculus, scope creation/destruction corresponds to
+structural rules (introducing/eliminating variable binding contexts).
+The logical structure requires the scope to exist with proper identity
+and viewpath linkage, but not that the physical memory be freshly
+allocated. The pool separates logical lifetime (scope enter/leave) from
+physical lifetime (allocate/free).
+
+`sh_scope_acquire()` pops from the pool (or falls back to `dtopen`).
+`sh_scope_release()` calls `dtclear()` and pushes to the pool (or falls
+back to `dtclose` when full). `table_unset` in `sh_unscope` already
+empties the dict's logical contents; `dtclear` resets CDT's internal
+bookkeeping for safe reuse.
+
+**File:** `name.c` (pool + acquire/release + sh_scope/sh_unscope updates).
+
+#### Boundary site coverage (updated)
+
+| Site | stk | polarity | continuation | Notes |
+|------|-----|----------|--------------|-------|
+| `sh_debug` | stkfreeze/stkset | **sh_polarity_lite** | (none) | Lite frame; sh_trap provides full sh.st protection |
+| `sh_fun` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
+| `sh_trap` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
+
+
 ## References
 
 1. Arnaud Spiwack. "A Dissection of L." 2014.
