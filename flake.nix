@@ -77,6 +77,10 @@
       ksh = final.ksh26;
     };
 
+    homeManagerModules.default = import ./nix/hm-module.nix;
+    darwinModules.default = import ./nix/darwin-module.nix;
+    nixosModules.default = import ./nix/nixos-module.nix;
+
     devShells = forAllSystems (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
