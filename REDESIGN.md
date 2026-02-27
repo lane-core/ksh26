@@ -206,17 +206,36 @@ Progress against the six refactoring directions from
 
 ### Direction 1: Context frames instead of global mutation
 
-**Status: active**
+**Status: done**
 
 The polarity frame API is implemented and in use at 6 call sites
 (sh_debug, sh_fun, sh_getenv, putenv, sh_setenviron, sh_trap).
-`sh.prefix`, `sh.namespace`, and `sh.st` are covered. Trap slot
-and `trapdontexec` preservation handled uniformly by `sh_polarity_leave`.
+`sh.prefix`, `sh.namespace`, `sh.var_tree`, and `sh.st` are covered.
+Trap slot and `trapdontexec` preservation handled uniformly by
+`sh_polarity_leave`.
 
-**Remaining work:**
-- Evaluate whether `sh.jmplist` (continuation stack head) belongs in the
-  frame — currently managed separately via `sh_pushcontext`/`sh_popcontext`
-- Evaluate whether `sh.var_tree` scope state belongs in the frame
+**Resolved evaluations:**
+- `sh.var_tree` — **yes, added to the frame.** ksh93 encodes scope in two
+  mutable fields (`sh.st` containing `save_tree`, and `sh.var_tree`) that must
+  stay synchronized. `sh_setscope()` is the only function that updates both
+  atomically; everything else (sh_scope, sh_funscope exit, sh_polarity_leave,
+  sh_subshell) updates them independently. Without var_tree in the polarity
+  frame, double-framing (sh_trap inside sh_debug) caused a SIGBUS: the inner
+  frame's `sh.st` restore desynchronized `save_tree` from `sh.var_tree`.
+  The workaround (`use_polframe = !sh.indebug` in sh_trap) has been removed
+  now that the polarity frame keeps both halves of the scope representation
+  in sync.
+
+  **Type system note:** `Shscope_t` (public, shell.h) has field `var_tree`
+  at the same offset where `struct sh_scoped` (private) has `save_tree`.
+  When `sh_setscope` does `scope->var_tree`, it reads `save_tree` through
+  the public interface. The name split reveals the duality: "save_tree" is
+  the entry perspective (saving var_tree), "var_tree" is the identity
+  perspective (this scope's dictionary).
+
+- `sh.jmplist` — **no.** Already managed by `sh_pushcontext`/`sh_popcontext`,
+  which pair correctly at each call site. The polarity frame would add
+  redundant save/restore without fixing any real desync.
 
 ### Direction 2: Classify sh_exec cases by polarity
 

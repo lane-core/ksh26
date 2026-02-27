@@ -1202,5 +1202,25 @@ got=$("$SHELL" -c '
 ' 2>&1)
 [[ $got == 1 ]] || err_exit "nested compound-associative assignment fails (got $(printf %q "$got"))"
 
+# Direction 1: var_tree must be restored atomically with sh.st
+got=$("$SHELL" -c '
+	function outer
+	{
+		typeset x=OUTER
+		function inner
+		{
+			typeset x=INNER
+			trap "true" DEBUG
+			print "$x"
+			trap - DEBUG
+		}
+		inner
+		print "$x"
+	}
+	outer
+' 2>&1)
+exp=$'INNER\nOUTER'
+[[ $got == "$exp" ]] || err_exit "var_tree desync after DEBUG trap in nested functions (got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))

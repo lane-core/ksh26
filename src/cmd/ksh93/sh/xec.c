@@ -459,7 +459,7 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
 
 /*
  * Polarity frame API: save/restore state at value-to-computation boundaries.
- * sh_polarity_enter saves sh.prefix and sh.st, then clears sh.prefix.
+ * sh_polarity_enter saves sh.prefix, sh.var_tree, and sh.st, then clears sh.prefix.
  * sh_polarity_leave restores them, but preserves the handler's trap state:
  * the handler may have freed or replaced trap strings (e.g. 'trap - DEBUG'),
  * making the frame's saved trap[] entries dangling.  trapdontexec is also
@@ -472,6 +472,7 @@ void sh_polarity_enter(struct sh_polarity *frame)
 	frame->prefix = sh.prefix;
 	frame->namespace = sh.namespace;
 	frame->st = sh.st;
+	frame->var_tree = sh.var_tree;
 	sh.prefix = NULL;
 	sh.namespace = NULL;
 }
@@ -488,6 +489,7 @@ void sh_polarity_leave(struct sh_polarity *frame)
 	for(i = 0; i <= SH_DEBUGTRAP; i++)
 		sh.st.trap[i] = traps[i];
 	sh.st.trapdontexec = trapdontexec;
+	sh.var_tree = frame->var_tree;
 	sh.prefix = frame->prefix;
 	sh.namespace = frame->namespace;
 }
@@ -554,7 +556,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
-	/* restore scope */
+	/* defensive scope checkpoint; primary restore is in sh_polarity_leave */
 	update_sh_level();
 	sh_polarity_leave(&polframe);
 	if(sav != stkptr(sh.stk,0))

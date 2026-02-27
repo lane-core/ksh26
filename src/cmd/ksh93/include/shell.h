@@ -237,6 +237,7 @@ struct sh_polarity
 	char		*prefix;	/* saved sh.prefix */
 	Namval_t	*namespace;	/* saved sh.namespace */
 	struct sh_scoped st;		/* saved sh.st */
+	Dt_t		*var_tree;	/* saved sh.var_tree */
 };
 
 /*
