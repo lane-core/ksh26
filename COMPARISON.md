@@ -8,6 +8,33 @@ For the theoretical foundation: [SPEC.md](SPEC.md).
 For current refactor status: [REDESIGN.md](REDESIGN.md).
 
 
+## Vision: the Unix shell in 2026
+
+ksh26 is not a compatibility project. It's an answer to the question: what
+should a Unix shell look like in 2026?
+
+The modern shell landscape splits into two camps. The **reinventors** (nushell,
+elvish, oil) discard POSIX compatibility for clean-slate designs — typed
+pipelines, structured data throughout, new syntax. The **accretors** (bash, zsh)
+pile features onto the POSIX foundation without rethinking the architecture.
+
+ksh26 takes a third path: **fidelity to POSIX where it matters, refinement
+where the standard is silent.** The shell should run any POSIX script correctly.
+It should also provide a modern interactive experience — completions with
+descriptions, autosuggestions, structured editor extensibility — without
+requiring users to learn a new language or abandon their scripts.
+
+This is yash's design sensibility applied to ksh93's robust internals. yash
+proved that you can be the most POSIX-compliant shell *and* have thoughtful
+extensions. ksh93 has deeper infrastructure (disciplines, compound variables,
+the polarity frame) that enables more ambitious extensions while remaining
+faithful to the Unix philosophy: text streams, composable tools, no magic.
+
+The proposals in this document are filtered through this lens. Every feature
+must either (a) make the shell more correct, or (b) make it more useful
+interactively, without compromising either.
+
+
 ## Design constraints (non-negotiable)
 
 These filter every proposal in this document:
@@ -28,6 +55,105 @@ These filter every proposal in this document:
 
 4. **Backward compatible.** Existing ksh93 scripts and KEYBD trap handlers
    must continue to work unchanged.
+
+
+## Design reference: yash
+
+yash (Yet Another SHell) is instructive because it occupies the design space
+ksh26 is aiming for: rigorous POSIX compliance with carefully chosen
+extensions. Where zsh and bash accumulate features, yash curates them.
+
+Source: yash manual (https://magicant.github.io/yash/), source code
+(https://github.com/magicant/yash-rs — Rust rewrite, original in C).
+
+### Key extensions worth studying
+
+**`errreturn` option.** Like `errexit` (`set -e`) but returns from the
+current function instead of exiting the shell. This fixes the fundamental
+usability problem with `errexit` — a failed command in a utility function
+shouldn't kill the entire script; it should propagate the error to the caller.
+
+```sh
+set -o errreturn
+f() {
+    false        # returns from f with status 1, doesn't exit shell
+    echo "never" # not reached
+}
+f
+echo "still here, \$? = $?"  # reached, $? = 1
+```
+
+Implementation cost: ~20 lines in `sh_exec()`. The `errexit` path already
+checks `sh_isstate(SH_ERREXIT)` — `errreturn` adds an alternative that calls
+`siglongjmp` to the function's `sh_pushcontext` frame instead of
+`sh_exit()`. The polarity frame guarantees state is correctly unwound.
+
+**`forlocal` option.** Loop variables in `for` loops are automatically local
+to the loop body. Prevents a common bug class where loop variables leak into
+the enclosing scope.
+
+```sh
+set -o forlocal
+x=outer
+for x in a b c; do :; done
+echo "$x"  # "outer" — loop variable didn't leak
+```
+
+Implementation cost: ~10 lines in the `TFOR` handler in `sh_exec()`. Push a
+scope for the loop variable, pop on loop exit.
+
+**`notifyle` option.** Defer job completion notifications until the next
+prompt, rather than interrupting the current line edit. Without this, a
+background job completing while you're typing inserts `[1]+ Done ...` into
+your input, corrupting the display.
+
+```sh
+set -o notifyle
+sleep 1 &   # notification appears at next prompt, not mid-keystroke
+```
+
+Implementation cost: ~10 lines. Queue notifications in the job table, drain
+at `ed_setup()` (prompt time) instead of `job_reap()`.
+
+**Honest POSIX mode.** When `set -o posix` is active, non-POSIX extensions
+are genuinely disabled, not cosmetically suppressed. This means ksh26 scripts
+that use extensions will fail loudly in POSIX mode rather than silently
+behaving differently. This is the right behavior — it makes the boundary
+between portable and non-portable code explicit.
+
+**Array-valued hooks.** `PROMPT_COMMAND` is an array — multiple handlers
+compose naturally without string-concatenation hacks. Compare bash's single
+`PROMPT_COMMAND` string (which requires `;`-separated commands or function
+wrapping) to yash's:
+
+```sh
+PROMPT_COMMAND=(update_git_status update_title record_history)
+```
+
+**Completion descriptions.** Completions have a description field displayed
+alongside the candidate. Same UX as fish's `-d` flag. This is the single
+most impactful completion UX feature across all shells surveyed.
+
+**Right prompt (`PS1R`).** A right-aligned prompt string. Useful for
+displaying metadata (git branch, time, context) without consuming left-side
+space. Auto-erased when the cursor reaches it.
+
+**`POST_PROMPT_COMMAND` with `$COMMAND`.** A preexec equivalent — runs after
+Enter, before execution. `$COMMAND` contains the command about to be
+executed. Cleaner than bash's DEBUG trap or zsh's `preexec` hook.
+
+### What to take from yash
+
+| Feature | Effort | Value | Take? |
+|---------|--------|-------|-------|
+| `errreturn` | ~20 lines C | Fixes `errexit` footgun | **Yes** |
+| `forlocal` | ~10 lines C | Prevents scope leaks | **Yes** |
+| `notifyle` | ~10 lines C | Fixes display corruption | **Yes** |
+| POSIX mode | ~50 lines C | Correctness boundary | **Yes** |
+| Array hooks | 0 (compound vars) | Composable handlers | Already possible |
+| Completion descriptions | Part of §4.2 | Fish-level UX | **Yes** (via widget) |
+| Right prompt | ~30 lines C | Common feature request | **Yes** |
+| `POST_PROMPT_COMMAND` | Part of §4.3 | Clean preexec | **Yes** (via lifecycle events) |
 
 
 ## Part 1: The shell landscape
@@ -376,14 +502,10 @@ Several cross-shell completion frameworks exist:
 
 - **carapace** (Go): supports 20+ shells. Outputs completion candidates as
   JSON/TSV with descriptions, groups, and styling. Uses a spec format that
-  can be generated from man pages or `--help` output.
+  can be generated from man pages or `--help` output. See §3.2 for detailed
+  assessment.
 - **bash-completion**: 2000+ completion scripts for bash. De facto standard.
 - **zsh-completions**: community-maintained zsh completions.
-
-carapace is particularly relevant for ksh26 because it's shell-agnostic and
-outputs structured data. A shell only needs to provide: (1) the current
-command line as input, (2) a way to parse the structured output, and (3)
-a display mechanism.
 
 
 ### 1.3 Autosuggestions
@@ -464,7 +586,7 @@ styled output. Adding color support to the display path is moderate work.
 
 Syntax highlighting is cosmetic — high user appeal but no architectural
 payoff. It should NOT drive architecture decisions. However, if a widget
-system exists (§2.1), syntax highlighting becomes a widget function that
+system exists (§4.1), syntax highlighting becomes a widget function that
 can be added later without C changes to the display layer (the widget
 returns ANSI-coded text and the display path passes it through).
 
@@ -559,7 +681,7 @@ Otherwise similar to ksh93's in capability.
 Vi mode enhancements (text objects, mode indicator, surround) are
 incrementally addable via a widget system. Mode change detection is
 already available in ksh93 via `.sh.edmode`. If an editor event system
-exists (§2.3), mode indicator falls out as a `mode-change` event handler
+exists (§4.3), mode indicator falls out as a `mode-change` event handler
 that adjusts the cursor shape via terminal escape codes.
 
 
@@ -687,14 +809,357 @@ already has `(( ))` for arithmetic and `[[ ]]` for conditionals, which
 cover much of the same ground.
 
 
-## Part 2: Architectural opportunities for ksh26
+## Part 2: Visual rendering architecture
+
+Modern shells have converged on a rendering architecture that enables
+inline UI composition — completions with descriptions, autosuggestion
+ghost text, syntax highlighting, and multi-line prompts — all on the main
+screen buffer without alternate-screen takeover. Understanding how they
+do it informs what ksh26 needs to build.
+
+
+### 2.1 How modern shells render
+
+#### elvish: inline widget composition
+
+elvish's terminal rendering (documented in `pkg/cli/term/` in the Go source,
+https://github.com/elves/elvish) is the cleanest example of the pattern.
+
+The key abstraction is a **Buffer**: a 2D grid of Cells (each Cell = one
+rune + a Style) plus a cursor position. The editor is composed of
+**widgets** — each widget produces its own Buffer, and Buffers are combined
+via two composition operators:
+
+- `ExtendDown(other)`: vertical stacking. Appends `other`'s rows below the
+  current buffer. Used for: prompt line + completion pager, input + status
+  bar.
+- `ExtendRight(other)`: horizontal concatenation. Appends `other`'s content
+  to the right of the current buffer's last line. Used for: prompt string +
+  input text.
+
+The composed Buffer represents the entire editor surface. Rendering to the
+terminal uses **delta updates**: compare the new Buffer against the previous
+one, emit only the differences.
+
+The delta renderer's cursor movement strategy is notable — it uses only
+**relative** movements:
+- CR (carriage return) to reach column 0
+- cursor-down to reach the target row
+- cursor-right to reach the target column
+
+No absolute positioning (no `CSI row;col H`). This avoids depending on
+terminal state (scroll region, origin mode) and works correctly when the
+terminal has scrolled.
+
+The rendering loop:
+1. Each widget produces a Buffer
+2. Buffers are composed into a single frame Buffer
+3. Frame Buffer is diffed against the previous frame
+4. Delta operations (cursor moves + cell writes) are emitted
+5. Previous frame is replaced with current frame
+
+#### fish: delta rendering with highlight pipeline
+
+fish uses the same delta rendering pattern (source: `src/screen.cpp`,
+https://github.com/fish-shell/fish-shell).
+
+The highlight pipeline is fish-specific and worth noting:
+1. The input buffer is tokenized (lexer pass)
+2. Each token gets a highlight role (command, parameter, string, error, etc.)
+3. A **background thread** validates commands (checks PATH for existence) and
+   updates highlights asynchronously — the prompt stays responsive even if
+   command validation is slow
+4. Highlighted tokens are rendered as styled text
+
+The completion pager uses a grid layout: candidates are arranged in columns
+with descriptions right-aligned. The pager appears below the input line as
+an inline widget (same ExtendDown composition pattern as elvish).
+
+#### nushell (reedline): prompt-oriented rendering
+
+reedline (https://github.com/nushell/reedline) uses a simpler model than
+elvish: it tracks prompt lines and repaints them as needed. Less general
+than elvish's Buffer composition but adequate for nushell's needs.
+
+### 2.2 Terminal capability matrix
+
+All three shells above rely on a surprisingly small set of terminal
+capabilities. Surveying which sequences they actually use:
+
+| Sequence | ANSI name | Used for |
+|----------|-----------|----------|
+| `\r` | CR | Move cursor to column 0 |
+| `\033[A` | CUU | Cursor up (relative) |
+| `\033[B` | CUD | Cursor down (relative) |
+| `\033[C` | CUF | Cursor right (relative) |
+| `\033[K` | EL | Clear to end of line |
+| `\033[J` | ED | Clear to end of screen |
+| `\033[?25h/l` | DECTCEM | Show/hide cursor (during repaint) |
+| `\033[...m` | SGR | Colors and attributes (bold, dim, underline, etc.) |
+
+That's 8 sequences. Every terminal emulator shipped in the last 20 years
+supports all of them. No terminfo/termcap lookup needed for these — they're
+de facto universal.
+
+ksh93's editor currently uses:
+- CR, cursor-right, and clear-to-EOL (basic line editing)
+- `ed_putchar` / `ed_flush` for output (no SGR, no cursor up/down)
+
+The gap: ksh93 can edit single lines. It cannot compose multi-line regions
+(completion pager, status bar) or emit styled text (ghost text,
+highlighting). The 8 sequences above are sufficient to close this gap.
+
+### 2.3 Implications for ksh26
+
+ksh26 doesn't need elvish's full Buffer abstraction on day one. The path
+is incremental:
+
+**Phase 1: SGR passthrough.** The display path (`ed_putchar`/`ed_flush`)
+passes through ANSI escape sequences instead of treating them as printable
+characters. This alone enables syntax highlighting as a widget that returns
+pre-colored text. No new data structures.
+
+**Phase 2: Ghost text (§4.4).** A single `e_ghost` string rendered in dim
+after the cursor. Uses cursor-right and CR to restore position. Enables
+autosuggestions. ~50-100 lines.
+
+**Phase 3: Addon region.** A region below the input line for completion
+menus, status information, etc. Uses cursor-down, clear-to-EOL,
+clear-to-EOS. The region is cleared and redrawn on each update. ~150-200
+lines. This is a simplified version of elvish's ExtendDown.
+
+**Phase 4: Delta rendering.** Full old-vs-new buffer comparison for
+flicker-free updates. Only needed if Phase 3's clear-and-redraw produces
+visible flicker, which depends on terminal speed and content size. May
+never be needed.
+
+Each phase is independently useful and doesn't require the next.
+
+
+## Part 3: External tool integration
+
+Interactive shells increasingly delegate to external tools — completion
+generators, fuzzy finders, history managers. ksh26 needs a clear model for
+how these tools interact with the editor.
+
+
+### 3.1 Integration taxonomy
+
+Three patterns cover all cases:
+
+| Pattern | Characteristics | Examples |
+|---------|----------------|----------|
+| **Fork-per-use** | Shell forks tool, reads stdout, tool exits | carapace (~5ms), compgen, custom scripts |
+| **Foreground takeover** | Tool takes over terminal, shell suspends | fzf, atuin TUI, less, vim |
+| **Persistent channel** | Long-lived process, shell talks over pipe | Hypothetical completion daemon, LSP |
+
+Each pattern has different requirements from the shell:
+
+- **Fork-per-use**: needs `$()` command substitution (already works) or a
+  mechanism to run a command and capture structured output. Widget functions
+  can already do this.
+- **Foreground takeover**: needs the shell to (1) save editor state, (2)
+  restore terminal modes, (3) wait for the tool to exit, (4) read the tool's
+  output, (5) restore editor state with new content. sane.ksh does this now
+  for fzf via KEYBD trap, but the result injection is char-at-a-time.
+- **Persistent channel**: needs coprocess or named pipe. ksh93 has
+  coprocesses. See §3.4.
+
+
+### 3.2 carapace
+
+carapace (https://github.com/carapace-sh/carapace-bin) is a cross-shell
+completion framework written in Go. It provides completions for 1600+
+commands via spec files.
+
+#### Architecture
+
+carapace is a **per-invocation binary**. Each Tab press forks a new
+`carapace` process with the command line as arguments:
+
+```sh
+carapace git bash 'git' 'check'
+```
+
+Startup time is ~5ms (Go binary, no interpreter). This is fast enough for
+interactive use — the user won't perceive the delay between pressing Tab and
+seeing results.
+
+carapace has no native ksh support. It supports: bash, elvish, fish,
+nushell, oil, powershell, tcsh, xonsh, zsh, and several others.
+
+#### Output formats
+
+**Bash format** (simplest to parse):
+```
+nospace\x01checkout
+nospace\x01cherry-pick
+nospace\x01clean
+```
+
+Each line is `[directive]\x01[value]`. Directives: `nospace` (don't append
+space), `filenames` (treat as filenames), `default` (normal completion).
+
+**JSON export format** (richest):
+```json
+[{
+    "value": "checkout",
+    "display": "checkout",
+    "description": "Switch branches or restore working tree files",
+    "style": "blue",
+    "tag": "commands"
+}]
+```
+
+Fields: `value` (insertion text), `display` (menu text), `description`
+(help text), `style` (ANSI color name), `tag` (grouping label).
+
+**Bridge mode**: carapace can also wrap existing bash-completion scripts,
+providing structured output from legacy completions:
+
+```sh
+carapace --bridge git/bash   # uses bash-completion's _git
+```
+
+#### ksh26 integration path
+
+The bash output format is the simplest integration path — it requires no
+JSON parser:
+
+```ksh
+function _carapace_complete {
+    typeset -C -a .sh.value
+    typeset line IFS=$'\x01'
+    carapace "${.sh.editor.word}" bash "${.sh.editor.line}" |
+    while read -r directive value; do
+        .sh.value+=( ( value="$value" ) )
+    done
+}
+complete -c '*' -f _carapace_complete   # fallback completer for all commands
+```
+
+For the JSON format (richer, with descriptions), ksh93's compound variable
+infrastructure could parse it — but a small C helper or `jq` bridge would
+be more pragmatic. The bash format covers 90% of the value.
+
+carapace does NOT need a coprocess or persistent connection. Fork-per-use
+is the right pattern: ~5ms per invocation, no state to manage, no daemon
+to start/stop.
+
+
+### 3.3 fzf
+
+fzf (https://github.com/junegunn/fzf) is a general-purpose fuzzy finder.
+It's the de facto standard for interactive selection in terminal
+applications.
+
+#### 4-channel I/O architecture
+
+fzf uses four I/O channels simultaneously:
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| stdin | candidates → fzf | List of items to filter |
+| stdout | fzf → shell | Selected item(s) |
+| stderr | fzf → terminal | TUI rendering (the fuzzy finder interface) |
+| /dev/tty | user → fzf | Keyboard input for the TUI |
+
+This is a **foreground takeover** tool. fzf needs the terminal for its TUI.
+The shell must suspend its own editing, hand control to fzf, then resume
+editing with fzf's output.
+
+#### Current sane.ksh integration
+
+sane.ksh already integrates fzf for three widgets (`sane.ksh/lib/fzf.ksh`):
+- `_sane_fzf_history` (Ctrl-R): history search
+- `_sane_fzf_file` (Ctrl-T): file picker
+- `_sane_fzf_cd` (Alt-C): directory picker
+
+The integration pattern:
+1. KEYBD trap detects the key sequence
+2. Handler calls fzf via `$()` command substitution — the subshell gives fzf
+   direct terminal access while capturing stdout
+3. The result is placed in sane.ksh's inject buffer
+4. The KEYBD trap drains the inject buffer one character per subsequent
+   keystroke
+
+This works but has three limitations:
+- **Char-at-a-time injection**: the result is fed back one character per
+  KEYBD firing. For a 50-character path, that's 50 KEYBD trap invocations.
+- **Read-only buffer**: the handler can't modify `.sh.edtext` — it can only
+  inject characters at the cursor position.
+- **Read-only cursor**: the handler can't move the cursor — it can only
+  read `.sh.edcol`.
+
+#### What the widget system solves
+
+With the widget system (§4.1), all three limitations disappear:
+- `.sh.editor.line` is writable — replace the entire buffer at once
+- `.sh.editor.col` is writable — set the cursor position
+- `.sh.value` can return a multi-character string — no char-at-a-time drain
+
+The fzf integration becomes:
+
+```ksh
+function .sh.editor.fzf_history {
+    typeset result
+    result=$(fc -l -n 1 | fzf --tac --no-sort)
+    .sh.editor.line="$result"
+    .sh.editor.col=${#result}
+}
+```
+
+Three lines, no inject buffer, no drain loop.
+
+
+### 3.4 Coprocess internals
+
+ksh93 has a coprocess mechanism (`|&`, `<&p`, `>&p`) that creates a
+persistent bidirectional pipe to a child process.
+
+#### ksh93's single-slot coprocess
+
+The implementation (xec.c, io.c) maintains a **single coprocess slot**:
+
+| Field | Purpose |
+|-------|---------|
+| `sh.cpipe[2]` | Pipe fds for shell→coproc and coproc→shell |
+| `sh.coutpipe` | Output fd from coproc |
+| `sh.cpid` | PID of the coprocess |
+
+`coproc_init()` (xec.c:3383) sets up the pipes. Only one coprocess can
+be active at a time. Starting a new one closes the previous. The
+`exec N>&p M<&p` trick moves the coproc fds to named fds, freeing the
+slot for a new coprocess — this is the standard pattern for multiplexing.
+
+#### Assessment for interactive tools
+
+**carapace**: coprocess is the wrong pattern. carapace is per-invocation
+(fork, run, exit). No state to maintain between invocations. `$()` is
+sufficient and simpler.
+
+**fzf**: coprocess is impossible. fzf needs foreground terminal access for
+its TUI. A coprocess runs in the background with no terminal. `$()` is the
+correct pattern — it gives fzf a subshell with terminal access.
+
+**Hypothetical completion daemon**: a long-running process that maintains
+an index of completions and responds to queries. This IS a coprocess use
+case. But no such tool exists today in the shell ecosystem, and building
+one is outside ksh26's scope.
+
+**Verdict**: don't extend or modify the coprocess infrastructure for
+interactive features. `$()` command substitution handles carapace and fzf.
+If a persistent tool emerges, the existing coprocess mechanism is adequate.
+
+
+## Part 4: Architectural proposals
 
 These proposals are filtered through the design constraints. Each one
 either (a) enables multiple features from a single mechanism, or (b)
 fixes an existing architectural problem while unlocking new capability.
 
 
-### 2.1 Editor widget system via `.sh.editor` discipline namespace
+### 4.1 Editor widget system via `.sh.editor` discipline namespace
 
 **Replaces:** The KEYBD trap as the sole extension point
 **Enables:** Programmable completion, autosuggestions, mode indicators, and
@@ -834,7 +1299,7 @@ editor's state.
   Autosuggestions fire per character but are optional.
 
 
-### 2.2 Structured completion results
+### 4.2 Structured completion results
 
 **Replaces:** flat string completion (ed_expand returns a count + modifies
 the buffer in place)
@@ -903,7 +1368,7 @@ needs a second column.
 - **Risk**: minimal. Additive change to the display path.
 
 
-### 2.3 Editor lifecycle events
+### 4.3 Editor lifecycle events
 
 **Replaces:** PS1 `.get` discipline hack (precmd), DEBUG trap hack (preexec),
 KEYBD trap `.sh.edmode` polling (mode change)
@@ -976,11 +1441,11 @@ points in `ed_viread`/`ed_emacsread` (for mode change), in `ed_setup()`
 
 - **C work**: minimal. ~30 lines of `sh_fun()` calls at defined points.
 - **Risk**: very low. Additive, no existing behavior changes.
-- **Shares namespace with §2.1**: if the widget system exists, events are
+- **Shares namespace with §4.1**: if the widget system exists, events are
   just widgets that fire on lifecycle transitions rather than key presses.
 
 
-### 2.4 Ghost text rendering
+### 4.4 Ghost text rendering
 
 **Replaces:** nothing (new capability)
 **Enables:** autosuggestions, completion preview, inline documentation
@@ -1023,6 +1488,9 @@ supported by every modern terminal.
 - **Enables completion preview**: show the top completion candidate inline
   before the user presses Tab.
 - **Reusable**: any widget can set ghost text for any purpose.
+- **Stepping stone**: ghost text rendering introduces SGR handling to the
+  display path, which is prerequisite for syntax highlighting and the
+  inline rendering engine (§4.7).
 
 #### Cost assessment
 
@@ -1032,11 +1500,11 @@ supported by every modern terminal.
   that don't support it simply show the text in normal weight.
 
 
-### 2.5 `complete` builtin
+### 4.5 `complete` builtin
 
 **Replaces:** nothing (no completion registration exists)
 **Enables:** per-command completion specs, external completer integration
-**Leverages:** the widget system (§2.1) for dispatch
+**Leverages:** the widget system (§4.1) for dispatch
 
 #### The proposal
 
@@ -1091,11 +1559,11 @@ Tab pressed
 #### Cost assessment
 
 - **C work**: small. ~150 lines for the builtin, ~30 lines for dispatch.
-- **Depends on**: §2.1 (widget system) or a simpler hook at the Tab
+- **Depends on**: §4.1 (widget system) or a simpler hook at the Tab
   press point in vi.c/emacs.c.
 
 
-### 2.6 Incremental history search widget
+### 4.6 Incremental history search widget
 
 **Replaces:** vi `ESC /` and emacs `Ctrl-R` (modal, non-incremental)
 **Enables:** search-as-you-type history navigation
@@ -1115,13 +1583,185 @@ function .sh.editor.history_search {
 ```
 
 This is listed not as a C proposal but as evidence that the widget system
-(§2.1) enables useful features at the shell-script level without further
+(§4.1) enables useful features at the shell-script level without further
 C work.
 
 
-## Part 3: What to avoid
+### 4.7 Inline rendering engine
 
-### 3.1 Structured/typed pipelines
+**Replaces:** nothing (new capability)
+**Enables:** completion menus with descriptions, status bars, syntax
+highlighting, multi-line prompts with proper reflow
+**Leverages:** terminal sequences (§2.2), widget system (§4.1)
+
+#### The problem
+
+ksh93's editor can render exactly one thing: the edit buffer as a flat
+string. It cannot:
+- Display a completion menu below the input
+- Show a status bar (git branch, mode indicator)
+- Render styled text (bold, dim, colored)
+- Compose multiple UI elements
+
+Modern shells (elvish, fish) solve this with inline widget composition on
+the main screen buffer (§2.1). ksh26 can adopt the same approach
+incrementally.
+
+#### The proposal
+
+A phased rendering engine as described in §2.3:
+
+**Phase 1** (SGR passthrough): ~30 lines. The display path stops counting
+ANSI escape sequences as printable characters. Immediately enables syntax
+highlighting via widget functions that return pre-colored strings.
+
+**Phase 2** (ghost text): ~50-100 lines. This is §4.4 — listed separately
+because it's independently valuable.
+
+**Phase 3** (addon region): ~150-200 lines. A region below the input line,
+managed by a simple clear-and-redraw loop. The region is an array of
+strings (one per line). Widgets can set the region content. Used for:
+- Completion menus with descriptions and grouping
+- Status information (git branch, current mode, etc.)
+- Error messages or inline documentation
+
+Data structure: a new `Edit_t` field `e_addon` (array of strings + count).
+Rendering: after drawing the input line, cursor-down into the addon region,
+clear-to-EOS, print each addon line, cursor-up back to the input line.
+
+**Phase 4** (delta rendering): ~300-500 lines. Full Buffer abstraction
+(Cell grid + cursor) with old-vs-new comparison. Only needed if Phase 3
+produces visible flicker. May be deferred indefinitely.
+
+#### Why this is a win-win
+
+- **Completion menus with descriptions**: Phase 3 renders structured
+  completion results (§4.2) in a multi-line region below the input.
+  fish/zsh parity for completion UX.
+- **Status bar**: Phase 3 enables a persistent region for git branch,
+  vi mode indicator, etc. Currently these are hacked into the prompt
+  string.
+- **Syntax highlighting**: Phase 1 enables syntax highlighting as a pure
+  widget function — no display path changes beyond SGR passthrough.
+- **Incremental**: each phase is useful independently. No big-bang.
+
+#### Cost assessment
+
+- **C work**: Phase 1 is trivial (~30 lines). Phase 2 is small (~100
+  lines). Phase 3 is moderate (~200 lines). Phase 4 is significant
+  (~500 lines) but may be unnecessary.
+- **Risk**: low per phase. Each phase is additive. Phases 1-2 are
+  display-path-only. Phase 3 adds a new region but doesn't change
+  existing rendering. Phase 4 replaces the rendering loop but can be
+  feature-flagged.
+
+
+### 4.8 POSIX compatibility mode
+
+**Replaces:** ksh93's current `-o posix` (which is incomplete)
+**Enables:** clear boundary between portable and extended code
+**Leverages:** existing option infrastructure, yash's design
+
+#### The problem
+
+ksh93 has `set -o posix` but it's a grab-bag of behavioral tweaks rather
+than a principled compatibility boundary. Some non-POSIX features are
+suppressed; others aren't. Users can't rely on POSIX mode to tell them
+whether their script is portable.
+
+yash's approach: when POSIX mode is active, non-POSIX extensions produce
+errors. This is honest — it makes the extension boundary visible.
+
+#### The proposal
+
+When `set -o posix` is active:
+- Non-POSIX builtins (`print`, `whence`, `typeset -C`, compound
+  variables, etc.) produce a diagnostic and fail
+- Non-POSIX syntax (e.g., `[[ ]]`, `(( ))`, `${ ...; }`) produces
+  a parse error
+- Non-POSIX options (`errreturn`, `forlocal`, `notifyle`, etc.) are
+  unavailable
+- The `.sh.*` namespace is unavailable
+
+When POSIX mode is inactive (default), all ksh93 extensions work normally.
+
+This gives script authors a reliable test: run with `ksh -o posix script.sh`
+and if it succeeds, the script is portable.
+
+#### Cost assessment
+
+- **C work**: moderate. ~50 lines of checks scattered across builtins,
+  the parser, and option handling. The infrastructure for conditional
+  feature availability already exists (the `SHOPT_*` compile-time flags);
+  this makes it runtime-switchable.
+- **Risk**: medium. Must ensure the right set of features is gated.
+  Getting this wrong (too strict or too lenient) undermines the purpose.
+  Start conservative (gate only clearly non-POSIX features) and expand.
+
+
+### 4.9 Language refinements
+
+Small, high-value additions inspired by yash (see Design reference section).
+Each is independently implementable.
+
+#### `errreturn`
+
+```ksh
+set -o errreturn
+```
+
+Like `errexit` but returns from the current function with the failing
+status instead of exiting the shell. Fixes the fundamental `errexit`
+usability problem.
+
+Implementation: in the `errexit` check path in `sh_exec()`, if
+`SH_ERRRETURN` is set and we're inside a function (check `sh.st.fn_depth`),
+`siglongjmp` to the function's `sh_pushcontext` frame instead of calling
+`sh_exit()`. The polarity frame guarantees correct unwinding. ~20 lines.
+
+#### `forlocal`
+
+```ksh
+set -o forlocal
+```
+
+Loop variables in `for` loops are automatically scoped to the loop body.
+
+Implementation: in the `TFOR` handler in `sh_exec()`, if `SH_FORLOCAL` is
+set, push a variable scope for the loop variable before the loop body,
+pop on exit. ~10 lines.
+
+#### `notifyle`
+
+```ksh
+set -o notifyle
+```
+
+Defer background job completion notifications until the next prompt
+display, preventing them from corrupting the current line edit.
+
+Implementation: in `job_reap()`, if `SH_NOTIFYLE` is set and the editor
+is active, queue the notification instead of printing it immediately.
+Drain the queue in `ed_setup()` (prompt time). ~10 lines.
+
+#### Right prompt (`PS1R`)
+
+```ksh
+PS1R='%d'   # right-aligned prompt showing current directory
+```
+
+A right-aligned prompt string. Displayed on the right edge of the terminal.
+Auto-erased when the cursor approaches it.
+
+Implementation: in `ed_setup()`, after rendering the left prompt, calculate
+remaining width, render `PS1R` right-aligned using cursor-right. Track the
+right prompt boundary; if cursor reaches it during editing, clear it. ~30
+lines.
+
+
+## Part 5: What to avoid
+
+### 5.1 Structured/typed pipelines
 
 elvish's value pipelines, nushell's table pipelines, and PowerShell's object
 pipelines are all interesting but represent a different paradigm from
@@ -1131,24 +1771,24 @@ layer). Adding a parallel structured channel would require changes to
 `io.c`, `xec.c`, `jobs.c`, and the subshell mechanism.
 
 ksh93's compound variables already provide structured data *within* the
-shell. Using compound variables for completion results (§2.2) demonstrates
+shell. Using compound variables for completion results (§4.2) demonstrates
 this: structured data stays within the language's existing facilities
 rather than requiring a new pipeline mechanism.
 
-### 3.2 zsh-scale completion framework
+### 5.2 zsh-scale completion framework
 
 zsh's compsys is ~30,000 lines of zsh script on top of ~5,000 lines of C.
 It's powerful but violates the minimalist principle. The `_arguments` DSL,
 the `zstyle` context system, and the completer stack are each individually
 complex and together form an edifice that few users understand fully.
 
-The alternative: a simple registration mechanism (§2.5) that maps commands
-to completion functions, with structured results (§2.2) for display. The
+The alternative: a simple registration mechanism (§4.5) that maps commands
+to completion functions, with structured results (§4.2) for display. The
 completion functions themselves can be as sophisticated as needed, but the
 framework is minimal. Heavy lifting (parsing man pages, understanding
 option syntax) is delegated to external tools like carapace.
 
-### 3.3 Sigil changes or syntax-breaking innovations
+### 5.3 Sigil changes or syntax-breaking innovations
 
 ion's `$`/`@` distinction, oils/ysh's expression mode, and nushell's
 `def` with typed parameters all require changes to the shell language that
@@ -1160,47 +1800,72 @@ ksh93 already has `typeset -a` for arrays, `typeset -A` for associative
 arrays, and `typeset -C` for compound variables. The type system is
 adequate for structured completion results and widget communication.
 
-### 3.4 Premature syntax highlighting
+### 5.4 Premature syntax highlighting
 
 Syntax highlighting is high-appeal but low-payoff architecturally. It
 requires changes to the display path, integration with the lexer, and
 careful handling of terminal compatibility. It should not drive architecture
 decisions.
 
-If the widget system (§2.1) and ghost text rendering (§2.4) exist, a
-syntax highlighting widget can be added later as a shell function or
-C builtin without further architectural changes. The display path changes
-for ghost text (SGR attribute handling) are a stepping stone toward
-full syntax highlighting, but the two should not be conflated.
+If the widget system (§4.1) and the rendering engine (§4.7 Phase 1) exist,
+syntax highlighting becomes a widget function that can be added later
+without further C changes — the widget returns SGR-coded text and the
+display path passes it through.
+
+### 5.5 Overengineered coprocess infrastructure
+
+The coprocess mechanism works for what it was designed for (persistent
+bidirectional pipes to background processes). Don't extend or modify it
+for interactive tool integration. carapace is per-invocation (`$()`), fzf
+needs foreground terminal access (`$()`), and no persistent completion
+daemon exists today. See §3.4 for the full analysis.
 
 
-## Part 4: Priority ordering
+## Part 6: Priority ordering
 
 Ranked by the ratio of architectural payoff to implementation cost:
 
 | Priority | Proposal | Payoff | Cost | Dependencies |
 |----------|----------|--------|------|--------------|
-| 1 | §2.3 Editor lifecycle events | Eliminates 3 hacks | ~30 lines C | None |
-| 2 | §2.1 Editor widget system | Enables all interactive features | ~400 lines C | None (but subsumes §2.3) |
-| 3 | §2.2 Structured completion results | Descriptions, grouping, external completers | ~100 lines C | §2.1 |
-| 4 | §2.4 Ghost text rendering | Autosuggestions, completion preview | ~100 lines C | None |
-| 5 | §2.5 `complete` builtin | Per-command completion registration | ~150 lines C | §2.1 |
-| 6 | §2.6 History search widget | Incremental search | ~0 lines C | §2.1 |
+| 1 | §4.9 Language refinements | 3 footgun fixes, ~40 lines total | ~40 lines C | None |
+| 2 | §4.3 Editor lifecycle events | Eliminates 3 hacks | ~30 lines C | None |
+| 3 | §4.1 Editor widget system | Enables all interactive features | ~400 lines C | None (subsumes §4.3) |
+| 4 | §4.4 Ghost text rendering | Autosuggestions, completion preview | ~100 lines C | None |
+| 5 | §4.2 Structured completion results | Descriptions, grouping, carapace | ~100 lines C | §4.1 |
+| 6 | §4.5 `complete` builtin | Per-command completion registration | ~150 lines C | §4.1 |
+| 7 | §4.7 Inline rendering engine | Completion menus, status bar | ~30-500 lines C (phased) | §4.4 (Phase 2) |
+| 8 | §4.8 POSIX compatibility mode | Portability boundary | ~50 lines C | None |
+| 9 | §4.6 History search widget | Incremental search | ~0 lines C | §4.1 |
 
-§2.3 is listed first because it's the smallest change with an immediate
-payoff (eliminates real workarounds in sane.ksh/pure.ksh/hist.ksh). §2.1
-is listed second because it subsumes §2.3 and enables everything else.
+§4.9 (language refinements) is first because `errreturn`, `forlocal`, and
+`notifyle` are tiny changes that fix real usability problems. They don't
+depend on anything and don't require new infrastructure.
 
-If §2.1 is implemented first, §2.3 is unnecessary as a separate mechanism
-— lifecycle events become widgets.
+§4.3 (lifecycle events) is second because it eliminates real workarounds in
+sane.ksh/pure.ksh/hist.ksh with ~30 lines of C.
 
-The practical build order is: **§2.1 → §2.4 → §2.2 → §2.5 → §2.6**.
+§4.1 (widget system) is third because it subsumes §4.3 and enables
+everything else. If §4.1 is implemented, §4.3 is unnecessary as a separate
+mechanism — lifecycle events become widgets.
 
-§2.1 (widget system) is the keystone. Once it exists, the rest are
-incremental additions — some in C, some in pure ksh.
+The practical build order is either:
+
+**Path A** (incremental): §4.9 → §4.3 → §4.4 → §4.1 → §4.2 → §4.5 → §4.7
+
+Start with the cheapest wins, add the widget system when the foundation
+is proven. §4.3 gets replaced by §4.1 eventually, but provides value
+immediately.
+
+**Path B** (keystone-first): §4.9 → §4.1 → §4.4 → §4.2 → §4.5 → §4.7
+
+Skip §4.3 entirely, go straight to the widget system. More upfront work
+but no throwaway code.
+
+Either way, §4.9 is first and §4.7 is last (each phase is independently
+deployable).
 
 
-## Part 5: Source references
+## Part 7: Source references
 
 ### ksh93 editor internals (ksh26 branch)
 
@@ -1225,6 +1890,15 @@ incremental additions — some in C, some in pure ksh.
 | `src/cmd/ksh26/data/variables.c` | `shtab_variables[]` (variable table), `nv_discnames[]` (get/set/append/unset/getn) |
 | `src/cmd/ksh26/include/variables.h` | `ED_CHRNOD`..`ED_MODENOD` index macros for `.sh.edchar`..`.sh.edmode` |
 
+### ksh93 coprocess internals
+
+| File | Key functions/structures |
+|------|------------------------|
+| `src/cmd/ksh26/sh/xec.c:3383` | `coproc_init()` — pipe setup, fd assignment |
+| `src/cmd/ksh26/sh/xec.c` | `TFORK` handler — `|&` creates coprocess via `coproc_init` |
+| `src/cmd/ksh26/sh/io.c` | `sh_coaccept()` — accept coproc connection, fd management |
+| `src/cmd/ksh26/include/shell.h` | `sh.cpipe[]`, `sh.coutpipe`, `sh.cpid` — single-slot state |
+
 ### ksh26 polarity frame infrastructure
 
 | File | Key functions/structures |
@@ -1240,19 +1914,21 @@ incremental additions — some in C, some in pure ksh.
 |-------|-------------------------|------------------------|
 | bash | 5.2 (GNU readline integration) | `complete`/`compgen`/`COMPREPLY`, `bind -x`, `PROMPT_COMMAND`, `READLINE_LINE`/`READLINE_POINT` |
 | zsh | 5.9 (ZLE + compsys) | ZLE widgets, `compadd`, `_arguments`, `zstyle`, `precmd`/`preexec`, `zle-keymap-select` |
-| fish | 3.7 (event-driven editor) | `complete` command, autosuggestions, syntax highlighting, `commandline`, `bind --mode` |
-| elvish | 0.21 (value pipelines) | `edit:completion:arg-completer`, `edit:complex-candidate`, modal editor, navigation mode |
-| nushell | 0.101 (typed signatures) | Command signatures with `@completer`, completion options records, structured pipelines |
+| fish | 3.7 (event-driven editor, `src/screen.cpp` delta rendering) | `complete` command, autosuggestions, syntax highlighting, `commandline`, `bind --mode`, background highlight thread |
+| elvish | 0.21 (`pkg/cli/term/` Buffer rendering) | `edit:completion:arg-completer`, `edit:complex-candidate`, modal editor, navigation mode, `ExtendDown`/`ExtendRight` composition, delta rendering |
+| nushell | 0.101 (reedline, typed signatures) | Command signatures with `@completer`, completion options records, structured pipelines |
 | PowerShell | 7.4 (PSReadLine) | `Set-PSReadLineKeyHandler`, `ICommandPredictor`, 20ms prediction deadline |
+| yash | 2.57 (manual + source) | `errreturn`, `forlocal`, `notifyle`, POSIX mode, completion descriptions, `PS1R`, `POST_PROMPT_COMMAND`, array-valued hooks |
 | oils/ysh | 0.25 (exterior-first) | Gradual upgrade from bash, expression mode |
 | ion | 1.0-alpha (Redox) | `$`/`@` sigil distinction, method syntax |
 | murex | 6.3 (MIME pipes) | Arrow pipe `->`, MIME-type-aware filtering |
-| carapace | 1.1 (external completer) | JSON/TSV output, 20+ shell support, spec-based generation |
+| carapace | 1.1 (external completer) | JSON/bash output formats, bridge mode, 1600+ command specs |
+| fzf | 0.57 (fuzzy finder) | 4-channel I/O architecture, foreground terminal takeover |
 
 
-## Part 6: Relationship to existing ksh26 work
+## Part 8: Relationship to existing ksh26 work
 
-The proposals in Part 2 are designed to build on ksh26's completed
+The proposals in Part 4 are designed to build on ksh26's completed
 directions (REDESIGN.md §Direction status), not to compete with them.
 
 ### What the polarity frame enables for interactive features
@@ -1288,7 +1964,7 @@ The same API directly enables safe interactive extensibility:
 ksh93's compound variable infrastructure — `typeset -C`, associative
 arrays, the `treedisc` discipline in nvtree.c — was designed for
 structured data within the shell language. Using it for completion
-results (§2.2) is a natural extension:
+results (§4.2) is a natural extension:
 
 - Compound arrays already serialize/deserialize via `nv_getvtree` /
   `put_tree`.
@@ -1311,6 +1987,6 @@ frame nest in a defined order (REDESIGN.md §Direction 6): stk (outermost)
 fits this pattern: the editor freezes stk, enters a polarity frame, and
 the widget function may push its own continuation frame internally.
 
-The editor events (§2.3) do not need continuation frames — they fire and
+The editor events (§4.3) do not need continuation frames — they fire and
 return. This makes them cheaper than full widget calls and appropriate for
 high-frequency events like `precmd`.
