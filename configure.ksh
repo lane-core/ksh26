@@ -25,12 +25,34 @@ for _arg in "$@"; do
 	esac
 done
 
+# ── HOSTTYPE detection ─────────────────────────────────────────────────
+# Produces os.arch-bits, e.g. darwin.arm64-64, linux.x86_64-64.
+# Replaces the 850-line hostinfo() function from bin/package.
+
+detect_hosttype()
+{
+	typeset os arch bits
+	os=$(uname -s | tr 'A-Z' 'a-z')
+	arch=$(uname -m)
+	case $arch in
+	aarch64) arch=arm64 ;;
+	i?86)    arch=i386 ;;
+	esac
+	bits=$(getconf LONG_BIT 2>/dev/null) || bits=64
+	print "${os}.${arch}-${bits}"
+}
+
 # ── Paths ──────────────────────────────────────────────────────────────
 
 PACKAGEROOT=${PACKAGEROOT:-$(cd "$(dirname "$0")" && pwd)}
 cd "$PACKAGEROOT"
 
-HOSTTYPE=$(bin/package host type)
+# Validate HOSTTYPE format (os.arch-bits). Ignore shell builtins
+# like bash's HOSTTYPE=aarch64 that aren't in our convention.
+case ${HOSTTYPE:-} in
+*.*-*)	;;
+*)	HOSTTYPE=$(detect_hosttype) ;;
+esac
 BUILDDIR=build/$HOSTTYPE
 OBJDIR=$BUILDDIR/obj
 INCDIR=$BUILDDIR/include/ast
@@ -103,7 +125,7 @@ else
 	print "$probe_output" > "$probe_cache"
 fi
 
-# Override HOSTTYPE from bin/package (more reliable than probe)
+# mamprobe may detect a different HOSTTYPE; use ours
 mam_cc_HOSTTYPE=$HOSTTYPE
 
 print "configure: HOSTTYPE=$HOSTTYPE"

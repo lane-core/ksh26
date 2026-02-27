@@ -9,7 +9,7 @@
 #
 # Override: CC=clang just build
 
-HOSTTYPE := env("HOSTTYPE", `bin/package host type`)
+HOSTTYPE := env("HOSTTYPE", `uname -s | tr 'A-Z' 'a-z' | tr -d '\n'; printf '.'; uname -m | sed 's/aarch64/arm64/;s/i.86/i386/' | tr -d '\n'; printf -- '-'; getconf LONG_BIT 2>/dev/null || echo 64`)
 BUILDDIR := "build" / HOSTTYPE
 SAMU := BUILDDIR / "bin" / "samu"
 

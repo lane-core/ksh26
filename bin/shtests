@@ -5,7 +5,7 @@
 # The manual: bin/shtests --man
 # Brief help: bin/shtests --help
 #
-# By default, this runs your compiled arch/*/bin/ksh.
+# By default, this runs your compiled build/*/bin/ksh.
 
 # Escape from a non-POSIX shell
 min_posix=/if/this/is/csh/ignore/the/error/message || exec sh $0:q $argv:q
@@ -25,7 +25,6 @@ else	"$SHELL" -c "$min_posix" 2>/dev/null && exec "$SHELL" -- "$0" ${1+"$@"}
 	exit 128
 fi
 
-# bin/package will have set $SHELL to our ksh.
 # Allow override by passing SHELL= or KSH= as arguments.
 for arg do
 	case $arg in
@@ -36,19 +35,32 @@ for arg do
 	shift
 done
 
-# Relaunch with necessary environment stuff from bin/package
-case ${HOSTTYPE+h}${INSTALLROOT+i}${PACKAGEROOT+p}${LD_LIBRARY_PATH+l} in
-hipl)	;;
-*)	mydir=$(dirname "$0") \
-	&& mydir=$(CDPATH='' cd -P -- "$mydir/.." && printf '%sX' "$PWD") \
-	&& mydir=${mydir%X} \
-	|| exit
-	exec "$mydir/bin/package" use "$mydir" "$0" "$@" ;;
+# Set up environment if not already provided (e.g. by justfile)
+mydir=$(dirname "$0") \
+&& mydir=$(CDPATH='' cd -P -- "$mydir/.." && printf '%sX' "$PWD") \
+&& mydir=${mydir%X} \
+|| exit
+: "${PACKAGEROOT:=$mydir}"
+# Compute HOSTTYPE in os.arch-bits format (e.g. darwin.arm64-64).
+# Ignore shell builtins like bash's HOSTTYPE=aarch64 — those aren't
+# in our format and would produce wrong build paths.
+case ${HOSTTYPE:-} in
+*.*-*)	;;  # already in os.arch-bits format (set by user or justfile)
+*)	_os=$(uname -s | tr 'A-Z' 'a-z')
+	_arch=$(uname -m)
+	case $_arch in aarch64) _arch=arm64 ;; i?86) _arch=i386 ;; esac
+	HOSTTYPE="${_os}.${_arch}-$(getconf LONG_BIT 2>/dev/null || echo 64)"
+	;;
 esac
+: "${INSTALLROOT:=$PACKAGEROOT/build/$HOSTTYPE}"
+export HOSTTYPE PACKAGEROOT INSTALLROOT
+LD_LIBRARY_PATH=
+export LD_LIBRARY_PATH
 
 # Check if there is a ksh to test.
+# Default to the built ksh, not $SHELL (which may be zsh/bash)
 case ${KSH+set} in
-( '' )	KSH=$SHELL ;;
+( '' )	KSH=$INSTALLROOT/bin/ksh ;;
 esac
 if ! test -x "$KSH" || ! test -f "$KSH"; then
 	printf '%s: shell not found: %s\n' "${0##*/}" "$KSH" >&2
