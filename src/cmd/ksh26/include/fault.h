@@ -68,34 +68,28 @@ typedef void (*SH_SIGTYPE)(int,void(*)(int));
  * Longjmp modes, ordered by severity. When jmpval > current frame's
  * mode, the error propagates upward; when jmpval <= mode, it's caught
  * locally. This ordering encodes the ⊕/⅋ boundary. (Direction 5)
- *
- * ⊕ (recoverable, caught locally):
- *   SH_JMPDOT    (2)  — dot-script return
- *   SH_JMPEVAL   (3)  — eval return
- *   SH_JMPTRAP   (4)  — trap handler return
- *   SH_JMPIO     (5)  — I/O redirection cleanup
- *   SH_JMPCMD    (6)  — builtin error
- *
- * ⅋ (propagating, callee-driven):
- *   SH_JMPFUN    (7)  — function return
- *   SH_JMPERRFN  (8)  — function stack overflow
- *   SH_JMPSUB    (9)  — subshell exit
- *   SH_JMPERREXIT(10) — errexit (⊕→⅋ converted)
- *   SH_JMPEXIT   (11) — exit builtin
- *   SH_JMPSCRIPT (12) — script-level exit
  */
+enum sh_jmpmode : int
+{
+	SH_JMPNONE	= 0,	/* no mode / cleared */
+	SH_JMPBLT	= 1,	/* builtin context (legacy) */
+	/* ⊕ (recoverable, caught locally): */
+	SH_JMPDOT	= 2,	/* dot-script return */
+	SH_JMPEVAL	= 3,	/* eval return */
+	SH_JMPTRAP	= 4,	/* trap handler return */
+	SH_JMPIO	= 5,	/* I/O redirection cleanup */
+	SH_JMPCMD	= 6,	/* builtin error */
+	/* ⅋ (propagating, callee-driven): */
+	SH_JMPFUN	= 7,	/* function return */
+	SH_JMPERRFN	= 8,	/* function stack overflow */
+	SH_JMPSUB	= 9,	/* subshell exit */
+	SH_JMPERREXIT	= 10,	/* errexit (⊕→⅋ converted) */
+	SH_JMPEXIT	= 11,	/* exit builtin */
+	SH_JMPSCRIPT	= 12,	/* script-level exit */
+};
 
-#define SH_JMPDOT	2
-#define SH_JMPEVAL	3
-#define SH_JMPTRAP	4
-#define SH_JMPIO	5
-#define SH_JMPCMD	6
-#define SH_JMPFUN	7
-#define SH_JMPERRFN	8
-#define SH_JMPSUB	9
-#define SH_JMPERREXIT	10
-#define SH_JMPEXIT	11
-#define SH_JMPSCRIPT	12
+/* The ⊕/⅋ boundary at the type level: modes >= this propagate. */
+constexpr enum sh_jmpmode SH_JMP_PROPAGATE = SH_JMPFUN;
 
 struct openlist
 {
@@ -108,7 +102,7 @@ struct checkpt
 	sigjmp_buf	buff;
 	sigjmp_buf	*prev;
 	int		topfd;
-	int		mode;
+	enum sh_jmpmode	mode;
 	struct openlist	*olist;
 	Error_context_t err;
 };
@@ -141,7 +135,7 @@ do { \
 #define sigblock(s)	sh_sigaction(s,SIG_BLOCK)
 #define sig_begin()	sh_sigaction(0,SIG_SETMASK)
 
-extern noreturn void 	sh_done(int);
+[[noreturn]] extern void	sh_done(int);
 extern void 	sh_fault(int);
 extern void	sh_winsize(void);
 extern void 	sh_sigclear(int);

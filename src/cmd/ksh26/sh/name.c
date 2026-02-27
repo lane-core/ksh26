@@ -60,7 +60,7 @@ static struct
 	int	count;
 } scope_pool;
 
-static Dt_t *sh_scope_acquire(void)
+[[nodiscard]] static Dt_t *sh_scope_acquire(void)
 {
 	if(scope_pool.count > 0)
 		return scope_pool.dicts[--scope_pool.count];
@@ -149,7 +149,7 @@ void sh_prefix_enter(struct sh_prefix_guard *guard)
 	guard->prefix = sh.prefix;
 	guard->prefix_root = sh.prefix_root;
 	guard->first_root = sh.first_root;
-	sh.prefix = NULL;
+	sh.prefix = nullptr;
 }
 
 void sh_prefix_leave(struct sh_prefix_guard *guard)
@@ -625,7 +625,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					L_ARGNOD->nvalue = node.nvalue;
 					L_ARGNOD->nvflag = node.nvflag;
 					L_ARGNOD->nvfun = node.nvfun;
-					sh.argnod_guard.nvalue = NULL; /* clear guard after normal restore */
+					sh.argnod_guard.nvalue = nullptr; /* clear guard after normal restore */
 				}
 				sh.prefix = prefix;
 				if(nv_isarray(np) && (mp=nv_opensub(np)))

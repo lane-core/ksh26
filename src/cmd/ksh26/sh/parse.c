@@ -164,7 +164,7 @@ static void typeset_order(const char *str,int line)
 	}
 }
 
-static noreturn int b_dummy(int argc, char *argv[], Shbltin_t *context)
+[[noreturn]] static int b_dummy(int argc, char *argv[], Shbltin_t *context)
 {
 	NOT_USED(argc);
 	NOT_USED(argv[0]);
@@ -288,7 +288,7 @@ static void dcl_dehacktivate(void)
 			dtclear(dcl_tree);
 	}
 }
-static noreturn void dcl_exit(int e)
+[[noreturn]] static void dcl_exit(int e)
 {
 	dcl_recursion = 1;
 	dcl_dehacktivate();
