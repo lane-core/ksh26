@@ -1,26 +1,59 @@
 # ksh26: Redesign Progress
 
-Living tracker for the ksh26 structural refactor. For the full theoretical
-analysis — the sequent calculus correspondence, the duploid framework, the
-critical pair diagnosis — see [SPEC.md](SPEC.md).
-
-This document records what has been implemented, what it looks like in the
-code, and what remains.
+Living tracker for the ksh26 structural refactor.
 
 
-## Summary
+## What ksh26 is
 
-ksh93's interpreter has two modes (value and computation) with implicit
-boundaries. Crossing those boundaries requires saving and restoring global
-state, and the original code does this ad-hoc at each site. Missed sites
-produce bugs. The refactor makes boundary crossings explicit via a polarity
-frame API and classifies the interpreter's dispatch table by mode.
+Unix shell, done right, for 2026.
 
-The theoretical vocabulary comes from sequent calculus and polarized type
-theory (see [SPEC.md §Theoretical framework](SPEC.md#theoretical-framework)
-and the [references](#references) below). We aren't implementing a type
-system — we're naming structures that already exist in the C code so they
-can be maintained consistently.
+The Bourne shell tradition — text streams, composable tools, the shell as
+both interactive environment and scripting language — is sound design
+philosophy. What's aged is the implementation: codebases carrying decades of
+portability scaffolding for dead platforms, implicit invariants maintained by
+convention rather than structure, interactive experiences unchanged since the
+early '90s.
+
+ksh93 has the strongest scripting engine in the Bourne family: compound
+variables, disciplines, arithmetic, parameter expansion that covers what
+other shells fork `sed` for. ksh26 takes that engine and rethinks the
+project around it — stripping AT&T legacy, hardening the architecture,
+bringing the interactive experience up to modern expectations.
+
+This is a principled effort. Part of that is understanding the interpreter's
+own structure deeply enough to modify it confidently. The execution engine
+has two modes (value and computation) with boundary crossings that require
+state discipline — a pattern that sequent calculus and polarized type theory
+give precise vocabulary for. That analysis found bugs ([001], [002], [003])
+before users did, and it informs every architectural decision going forward.
+See [SPEC.md](SPEC.md) for the full theoretical treatment.
+
+But the theory is one component alongside others: Unix design philosophy,
+POSIX fidelity, security-first engineering, and a practical focus on what
+shell users actually need. See [COMPARISON.md](COMPARISON.md) for the
+feature vision.
+
+[001]: ../bugs/001-typeset-compound-assoc-expansion.ksh
+[002]: ../bugs/002-typeset-debug-trap-compound-assign.ksh
+[003]: ../bugs/003-debug-trap-self-unset.ksh
+
+
+## Roadmap
+
+Directions 1–9 (below) established the engineering foundations: polarity
+frames, prefix guards, scope unification, longjmp safety.
+
+Directions 10–15 (planned) clear the path for features:
+- **10**: C23 types — move invariants from comments into the compiler
+- **11**: Library reduction — strip ~25K lines of dead code
+- **12**: sfio abstraction — prepare for lighter I/O backend
+- **13**: Platform targeting — declare what we support, delete the rest
+- **14**: Security hardening — audit the reduced codebase
+- **15**: Build system — just + samu, retire MAM
+
+After that: interactive features (completions, autosuggestions, editor
+hooks) on a codebase that's small enough to audit and typed enough to
+extend confidently.
 
 
 ## The polarity frame API
