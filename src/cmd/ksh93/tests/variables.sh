@@ -1762,7 +1762,7 @@ exp='^[[:digit:]]{8}$'
 case ${.sh.version} in
 *93u+m/1.0.*)
 	;;
-*93u+m/*)
+*ksh26/* | *93u+m/*)
 	RANDOM=123
 	exp='24979 26943 1328 1988 6255 23944 24547 11971 6923 8339'
 	got="$RANDOM $RANDOM $RANDOM $RANDOM $RANDOM $RANDOM $RANDOM $RANDOM $RANDOM $RANDOM"

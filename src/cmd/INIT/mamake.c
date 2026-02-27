@@ -29,7 +29,7 @@
  */
 
 #define RELEASE_DATE "2026-02-18"
-static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
+static char id[] = "\n@(#)$Id: mamake (ksh26) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
 
@@ -38,7 +38,7 @@ static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 #include <sig.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\n]"
+"[-?\n@(#)$Id: mamake (ksh26) " RELEASE_DATE " $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?Martijn Dekker <martijn@inlv.org>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"

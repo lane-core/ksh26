@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)C probe (ksh 93u+m) 2022-10-26
+# @(#)C probe (ksh26) 2022-10-26
 #
 # probe [ -d ] c-compiler-path [ attributes ]
 #

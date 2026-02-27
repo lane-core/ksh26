@@ -199,7 +199,7 @@ got=$(set +x; eval '
 # ;;& -- fall through to next matching pattern -- new as of 93u+m/1.1
 got=
 case ${.sh.version} in
-*93u+m/1.[!0]* | *93u+m/[!1].* | 93u+m/?[!.]* )
+*ksh26/* | *93u+m/1.[!0]* | *93u+m/[!1].* | 93u+m/?[!.]* )
 	eval '
 		case foo.txt in
 		foo*)	got+=yes1 ;;&

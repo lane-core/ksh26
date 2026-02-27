@@ -27,7 +27,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: dirname (ksh 93u+m) 2024-12-25 $\n]"
+"[-?\n@(#)$Id: dirname (ksh26) 2024-12-25 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?dirname - return directory portion of file name]"
 "[+DESCRIPTION?\bdirname\b treats each \astring\a as a file name and outputs "

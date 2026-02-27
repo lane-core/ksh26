@@ -307,7 +307,7 @@ fi # !SHOPT_SCRIPTONLY
 # ======
 # Feature request for 93u+m/1.1+: https://github.com/ksh93/ksh/issues/732
 got=$(hash -r _non_existent_nonsense_ ls 2>&1; echo status=$?; hash) ln=$LINENO
-if	[[ ${.sh.version} == *93u+m/1.0.* || ${.sh.version} != *93u+m/* ]]
+if	[[ ${.sh.version} == *93u+m/1.0.* || ( ${.sh.version} != *93u+m/* && ${.sh.version} != *ksh26/* ) ]]
 then	exp=$'status=0\nls='$(command -v ls)
 else	exp=$0[$ln$']: hash: _non_existent_nonsense_: not found\nstatus=1\nls='$(command -v ls)
 fi

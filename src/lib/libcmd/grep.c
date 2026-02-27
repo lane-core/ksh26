@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-1c?\n@(#)$Id: grep (ksh 93u+m) 2025-05-05 $\n]"
+"[-1c?\n@(#)$Id: grep (ksh26) 2025-05-05 $\n]"
 #if STANDALONE
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?Doug McIlroy <doug@research.bell-labs.com>]"

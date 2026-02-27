@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2024-08-13
+# @(#)make.probe (ksh26) 2024-08-13
 #
 # C probe for make
 #

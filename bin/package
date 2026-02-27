@@ -125,16 +125,17 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-02-10 $
+@(#)$Id: '$command$' (ksh26) 2026-02-10 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
+[-author?Lane Biocini <lane@mailbox.org>]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2026 Contributors to ksh 93u+m and ksh26]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
-[+NAME?'$command$' - build, test and install ksh 93u+m]
+[+NAME?'$command$' - build, test and install ksh26]
 [+DESCRIPTION?The \b'$command$'\b command is the main control script
-    for building and installing KornShell 93u+m.
+    for building and installing ksh26 (forked from KornShell 93u+m).
     It is a POSIX \bsh\b(1) script coded for maximal portability.
     A POSIX shell and C compiler installation are the only requirements.
     All package files are in the \b$PACKAGEROOT\b directory tree.
@@ -391,14 +392,14 @@ do	case $# in
 		# Plain-text fallback. Regenerate with:
 		# ksh -c 'COLUMNS=80 bin/package --man' 2>&1 | sed "s/'/'\\\\''/g; 1s/^/echo '/; \$s/\$/'/"
 		echo 'NAME
-  package - build, test and install ksh 93u+m
+  package - build, test and install ksh26
 
 SYNOPSIS
   package [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
 
 DESCRIPTION
   The package command is the main control script for building and installing
-  KornShell 93u+m. It is a POSIX sh(1) script coded for maximal portability. A
+  ksh26 (forked from KornShell 93u+m). It is a POSIX sh(1) script coded for maximal portability. A
   POSIX shell and C compiler installation are the only requirements. All
   package files are in the $PACKAGEROOT directory tree. Binary package files
   are in the $INSTALLROOT ($PACKAGEROOT/arch/hosttype) tree, where
@@ -543,11 +544,12 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-02-10
+  version         package (ksh26) 2026-02-10
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
+  author          Lane Biocini <lane@mailbox.org>
   copyright       (c) 1994-2012 AT&T Intellectual Property
-  copyright       (c) 2020-2026 Contributors to ksh 93u+m
+  copyright       (c) 2020-2026 Contributors to ksh 93u+m and ksh26
   license         https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html'
 		case $1 in
 		html)	echo "</pre></body></html>" ;;
