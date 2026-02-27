@@ -3031,11 +3031,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			sh.options = sh.glob_options;
 		sh_offoption(SH_ERREXIT);
 	}
-	prevscope->save_tree = sh.var_tree;
+	prevscope->own_tree = sh.var_tree;
 	if(!posix_fun)
 	{
 		/* create a local scope for the KornShell function */
-		int dtret = dtvnext(prevscope->save_tree) != (sh.namespace?sh.var_base:0);
+		int dtret = dtvnext(prevscope->own_tree) != (sh.namespace?sh.var_base:0);
 		sh_scope(envlist,1);
 		if(dtret)
 		{
@@ -3045,10 +3045,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			 * cause nv_scan() to eliminate the viewpath to the parent
 			 * function's static scope.
 			 */
-			nv_scan(prevscope->save_tree, local_exports, NULL, NV_EXPORT, NV_EXPORT|NV_NOSCOPE);
+			nv_scan(prevscope->own_tree, local_exports, NULL, NV_EXPORT, NV_EXPORT|NV_NOSCOPE);
 		}
 	}
-	sh.st.save_tree = sh.var_tree;
+	sh.st.own_tree = sh.var_tree;
 	if(!fun)
 	{
 		if(fp->node->nvalue)
@@ -3167,7 +3167,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh_unscope();
 		sh.namespace = nspace;
 	}
-	sh.var_tree = (Dt_t*)prevscope->save_tree;
+	sh.var_tree = (Dt_t*)prevscope->own_tree;
 	if((posix_fun && jmpval!=SH_JMPSCRIPT) || !posix_fun)
 		sh_argreset(argsav,saveargfor);
 	else

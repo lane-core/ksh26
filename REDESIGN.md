@@ -216,22 +216,39 @@ Trap slot and `trapdontexec` preservation handled uniformly by
 
 **Resolved evaluations:**
 - `sh.var_tree` — **yes, added to the frame.** ksh93 encodes scope in two
-  mutable fields (`sh.st` containing `save_tree`, and `sh.var_tree`) that must
+  mutable fields (`sh.st` containing `own_tree`, and `sh.var_tree`) that must
   stay synchronized. `sh_setscope()` is the only function that updates both
   atomically; everything else (sh_scope, sh_funscope exit, sh_polarity_leave,
   sh_subshell) updates them independently. Without var_tree in the polarity
   frame, double-framing (sh_trap inside sh_debug) caused a SIGBUS: the inner
-  frame's `sh.st` restore desynchronized `save_tree` from `sh.var_tree`.
+  frame's `sh.st` restore desynchronized `own_tree` from `sh.var_tree`.
   The workaround (`use_polframe = !sh.indebug` in sh_trap) has been removed
   now that the polarity frame keeps both halves of the scope representation
   in sync.
 
   **Type system note:** `Shscope_t` (public, shell.h) has field `var_tree`
-  at the same offset where `struct sh_scoped` (private) has `save_tree`.
-  When `sh_setscope` does `scope->var_tree`, it reads `save_tree` through
-  the public interface. The name split reveals the duality: "save_tree" is
-  the entry perspective (saving var_tree), "var_tree" is the identity
-  perspective (this scope's dictionary).
+  at the same offset where `struct sh_scoped` (private) has `own_tree`.
+  When `sh_setscope` does `scope->var_tree`, it reads `own_tree` through
+  the public interface. Both names now mean "this scope's variable tree."
+
+  **Rename: `save_tree` → `own_tree`** — The original name `save_tree`
+  suggested entry perspective ("the tree we saved on entry"), but every
+  access site uses it as identity perspective ("this scope's own tree"):
+  `sh.st.own_tree = sh.var_tree` after `sh_scope`, `prevscope->own_tree`
+  for the parent's tree, restore via `sh.var_tree = prevscope->own_tree`.
+  The rename eliminates the semantic gap between the public alias
+  (`var_tree`) and the private field. The old comment ("var_tree for
+  calling function") was also wrong — at xec.c:3051 it's set to the
+  *current* function's tree.
+
+  **Invariant:** `sh.var_tree == sh.st.own_tree` at stable points
+  (outside scope transitions). `sh_setscope` is the only function that
+  updates both atomically; all other sites (`sh_scope`, `sh_funscope`
+  exit, `sh_polarity_leave`, `sh_subshell`) update them independently.
+
+  Note: nvtree.c has a local variable `Dt_t *save_tree = sh.var_tree`
+  in `walk_tree`. This is an RAII-style local save, not the struct field
+  — the name is appropriate there and was not renamed.
 
 - `sh.jmplist` — **no.** Already managed by `sh_pushcontext`/`sh_popcontext`,
   which pair correctly at each call site. The polarity frame would add

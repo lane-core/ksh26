@@ -3124,7 +3124,7 @@ int nv_rename(Namval_t *np, int flags)
 	Namarr_t		*ap;
 	if(nv_isattr(np,NV_PARAM) && sh.st.prevst)
 	{
-		if(!(hp=(Dt_t*)sh.st.prevst->save_tree))
+		if(!(hp=(Dt_t*)sh.st.prevst->own_tree))
 			hp = dtvnext(sh.var_tree);
 	}
 	if(!nv_isattr(np,NV_MINIMAL))
