@@ -1065,7 +1065,7 @@ Errors=$?  # Ensure error count survives subshell
 OPTIND=1
 USAGE=$'
 [-s8?
-@(#)$Id: foo (ksh93) 2020-07-16 $
+@(#)$Id: foo (ksh26) 2020-07-16 $
 ]
 [+NAME?foo - bar]
 [+DESC?Baz.]
@@ -1130,7 +1130,7 @@ SEE ALSO
   getopts(1)
 
 IMPLEMENTATION
-  version         foo (ksh93) 2020-07-16'
+  version         foo (ksh26) 2020-07-16'
 [[ $actual == "$expect" ]] || err_exit "getopts: '--man' output" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 

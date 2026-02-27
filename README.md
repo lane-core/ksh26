@@ -73,7 +73,7 @@ bin/shtests --man         # test harness documentation
 
 The compiled binary lands in `arch/$(bin/package host type)/bin/ksh`.
 
-For build options, feature configuration (`src/cmd/ksh93/SHOPT.sh`), and
+For build options, feature configuration (`src/cmd/ksh26/SHOPT.sh`), and
 platform-specific notes, see the [upstream documentation](https://github.com/ksh93/ksh#installing-from-source).
 
 ## Origin

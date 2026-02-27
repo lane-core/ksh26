@@ -34,8 +34,8 @@ FEATURE/
 /src/cmd/INIT/probe.sh
 /src/cmd/INIT/regress
 /src/cmd/builtin/pty
-/src/cmd/ksh93/ksh
-/src/cmd/ksh93/shcomp
+/src/cmd/ksh26/ksh
+/src/cmd/ksh26/shcomp
 /src/lib/libast/*.h
 /src/lib/libast/astmath.exe
 /src/lib/libast/conf

@@ -1,4 +1,4 @@
-# Wrapper script to run the ksh93 regression tests directly.
+# Wrapper script to run the ksh26 regression tests directly.
 # By Martijn Dekker <martijn@inlv.org> 2020-05-14, 2023-03-17, 2024-03-05
 # Public domain. https://creativecommons.org/publicdomain/zero/1.0/
 #
@@ -62,7 +62,7 @@ KSH=$(CDPATH='' cd -P -- "$(dirname "$KSH")" \
 && KSH=${KSH%X}
 
 # Run the test suite
-CDPATH='' cd -P -- "$PACKAGEROOT/src/cmd/ksh93/tests" || exit
+CDPATH='' cd -P -- "$PACKAGEROOT/src/cmd/ksh26/tests" || exit
 SHELL=$KSH
 unset -v KSH
 printf '#### Regression-testing %s ####\n' "$SHELL"

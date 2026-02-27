@@ -2,7 +2,7 @@
 
 ## Dev fix
 Commit: 916cd31d
-Files: `src/cmd/ksh93/sh/xec.c`, `src/cmd/ksh93/tests/basic.sh`
+Files: `src/cmd/ksh26/sh/xec.c`, `src/cmd/ksh26/tests/basic.sh`
 Summary: `trap - DEBUG` inside a DEBUG handler had no lasting effect. The
 blanket `sh.st = *savst` restore in `sh_debug()` clobbered the handler's
 trap removal, bringing back the old (freed) pointer.

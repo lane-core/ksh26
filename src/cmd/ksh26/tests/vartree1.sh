@@ -16,7 +16,7 @@
 ########################################################################
 #
 # variable tree test #001
-# Purpose of this test is whether ksh93 handles global variable trees
+# Purpose of this test is whether ksh handles global variable trees
 # and function-local variable trees the same way, including "nameref"
 # and "unset" handling.
 #

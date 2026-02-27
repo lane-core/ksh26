@@ -1,5 +1,5 @@
 # SHOPT_* option probe
-# More (shell script-based) probes are in src/cmd/ksh93/Mamfile
+# More (shell script-based) probes are in src/cmd/ksh26/Mamfile
 
 tst	note{ can we probe file system case insensitivity }end output{
 	#include <ast.h>

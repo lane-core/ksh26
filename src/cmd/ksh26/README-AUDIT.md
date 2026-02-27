@@ -29,7 +29,7 @@ in to the shell by default.
 Both facilities only work for interactive users.
 
 To enable or disable one or both facilities, you need to modify the compile
-time options in `src/cmd/ksh93/SHOPT.sh` as follows. Use `0` to disable and
+time options in `src/cmd/ksh26/SHOPT.sh` as follows. Use `0` to disable and
 `1` to enable (except for `SHOPT_AUDITFILE`). Then recompile the sources;
 see `README` for building instructions.
 
@@ -192,7 +192,7 @@ place anywhere that I can find by searching the Internet. The ksh93 man page
 does not mention either the accounting or auditing facilities. Even the
 ksh93 source code is somewhat vague. I gleaned most of this information by
 studying the code in
-[`src/cmd/ksh93/edit/history.c`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh93/edit/history.c).
+[`src/cmd/ksh26/edit/history.c`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh26/edit/history.c).
 
 *Martijn Dekker adds:* I would like to thank the author Finnbarr P. Murphy
 for his permission to use his ksh93-related blog posts in the ksh 93u+m

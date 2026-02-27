@@ -287,7 +287,7 @@ fi # can_close_stdout
 [[ $(cat  <<- \EOF | $SHELL
 	do_it_all()
 	{
-		dd 2>/dev/null  # not a ksh93 builtin
+		dd 2>/dev/null  # not a ksh builtin
 	 	return $?
 	}
 	do_it_all ; exit $?
