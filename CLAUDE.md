@@ -22,7 +22,7 @@ just configure          # (re)run feature detection
 just reconfigure        # force all probes to rerun
 ```
 
-The build system is three layers: `just` (porcelain) → `configure.ksh` (probes
+The build system is three layers: `just` (porcelain) → `configure.sh` (probes
 + generates `build.ninja`) → `samu` (vendored ninja, executes `build.ninja`).
 Output goes to `build/$HOSTTYPE/`. Feature probes are cached — reconfigure takes
 ~5s when nothing changed.
