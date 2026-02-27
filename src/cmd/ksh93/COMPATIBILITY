@@ -1,3 +1,9 @@
+		ksh26 vs. ksh 93u+m
+
+ksh26 is a fork of ksh 93u+m with structural changes to the interpreter's
+state management.  For a complete list of behavioral differences between
+ksh26 and upstream 93u+m, see the top-level DEVIATIONS.md file.
+
 		ksh 93u+m/1.1 vs. 93u+m/1.0
 
 The following is a list of changes between ksh 93u+m/1.1.* and the previous

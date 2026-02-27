@@ -790,7 +790,7 @@ fi
 # ======
 # case modification tests
 
-if	[[ ${.sh.version} == *93u+m/* && ${.sh.version} != *93u+m/1.0.* ]] && ((.sh.version >= 20250426))
+if	[[ ( ${.sh.version} == *93u+m/* && ${.sh.version} != *93u+m/1.0.* ) || ${.sh.version} == *ksh26/* ]] && ((.sh.version >= 20250426))
 then
 	# https://github.com/ksh93/ksh/discussions/846#discussioncomment-12936650
 

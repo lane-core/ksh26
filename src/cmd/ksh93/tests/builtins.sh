@@ -714,7 +714,7 @@ if((!SHOPT_SCRIPTONLY));then
 export ENV=/./dev/null
 v=$($SHELL +o rc -ic $'getopts a:bc: opt --man >/dev/null 2>&1\nprint $?')
 case ${.sh.version} in
-*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+*ksh26/* | *93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
 	[[ $v == 0 ]] || err_exit 'getopts --man does not exit 0 for interactive shells' "(got $(printf %q "$v"))" ;;
 *)	[[ $v == 2 ]] || err_exit 'getopts --man does not exit 2 for interactive shells' "(got $(printf %q "$v"))" ;;
 esac
@@ -750,7 +750,7 @@ fi
 
 CCn=$'\n'
 case ${.sh.version} in
-*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+*ksh26/* | *93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
 	exp=$'^user\t0m00.[0-9]{3}s\nsys\t0m00.[0-9]{3}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$' ;;
 *)	exp=$'^user\t0m00.[0-9]{2}s\nsys\t0m00.[0-9]{2}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$' ;;
 esac

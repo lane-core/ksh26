@@ -20,7 +20,7 @@
 : generate the ksh math builtin table
 : include math.tab
 
-# @(#)math.sh (ksh 93u+m) 2024-12-23
+# @(#)math.sh (ksh26) 2024-12-23
 
 case $ZSH_VERSION in
 ?*)	emulate ksh ;;

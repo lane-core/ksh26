@@ -1,455 +1,152 @@
-![](https://github.com/ksh93/ksh/workflows/CI/badge.svg)
+# ksh26
 
-# KornShell 93u+m
+A fork of [ksh 93u+m](https://github.com/ksh93/ksh) with principled
+internal structure.
 
-Welcome to the repository where the KornShell is under active development.
-This is where we develop bugfixes and new features for the shell, and where
-users can download the latest releases or the current development version in
-source code form.
-The project started off from last stable release (93u+ 2012-08-01) of
-[ksh93](http://www.kornshell.com/),
-formerly developed by AT&T Software Technology (AST).
-The sources in this repository were forked from the
-GitHub [AST repository](https://github.com/att/ast)
-which is no longer under active development.
+ksh93 is a powerful shell with a 40-year lineage: AT&T Research (David Korn,
+1983), the AST open-source release (2000), the community-maintained 93u+m
+(2020–present). ksh26 inherits all of this and adds a structural refactor of
+the interpreter's state management, guided by ideas from programming language
+theory.
 
-For user-visible fixes, see [NEWS](https://github.com/ksh93/ksh/blame/dev/NEWS)
-and click on commit messages for full details.
-For all fixes, see [the commit log](https://github.com/ksh93/ksh/commits/).
-To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/issues).
+## The problem
 
-## Table of contents ##
-
-* [Policy](#user-content-policy)
-* [Why?](#user-content-why)
-* [The ksh26 branch](#user-content-the-ksh26-branch)
-* [Installing from source](#user-content-installing-from-source)
-    * [Supported systems](#user-content-supported-systems)
-    * [Prepare](#user-content-prepare)
-    * [Build](#user-content-build)
-    * [Test](#user-content-test)
-    * [Install](#user-content-install)
-* [What is ksh93?](#user-content-what-is-ksh93)
-
-## Policy
-
-1. Feature development for future releases happens on the dev branch.
-   The numbered release branch(es) are feature-frozen and get bugfixes
-   and maintenance only, usually cherry-picked from the dev branch.
-2. No major rewrites. No refactoring code that is not fully understood.
-   Even gradual and careful development may culminate in profound changes.
-   Bit rot is prevented by cleaning up unused and obsolete code.
-3. Maintain documented behaviour. Changes required for compliance with the
-   [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
-   are implemented for the `posix` mode only to avoid breaking legacy scripts.
-4. No 100% bug compatibility. Broken and undocumented behaviour gets fixed.
-5. No bureaucracy, no formalities. Just fix it, or report it: create issues,
-   send pull requests. Every interested party is invited to contribute.
-6. To help increase everyone's understanding of this code base, fixes and
-   significant changes should be fully documented in commit messages.
-   Each commit should be a complete, self-contained and self-documenting
-   change, including updates to documentation and regression tests where
-   applicable. Pull requests are therefore squashed into a single commit.
-7. Code style varies somewhat in this historic code base.
-   Your changes should match the style of the code surrounding them.
-   Indent with tabs, assuming an 8-space tab width.
-   Opening braces are on a line of their own, at the same indentation level
-   as their corresponding closing brace.
-   Comments always use `/*`...`*/`.
-8. Good judgment may override this policy.
-
-## Why?
-
-Between 2017 and 2020 there was an ultimately unsuccessful
-[attempt](https://github.com/att/ast/tree/2020.0.1)
-to breathe new life into the KornShell by extensively refactoring the last
-unstable AST beta version (93v-).
-While that ksh2020 effort is now abandoned and still has many critical bugs,
-it also had a lot of bugs fixed. More importantly, the AST issue tracker
-now contains a lot of documentation on how to fix those bugs, which made
-it possible to backport many of them to the last stable release instead.
-This ksh 93u+m reboot now incorporates many of these bugfixes,
-plus patches from
-[OpenSUSE](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-OpenSUSE),
-[Red Hat](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-Red-Hat),
-and
-[Solaris](https://github.com/ksh93/ksh/wiki/Patch-Upstream-Report:-Solaris),
-as well as many new fixes from the community
-([1](https://github.com/ksh93/ksh/pulls?q=is%3Apr+is%3Amerged),
-[2](https://github.com/ksh93/ksh/issues?q=is%3Aissue+is%3Aclosed+label%3Abug)).
-Though there are many
-[bugs left to fix](https://github.com/ksh93/ksh/issues),
-we are confident at this point that 93u+m is already the least buggy version
-of ksh93 ever released.
-As of late 2021, distributions such as Debian and Slackware have begun
-to package it as their default version of ksh93.
-
-## The ksh26 branch
-
-This fork's `ksh26` branch is a structural refactoring effort guided by
-ideas from sequent calculus and polarized type theory. The goal is not to
-rewrite ksh93 but to make its existing internal structure explicit, named,
-and enforced — so that the recurring class of state-corruption bugs becomes
-structurally preventable rather than individually patched.
-
-### The problem
-
-ksh93's interpreter operates in two modes that alternate constantly:
+ksh93's interpreter constantly alternates between two modes:
 
 - **Value mode**: word expansion, parameter substitution, name resolution
   (macro.c, name.c)
 - **Computation mode**: command execution, trap dispatch, function calls
   (xec.c)
 
-Crossing between these modes requires saving and restoring global state
-(`sh.prefix`, `sh.namespace`, `sh.st`). The original code does this ad-hoc
-at each call site. When a site is missed or the restore is incomplete, the
-result is subtle corruption — stale pointers, leaked context, traps that
-silently stop working.
+Each mode transition requires saving and restoring global state — `sh.prefix`
+(compound assignment context), `sh.namespace`, `sh.st` (scoped interpreter
+state), `sh.var_tree` (variable scope). The original code does this ad-hoc at
+each call site. Missing or incomplete saves produce subtle corruption: stale
+pointers, leaked context, traps that silently stop working.
 
-### The insight
+These bugs are hard to diagnose because the corruption site and the failure
+site are separated by arbitrary execution distance.
 
-This two-mode structure with explicit boundary crossings is not novel. It is
-the same structure that sequent calculus and call-by-push-value describe
-formally: values and computations are distinct categories, and moving between
-them requires a *shift* — a save/clear/restore discipline that mediates the
-transition. ksh93 already implements this discipline; it just does so without
+## The fix
+
+This two-mode structure is not novel. It is the same structure that the
+sequent calculus describes formally: values and computations are distinct
+categories, and moving between them requires a *shift* — a save/clear/restore
+discipline. ksh93 already implements this discipline; it does so without
 naming it.
 
-The ksh26 branch names it. A *polarity frame* API (`sh_polarity_enter`,
-`sh_polarity_leave`) consolidates the ad-hoc save/restore patterns into a
-single mechanism that handles state preservation uniformly — including
-preserving trap mutations made by handlers, which the ad-hoc approach got
-wrong in multiple places.
+ksh26 names it. A **polarity frame** API (`sh_polarity_enter`,
+`sh_polarity_leave`) consolidates the ad-hoc save/restore into a single
+mechanism. This includes preserving trap mutations made by handlers (e.g.,
+`trap - DEBUG` inside a DEBUG handler), which the ad-hoc approach got wrong in
+multiple places.
 
 ### What has changed
 
-- **Polarity frame API**: a `struct sh_polarity` that saves and restores
-  `sh.prefix`, `sh.namespace`, and the full scoped interpreter state
-  (`sh.st`) at value-to-computation boundaries. Trap slots are preserved
-  across the restore so that handlers like `trap - DEBUG` take lasting
-  effect.
-- **Converted call sites**: `sh_debug()` (DEBUG trap dispatch), `sh_fun()`
-  (discipline function dispatch), and the `getenv`/`putenv`/`setenviron`
-  overrides all use the frame API instead of hand-rolled save/restore.
-- **sh_exec taxonomy**: all 16 case labels in the main eval loop are
-  annotated with their polarity classification (value, computation, or
-  mixed), making the implicit three-sorted structure visible in the code.
-- **Divergence documentation**: when a bugfix lands on the upstream-tracking
-  `dev` branch and ksh26 handles it differently (or doesn't need it at all),
-  the situation is documented in `notes/divergences/`.
+- Polarity frame API (`struct sh_polarity`) that saves/restores `sh.prefix`,
+  `sh.namespace`, `sh.st`, and `sh.var_tree` at mode boundaries. Trap slot
+  preservation across the restore is built into the API.
+- Lightweight variant (`struct sh_polarity_lite`) for `sh_debug()`, where the
+  inner `sh_trap()` call already provides full `sh.st` protection. 4x
+  reduction in copy traffic per DEBUG trap invocation.
+- Scope dictionary pool for function calls. 8-entry LIFO cache of CDT
+  dictionaries, amortizing `dtopen`/`dtclose` on hot function-call paths.
+  Measured 8.5% improvement on tight function-call loops.
+- Empty DEBUG trap early exit. When the trap string is empty, skip the entire
+  frame/string-build/dispatch sequence.
+- All 16 case labels in `sh_exec()` annotated with polarity classification
+  (value, computation, or mixed).
 
-See [REDESIGN.md](REDESIGN.md) for the full analysis, including the
-correspondence between ksh93 internals and the formal framework.
+See [REDESIGN.md](REDESIGN.md) for the full analysis. See
+[DEVIATIONS.md](DEVIATIONS.md) for a list of behavioral differences from
+upstream 93u+m.
 
-### Theoretical background
+## Building
 
-The formal ideas that inform this work come from several papers in the
-programming languages research literature:
-
-- Pierre-Louis Curien and Hugo Herbelin, "The duality of computation,"
-  *ICFP*, 2000 — introduced the λμμ̃-calculus as a term assignment for
-  classical sequent calculus, establishing the three-sorted structure
-  (terms, coterms, statements) that maps onto ksh93's producer/consumer/cut
-  architecture.
-- Philip Wadler, "Call-by-Value is Dual to Call-by-Name, Reloaded," *RTA*,
-  2005 — showed that CBV and CBN are De Morgan duals via sequent calculus,
-  and identified the critical pair where evaluation order matters. The
-  `sh.prefix` corruption bugs are concrete instances of this critical pair.
-- Guillaume Munch-Maccagnoni, "Syntax and Models of a non-Associative
-  Composition of Programs and Proofs," PhD thesis, Université Paris
-  Diderot, 2013 — originated the duploid framework, giving semantics to
-  non-associative composition. The non-associativity of ksh93's compound
-  assignment nesting is an instance of this.
-- Éléonore Mangel, Paul-André Melliès, and Guillaume Munch-Maccagnoni,
-  "Classical notions of computation and the Hasegawa-Thielecke theorem,"
-  *POPL*, 2026 — connected duploids to classical notions of computation,
-  providing the semantic basis for polarity-aware state management.
-- Paul Blain Levy, *Call-by-Push-Value: A Functional/Imperative Synthesis*,
-  Springer, 2004 — the original value/computation stratification that
-  underlies the polarity frame concept.
-- Arnaud Spiwack, "A Dissection of L," 2014 — a polarized variant of the
-  sequent calculus with explicit shift operators, directly informing the
-  save/clear/restore pattern.
-- David Binder, Marco Tzschentke, Marius Müller, and Klaus Ostermann,
-  "Grokking the Sequent Calculus (Functional Pearl)," *ICFP*, 2024 —
-  a practical presentation of the λμμ̃ as a compilation target, framing
-  the let/control duality that maps onto ksh93's assignment/trap symmetry.
-
-## Installing from source
-
-You can download a [release](releases) tarball,
-or clone the current code from your preferred branch.
-New features for the future release series are developed on the `dev` branch.
-Stable releases are currently based on the `1.0` branch.
-
-### Supported systems
-
-KornShell 93u+m is currently known to build and run on:
-* Android/Termux
-* Cygwin
-* DragonFly BSD
-* FreeBSD
-* Haiku
-* illumos distributions (e.g., OmniOS)
-* Linux: all distributions with glibc or musl libc
-* macOS
-* NetBSD
-* OpenBSD
-* QNX Neutrino (6.5.0)
-* Solaris
-
-Systems that may work, but that we have not been able to test lately, include:
-* AIX
-* HP-UX
-* UnixWare
-
-KornShell 93u+m supports systems that use the ASCII character set as the
-lowest common denominator. This includes Linux on IBM zSeries, but not z/OS.
-Support for the EBCDIC character set has been removed, as we do not have
-access to a mainframe with z/OS to test and maintain it.
-
-### Prepare
-
-The build system requires only a basic POSIX-compatible shell, utilities and
-compiler environment. The `cc`, `ar` and `getconf` commands are needed at
-build time. The `tput` and `getconf` commands are used at runtime if
-available (for multiline editing and to complete the `getconf` built-in,
-respectively). Not all systems come with all of these preinstalled. Here are
-system-specific instructions for making them available:
-
-* **Android/[Termux](https://termux.dev/):**
-  install dependencies using `pkg install`.
-    * Build dependencies: `clang`, `binutils`, `getconf`
-    * Runtime dependencies (optional): `ncurses-utils`, `getconf`
-* **macOS:**
-  install the Xcode Command Line Tools:    
-  `xcode-select --install`
-* (to be completed)
-
-### Build
-
-To build ksh with a custom configuration of features, edit
-[`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh93/SHOPT.sh).
-
-On systems such as NetBSD and OpenBSD, where `/bin/ksh` is not ksh93 and the
-preinstalled `/etc/ksh.kshrc` profile script is incompatible with ksh93, you'll
-want to disable `SHOPT_SYSRC` to avoid loading it on startup -- unless you can
-edit it to make it compatible with ksh93. This generally involves differences
-in the declaration and usage of local variables in functions.
-
-Then `cd` to the top directory and run:
+Requires a POSIX shell, `cc`, `ar`, `getconf`.
 
 ```
-bin/package make
+bin/package make          # build
+bin/package test          # test
+bin/shtests --man         # test harness documentation
 ```
 
-To suppress compiler output, use `quiet make` instead of `make`.
+The compiled binary lands in `arch/$(bin/package host type)/bin/ksh`.
 
-In some non-POSIX shells you might need to prepend `sh` to all calls to `bin/package`.
+For build options, feature configuration (`src/cmd/ksh93/SHOPT.sh`), and
+platform-specific notes, see the [upstream documentation](https://github.com/ksh93/ksh#installing-from-source).
 
-Parallel building is supported by appending `-j` followed by the
-desired maximum number of concurrent jobs, e.g., `bin/package make -j4`.
-This speeds up building on systems with more than one CPU core.
-(Type `bin/package host cpu` to find out how many CPU cores your system has.)
+## Origin
 
-The compiled binaries are stored in the `arch` directory, in a subdirectory
-that corresponds to your architecture. The command `bin/package host type`
-outputs the name of this subdirectory.
+ksh26 is forked from ksh 93u+m, which is forked from ksh 93u+ (2012-08-01),
+which descends from David Korn's original KornShell at AT&T Bell Labs. The
+93u+m project is maintained by Martijn Dekker and community contributors.
 
-Dynamically linked binaries, if supported for your system, are stored in
-`dyn/bin` and `dyn/lib` subdirectories of your architecture directory.
-If built, they are built in addition to the statically linked versions.
-Export `AST_NO_DYLIB` to deactivate building dynamically linked versions.
+The `dev` branch of this repository tracks upstream `ksh93/ksh` dev and
+carries bugfixes that are submitted back as PRs. The `ksh26` branch diverges
+with the structural refactor.
 
-If you have trouble or want to tune the binaries, you may pass additional
-compiler and linker flags. It is usually best to export these as environment
-variables *before* running `bin/package` as they could change the name of
-the build subdirectory of the `arch` directory, so exporting them is a
-convenient way to keep them consistent between build and test commands.
-**Note that this system uses `CCFLAGS` instead of the usual `CFLAGS`.**
-An example that makes Solaris Studio cc produce a 64-bit binary:
+## Theoretical background
 
-```
-export CCFLAGS="-m64 -O" LDFLAGS="-m64"
-bin/package make
-```
+The polarity frame design draws on work from several research groups.
 
-Alternatively you can append these to the command, and they will only be
-used for that command. You can also specify an alternative shell in which
-to run the build scripts this way. For example:
+**Sequent calculus and duality** —
+[Pierre-Louis Curien](https://www.irif.fr/~curien/) (CNRS/IRIF) and
+[Hugo Herbelin](http://pauillac.inria.fr/~herbelin/) (INRIA),
+"The duality of computation," *ICFP*, 2000.
+The λμμ̃-calculus as term assignment for classical sequent calculus:
+three-sorted structure (terms, coterms, statements) mapping onto ksh93's
+producer/consumer/cut architecture.
 
-```
-bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" LDFLAGS="-L/opt/local/lib"
-```
+[Philip Wadler](https://homepages.inf.ed.ac.uk/wadler/) (Edinburgh),
+"Call-by-Value is Dual to Call-by-Name, Reloaded," *RTA*, 2005.
+CBV/CBN as De Morgan duals via sequent calculus. The critical pair where
+evaluation order matters corresponds to `sh.prefix` corruption during
+compound assignment interrupted by trap dispatch.
 
-**Note:** Do not add compiler flags that cause the compiler to emit terminal
-escape codes, such as `-fdiagnostics-color=always`; this will cause the
-build to fail as the probing code greps compiler diagnostics. Additionally,
-do not add the `-ffast-math` compiler flag; arithmetic bugs will occur when
-using that flag.
+**Duploids and non-associativity** —
+[Guillaume Munch-Maccagnoni](https://guillaume.munch.name/) (INRIA/Gallinette),
+"Syntax and Models of a non-Associative Composition of Programs and Proofs,"
+PhD thesis, Univ. Paris Diderot, 2013. The duploid framework: semantics for
+non-associative composition. ksh93's compound assignment nesting is an
+instance.
 
-For more information run
+Éléonore Mangel (IRIF),
+[Paul-André Melliès](https://www.irif.fr/~mellies/) (CNRS/IRIF), and
+G. Munch-Maccagnoni,
+"Classical notions of computation and the Hasegawa-Thielecke theorem,"
+*POPL*, 2026. Connects duploids to classical notions of computation.
 
-```
-bin/package help
-```
+**Value/computation stratification** —
+[Paul Blain Levy](https://www.cs.bham.ac.uk/~pbl/) (Birmingham),
+*Call-by-Push-Value: A Functional/Imperative Synthesis*, Springer, 2004.
+The value/computation distinction underlying the polarity frame concept.
 
-Many other commands in this repo self-document via the `--help`, `--man` and
-`--html` options; those that do have no separate manual page.
+**Polarized calculi** —
+[Arnaud Spiwack](https://github.com/aspiwack) (Tweag/Modus),
+"A Dissection of L," 2014. Polarized sequent calculus with explicit shift
+operators (↓/↑), directly informing the save/clear/restore pattern.
 
-### Test
+[David Binder](https://binderdavid.github.io/) (Kent/Tübingen),
+M. Tzschentke, M. Müller, and
+[Klaus Ostermann](https://ps.informatik.uni-tuebingen.de/team/ostermann/)
+(Tübingen),
+"Grokking the Sequent Calculus (Functional Pearl)," *ICFP*, 2024.
+Practical presentation of λμμ̃ as compilation target.
+See also [Polarity](https://polarity-lang.github.io/), Binder et al.'s
+language with dependent data and codata types, which implements the
+symmetric treatment of polarities as a working language design
+([source](https://github.com/polarity-lang/polarity)).
 
-After compiling, you can run the regression tests.
-To run the default test sets for ksh and the build system, use:
+See [SPEC.md](SPEC.md) for the full correspondence between ksh93 internals
+and the formal framework.
 
-```
-bin/package test
-```
+## License
 
-For ksh, use the `shtests` command directly to control the regression test runs.
-Start by reading the information printed by:
+[Eclipse Public License 2.0](https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html)
 
-```
-bin/shtests --man
-```
+## Contributors
 
-To hand-test ksh (as well as the utilities and the autoloadable functions
-that come with it) without installing, run:
-
-```
-bin/package use
-```
-
-### Install
-
-Usage: `bin/package install` *install_root_directory* [ *command* ... ]
-
-Any command from the `arch` directory can be installed. If no *command* is
-specified, `ksh` and `shcomp` are assumed.
-
-The *install_root_directory* is the directory from which the command(s) will
-actually be run. It will be created if it does not exist. Commands are
-installed into its `bin` subdirectory, any shared libraries into `lib`, C
-development header files into `include/ast`, and each command's manual page,
-if available, is installed into `share/man`.
-
-If a dynamically linked version of ksh and associated commands has been
-built, then the `install` subcommand will prefer that: commands, dynamic
-libraries and associated header files will be installed then. To install the
-statically linked version instead (and skip the header files), either delete
-the `dyn` subdirectory, or export `AST_NO_DYLIB=y` before building to prevent
-it from being created in the first place.
-
-An additional install prefix directory path can be passed in `DESTDIR`, which
-can be either passed as an environment variable or specified on the comannd
-line as an extra assignment-like argument. The value of `DESTDIR` will be
-prefixed to the path of every destination file when installing it, but not
-when configuring the install root directory in the installed files (as may be
-required by individual systems, e.g., to find dynamic libraries). This feature
-is designed for packagers who need to install ksh into a directory other than
-the one from which it will be run in order to package it.
-
-## What is ksh93?
-
-The following is the official AT&T description from 1993 that came with the
-ast-open distribution. The text is original, but hyperlinks were added here.
-
-----
-
-KSH-93 is the most recent version of the KornShell Language described in
-"The KornShell Command and Programming Language," by Morris Bolsky and David
-Korn of AT&T Bell Laboratories, ISBN 0-13-182700-6. The KornShell is a shell
-programming language, which is upward compatible with "sh" (the Bourne
-Shell), and is intended to conform to the IEEE P1003.2/ISO 9945.2
-[Shell and Utilities standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html).
-KSH-93 provides an enhanced programming environment in addition to the major
-command-entry features of the BSD shell "csh". With KSH-93, medium-sized
-programming tasks can be performed at shell-level without a significant loss
-in performance. In addition, "sh" scripts can be run on KSH-93 without
-modification.
-
-The code should conform to the
-[IEEE POSIX 1003.1 standard](https://www.opengroup.org/austin/papers/posix_faq.html)
-and to the proposed ANSI C standard so that it should be portable to all
-such systems. Like the previous version, KSH-88, it is designed to accept
-eight bit character sets transparently, thereby making it internationally
-compatible. It can support multi-byte characters sets with some
-characteristics of the character set given at run time.
-
-KSH-93 provides the following features, many of which were also inherent in
-KSH-88:
-
-* Enhanced Command Re-entry Capability: The KSH-93 history function records
-  commands entered at any shell level and stores them, up to a
-  user-specified limit, even after you log off. This allows you to re-enter
-  long commands with a few keystrokes - even those commands you entered
-  yesterday. The history file allows for eight bit characters in commands
-  and supports essentially unlimited size histories.
-* In-line Editing: In "sh", the only way to fix mistyped commands is to
-  backspace or retype the line. KSH-93 allows you to edit a command line
-  using a choice of EMACS-TC or "vi" functions. You can use the in-line
-  editors to complete filenames as you type them. You may also use this
-  editing feature when entering command lines from your history file. A user
-  can capture keystrokes and rebind keys to customize the editing interface.
-* Extended I/O Capabilities: KSH-93 provides several I/O capabilities not
-  available in "sh", including the ability to:
-    * specify a file descriptor for input and output
-    * start up and run co-processes
-    * produce a prompt at the terminal before a read
-    * easily format and interpret responses to a menu
-    * echo lines exactly as output without escape processing
-    * format output using printf formats.
-    * read and echo lines ending in "\\". 
-* Improved performance: KSH-93 executes many scripts faster than the System
-  V Bourne shell. A major reason for this is that many of the standard
-  utilities are built-in. To reduce the time to initiate a command, KSH-93
-  allows commands to be added as built-ins at run time on systems that
-  support dynamic loading such as System V Release 4.
-* Arithmetic: KSH-93 allows you to do integer arithmetic in any base from
-  two to sixty-four. You can also do double precision floating point
-  arithmetic. Almost the complete set of C language operators are available
-  with the same syntax and precedence. Arithmetic expressions can be used to
-  as an argument expansion or as a separate command. In addition, there is an
-  arithmetic for command that works like the for statement in C.
-* Arrays: KSH-93 supports both indexed and associative arrays. The subscript
-  for an indexed array is an arithmetic expression, whereas, the subscript
-  for an associative array is a string.
-* Shell Functions and Aliases: Two mechanisms - functions and aliases - can
-  be used to assign a user-selected identifier to an existing command or
-  shell script. Functions allow local variables and provide scoping for
-  exception handling. Functions can be searched for and loaded on first
-  reference the way scripts are.
-* Substring Capabilities: KSH-93 allows you to create a substring of any
-  given string either by specifying the starting offset and length, or by
-  stripping off leading or trailing substrings during parameter
-  substitution. You can also specify attributes, such as upper and lower
-  case, field width, and justification to shell variables.
-* More pattern matching capabilities: KSH-93 allows you to specify extended
-  regular expressions for file and string matches.
-* KSH-93 uses a hierarchical name space for variables. Compound variables can
-  be defined and variables can be passed by reference. In addition, each
-  variable can have one or more disciplines associated with it to intercept
-  assignments and references.
-* Improved debugging: KSH-93 can generate line numbers on execution traces.
-  Also, I/O redirections are now traced. There is a DEBUG trap that gets
-  evaluated before each command so that errors can be localized.
-* Job Control: On systems that support job control, including System V
-  Release 4, KSH-93 provides a job-control mechanism almost identical to
-  that of the BSD "csh", version 4.1. This feature allows you to stop and
-  restart programs, and to move programs between the foreground and the
-  background.
-* Added security: KSH-93 can execute scripts which do not have read
-  permission and scripts which have the setuid and/or setgid set when
-  invoked by name, rather than as an argument to the shell. It is possible
-  to log or control the execution of setuid and/or setgid scripts. The
-  noclobber option prevents you from accidentally erasing a file by
-  redirecting to an existing file.
-* KSH-93 can be extended by adding built-in commands at run time. In
-  addition, KSH-93 can be used as a library that can be embedded into an
-  application to allow scripting.
-
-Documentation for KSH-93 consists of an "Introduction to KSH-93",
-"Compatibility with the Bourne Shell" and a manual page and a README file.
-In addition, the "New KornShell Command and Programming Language" book is
-available from Prentice Hall.
+- David Korn (AT&T Research) — original ksh93
+- Martijn Dekker and the [93u+m contributors](https://github.com/ksh93/ksh) — maintenance fork
+- Lane Biocini — ksh26 fork, polarity frame design

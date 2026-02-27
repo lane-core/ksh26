@@ -579,7 +579,7 @@ set=
 case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: iffe (ksh 93u+m) '${version}$' $
+@(#)$Id: iffe (ksh26) '${version}$' $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Phong Vo <kpv@research.att.com>]

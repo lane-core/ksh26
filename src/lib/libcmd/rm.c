@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: rm (ksh 93u+m) 2025-09-30 $\n]"
+"[-?\n@(#)$Id: rm (ksh26) 2025-09-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?rm - remove files]"
 "[+DESCRIPTION?\brm\b removes the named \afile\a arguments. By default it"

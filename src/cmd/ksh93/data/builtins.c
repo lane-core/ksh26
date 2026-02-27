@@ -319,7 +319,7 @@ const char sh_set[] =
 ;
 
 const char sh_optbreak[] =
-"[-1c?\n@(#)$Id: break (ksh 93u+m) 2023-03-09 $\n]"
+"[-1c?\n@(#)$Id: break (ksh26) 2023-03-09 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?break - break out of loop ]"
 "[+DESCRIPTION?\bbreak\b is a shell special built-in that exits the "
@@ -337,7 +337,7 @@ const char sh_optbreak[] =
 ;
 
 const char sh_optcont[] =
-"[-1c?\n@(#)$Id: continue (ksh 93u+m) 2023-03-09 $\n]"
+"[-1c?\n@(#)$Id: continue (ksh26) 2023-03-09 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?continue - continue execution at top of the loop]"
 "[+DESCRIPTION?\bcontinue\b is a shell special built-in that continues "
@@ -356,7 +356,7 @@ const char sh_optcont[] =
 
 const char sh_optalarm[]	= "r [varname seconds]";
 const char sh_optalias[] =
-"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2021-12-26 $\n]"
+"[-1c?\n@(#)$Id: alias (ksh26) 2021-12-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?alias - define or display aliases]"
 "[+DESCRIPTION?\balias\b creates or redefines alias definitions "
@@ -394,7 +394,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2026-01-29 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh26) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -459,7 +459,7 @@ const char sh_optbuiltin[] =
 ;
 
 const char sh_optcd[] =
-"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2023-02-16 $\n]"
+"[-1c?\n@(#)$Id: cd (ksh26) 2023-02-16 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?cd - change working directory ]"
 "[+DESCRIPTION?\bcd\b changes the current working directory of the "
@@ -516,7 +516,7 @@ const char sh_optcd[] =
 ;
 
 const char sh_optcommand[] =
-"[-1c?\n@(#)$Id: command (ksh 93u+m) 2023-03-20 $\n]"
+"[-1c?\n@(#)$Id: command (ksh26) 2023-03-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?command - execute a simple command disabling special properties]"
 "[+DESCRIPTION?Without \b-v\b or \b-V\b, \bcommand\b executes \acmd\a "
@@ -565,7 +565,7 @@ const char sh_optcommand[] =
 ;
 
 const char sh_optdot[]	 =
-"[-1c?\n@(#)$Id: \b.\b (ksh 93u+m) 2023-02-22 $\n]"
+"[-1c?\n@(#)$Id: \b.\b (ksh26) 2023-02-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - execute commands in the current environment]"
 "[+DESCRIPTION?\b.\b and \bsource\b are built-in commands that execute "
@@ -623,7 +623,7 @@ const char sh_opteval[] =
 ;
 
 const char sh_optexec[] =
-"[-1c?\n@(#)$Id: exec (ksh 93u+m) 2024-11-15 $\n]"
+"[-1c?\n@(#)$Id: exec (ksh26) 2024-11-15 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exec - execute command, open/close and duplicate file descriptors]"
 "[+DESCRIPTION?\bexec\b is a special built-in command that can be used to "
@@ -662,7 +662,7 @@ const char sh_optexec[] =
 ;
 
 const char sh_optexit[] =
-"[-1c?\n@(#)$Id: exit (ksh 93u+m) 2021-12-08 $\n]"
+"[-1c?\n@(#)$Id: exit (ksh26) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exit - exit the current shell]"
 "[+DESCRIPTION?\bexit\b is a shell special built-in that causes the "
@@ -707,7 +707,7 @@ const char sh_optexport[] =
 ;
 
 const char sh_optgetopts[] =
-":[-1c?\n@(#)$Id: getopts (ksh 93u+m) 2025-05-02 $\n]"
+":[-1c?\n@(#)$Id: getopts (ksh26) 2025-05-02 $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - parse utility options]"
@@ -970,7 +970,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2024-06-30 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh26) 2024-06-30 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
@@ -992,7 +992,7 @@ const char sh_opthash[] =
 
 #if !SHOPT_SCRIPTONLY
 const char sh_opthist[]	=
-"[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2025-05-10 $\n]"
+"[-1cn?\n@(#)$Id: hist (ksh26) 2025-05-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - process command history list]"
 "[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands "
@@ -1063,7 +1063,7 @@ const char sh_opthist[]	=
 #endif /* !SHOPT_SCRIPTONLY */
 
 const char sh_optkill[]	 =
-"[-1c?\n@(#)$Id: kill (ksh 93u+m) 2023-09-16 $\n]"
+"[-1c?\n@(#)$Id: kill (ksh26) 2023-09-16 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?kill - terminate or signal process]"
 "[+DESCRIPTION?With the first form in which \b-l\b is not specified, "
@@ -1114,7 +1114,7 @@ _JOB_
 ;
 
 const char sh_optstop[] =
-"[-1c?\n@(#)$Id: stop (ksh 93u+m) 2020-06-22 $\n]"
+"[-1c?\n@(#)$Id: stop (ksh26) 2020-06-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?stop - suspend a process]"
 "[+DESCRIPTION?\bstop\b sends a \bSIGSTOP\b signal to one or more processes "
@@ -1133,7 +1133,7 @@ _JOB_
 ;
 
 const char sh_optsuspend[] =
-"[-1c?\n@(#)$Id: suspend (ksh 93u+m) 2020-06-22 $\n]"
+"[-1c?\n@(#)$Id: suspend (ksh26) 2020-06-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?suspend - stop the shell]"
 "[+DESCRIPTION?\bsuspend\b sends a \bSIGSTOP\b signal to the main shell "
@@ -1173,7 +1173,7 @@ const char sh_optlet[]	=
 ;
 
 const char sh_optprint[] =
-"[-1c?\n@(#)$Id: print (ksh 93u+m) 2022-09-26 $\n]"
+"[-1c?\n@(#)$Id: print (ksh26) 2022-09-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?print - write arguments to standard output]"
 "[+DESCRIPTION?By default, \bprint\b writes each \astring\a operand to "
@@ -1231,7 +1231,7 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2024-07-31 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh26) 2024-07-31 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1429,7 +1429,7 @@ const char sh_optpwd[] =
 ;
 
 const char sh_optread[] =
-"[-1c?\n@(#)$Id: read (ksh 93u+m) 2023-03-24 $\n]"
+"[-1c?\n@(#)$Id: read (ksh26) 2023-03-24 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?read - read a line from standard input]"
 "[+DESCRIPTION?\bread\b reads a line from standard input and breaks it "
@@ -1488,7 +1488,7 @@ const char sh_optread[] =
 ;
 
 const char sh_optreadonly[] =
-"[-1c?\n@(#)$Id: readonly (ksh 93u+m) 2020-06-28 $\n]"
+"[-1c?\n@(#)$Id: readonly (ksh26) 2020-06-28 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?readonly - set readonly attribute on variables]"
 "[+DESCRIPTION?\breadonly\b sets the readonly attribute on each of "
@@ -1522,7 +1522,7 @@ const char sh_optreadonly[] =
 ;
 
 const char sh_optredirect[] =
-"[-1c?\n@(#)$Id: redirect (ksh 93u+m) 2021-02-06 $\n]"
+"[-1c?\n@(#)$Id: redirect (ksh26) 2021-02-06 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?redirect - open/close and duplicate file descriptors]"
 "[+DESCRIPTION?This command only accepts input/output redirections. "
@@ -1549,7 +1549,7 @@ const char sh_optredirect[] =
 ;
 
 const char sh_optreturn[] =
-"[-1c?\n@(#)$Id: return (ksh 93u+m) 2021-12-08 $\n]"
+"[-1c?\n@(#)$Id: return (ksh26) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?return - return from a function or dot script ]"
 "[+DESCRIPTION?\breturn\b is a shell special built-in that causes the "
@@ -1575,9 +1575,10 @@ const char sh_optreturn[] =
 
 
 const char sh_optksh[] =
-"+[-1?\n@(#)$Id: sh (AT&T Research) "SH_RELEASE" $\n]"
+"+[-1?\n@(#)$Id: sh (ksh26) "SH_RELEASE" $\n]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"
+"[-author?Lane Biocini <lane@mailbox.org>]"
 "[-copyright?(c) 1982-2014 AT&T Intellectual Property]"
 "[-copyright?" SH_RELEASE_CPYR "]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
@@ -1665,7 +1666,7 @@ const char sh_optksh[] =
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
 const char sh_optset[] =
-"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2026-02-10 $\n]"
+"+[-1c?\n@(#)$Id: set (ksh26) 2026-02-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?set - set/unset options and positional parameters]"
 "[+DESCRIPTION?\bset\b sets or unsets options and positional parameters. "
@@ -1729,7 +1730,7 @@ const char sh_optshift[] =
 ;
 
 const char sh_optsleep[] =
-"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2024-11-17 $\n]"
+"[-1c?\n@(#)$Id: sleep (ksh26) 2024-11-17 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?sleep - suspend execution for an interval]"
 "[+DESCRIPTION?\bsleep\b suspends execution for at least the time specified "
@@ -1763,7 +1764,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2026-01-29 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh26) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1817,7 +1818,7 @@ const char sh_opttrap[] =
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2023-05-01 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh26) 2023-05-01 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1953,7 +1954,7 @@ const char sh_opttypeset[] =
 
 #ifndef _no_ulimit
 const char sh_optulimit[] =
-"[-1c?\n@(#)$Id: ulimit (ksh 93u+m) 2022-10-13 $\n]"
+"[-1c?\n@(#)$Id: ulimit (ksh26) 2022-10-13 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?ulimit - set or display resource limits]"
 "[+DESCRIPTION?\bulimit\b sets or displays resource limits. These "
@@ -1990,7 +1991,7 @@ const char sh_optulimit[] =
 #endif /* !_no_ulimit */
 
 const char sh_opttimes[] =
-"[-1c?\n@(#)$Id: times (ksh 93u+m) 2022-06-06 $\n]"
+"[-1c?\n@(#)$Id: times (ksh26) 2022-06-06 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
@@ -2000,7 +2001,7 @@ const char sh_opttimes[] =
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2026-01-29 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh26) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "
@@ -2104,7 +2105,7 @@ _JOB_
 ;
 
 const char sh_optwhence[] =
-"[-1c?\n@(#)$Id: whence (ksh 93u+m) 2023-05-30 $\n]"
+"[-1c?\n@(#)$Id: whence (ksh26) 2023-05-30 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?whence, type - locate a command and describe its type]"
 "[+DESCRIPTION?Without \b-v\b, \bwhence\b writes on standard output an "

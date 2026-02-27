@@ -375,7 +375,7 @@ IFS=$' \t\n'
 case ${.sh.version} in
 *93u+m/1.0.*)
 	;;
-*93u+m/*)
+*ksh26/* | *93u+m/*)
 	got=$(f() { foo+=bar\ baz; }; typeset -f f)
 	exp=$'f()\n{\tfoo+='\'bar\ baz\'$'\n}'
 	[[ $got == "$exp" ]] || err_exit 'print function definition with additive assignment' \

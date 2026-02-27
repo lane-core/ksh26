@@ -22,7 +22,7 @@
  * POSIX regex error message handler
  */
 
-static const char id[] = "\n@(#)$Id: regex (ksh 93u+m) 2025-04-10 $\0\n";
+static const char id[] = "\n@(#)$Id: regex (ksh26) 2025-04-10 $\0\n";
 
 #include "reglib.h"
 

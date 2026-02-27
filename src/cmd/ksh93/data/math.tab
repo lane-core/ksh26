@@ -18,7 +18,7 @@
 
 # <return type: i:integer f:floating-point> <#floating-point-args> <function-name> [<alias> ...]
 # <function-name>l variants are handled by features/math.sh
-# @(#)math.tab (ksh 93u+m) 2024-03-20
+# @(#)math.tab (ksh26) 2024-03-20
 f 1 acos
 f 1 acosh
 f 1 asin

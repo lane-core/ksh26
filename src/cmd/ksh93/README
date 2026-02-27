@@ -1,3 +1,6 @@
+NOTE: This is the ksh26 fork. See the top-level README.md and
+DEVIATIONS.md for ksh26-specific information.
+
 This directory, and its subdirectories contain the source code
 for ksh-93; the language described in the second edition of
 the book, "The KornShell Command and Programming Language," by
@@ -297,6 +300,9 @@ Good luck!!
 
 The ksh 93u+m contributors
 https://github.com/ksh93/ksh
+
+ksh26 fork:
+Lane Biocini <lane@mailbox.org>
 
 Originally written by:
 David Korn

@@ -18,7 +18,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 
-#define ENUM_ID "enum (ksh 93u+m) 2024-11-28"
+#define ENUM_ID "enum (ksh26) 2024-11-28"
 
 const char sh_optenum[] =
 "[-?\n@(#)$Id: " ENUM_ID " $\n]"

@@ -188,7 +188,7 @@ fi
 # https://github.com/ksh93/ksh/issues/648
 # NOTE: for ast commands, '--version' is expected to exit with status 2 on 93u+m/1.0, 0 on 93u+m/1.1 and up
 case ${.sh.version} in
-*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+*ksh26/* | *93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
 	s=0 ;;
 *)	s=2 ;;
 esac
@@ -228,7 +228,7 @@ do
 	)
 	# for ast commands, '--version' is expected to exit with status 2 on 93u+m/1.0, 0 on 93u+m/1.1 and up
 	case ${.sh.version} in
-	*93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
+	*ksh26/* | *93u+m/1.[!0]* | 93u+m/[2-9].* | 93u+m/?[!.]*)
 		s=0 ;;
 	*)	s=2 ;;
 	esac

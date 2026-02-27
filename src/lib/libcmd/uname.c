@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: uname (ksh 93u+m) 2023-03-09 $\n]"
+"[-?\n@(#)$Id: uname (ksh26) 2023-03-09 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?uname - identify the current system ]"
 "[+DESCRIPTION?By default \buname\b writes the operating system name to"

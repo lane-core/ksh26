@@ -27,7 +27,7 @@
 #include	"builtins.h"
 
 static const char sh_opttype[] =
-"[-1c?\n@(#)$Id: type (ksh 93u+m) 2024-08-28 $\n]"
+"[-1c?\n@(#)$Id: type (ksh26) 2024-08-28 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - set the type of variables to \b\f?\f\b]"
 "[+DESCRIPTION?\b\f?\f\b sets the type on each of the variables specified "
