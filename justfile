@@ -6,6 +6,8 @@
 #   samu       — vendored ninja implementation, executes build.ninja
 #
 # Usage: just build | just test | just clean | just install
+#
+# Override: CC=clang just build
 
 HOSTTYPE := env("HOSTTYPE", `bin/package host type`)
 BUILDDIR := "build" / HOSTTYPE
@@ -14,6 +16,7 @@ SAMU := BUILDDIR / "bin" / "samu"
 # Build ksh26 (default recipe)
 build: bootstrap
     @test -f {{BUILDDIR}}/build.ninja \
+        -a {{BUILDDIR}}/build.ninja -nt configure.ksh \
         || ksh configure.ksh
     {{SAMU}} -C {{BUILDDIR}}
 
@@ -24,13 +27,22 @@ bootstrap:
         || cc -o {{SAMU}} src/cmd/INIT/samu/*.c
 
 # (Re)run feature detection and generate build.ninja
+# Probes are cached — only stale probes rerun (~5s when nothing changed)
 configure: bootstrap
     ksh configure.ksh
+
+# Force all probes to rerun (ignores cache)
+reconfigure: bootstrap
+    ksh configure.ksh --force
 
 # Run all regression tests in parallel via samu
 # -k 0 = keep going on failure so all tests run
 test: build
     {{SAMU}} -k 0 -C {{BUILDDIR}} test
+
+# Run a single test: just test-one basic
+test-one name locale="C": build
+    {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
 
 # Run tests sequentially via legacy shtests harness
 test-serial: build
@@ -41,6 +53,14 @@ test-serial: build
     SHELL={{BUILDDIR}}/bin/ksh \
     KSH={{BUILDDIR}}/bin/ksh \
     bin/shtests
+
+# Pass arbitrary args to samu
+samu *args: bootstrap
+    {{SAMU}} -C {{BUILDDIR}} {{args}}
+
+# Show the most recent test failure logs
+log:
+    @find {{BUILDDIR}}/test -name '*.log' 2>/dev/null | xargs ls -t 2>/dev/null | head -5 | xargs cat 2>/dev/null || echo "No test logs found."
 
 # Remove build artifacts for this host
 clean:
