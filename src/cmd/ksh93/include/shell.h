@@ -241,6 +241,21 @@ struct sh_polarity
 };
 
 /*
+ * Lightweight polarity frame for sh_debug: saves only the fields that
+ * sh_debug modifies or that the handler may mutate through sh_trap's
+ * inner frame.  The full sh.st is protected by sh_trap's own polarity
+ * frame, so the outer boundary can be weakened.  See REDESIGN.md.
+ */
+struct sh_polarity_lite
+{
+	char		*prefix;
+	Namval_t	*namespace;
+	Dt_t		*var_tree;
+	char		trapdontexec;
+	char		*trap[SH_DEBUGTRAP+1];
+};
+
+/*
  * Prefix guard: lightweight save/clear/restore for within-value
  * operations. Unlike a polarity frame, this does NOT save sh.st
  * (no mode crossing). See REDESIGN.md Direction 3.

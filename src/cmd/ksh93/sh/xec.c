@@ -495,18 +495,56 @@ void sh_polarity_leave(struct sh_polarity *frame)
 }
 
 /*
+ * Lightweight polarity frame for sh_debug.
+ * Only saves fields that sh_debug itself modifies (prefix, namespace)
+ * plus fields the handler may mutate (trap slots, trapdontexec).
+ * Full sh.st protection is provided by sh_trap's inner polarity frame.
+ */
+static void sh_polarity_lite_enter(struct sh_polarity_lite *frame)
+{
+	int i;
+	frame->prefix = sh.prefix;
+	frame->namespace = sh.namespace;
+	frame->var_tree = sh.var_tree;
+	frame->trapdontexec = sh.st.trapdontexec;
+	for(i = 0; i <= SH_DEBUGTRAP; i++)
+		frame->trap[i] = sh.st.trap[i];
+	sh.prefix = NULL;
+	sh.namespace = NULL;
+}
+
+static void sh_polarity_lite_leave(struct sh_polarity_lite *frame)
+{
+	/* Preserve handler's trap mutations (e.g. 'trap - DEBUG') */
+	char *traps[SH_DEBUGTRAP+1];
+	char trapdontexec = sh.st.trapdontexec;
+	int i;
+	for(i = 0; i <= SH_DEBUGTRAP; i++)
+		traps[i] = sh.st.trap[i];
+	/* Restore caller state, then apply handler's trap changes */
+	for(i = 0; i <= SH_DEBUGTRAP; i++)
+		sh.st.trap[i] = traps[i];
+	sh.st.trapdontexec = trapdontexec;
+	sh.var_tree = frame->var_tree;
+	sh.prefix = frame->prefix;
+	sh.namespace = frame->namespace;
+}
+
+/*
  * Execute the DEBUG trap:
  * write the current command on the stack and make it available as .sh.command
  */
 int sh_debug(const char *trap, const char *name, const char *subscript, char *const argv[], int flags)
 {
 	Namval_t		*np = SH_COMMANDNOD;
-	struct sh_polarity	polframe;
-	/* three-layer nesting: stk outermost, polarity middle, no inner checkpt (Direction 6) */
+	struct sh_polarity_lite	polframe;
+	/* three-layer nesting: stk outermost, lite polarity middle, no inner checkpt (Direction 6) */
 	int			n=4, offset=stktell(sh.stk);
 	void			*sav = stkfreeze(sh.stk,0);
 	const char		*cp = "+=( ";
 	if(sh.indebug)
+		return 0;
+	if(!*trap)
 		return 0;
 	sh.indebug = 1;
 	if(name)
@@ -539,7 +577,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
-	sh_polarity_enter(&polframe);
+	sh_polarity_lite_enter(&polframe);
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
@@ -556,9 +594,9 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
-	/* defensive scope checkpoint; primary restore is in sh_polarity_leave */
+	sh_polarity_lite_leave(&polframe);
+	/* scope checkpoint after lite leave restores caller's context */
 	update_sh_level();
-	sh_polarity_leave(&polframe);
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
