@@ -204,7 +204,7 @@ struct sh_scoped
 	char		*filename;
 	char		*funname;
 	int		lineno;
-	Dt_t		*save_tree;	/* var_tree for calling function */
+	Dt_t		*own_tree;	/* this scope's var_tree (aliases Shscope_t.var_tree) */
 	struct sh_scoped *self;		/* pointer to copy of this scope */
 	struct slnod	*staklist;	/* link list of function stacks */
 	int		states;		/* shell state bits used by sh_isstate(), etc. */

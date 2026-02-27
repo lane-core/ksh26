@@ -986,7 +986,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 					Dt_t *hp=0;
 					if(nv_isattr(np,NV_PARAM) && sh.st.prevst)
 					{
-						if(!(hp=(Dt_t*)sh.st.prevst->save_tree))
+						if(!(hp=(Dt_t*)sh.st.prevst->own_tree))
 							hp = dtvnext(sh.var_tree);
 					}
 					if(sh.mktype)
