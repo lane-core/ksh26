@@ -101,7 +101,6 @@ void	sh_fault(int sig)
 		}
 		if(flag&SH_SIGDONE)
 		{
-			void *ptr=0;
 			if((flag&SH_SIGINTERACTIVE) && sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_FORKED))
 			{
 				/* check for TERM signal between fork/exec */
@@ -120,12 +119,14 @@ void	sh_fault(int sig)
 			}
 			if(sh.subshell)
 				sh_exit(SH_EXITSIG);
-			if(sig==SIGABRT || (abortsig(sig) && (ptr = malloc(1))))
-			{
-				if(ptr)
-					free(ptr);
+			/*
+			 * Always attempt cleanup for abort-class signals.
+			 * Previous code called malloc(1) here to test heap
+			 * availability, but malloc is not async-signal-safe
+			 * and can deadlock if the signal interrupts malloc/free.
+			 */
+			if(abortsig(sig))
 				sh_done(sig);
-			}
 			/* mark signal and continue */
 			sh.trapnote |= SH_SIGSET;
 			if(sig <= sh.sigmax)

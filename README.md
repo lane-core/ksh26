@@ -84,6 +84,15 @@ platforms is removed. Every ksh93u+m script runs unmodified.
 Implementation details: [REDESIGN.md](REDESIGN.md).
 
 
+## Platform support
+
+| Tier | Platforms | Status |
+|------|-----------|--------|
+| 1 — tested | Linux (glibc, musl), macOS (arm64, x86_64) | CI, regression suite |
+| 2 — builds | FreeBSD, OpenBSD, NetBSD, illumos | Best-effort, community reports |
+| Unsupported | Windows, HP-UX, AIX, IRIX, z/OS, QNX, Cygwin | Dead code removed |
+
+
 ## Building
 
     just build

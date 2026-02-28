@@ -477,7 +477,6 @@ run_libast_features()
 	copy_feature "$feat/limits" "$INCDIR/ast_limits.h"
 
 	# ── Tier 5: wide parallel band — all independent of each other ──
-	run_iffe "$workdir" "$srcdir/features/omitted" &
 	run_iffe "$workdir" "$srcdir/features/tvlib" &
 	run_iffe "$workdir" "$srcdir/features/syscall" &
 	run_iffe "$workdir" "$srcdir/features/hack" &

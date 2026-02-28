@@ -163,7 +163,15 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	if(ep->staksize < SMALL_STACK)
 		sp = small_stack;
 	else
-		sp = stkalloc(sh.stk,ep->staksize*(sizeof(Sfdouble_t)+1));
+	{
+		size_t sz = (size_t)ep->staksize;
+		if(sz > SIZE_MAX / (sizeof(Sfdouble_t) + 1))
+		{
+			arith_error(e_recursive,ep->expr,ep->emode);
+			return 0;
+		}
+		sp = stkalloc(sh.stk, sz * (sizeof(Sfdouble_t) + 1));
+	}
 	tp = (char*)(sp+ep->staksize);
 	tp--,sp--;
 	while(c = *cp++)

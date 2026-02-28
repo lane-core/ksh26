@@ -41,10 +41,6 @@
 #include	"timeout.h"
 #include	"FEATURE/time"
 #include	"FEATURE/externs"
-#ifdef	_hdr_nc
-#   include	<nc.h>
-#endif	/* _hdr_nc */
-
 /* These routines are referenced by this module */
 static void	exfile(Sfio_t*,int);
 static void	chkmail(char*);
@@ -104,9 +100,6 @@ static int sh_source(Sfio_t *iop, const char *file)
 	int		i;
 	int		rshflag;	/* set for restricted shell */
 	char		*command;
-#ifdef	_hdr_nc
-	_NutConf(_NC_SET_SUFFIXED_SEARCHING, 1);
-#endif	/* _hdr_nc */
 	fixargs(av,0);
 	sh_init(ac,av,userinit);
 	time(&mailtime);

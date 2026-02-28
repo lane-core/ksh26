@@ -746,28 +746,42 @@ backend.
 
 ### Direction 13: Platform targeting
 
-**Status: planned**
+**Status: done**
 
-configure.sh is already modernized. Remaining work:
+Cleaned iffe feature probes for dead platforms:
 
-1. Audit `features/` iffe files — remove probes for dead platforms
-   (HP-UX, AIX, IRIX, pre-POSIX) and C23/POSIX-guaranteed features
-2. Delete `src/cmd/INIT/cc.*` profiles for unsupported compilers
-3. Document tier 1 (Linux, macOS) / tier 2 (*BSD) in README
+- Deleted `features/omitted` (Windows .exe botch tests) and its
+  configure.sh reference
+- Stripped QNX and Cygwin branches from `features/standards`
+- Reduced `features/aso` from 634 → 52 lines: kept GCC `__sync_*`
+  builtins, removed Solaris `<atomic.h>` (6 variants), Windows
+  `Interlocked*`, AIX `fetch_and_add`, MIPS, x86/ia64/ppc inline asm
+- Removed HP-UX `pstat` probe and NeXT `nc.h` include from ksh26
+  features/externs and main.c
+- `features/signal.c` audited — clean (all `#ifdef`-guarded, no dead
+  branches)
+- Platform tiers documented in README
+
+cc.* compiler profiles were already eliminated (Direction 11).
 
 
 ### Direction 14: Security hardening
 
-**Status: planned**
+**Status: done**
 
-After library reduction + platform audit (reduced scope):
+Two targeted fixes plus documentation:
 
-1. Stack buffer audit: `macro.c`, `io.c`, `lex.c`, `edit/*.c`
-2. Format string audit: `sfprintf`/`errormsg` literals
-3. Signal handler safety: `sh_fault()` code paths
-4. Integer overflow: array indices, stk sizes, loop counters
-
-Findings documented in `notes/security/`.
+1. **Signal handler malloc removed** (`fault.c`): `sh_fault()` called
+   `malloc(1)` to test heap availability before crash cleanup —
+   not async-signal-safe, can deadlock. Removed; always attempt
+   `sh_done()` for abort-class signals.
+2. **Integer overflow guard** (`streval.c`): Added `SIZE_MAX` overflow
+   check on `staksize * (sizeof(Sfdouble_t) + 1)` before `stkalloc`.
+   Defense-in-depth (staksize is a `short`, bounded by expression
+   complexity).
+3. **Audit documented** in `notes/security/audit-2026-02.md`: stack
+   buffers clean, format strings all literal, strcpy usage audited
+   (22 occurrences, all pre-sized).
 
 
 ### Direction 15: Build system
@@ -782,6 +796,11 @@ Build dependencies (utf8proc, scdoc) are detected at configure time:
 system versions preferred, with git-clone fallback into `build/deps/`.
 Nix flake provides these via `buildInputs` so the flake build path never
 needs the fallback.
+
+Man pages `shell.3` and `nval.3` converted from troff to scdoc format
+in `doc/`. The `just doc` recipe processes `doc/*.scd` into
+`build/$HOSTTYPE/man/`. The main man page `sh.1` (9,723 lines of
+troff) is deferred to a dedicated session.
 
 
 ### Direction 16: Unicode via utf8proc
