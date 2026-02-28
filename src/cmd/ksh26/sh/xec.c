@@ -26,6 +26,7 @@
 
 #include	"shopt.h"
 #include	"defs.h"
+#include	"sh_io.h"
 #include	<fcin.h>
 #include	"variables.h"
 #include	"path.h"
@@ -145,7 +146,7 @@ static inline Sfdouble_t timeval_to_double(struct timeval tv)
 /*
  * print time <t> in h:m:s format with precision <p>
  */
-static void l_time(Sfio_t *outfile, struct timeval *tv, int precision)
+static void l_time(sh_stream_t *outfile, struct timeval *tv, int precision)
 {
 	Sfulong_t hr = tv->tv_sec / (60 * 60);
 	Sfulong_t min = (tv->tv_sec / 60) % 60;
@@ -168,7 +169,7 @@ static void l_time(Sfio_t *outfile, struct timeval *tv, int precision)
 #define TM_USR_IDX 1
 #define TM_SYS_IDX 2
 
-static void p_time(Sfio_t *out, const char *format, struct timeval tm[3])
+static void p_time(sh_stream_t *out, const char *format, struct timeval tm[3])
 {
 	int		c,n,offset = stktell(sh.stk);
 	const char	*first;
@@ -380,7 +381,7 @@ static int p_switch(struct regnod *reg)
 }
 #endif /* SHOPT_OPTIMIZE */
 
-static void out_pattern(Sfio_t *iop, const char *cp, int n)
+static void out_pattern(sh_stream_t *iop, const char *cp, int n)
 {
 	int c;
 	do
@@ -410,7 +411,7 @@ static void out_pattern(Sfio_t *iop, const char *cp, int n)
 	while(*cp++);
 }
 
-static void out_string(Sfio_t *iop, const char *cp, int c, int quoted)
+static void out_string(sh_stream_t *iop, const char *cp, int c, int quoted)
 {
 	if(quoted)
 	{
@@ -596,14 +597,14 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 /*
  * Given stream <iop> compile and execute
  */
-int sh_eval(Sfio_t *iop, int mode)
+int sh_eval(sh_stream_t *iop, int mode)
 {
 	Shnode_t *t;
 	struct slnod *saveslp = sh.st.staklist;
 	int jmpval;
 	struct checkpt *pp = (struct checkpt*)sh.jmplist;
 	struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
-	static Sfio_t *io_save;
+	static sh_stream_t *io_save;
 	volatile int traceon=0, lineno=0;
 	int binscript=sh.binscript;
 	char comsub = sh.comsub;
@@ -762,10 +763,10 @@ static void unset_instance(Namval_t *node, struct Namref *nr, long mode)
 }
 
 #if SHOPT_FILESCAN
-    static Sfio_t *openstream(struct ionod *iop, int *save)
+    static sh_stream_t *openstream(struct ionod *iop, int *save)
     {
 	int savein, fd = sh_redirect(iop,3);
-	Sfio_t	*sp;
+	sh_stream_t	*sp;
 	savein = dup(0);
 	if(fd==0)
 		fd = savein;
@@ -2125,7 +2126,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			Namval_t *np;
 			Shbltin_f fp;
 #if SHOPT_FILESCAN
-			Sfio_t *iop=0;
+			sh_stream_t *iop=0;
 			int savein=-1;
 #endif /* SHOPT_FILESCAN */
 #if SHOPT_OPTIMIZE

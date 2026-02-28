@@ -47,7 +47,7 @@ Directions 10, 11, and 15 are done. Remaining directions clear the path
 for features:
 - **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
 - **11**: Library reduction — strip dead libraries and thin survivors (**done**)
-- **12**: sfio abstraction — prepare for lighter I/O backend
+- **12**: sfio → stdio migration — type abstraction done, stdio backend next
 - **13**: Platform targeting — declare what we support, delete the rest
 - **14**: Security hardening — audit the reduced codebase
 - **15**: Build system — just + samu, retire MAM (**done**)
@@ -727,21 +727,90 @@ checking, locale awareness, error catalogs) and are actively linked.
 deleted directories, `cdtlib.h`.
 
 
-### Direction 12: sfio abstraction
+### Direction 12: sfio → stdio migration
 
-**Status: planned**
+**Status: in progress (type abstraction done)**
 
-932 sfio call sites across 47 files. Phased approach:
+ksh26 inherits AT&T's sfio (Safe/Fast I/O) library — 80 files, ~11.5k LOC
+of buffered I/O built in the '90s as a stdio replacement. ~1000 sfio call
+sites in ksh26 proper, ~800 in libast. The goal is replacing sfio with
+modern POSIX I/O while reducing code surface.
 
-1. Survey and classify all call sites by function category (output,
-   input, lifecycle, control, query)
-2. Write `sh_io.h` — typedefs and inline wrappers providing an
-   indirection layer
-3. Convert incrementally — new/modified code first, legacy code
-   file-by-file as touched
+#### What's done
 
-No behavioral change expected. This prepares for a future lighter I/O
-backend.
+**sh_io.h** (`include/sh_io.h`) — I/O type abstraction header with
+conditional compilation (`KSH_IO_SFIO` flag). When defined (default),
+types map to sfio. The `#else` branch (future) provides stdio + custom
+implementations. Types abstracted:
+
+- `sh_stream_t` = `Sfio_t` (stream handle)
+- `sh_disc_t` = `Sfdisc_t` (discipline callbacks)
+- `sh_off_t` = `Sfoff_t` (file offsets)
+- Discipline callback types, flag constants, standard streams
+
+Function names (`sf*`) are NOT abstracted — they stay as-is at all call
+sites. When the stdio backend lands, `sfprintf` becomes a macro wrapping
+`fprintf` (with arg reordering where needed), giving zero diff on ~1000
+call sites.
+
+**sh_strbuf.h** (`include/sh_strbuf.h`) — String buffer abstraction.
+Under sfio, wraps `sfstropen`/`sfstruse`/`sfstrclose`. Under stdio
+(future), wraps `open_memstream` (POSIX 2008, available on all Tier 1
+targets).
+
+**Headers converted** — All 12 ksh26 headers that referenced `Sfio_t` or
+`Sfdisc_t` now use `sh_stream_t`/`sh_disc_t`. Headers that included
+`<sfio.h>` directly now include `"sh_io.h"` instead (defs.h, io.h,
+fcin.h, fault.h, jobs.h).
+
+**Source files converted** (types only, sf* calls unchanged):
+- `io.c` — 119 sfio calls, all discipline definitions (~50 type changes)
+- `xec.c` — 58 sfio calls (~9 type changes)
+- `macro.c` — 83 sfio calls (~7 type changes)
+
+All 111 tests pass. Zero behavioral changes.
+
+#### Remaining sfio call sites (not converted this session)
+
+~40 source files still use `Sfio_t` directly in local declarations.
+Since `sh_stream_t` is a typedef for `Sfio_t`, these interoperate
+seamlessly. They migrate as files are touched.
+
+#### Replacement roadmap
+
+| sfio feature | Sites | Replacement | Effort |
+|---|---|---|---|
+| Formatted I/O (sfprintf, sfwrite, etc.) | ~670 | stdio (fprintf, fwrite) | Direct swap |
+| String streams (sfstropen/sfstruse) | ~40 | `open_memstream()` (POSIX 2008) | Via sh_strbuf.h |
+| Temp streams (sftmp) | 9 | `tmpfile()` or `memfd_create()+fdopen()` | Standard POSIX |
+| Disciplines (sfdisc) | 12 | Custom callback chain (~200 lines) | Shell-specific |
+| Stream stacking (sfstack) | 8 | Custom push/pop list (~100 lines) | Shell-specific |
+| Zero-copy reserve (sfreserve) | 21 | Custom buffer peek (~50 lines) | Used by read builtin, fcin.c |
+| Stream pools (sfpool) | 13 | Custom sync wrapper (~30 lines) | Stdout/stderr coordination |
+| Standard streams (sfstdin/out/err) | ~350 | stdin/stdout/stderr | Trivial |
+
+**Net: delete ~11.5k lines of sfio, add ~500 lines of custom code.**
+
+#### Other libast subsystems
+
+| Subsystem | Sites | Status | Rationale |
+|---|---|---|---|
+| **stk** (stack allocator) | 273 | Decouple from sfio (future) | `Stk_t = Sfio_t` — must decouple before sfio removal. ~200 lines custom arena. |
+| **cdt** (containers) | 85 | Keep | `dtview()` scope chaining is shell-specific. ~4k lines, stable. |
+| **AST regex** | — | Keep | Working, tested. PCRE2 migration deferred. |
+
+#### Future sessions
+
+```
+Session N+1: Write sh_strbuf stdio backend (open_memstream)
+             Write sh_disc custom discipline layer
+             Convert remaining ksh26 files to sh_io.h types
+
+Session N+2: Decouple stk from sfio (sh_stk.h, custom arena)
+             Remove sfio from build
+
+Session N+3: Direction 16 — utf8proc integration
+```
 
 
 ### Direction 13: Platform targeting

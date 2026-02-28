@@ -26,7 +26,7 @@
 #include	<sig.h>
 #include	<setjmp.h>
 #include	<error.h>
-#include	<sfio.h>
+#include	"sh_io.h"
 
 
 #ifndef SIGWINCH
@@ -93,7 +93,7 @@ constexpr enum sh_jmpmode SH_JMP_PROPAGATE = SH_JMPFUN;
 
 struct openlist
 {
-	Sfio_t	*strm;
+	sh_stream_t	*strm;
 	struct openlist *next;
 };
 

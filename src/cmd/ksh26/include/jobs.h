@@ -27,7 +27,7 @@
 #define JOBTTY	2
 
 #include	<ast.h>
-#include	<sfio.h>
+#include	"sh_io.h"
 #ifndef SIGINT
 #   include	<signal.h>
 #endif /* !SIGINT */
@@ -117,7 +117,7 @@ extern const char	e_no_start[];
 
 extern void	job_clear(void);
 extern void	job_bwait(char**);
-extern int	job_walk(Sfio_t*,int(*)(struct process*,int),int,char*[]);
+extern int	job_walk(sh_stream_t*,int(*)(struct process*,int),int,char*[]);
 extern int	job_kill(struct process*,int);
 extern int	job_wait(pid_t);
 extern int	job_post(pid_t,pid_t);

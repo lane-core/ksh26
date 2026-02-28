@@ -32,6 +32,7 @@
 
 #include	<ast.h>
 #include	<cdt.h>
+#include	"sh_io.h"
 #include	<history.h>
 #include	<stk.h>
 #if _BLD_ksh
@@ -318,7 +319,7 @@ struct Shell_s
 	unsigned char	trapnote;	/* set when trap/signal is pending */
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
-	Sfio_t		*heredocs;	/* current here-doc temp file */
+	sh_stream_t		*heredocs;	/* current here-doc temp file */
 	int		**fdptrs;	/* pointer to file numbers */
 	char		*lastarg;	/* $_ */
 	int		path_err;	/* last error on path search */
@@ -328,7 +329,7 @@ struct Shell_s
 	Namval_t	*namespace;	/* current active namespace */
 	Namval_t	*last_table;	/* last table used in last nv_open */
 	Namval_t	*prev_table;	/* previous table used in nv_open */
-	Sfio_t		*outpool;	/* output stream pool */
+	sh_stream_t		*outpool;	/* output stream pool */
 	long		timeout;	/* read timeout */
 	unsigned int	curenv;		/* current subshell number */
 	unsigned int	jobenv;		/* subshell number for jobs */
@@ -410,7 +411,7 @@ struct Shell_s
 	Shbltin_f	bltinfun;
 	Shbltin_t	bltindata;
 	int		offsets[10];
-	Sfio_t		**sftable;
+	sh_stream_t		**sftable;
 	unsigned char	*fdstatus;
 	char		*pwd;
 #if _lib_openat
@@ -418,9 +419,9 @@ struct Shell_s
 #endif /* _lib_openat */
 	void		*jmpbuffer;
 	void		*mktype;
-	Sfio_t		*strbuf;
-	Sfio_t		*strbuf2;
-	Sfio_t		*notifybuf;	/* for 'set -o notify' job notices */
+	sh_stream_t		*strbuf;
+	sh_stream_t		*strbuf2;
+	sh_stream_t		*notifybuf;	/* for 'set -o notify' job notices */
 	Dt_t		*first_root;
 	Dt_t		*prefix_root;
 	Dt_t		*last_root;
@@ -486,16 +487,16 @@ extern Libcomp_t *liblist;
 extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
 extern void		sh_reinit(void);
-extern int 		sh_eval(Sfio_t*,int);
+extern int 		sh_eval(sh_stream_t*,int);
 extern void 		sh_delay(double,int);
-extern void		*sh_parse(Sfio_t*,int);
+extern void		*sh_parse(sh_stream_t*,int);
 extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);
 extern int 		sh_funscope(int,char*[],int(*)(void*),void*,int);
-extern Sfio_t		*sh_iogetiop(int,int);
+extern sh_stream_t		*sh_iogetiop(int,int);
 [[noreturn]] extern void	sh_main(int, char*[], Shinit_f);
 extern int		sh_run(int, char*[]);
-extern void		sh_menu(Sfio_t*, int, char*[]);
+extern void		sh_menu(sh_stream_t*, int, char*[]);
 extern Namval_t		*sh_addbuiltin(const char*, int(*)(int, char*[],Shbltin_t*), void*);
 extern char		*sh_fmtq(const char*);
 extern char		*sh_fmtqf(const char*, int, int);
@@ -507,10 +508,10 @@ extern int 		sh_dup(int);
 extern void 		sh_exit(int);
 extern int		sh_fchdir(int);
 extern int		sh_fcntl(int, int, ...);
-extern Sfio_t		*sh_fd2sfio(int);
+extern sh_stream_t		*sh_fd2sfio(int);
 extern int		(*sh_fdnotify(int(*)(int,int)))(int,int);
 extern int		sh_open(const char*, int, ...);
-extern Sfio_t		*sh_pathopen(const char*);
+extern sh_stream_t		*sh_pathopen(const char*);
 extern ssize_t 		sh_read(int, void*, size_t);
 extern ssize_t 		sh_write(int, const void*, size_t);
 extern off_t		sh_seek(int, off_t, int);

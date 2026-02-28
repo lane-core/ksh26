@@ -25,7 +25,7 @@
 #define _io_h_defined	1
 
 #include	<ast.h>
-#include	<sfio.h>
+#include	"sh_io.h"
 #include	"FEATURE/fchdir"
 
 #ifndef IOBSIZE
@@ -81,7 +81,7 @@ extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
 extern int	sh_rpipe(int[],int);
 extern void 	sh_iorestore(int,int);
-extern Sfio_t 	*sh_iostream(int);
+extern sh_stream_t 	*sh_iostream(int);
 extern int	sh_redirect(struct ionod*,int);
 extern void 	sh_iosave(int,int,char*);
 extern int 	sh_iovalidfd(int);

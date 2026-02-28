@@ -34,6 +34,7 @@
 
 #include	"shopt.h"
 #include	"defs.h"
+#include	"sh_io.h"
 #include	<fcin.h>
 #include	<pwd.h>
 #include	<ctype.h>
@@ -55,7 +56,7 @@
 static int	_c_;
 typedef struct  _mac_
 {
-	Sfio_t		*sp;		/* stream pointer for here-document */
+	sh_stream_t		*sp;		/* stream pointer for here-document */
 	struct argnod	**arghead;	/* address of head of argument list */
 	char		*ifsp;		/* pointer to IFS value */
 	int		fields;		/* number of fields */
@@ -267,7 +268,7 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
  * Expand here document which is stored in <infile> or <string>
  * The result is written to <outfile>
  */
-void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
+void sh_machere(sh_stream_t *infile, sh_stream_t *outfile, char *string)
 {
 	int		c,n;
 	const char	*state = sh_lexstates[ST_QUOTE];
@@ -451,7 +452,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 	char		ansi_c = 0;		/* set when processing ANSI C escape codes */
 	int32_t		ere = 0;		/* bitmask of pattern options indicating an extended regular expression */
 	char		bracketexpr = 0; 	/* set when in [brackets] within a non-ERE glob pattern */
-	Sfio_t		*sp = mp->sp;
+	sh_stream_t		*sp = mp->sp;
 	Stk_t		*stkp = sh.stk;
 	char		*resume = 0;
 	mp->sp = NULL;
@@ -2116,7 +2117,7 @@ retry2:
 			}
 			else
 			{
-				Sfio_t *sfio_ptr = (mp->sp) ? mp->sp : stkp;
+				sh_stream_t *sfio_ptr = (mp->sp) ? mp->sp : stkp;
 				/*
 				 * We're joining fields into one; write the output field separator, which may be multi-byte.
 				 * For "$@" it's a space, for "$*" it's the 1st char of IFS (space if unset, none if empty).
@@ -2227,7 +2228,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	Sfdouble_t		num;
 	int			c;
 	char			*str;
-	Sfio_t			*sp;
+	sh_stream_t			*sp;
 	Stk_t			*stkp = sh.stk;
 	Fcin_t			save;
 	struct slnod            *saveslp = sh.st.staklist;
@@ -2239,7 +2240,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	int			was_verbose = sh_isstate(SH_VERBOSE);
 	int			was_interactive = sh_isstate(SH_INTERACTIVE);
 	int			newlines,bufsize,nextnewlines;
-	Sfoff_t			foff;
+	sh_off_t			foff;
 	Namval_t		*np;
 	savemac.wasexpan = 1;
 	nv_setoptimize(NULL);

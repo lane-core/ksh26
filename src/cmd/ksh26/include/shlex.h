@@ -173,8 +173,8 @@ extern void 		sh_lexskip(Lex_t*,int,int,int);
     typedef struct
     {
 	off_t		offset;
-	Sfio_t		*file;		/* kia output file */
-	Sfio_t		*tmp;		/* kia reference file */
+	sh_stream_t		*file;		/* kia output file */
+	sh_stream_t		*tmp;		/* kia reference file */
 	unsigned long	script;		/* script entity number */
 	unsigned long	fscript;	/* script file entity number */
 	unsigned long	current;	/* current entity number */

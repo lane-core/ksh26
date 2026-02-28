@@ -30,8 +30,8 @@
 
 typedef struct
 {
-	Sfdisc_t	histdisc;	/* discipline for history */
-	Sfio_t		*histfp;	/* history file stream pointer */
+	sh_disc_t	histdisc;	/* discipline for history */
+	sh_stream_t		*histfp;	/* history file stream pointer */
 	char		*histname;	/* name of history file */
 	int32_t		histind;	/* current command number index */
 	int		histsize;	/* number of accessible history lines */
@@ -79,7 +79,7 @@ extern int		hist_copy(char*, int, int, int);
 extern void 		hist_eof(History_t*);
 extern Histloc_t	hist_find(History_t*,char*,int, int, int);
 extern void 		hist_flush(History_t*);
-extern void 		hist_list(History_t*,Sfio_t*, off_t, int, char*);
+extern void 		hist_list(History_t*,sh_stream_t*, off_t, int, char*);
 extern int		hist_match(History_t*,off_t, char*, int*);
 extern off_t		hist_tell(History_t*,int);
 extern off_t		hist_seek(History_t*,int);
