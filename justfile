@@ -62,8 +62,8 @@ samu *args: bootstrap
 log:
     @find {{BUILDDIR}}/test -name '*.log' 2>/dev/null | xargs ls -t 2>/dev/null | head -5 | xargs cat 2>/dev/null || echo "No test logs found."
 
-# Build man pages from scdoc sources
-doc: build
+# Build man pages from scdoc sources (no C build dependency)
+doc:
     #!/bin/sh
     set -e
     SCDOC=""

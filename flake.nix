@@ -91,11 +91,14 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      default = pkgs.mkShell {
-        inputsFrom = [ self.packages.${system}.default ];
+      default = pkgs.mkShellNoCC {
         packages = [
           pkgs.just
           pkgs.git
+          pkgs.scdoc
+          pkgs.utf8proc
+        ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+          pkgs.libiconv
         ];
       };
     });
