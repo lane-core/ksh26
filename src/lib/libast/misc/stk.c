@@ -38,9 +38,6 @@
 #include	<stdarg.h>
 #include	<stdio.h>
 
-/* ast_stdio.h remaps vsnprintf to _ast_vsnprintf (nonexistent); undo */
-#undef vsnprintf
-extern int vsnprintf(char *restrict, size_t, const char *restrict, va_list);
 
 /*
  *  A stack is a header and a linked list of frames.

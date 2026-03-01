@@ -40,24 +40,6 @@
 #define _BLD_sfio	1
 #endif
 
-#ifdef	_SFSTDIO_H
-#define _SKIP_SFSTDIO_H
-#else
-#define _SFSTDIO_H
-#ifndef FILE
-#ifndef _SFIO_H
-struct _sfio_s;
-#endif
-#define FILE		struct _sfio_s
-#ifndef __FILE_typedef
-#define __FILE_typedef	1
-#endif
-#ifndef _FILEDEFED
-#define _FILEDEFED	1
-#endif
-#endif
-#endif
-
 #include <ast_lib.h>
 #if !_lib_fork
 #error In 2022, libast joined the 21st century and started requiring fork(2).
@@ -65,35 +47,6 @@ struct _sfio_s;
 #include <ast_sys.h>
 #include <ast_fcntl.h>
 #include <ast_limits.h>
-
-#ifdef	_SKIP_SFSTDIO_H
-#undef	_SKIP_SFSTDIO_H
-#else
-#undef	_SFSTDIO_H
-#undef	FILE
-#endif
-
-#ifndef FILE
-#ifndef _SFIO_H
-struct _sfio_s;
-#endif
-#define FILE            struct _sfio_s
-#ifndef __FILE_typedef
-#define __FILE_typedef  1
-#endif
-#ifndef _FILEDEFED
-#define _FILEDEFED      1
-#endif
-#ifndef ____FILE_defined
-#define ____FILE_defined 1
-#endif
-#ifndef __FILE_defined
-#define __FILE_defined 1
-#endif
-#ifndef __DEFINED_FILE
-#define __DEFINED_FILE 1
-#endif
-#endif
 
 /* locale stuff */
 
