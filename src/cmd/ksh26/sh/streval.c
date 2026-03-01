@@ -603,7 +603,7 @@ again:
 	    common:
 		if(!expr(vp,c))
 			return 0;
-		sfputc(sh.stk,op);
+		stkputc(sh.stk,op);
 		break;
 	    default:
 		vp->nextchr = vp->errchr;
@@ -646,8 +646,8 @@ again:
 			if(vp->staksize++>=vp->stakmaxsize)
 				vp->stakmaxsize = vp->staksize;
 			if(op==A_EQ || op==A_NEQ)
-				sfputc(sh.stk,A_ENUM);
-			sfputc(sh.stk,assignop.value?A_ASSIGNOP1:A_PUSHV);
+				stkputc(sh.stk,A_ENUM);
+			stkputc(sh.stk,assignop.value?A_ASSIGNOP1:A_PUSHV);
 			stkpush(sh.stk,vp,lvalue.value,char*);
 			if(lvalue.flag<0)
 				lvalue.flag = 0;
@@ -687,7 +687,7 @@ again:
 				vp->infun++;
 			else
 			{
-				sfputc(sh.stk,A_POP);
+				stkputc(sh.stk,A_POP);
 				vp->staksize--;
 			}
 			if(!expr(vp,c))
@@ -717,9 +717,9 @@ again:
 					userfun = T_BINARY;
 				else if((int)lvalue.nargs&040)
 					userfun = T_NOFLOAT;
-				sfputc(sh.stk,A_PUSHF);
+				stkputc(sh.stk,A_PUSHF);
 				stkpush(sh.stk,vp,fun,Math_f);
-				sfputc(sh.stk,1);
+				stkputc(sh.stk,1);
 			}
 			else
 				vp->infun = 0;
@@ -737,7 +737,7 @@ again:
 					ERROR(vp,e_argcount);
 				if((vp->staksize+=nargs)>=vp->stakmaxsize)
 					vp->stakmaxsize = vp->staksize+nargs;
-				sfputc(sh.stk,A_CALL1F+userfun+nargs+x);
+				stkputc(sh.stk,A_CALL1F+userfun+nargs+x);
 				vp->staksize -= nargs;
 			}
 			vp->infun = infun;
@@ -757,30 +757,30 @@ again:
 				ERROR(vp,e_notlvalue);
 			if(op==A_ASSIGN)
 			{
-				sfputc(sh.stk,A_STORE);
+				stkputc(sh.stk,A_STORE);
 				stkpush(sh.stk,vp,lvalue.value,char*);
 				stkpush(sh.stk,vp,lvalue.flag,short);
 				vp->staksize--;
 			}
 			else
-				sfputc(sh.stk,op);
+				stkputc(sh.stk,op);
 			lvalue.value = 0;
 			break;
 
 		case A_QUEST:
 		{
 			int offset1,offset2;
-			sfputc(sh.stk,A_JMPZ);
+			stkputc(sh.stk,A_JMPZ);
 			offset1 = stkpush(sh.stk,vp,0,short);
-			sfputc(sh.stk,A_POP);
+			stkputc(sh.stk,A_POP);
 			if(!expr(vp,1))
 				return 0;
 			if(gettok(vp)!=A_COLON)
 				ERROR(vp,e_questcolon);
-			sfputc(sh.stk,A_JMP);
+			stkputc(sh.stk,A_JMP);
 			offset2 = stkpush(sh.stk,vp,0,short);
 			*((short*)stkptr(sh.stk,offset1)) = stktell(sh.stk);
-			sfputc(sh.stk,A_POP);
+			stkputc(sh.stk,A_POP);
 			if(!expr(vp,3))
 				return 0;
 			*((short*)stkptr(sh.stk,offset2)) = stktell(sh.stk);
@@ -802,14 +802,14 @@ again:
 				op = A_JMPZ;
 			else
 				op = A_JMPNZ;
-			sfputc(sh.stk,op);
+			stkputc(sh.stk,op);
 			offset = stkpush(sh.stk,vp,0,short);
-			sfputc(sh.stk,A_POP);
+			stkputc(sh.stk,A_POP);
 			if(!expr(vp,c))
 				return 0;
 			*((short*)stkptr(sh.stk,offset)) = stktell(sh.stk);
 			if(op!=A_QCOLON)
-				sfputc(sh.stk,A_NOTNOT);
+				stkputc(sh.stk,A_NOTNOT);
 			lvalue.value = 0;
 			wasop=0;
 			break;
@@ -821,7 +821,7 @@ again:
 		case A_PLUS:	case A_MINUS:	case A_TIMES:	case A_DIV:
 		case A_EQ:	case A_NEQ:	case A_LT:	case A_LE:
 		case A_GT:	case A_GE:	case A_POW:
-			sfputc(sh.stk,op|T_BINARY);
+			stkputc(sh.stk,op|T_BINARY);
 			vp->staksize--;
 			break;
 		case A_NOT: case A_TILDE:
@@ -862,11 +862,11 @@ again:
 			}
 			if(op==A_DIG || op==A_LIT)
 			{
-				sfputc(sh.stk,A_PUSHN);
+				stkputc(sh.stk,A_PUSHN);
 				if(vp->staksize++>=vp->stakmaxsize)
 					vp->stakmaxsize = vp->staksize;
 				stkpush(sh.stk,vp,d,Sfdouble_t);
-				sfputc(sh.stk,lvalue.isfloat);
+				stkputc(sh.stk,lvalue.isfloat);
 			}
 			/* check for function call */
 			if(lvalue.fun)
@@ -880,7 +880,7 @@ again:
 				vp->stakmaxsize = vp->staksize;
 			if(assignop.flag<0)
 				assignop.flag = 0;
-			sfputc(sh.stk,c&1?A_ASSIGNOP:A_STORE);
+			stkputc(sh.stk,c&1?A_ASSIGNOP:A_STORE);
 			stkpush(sh.stk,vp,assignop.value,char*);
 			stkpush(sh.stk,vp,assignop.flag,short);
 		}
@@ -914,7 +914,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 		}
 		cur.nextchr = cur.errchr;
 	}
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	offset = stktell(sh.stk);
 	ep = stkfreeze(sh.stk,0);
 	ep->expr = string;

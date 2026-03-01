@@ -150,7 +150,7 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
 		if(strmatch(cp=nv_name(np),pattern))
 		{
 			stkseek(sh.stk,ARGVAL);
-			sfputr(sh.stk,cp,-1);
+			stkputs(sh.stk,cp,-1);
 			ap = stkfreeze(sh.stk,1);
 			ap->argbegin = NULL;
 			ap->argchn.ap = *arghead;
@@ -437,9 +437,9 @@ endloop1:
 		ap = stkseek(sh.stk,ARGVAL);
 		ap->argflag = ARG_RAW;
 		ap->argchn.ap = todo;
-		sfputr(sh.stk,apin->argval,-1);
-		sfputr(sh.stk,pat,-1);
-		sfputr(sh.stk,rescan,-1);
+		stkputs(sh.stk,apin->argval,-1);
+		stkputs(sh.stk,pat,-1);
+		stkputs(sh.stk,rescan,-1);
 		todo = ap = stkfreeze(sh.stk,1);
 		if(brace == '}')
 			break;

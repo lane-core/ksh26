@@ -29,15 +29,15 @@
 
 #include	<stk.h>
 
-#define Stak_t		Sfio_t
+#define Stak_t		Stk_t
 #define staksp		stkstd
 #define STAK_SMALL	STK_SMALL
 
 #define stakptr(n)		stkptr(stkstd,n)
 #define staktell()		stktell(stkstd)
-#define stakputc(c)		sfputc(stkstd,(c))
-#define stakwrite(b,n)		sfwrite(stkstd,(b),(n))
-#define stakputs(s)		(sfputr(stkstd,(s),0),--stkstd->_next)
+#define stakputc(c)		stkputc(stkstd,(c))
+#define stakwrite(b,n)		stkwrite(stkstd,(b),(n))
+#define stakputs(s)		(stkputs(stkstd,(s),0),--stkstd->_next)
 #define stakseek(n)		((char*)stkseek(stkstd,n))
 #define stakcreate(n)		stkopen(n)
 #define stakinstall(s,f)	stkinstall(s,f)

@@ -23,17 +23,17 @@
  *
  */
 
-#include	<sfio.h>
+#include	"sh_io.h"
 
 typedef struct _fcin
 {
-	Sfio_t		*_fcfile;	/* input file pointer */
+	sh_stream_t		*_fcfile;	/* input file pointer */
 	unsigned char	*fcbuff;	/* pointer to input buffer */
 	unsigned char	*fclast;	/* pointer to end of input buffer */
 	unsigned char	*fcptr;		/* pointer to next input char */
 	unsigned char	fcchar;		/* saved character */
 	short		fclen;		/* last multibyte char len */
-	void (*fcfun)(Sfio_t*,const char*,int,void*);	/* advance function */
+	void (*fcfun)(sh_stream_t*,const char*,int,void*);	/* advance function */
 	void		*context;	/* context pointer */
 	int		fcleft;		/* for multibyte boundary */
 } Fcin_t;
@@ -56,9 +56,9 @@ typedef struct _fcin
 #define fcsave(x)	(*(x) = _Fcin)
 #define fcrestore(x)	(_Fcin = *(x))
 extern int		fcfill(void);
-extern int		fcfopen(Sfio_t*);
+extern int		fcfopen(sh_stream_t*);
 extern int		fcclose(void);
-void			fcnotify(void(*)(Sfio_t*,const char*,int,void*),void*);
+void			fcnotify(void(*)(sh_stream_t*,const char*,int,void*),void*);
 
 extern Fcin_t		_Fcin;		/* used by macros */
 

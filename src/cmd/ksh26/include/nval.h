@@ -57,8 +57,8 @@ struct Namdisc
 	char	*(*namef)(Namval_t*, Namfun_t*);
 	Namval_t *(*nextf)(Namval_t*, Dt_t*, Namfun_t*);
 	Namval_t *(*typef)(Namval_t*, Namfun_t*);
-	int	(*readf)(Namval_t*, Sfio_t*, int, Namfun_t*);
-	int	(*writef)(Namval_t*, Sfio_t*, int, Namfun_t*);
+	int	(*readf)(Namval_t*, sh_stream_t*, int, Namfun_t*);
+	int	(*writef)(Namval_t*, sh_stream_t*, int, Namfun_t*);
 };
 
 struct Namfun

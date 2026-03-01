@@ -518,7 +518,7 @@ static char *genformat(char *format)
 {
 	char *fp;
 	stkseek(sh.stk,0);
-	sfputr(sh.stk,format,-1);
+	stkputs(sh.stk,format,-1);
 	fp = stkfreeze(sh.stk,1);
 	strformat(fp);
 	return fp;
@@ -534,19 +534,19 @@ static char *fmthtml(const char *string, int flags)
 		while(op = cp, c = mbchar(cp))
 		{
 			if(mbwide() && c < 0)		/* invalid multibyte char */
-				sfputc(sh.stk,'?');
+				stkputc(sh.stk,'?');
 			else if(c == 60)		/* < */
-				sfputr(sh.stk,"&lt;",-1);
+				stkputs(sh.stk,"&lt;",-1);
 			else if(c == 62)		/* > */
-				sfputr(sh.stk,"&gt;",-1);
+				stkputs(sh.stk,"&gt;",-1);
 			else if(c == 38)		/* & */
-				sfputr(sh.stk,"&amp;",-1);
+				stkputs(sh.stk,"&amp;",-1);
 			else if(c == 34)		/* " */
-				sfputr(sh.stk,"&quot;",-1);
+				stkputs(sh.stk,"&quot;",-1);
 			else if(c == 39)		/* ' (&apos; is not HTML) */
-				sfputr(sh.stk,"&#39;",-1);
+				stkputs(sh.stk,"&#39;",-1);
 			else
-				sfwrite(sh.stk, op, cp-op);
+				stkwrite(sh.stk, op, cp-op);
 		}
 	}
 	else
@@ -557,12 +557,12 @@ static char *fmthtml(const char *string, int flags)
 			while(op = cp, c = mbchar(cp))
 			{
 				if(c < 0)
-					sfputr(sh.stk,"%3F",-1);
+					stkputs(sh.stk,"%3F",-1);
 				else if(c < 128 && strchr(URI_RFC3986_UNRESERVED, c))
-					sfputc(sh.stk,c);
+					stkputc(sh.stk,c);
 				else
 					while(c = *(unsigned char*)op++, op <= cp)
-						sfprintf(sh.stk, "%%%02X", c);
+						stkprintf(sh.stk, "%%%02X", c);
 			}
 		}
 		else
@@ -570,13 +570,13 @@ static char *fmthtml(const char *string, int flags)
 			while(c = *(unsigned char*)cp++)
 			{
 				if(strchr(URI_RFC3986_UNRESERVED, c))
-					sfputc(sh.stk,c);
+					stkputc(sh.stk,c);
 				else
-					sfprintf(sh.stk, "%%%02X", c);
+					stkprintf(sh.stk, "%%%02X", c);
 			}
 		}
 	}
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 
@@ -1170,12 +1170,12 @@ static int fmtvecho(const char *string, struct printf *pp)
 		return -1;
 	c = --cp - string;
 	if(c>0)
-		sfwrite(sh.stk,string,c);
+		stkwrite(sh.stk,string,c);
 	for(; c= *cp; cp++)
 	{
 		if (mbwide() && ((chlen = mbsize(cp)) > 1))
 		{
-			sfwrite(sh.stk,cp,chlen);
+			stkwrite(sh.stk,cp,chlen);
 			cp +=  (chlen-1);
 			continue;
 		}
@@ -1224,11 +1224,11 @@ static int fmtvecho(const char *string, struct printf *pp)
 			default:
 				cp--;
 		}
-		sfputc(sh.stk,c);
+		stkputc(sh.stk,c);
 	}
 done:
 	c = stktell(sh.stk)-offset;
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	stkseek(sh.stk,offset);
 	return c;
 }

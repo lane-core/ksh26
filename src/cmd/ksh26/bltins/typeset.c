@@ -530,18 +530,18 @@ endargs:
 		int offset = stktell(stkp);
 		if(!tdata.prefix)
 			return sh_outtype(sfstdout);
-		sfputr(stkp,NV_CLASS,-1);
+		stkputs(stkp,NV_CLASS,-1);
 #if SHOPT_NAMESPACE
 		if(sh.namespace)
 		{
 			off = stktell(stkp)+1;
-			sfputr(stkp,nv_name(sh.namespace),'.');
+			stkputs(stkp,nv_name(sh.namespace),'.');
 		}
 		else
 #endif /* SHOPT_NAMESPACE */
 		if(NV_CLASS[sizeof(NV_CLASS)-2]!='.')
-			sfputc(stkp,'.');
-		sfputr(stkp,tdata.prefix,0);
+			stkputc(stkp,'.');
+		stkputs(stkp,tdata.prefix,0);
 		tdata.tp = nv_open(stkptr(stkp,offset),sh.var_tree,NV_VARNAME|NV_NOARRAY);
 #if SHOPT_NAMESPACE
 		if(!tdata.tp && off)
@@ -763,8 +763,8 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 					int offset = stktell(sh.stk);
 					if(!np)
 					{
-						sfputr(sh.stk,sh.prefix,'.');
-						sfputr(sh.stk,name,0);
+						stkputs(sh.stk,sh.prefix,'.');
+						stkputs(sh.stk,name,0);
 						np = nv_search(stkptr(sh.stk,offset),troot,0);
 						stkseek(sh.stk,offset);
 					}
@@ -1236,8 +1236,8 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 			continue;
 		}
 		name = path_basename(arg);
-		sfwrite(stkp,"b_",2);
-		sfputr(stkp,name,0);
+		stkwrite(stkp,"b_",2);
+		stkputs(stkp,name,0);
 		errmsg = 0;
 		addr = 0;
 #if SHOPT_DYNAMIC

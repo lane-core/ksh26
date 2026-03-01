@@ -181,9 +181,9 @@ void nv_outname(Sfio_t *out, char *name, int len)
 				if(*sp=='[' || *sp==']' || *sp=='\\')
 					c = *sp++;
 			}
-			sfputc(sh.stk,c);
+			stkputc(sh.stk,c);
 		}
-		sfputc(sh.stk,0);
+		stkputc(sh.stk,0);
 		sfputr(out,sh_fmtq(stkptr(sh.stk,offset)),-1);
 		if(len>0)
 		{
@@ -365,8 +365,8 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					{
 						if(nv_isvtree(np) && !nv_isarray(np))
 						{
-							sfputc(sh.stk,'.');
-							sfputr(sh.stk,cp,-1);
+							stkputc(sh.stk,'.');
+							stkputs(sh.stk,cp,-1);
 							cp = stkfreeze(sh.stk,1);
 						}
 					}
@@ -589,7 +589,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 			skip:
 				if(sub>0)
 				{
-					sfprintf(sh.stk,"%s[%d]",prefix?nv_name(np):cp,sub);
+					stkprintf(sh.stk,"%s[%d]",prefix?nv_name(np):cp,sub);
 					sh.prefix = stkfreeze(sh.stk,1);
 					nv_putsub(np,NULL,ARRAY_ADD|ARRAY_FILL|sub);
 				}
@@ -603,7 +603,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					if(*sh.prefix=='_' && sh.prefix[1]=='.' && nv_isref(L_ARGNOD))
 					{
 						struct Namref *nrp = L_ARGNOD->nvalue;
-						sfprintf(sh.stk,"%s%s",nv_name(nrp->np),sh.prefix+1);
+						stkprintf(sh.stk,"%s%s",nv_name(nrp->np),sh.prefix+1);
 						sh.prefix = stkfreeze(sh.stk,1);
 					}
 					memset(&nr,0,sizeof(nr));
@@ -749,14 +749,14 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 static void stak_subscript(const char *sub, int last)
 {
 	int c;
-	sfputc(sh.stk,'[');
+	stkputc(sh.stk,'[');
 	while(c= *sub++)
 	{
 		if(c=='[' || c==']' || c=='\\')
-			sfputc(sh.stk,'\\');
-		sfputc(sh.stk,c);
+			stkputc(sh.stk,'\\');
+		stkputc(sh.stk,c);
 	}
-	sfputc(sh.stk,last);
+	stkputc(sh.stk,last);
 }
 
 /*
@@ -767,27 +767,27 @@ static char *copystack(const char *prefix, const char *name, const char *sub)
 	int last=0,offset = stktell(sh.stk);
 	if(prefix)
 	{
-		sfputr(sh.stk,prefix,-1);
+		stkputs(sh.stk,prefix,-1);
 		if(*stkptr(sh.stk,stktell(sh.stk)-1)=='.')
 			stkseek(sh.stk,stktell(sh.stk)-1);
 		if(*name=='.' && name[1]=='[')
 			last = stktell(sh.stk)+2;
 		if(*name!='['  && *name!='.' && *name!='=' && *name!='+')
-			sfputc(sh.stk,'.');
+			stkputc(sh.stk,'.');
 		if(*name=='.' && (name[1]=='=' || name[1]==0))
-			sfputc(sh.stk,'.');
+			stkputc(sh.stk,'.');
 	}
 	if(last)
 	{
-		sfputr(sh.stk,name,-1);
+		stkputs(sh.stk,name,-1);
 		if(sh_checkid(stkptr(sh.stk,last),NULL))
 			stkseek(sh.stk,stktell(sh.stk)-2);
 	}
 	if(sub)
 		stak_subscript(sub,']');
 	if(!last)
-		sfputr(sh.stk,name,-1);
-	sfputc(sh.stk,0);
+		stkputs(sh.stk,name,-1);
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 
@@ -2021,8 +2021,8 @@ void nv_putval(Namval_t *np, const char *sp, int flags)
 					if(!tofree || size)
 					{
 						offset = stktell(sh.stk);
-						sfputr(sh.stk,*vpp,-1);
-						sfputr(sh.stk,sp,0);
+						stkputs(sh.stk,*vpp,-1);
+						stkputs(sh.stk,sp,0);
 						sp = stkptr(sh.stk,offset);
 						dot += append;
 						append = 0;

@@ -1068,7 +1068,7 @@ Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 	}
 	if(!cp)
 		return var ? nv_search(name,root,0) : NULL;
-	sfputr(sh.stk,name,0);
+	stkputs(sh.stk,name,0);
 	dname = cp+1;
 	cp = stkptr(sh.stk,offset) + (cp-name);
 	if(last)
@@ -1098,9 +1098,9 @@ Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 		if(last==0)
 			return nv_search(name,root,0);
 		sh.namespace = 0;
-		sfputr(sh.stk,nv_name(nq),-1);
+		stkputs(sh.stk,nv_name(nq),-1);
 		sh.namespace = nsp;
-		sfputr(sh.stk,dname-1,0);
+		stkputs(sh.stk,dname-1,0);
 		np = nv_search(stkptr(sh.stk,offset),root,0);
 		stkseek(sh.stk,offset);
 		return np;
@@ -1135,8 +1135,8 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		path = name = stkptr(sh.stk,offset);
 	else if(sh.bltin_dir && extra!=(void*)1)
 	{
-		sfputr(sh.stk,sh.bltin_dir,'/');
-		sfputr(sh.stk,name,0);
+		stkputs(sh.stk,sh.bltin_dir,'/');
+		stkputs(sh.stk,name,0);
 		path = stkptr(sh.stk,offset);
 	}
 	if(np = nv_search(name,sh.bltin_tree,0))
@@ -1439,8 +1439,8 @@ Namval_t *sh_fsearch(const char *fname, int add)
 	if(*fname!='.')
 	{
 		int	offset = stktell(sh.stk);
-		sfputr(sh.stk,nv_name(sh.namespace),'.');
-		sfputr(sh.stk,fname,0);
+		stkputs(sh.stk,nv_name(sh.namespace),'.');
+		stkputs(sh.stk,fname,0);
 		fname = stkptr(sh.stk,offset);
 	}
 	return nv_search(fname,sh_subfuntree(add&NV_ADD),add);

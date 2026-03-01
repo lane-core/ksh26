@@ -91,7 +91,7 @@ pathcd(const char* path, const char* home)
 		 */
 
 		i = stktell(stkstd);
-		sfputr(stkstd, p, 0);
+		stkputs(stkstd, p, 0);
 		stkseek(stkstd, i);
 		p = stkptr(stkstd, i);
 		for (;;)

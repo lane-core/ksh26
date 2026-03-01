@@ -605,13 +605,13 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 				inquote = !inquote;
 			if(val)
 			{
-				sfputr(sh.stk,val,-1);
+				stkputs(sh.stk,val,-1);
 				use_stak = 1;
 				*val = 0;
 			}
 			if(c==-1)
 			{
-				sfputc(sh.stk,'"');
+				stkputc(sh.stk,'"');
 				c = sh.ifstable[*cp++];
 			}
 			continue;
@@ -623,7 +623,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 				c = 0;
 			if(val)
 			{
-				sfputr(sh.stk,val,-1);
+				stkputs(sh.stk,val,-1);
 				use_stak = 1;
 				was_escape = 1;
 				*val = 0;
@@ -637,7 +637,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			/* check for end of buffer */
 			if(val && *val)
 			{
-				sfputr(sh.stk,val,-1);
+				stkputs(sh.stk,val,-1);
 				use_stak = 1;
 			}
 			val = 0;
@@ -737,7 +737,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 						{
 							if(val)
 							{
-								sfwrite(sh.stk,val,cp-(unsigned char*)val);
+								stkwrite(sh.stk,val,cp-(unsigned char*)val);
 								use_stak = 1;
 							}
 							val = (char*)++cp;
@@ -751,7 +751,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 						{
 							if(val)
 							{
-								sfwrite(sh.stk,val,cp-(unsigned char*)val);
+								stkwrite(sh.stk,val,cp-(unsigned char*)val);
 								use_stak=1;
 							}
 							if(cp = (unsigned char*)sfgetr(iop,delim,0))
@@ -781,7 +781,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			val = "";
 		if(use_stak)
 		{
-			sfputr(sh.stk,val,0);
+			stkputs(sh.stk,val,0);
 			val = stkptr(sh.stk,rel);
 		}
 		if(!name && *val)

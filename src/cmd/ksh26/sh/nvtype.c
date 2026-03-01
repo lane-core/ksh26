@@ -398,8 +398,8 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 				cp = nv_name(np);
 			else
 				cp = nv_name(mp);
-			sfputr(sh.stk,cp,'.');
-			sfputr(sh.stk,nq->nvname,0);
+			stkputs(sh.stk,cp,'.');
+			stkputs(sh.stk,nq->nvname,0);
 			root = nv_dict(mp);
 			save = fp->nofree;
 			fp->nofree = 1;
@@ -601,8 +601,8 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	Sfio_t		*sp;
 	NOT_USED(op);
 	np = *(Namval_t**)(fp+1);
-	sfputr(sh.stk,NV_CLASS,'.');
-	sfputr(sh.stk,np->nvname,0);
+	stkputs(sh.stk,NV_CLASS,'.');
+	stkputs(sh.stk,np->nvname,0);
 	np = nv_open(cp=stkptr(sh.stk,offset), sh.var_tree, NV_NOADD|NV_VARNAME);
 	stkseek(sh.stk,offset);
 	if(!np)
@@ -683,13 +683,13 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	if(dp->ndisc>0)
 	{
 		stkseek(sh.stk,offset);
-		sfputr(sh.stk,NV_CLASS,'.');
-		sfputr(sh.stk,np->nvname,'.');
+		stkputs(sh.stk,NV_CLASS,'.');
+		stkputs(sh.stk,np->nvname,'.');
 		n = stktell(sh.stk);
 		sfprintf(out,"[+?\b%s\b defines the following discipline functions:]{\n",np->nvname);
 		for(i=0; i < dp->ndisc; i++)
 		{
-			sfputr(sh.stk,dp->names[i],0);
+			stkputs(sh.stk,dp->names[i],0);
 			cp = 0;
 			if((nq = nv_search(stkptr(sh.stk,offset),sh.fun_tree,0)) && nq->nvalue)
 				cp = ((struct Ufunction*)nq->nvalue)->help;
@@ -1180,8 +1180,8 @@ Namval_t *nv_mkinttype(char *name, size_t size, int sign, const char *help, Namd
 	Namfun_t	*fp;
 	Namdisc_t	*dp;
 	int		offset=stktell(sh.stk);
-	sfputr(sh.stk,NV_CLASS,'.');
-	sfputr(sh.stk,name,0);
+	stkputs(sh.stk,NV_CLASS,'.');
+	stkputs(sh.stk,name,0);
 	mp = nv_open(stkptr(sh.stk,offset), sh.var_tree, NV_VARNAME);
 	stkseek(sh.stk,offset);
 	offset = size + sizeof(Namdisc_t);

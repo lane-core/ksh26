@@ -200,7 +200,7 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 				sp++;
 			while(c-- > 0)
 #endif /* SHOPT_MULTIBYTE */
-			sfputc(sh.stk,*sp++);
+			stkputc(sh.stk,*sp++);
 		}
 		if(*sp == 0)
 			return NULL;
@@ -221,9 +221,9 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 
 found:
 	/* copy new */
-	sfputr(sh.stk,newsp,-1);
+	stkputs(sh.stk,newsp,-1);
 	/* copy rest of string */
-	sfputr(sh.stk,sp,-1);
+	stkputs(sh.stk,sp,-1);
 	return stkfreeze(sh.stk,1);
 }
 
@@ -276,24 +276,24 @@ static char	*sh_fmtcsv(const char *string)
 	while((c=mbchar(cp)),isaname(c));
 	if(c==0)
 		return (char*)string;
-	sfputc(sh.stk,'"');
-	sfwrite(sh.stk,string,cp-string);
+	stkputc(sh.stk,'"');
+	stkwrite(sh.stk,string,cp-string);
 	if(c=='"')
-		sfputc(sh.stk,'"');
+		stkputc(sh.stk,'"');
 	string = cp;
 	while(c=mbchar(cp))
 	{
 		if(c=='"')
 		{
-			sfwrite(sh.stk,string,cp-string);
+			stkwrite(sh.stk,string,cp-string);
 			string = cp;
-			sfputc(sh.stk,'"');
+			stkputc(sh.stk,'"');
 		}
 	}
 	if(--cp>string)
-		sfwrite(sh.stk,string,cp-string);
-	sfputc(sh.stk,'"');
-	sfputc(sh.stk,0);
+		stkwrite(sh.stk,string,cp-string);
+	stkputc(sh.stk,'"');
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 
@@ -351,7 +351,7 @@ char	*sh_fmtq(const char *string)
 			if(*cp=='=')
 				cp++;
 			c = cp - string;
-			sfwrite(sh.stk,string,c);
+			stkwrite(sh.stk,string,c);
 			string = cp;
 			c = mbchar(cp);
 		}
@@ -368,15 +368,15 @@ char	*sh_fmtq(const char *string)
 	if(state<2)
 	{
 		if(state==1)
-			sfputc(sh.stk,'\'');
+			stkputc(sh.stk,'\'');
 		if(c = --cp - string)
-			sfwrite(sh.stk,string,c);
+			stkwrite(sh.stk,string,c);
 		if(state==1)
-			sfputc(sh.stk,'\'');
+			stkputc(sh.stk,'\'');
 	}
 	else
 	{
-		sfwrite(sh.stk,"$'",2);
+		stkwrite(sh.stk,"$'",2);
 		cp = string;
 		while(op = cp, c= mbchar(cp))
 		{
@@ -420,14 +420,14 @@ char	*sh_fmtq(const char *string)
 					if(!sh_isprint(c))
 					{
 						/* Unicode hex code */
-						sfprintf(sh.stk,"\\u[%x]",c);
+						stkprintf(sh.stk,"\\u[%x]",c);
 						continue;
 					}
 				}
 				else if(!isprint(c))
 				{
 				quote_one_byte:
-					sfprintf(sh.stk, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
+					stkprintf(sh.stk, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
 					continue;
 				}
 				state=0;
@@ -435,15 +435,15 @@ char	*sh_fmtq(const char *string)
 			}
 			if(state)
 			{
-				sfputc(sh.stk,'\\');
-				sfputc(sh.stk,c);
+				stkputc(sh.stk,'\\');
+				stkputc(sh.stk,c);
 			}
 			else
-				sfwrite(sh.stk,op, cp-op);
+				stkwrite(sh.stk,op, cp-op);
 		}
-		sfputc(sh.stk,'\'');
+		stkputc(sh.stk,'\'');
 	}
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 
@@ -500,7 +500,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				q = 1;
 			else if (c == a)
 			{
-				sfwrite(sh.stk,bp, cp - bp);
+				stkwrite(sh.stk,bp, cp - bp);
 				bp = cp;
 				vp = cp + 1;
 				a = 0;
@@ -510,8 +510,8 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 		}
 		if (q & 2)
 		{
-			sfputc(sh.stk,'$');
-			sfputc(sh.stk,'\'');
+			stkputc(sh.stk,'$');
+			stkputc(sh.stk,'\'');
 			cp = bp;
 			n = fold - 3;
 			q = 1;
@@ -560,10 +560,10 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 					{
 						if ((n -= 4) <= 0)
 						{
-							sfwrite(sh.stk,"'\\\n$'", 5);
+							stkwrite(sh.stk,"'\\\n$'", 5);
 							n = fold - 7;
 						}
-						sfprintf(sh.stk, "\\%03o", c);
+						stkprintf(sh.stk, "\\%03o", c);
 						continue;
 					}
 					q = 0;
@@ -573,26 +573,26 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				{
 					if (!q)
 					{
-						sfputc(sh.stk,'\'');
+						stkputc(sh.stk,'\'');
 						cp = bp;
 						break;
 					}
-					sfwrite(sh.stk,"'\\\n$'", 5);
+					stkwrite(sh.stk,"'\\\n$'", 5);
 					n = fold - 5;
 				}
 				if (q)
-					sfputc(sh.stk,'\\');
+					stkputc(sh.stk,'\\');
 				else
 					q = 1;
-				sfputc(sh.stk,c);
+				stkputc(sh.stk,c);
 				bp = cp;
 			}
 			if (!c)
-				sfputc(sh.stk,'\'');
+				stkputc(sh.stk,'\'');
 		}
 		else if (q & 1)
 		{
-			sfputc(sh.stk,'\'');
+			stkputc(sh.stk,'\'');
 			cp = bp;
 			n = fold ? (fold - 2) : 0;
 			while (c = mbchar(cp))
@@ -602,32 +602,32 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				else if (n && --n <= 0)
 				{
 					n = fold - 2;
-					sfwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk,bp, --cp - bp);
 					bp = cp;
-					sfwrite(sh.stk,"'\\\n'", 4);
+					stkwrite(sh.stk,"'\\\n'", 4);
 				}
 				else if (n == 1 && *cp == '\'')
 				{
 					n = fold - 5;
-					sfwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk,bp, --cp - bp);
 					bp = cp;
-					sfwrite(sh.stk,"'\\\n\\''", 6);
+					stkwrite(sh.stk,"'\\\n\\''", 6);
 				}
 				else if (c == '\'')
 				{
-					sfwrite(sh.stk,bp, cp - bp - 1);
+					stkwrite(sh.stk,bp, cp - bp - 1);
 					bp = cp;
 					if (n && (n -= 4) <= 0)
 					{
 						n = fold - 5;
-						sfwrite(sh.stk,"'\\\n\\''", 6);
+						stkwrite(sh.stk,"'\\\n\\''", 6);
 					}
 					else
-						sfwrite(sh.stk,"'\\''", 4);
+						stkwrite(sh.stk,"'\\''", 4);
 				}
 			}
-			sfwrite(sh.stk,bp, cp - bp - 1);
-			sfputc(sh.stk,'\'');
+			stkwrite(sh.stk,bp, cp - bp - 1);
+			stkputc(sh.stk,'\'');
 		}
 		else if (n = fold)
 		{
@@ -637,22 +637,22 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				if (--n <= 0)
 				{
 					n = fold;
-					sfwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk,bp, --cp - bp);
 					bp = cp;
-					sfwrite(sh.stk,"\\\n", 2);
+					stkwrite(sh.stk,"\\\n", 2);
 				}
 			}
-			sfwrite(sh.stk,bp, cp - bp - 1);
+			stkwrite(sh.stk,bp, cp - bp - 1);
 		}
 		else
-			sfwrite(sh.stk,bp, cp - bp);
+			stkwrite(sh.stk,bp, cp - bp);
 		if (c)
 		{
-			sfputc(sh.stk,'\\');
-			sfputc(sh.stk,'\n');
+			stkputc(sh.stk,'\\');
+			stkputc(sh.stk,'\n');
 		}
 	} while (c);
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 

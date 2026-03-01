@@ -1502,7 +1502,7 @@ char *nv_endsubscript(Namval_t *np, char *cp, int mode)
 	{
 		/* strip escape characters */
 		count = stktell(sh.stk);
-		sfwrite(sh.stk,sp,1+cp-sp);
+		stkwrite(sh.stk,sp,1+cp-sp);
 		sh_trim(sp=stkptr(sh.stk,count));
 	}
 	if(mode && np)

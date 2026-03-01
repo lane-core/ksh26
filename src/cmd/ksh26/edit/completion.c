@@ -49,26 +49,26 @@ static char *fmtx(const char *string)
 	const char	hexp = 0;
 #endif /* SHOPT_HISTEXPAND */
 	if((!hexp || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || *cp=='~'))
-		sfputc(sh.stk,'\\');
+		stkputc(sh.stk,'\\');
 	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT)
 	&& (!hexp || ((c!=hc[0]) && (c!=hc[2] || string[0]!=hc[2]))) && c!='~')
 		;
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
-	sfwrite(sh.stk,string,--cp-string);
+	stkwrite(sh.stk,string,--cp-string);
 	for(string=cp;c=mbchar(cp);string=cp)
 	{
 		if((n=cp-string)==1)
 		{
 			if(((n=state[c]) && n!=S_EPAT) || (hexp && ((c==hc[0]) || (c==hc[2] && !pos))))
-				sfputc(sh.stk,'\\');
-			sfputc(sh.stk,c);
+				stkputc(sh.stk,'\\');
+			stkputc(sh.stk,c);
 		}
 		else
-			sfwrite(sh.stk,string,n);
+			stkwrite(sh.stk,string,n);
 		pos++;
 	}
-	sfputc(sh.stk,0);
+	stkputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
 }
 
@@ -327,9 +327,9 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		else if(var=='$')
 		{
 			/* expand ${!varname@} to complete variable name(s) */
-			sfputr(sh.stk,"${!",-1);
-			sfwrite(sh.stk,out,last-out);
-			sfputr(sh.stk,"@}",-1);
+			stkputs(sh.stk,"${!",-1);
+			stkwrite(sh.stk,out,last-out);
+			stkputs(sh.stk,"@}",-1);
 			out = last;
 		}
 		else
@@ -347,7 +347,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 						strip = 0;
 					dir = out+1;
 				}
-				sfputc(sh.stk,c);
+				stkputc(sh.stk,c);
 				out++;
 			}
 		}
@@ -364,7 +364,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				addstar = 0;
 		}
 		if(addstar)
-			sfputc(sh.stk,addstar);
+			stkputc(sh.stk,addstar);
 		ap = stkfreeze(sh.stk,1);
 	}
 	if(mode!='*')

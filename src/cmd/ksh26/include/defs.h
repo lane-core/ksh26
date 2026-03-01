@@ -38,7 +38,7 @@
 #error libast version 20240811 or later is required
 #endif
 
-#include	<sfio.h>
+#include	"sh_io.h"
 #include	<error.h>
 #include	"FEATURE/externs"
 #include	<cdt.h>
@@ -105,7 +105,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
+extern void		sh_deparse(sh_stream_t*,const Shnode_t*,int,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern void		sh_polarity_enter(struct sh_polarity*);
 extern void		sh_polarity_leave(struct sh_polarity*);
@@ -130,16 +130,16 @@ extern void		sh_invalidate_ifs(void);
 extern char 		*sh_mactrim(char*,int);
 extern int 		sh_macexpand(struct argnod*,struct argnod**,int);
 extern int		sh_macfun(const char*,int);
-extern void 		sh_machere(Sfio_t*, Sfio_t*, char*);
+extern void 		sh_machere(sh_stream_t*, sh_stream_t*, char*);
 extern void 		*sh_macopen(void);
 extern char 		*sh_macpat(struct argnod*,int);
 extern Sfdouble_t	sh_mathfun(void*, int, Sfdouble_t*);
-extern int		sh_outtype(Sfio_t*);
+extern int		sh_outtype(sh_stream_t*);
 extern char 		*sh_mactry(char*);
 extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
 extern int 		sh_readline(char**,volatile int,int,ssize_t,Sflong_t);
-extern Sfio_t		*sh_sfeval(char*[]);
+extern sh_stream_t		*sh_sfeval(char*[]);
 extern void		sh_setmatch(const char*,int,int,int[],int);
 extern void		sh_scope(struct argnod*, int);
 extern Namval_t		*sh_scoped(Namval_t*);

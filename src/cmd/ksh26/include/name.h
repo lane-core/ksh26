@@ -161,7 +161,7 @@ extern void		nv_setlist(struct argnod*, int, Namval_t*);
 #   define nv_setoptimize(argaddr)	/* no-op */
 #   define nv_getoptimize()		NULL
 #endif /* SHOPT_OPTIMIZE */
-extern void		nv_outname(Sfio_t*,char*, int);
+extern void		nv_outname(sh_stream_t*,char*, int);
 extern void 		nv_unref(Namval_t*);
 extern int		nv_hasget(Namval_t*);
 extern void		clone_all_disc(Namval_t*, Namval_t*, int);
@@ -170,7 +170,7 @@ extern void		*nv_diropen(Namval_t*, const char*, int);
 extern char		*nv_dirnext(void*);
 extern void		nv_dirclose(void*);
 extern char		*nv_getvtree(Namval_t*, Namfun_t*);
-extern void		nv_attribute(Namval_t*, Sfio_t*, char*, int);
+extern void		nv_attribute(Namval_t*, sh_stream_t*, char*, int);
 extern Namval_t		*nv_bfsearch(const char*, Dt_t*, Namval_t**, char**);
 extern Namval_t		*nv_mktype(Namval_t**, int);
 extern Namval_t		*nv_addnode(Namval_t*, int);
@@ -178,15 +178,15 @@ extern Namval_t		*nv_parent(Namval_t*);
 extern Namval_t		*nv_mount(Namval_t*, const char *name, Dt_t*);
 extern Namval_t		*nv_arraychild(Namval_t*, Namval_t*, int);
 extern int		nv_compare(Dt_t*, void*, void*, Dtdisc_t*);
-extern void		nv_outnode(Namval_t*,Sfio_t*, int, int);
+extern void		nv_outnode(Namval_t*,sh_stream_t*, int, int);
 extern int		nv_subsaved(Namval_t*, int);
-extern void		nv_typename(Namval_t*, Sfio_t*);
+extern void		nv_typename(Namval_t*, sh_stream_t*);
 extern Namval_t		*nv_typeparent(Namval_t*);
 extern int		nv_istable(Namval_t*);
 extern size_t		nv_datasize(Namval_t*, size_t*);
 extern Namfun_t		*nv_mapchar(Namval_t*, const char*);
 #if SHOPT_FIXEDARRAY
-   extern int		nv_arrfixed(Namval_t*, Sfio_t*, int, char*);
+   extern int		nv_arrfixed(Namval_t*, sh_stream_t*, int, char*);
 #endif /* SHOPT_FIXEDARRAY */
 
 extern const Namdisc_t	RESTRICTED_disc;
