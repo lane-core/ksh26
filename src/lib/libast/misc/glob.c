@@ -242,24 +242,24 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
 	stkseek(globstk,MATCHPATH(gp));
 	if (dir)
 	{
-		sfputr(globstk,dir,-1);
-		sfputc(globstk,gp->gl_delim);
+		stkputs(globstk,dir,-1);
+		stkputc(globstk,gp->gl_delim);
 	}
 	if (endslash)
 		*endslash = 0;
-	sfputr(globstk,pat,-1);
+	stkputs(globstk,pat,-1);
 	if (rescan)
 	{
 		if ((*gp->gl_type)(gp, stkptr(globstk,MATCHPATH(gp)), 0) != GLOB_DIR)
 			return;
-		sfputc(globstk,gp->gl_delim);
+		stkputc(globstk,gp->gl_delim);
 		offset = stktell(globstk);
 		/* if null, reserve room for . */
 		if (*rescan)
-			sfputr(globstk,rescan,-1);
+			stkputs(globstk,rescan,-1);
 		else
-			sfputc(globstk,0);
-		sfputc(globstk,0);
+			stkputc(globstk,0);
+		stkputc(globstk,0);
 		rescan = stkptr(globstk,offset);
 		ap = stkfreeze(globstk,0);
 		ap->gl_begin = (char*)rescan;
@@ -276,7 +276,7 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
 				return;
 			}
 			else if (type == GLOB_DIR && (gp->gl_flags & GLOB_MARK))
-				sfputc(globstk,gp->gl_delim);
+				stkputc(globstk,gp->gl_delim);
 		}
 		ap = stkfreeze(globstk,1);
 		ap->gl_next = gp->gl_match;

@@ -122,7 +122,7 @@ struct Error_info_s			/* error state			*/
 
 	char*	version;		/* ERROR_SOURCE command version	*/
 
-	int	(*auxiliary)(Sfio_t*, int, int); /* aux info to append	*/
+	int	(*auxiliary)(void*, int, int);	/* aux info to append	*/
 
 	ERROR_CONTEXT			/* top of context stack		*/
 

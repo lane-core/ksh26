@@ -1726,8 +1726,13 @@ static void nested_here(Lex_t *lp)
 	stkseek(sh.stk,ARGVAL);
 	if(lp->lexd.docextra)
 	{
+		ssize_t docn = lp->lexd.docextra;
+		ssize_t off = stktell(sh.stk);
 		sfseek(sh.strbuf,0, SEEK_SET);
-		sfmove(sh.strbuf,sh.stk,lp->lexd.docextra,-1);
+		_stkseek(sh.stk, off + docn);
+		sh.stk->_next = sh.stk->_data + off;
+		sfread(sh.strbuf, (char*)sh.stk->_next, docn);
+		sh.stk->_next += docn;
 		sfseek(sh.strbuf,0, SEEK_SET);
 	}
 	stkwrite(sh.stk,lp->lexd.docend,n);
