@@ -29,7 +29,7 @@
 
 #include	<stk.h>
 
-#define Stak_t		Sfio_t
+#define Stak_t		Stk_t
 #define staksp		stkstd
 #define STAK_SMALL	STK_SMALL
 

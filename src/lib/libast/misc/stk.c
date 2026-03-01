@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -20,12 +20,10 @@
 /*
  *   Routines to implement a stack-like storage library
  *
- *   A stack consists of a link list of variable size frames
+ *   A stack consists of a linked list of variable size frames.
  *   The beginning of each frame is initialized with a frame structure
  *   that contains a pointer to the previous frame and a pointer to the
  *   end of the current frame.
- *
- *   This is a rewrite of the stk library that uses sfio
  *
  *   David Korn
  *   AT&T Research
@@ -33,34 +31,36 @@
  *
  */
 
-#include	<sfio_t.h>
 #include	<ast.h>
 #include	<align.h>
 #include	<stk.h>
+#include	<string.h>
 #include	<stdarg.h>
+#include	<stdio.h>
+
+/* ast_stdio.h remaps vsnprintf to _ast_vsnprintf (nonexistent); undo */
+#undef vsnprintf
+extern int vsnprintf(char *restrict, size_t, const char *restrict, va_list);
 
 /*
- *  A stack is a header and a linked list of frames
- *  The first frame has structure
- *	Sfio_t
- *	Sfdisc_t
+ *  A stack is a header and a linked list of frames.
+ *  The first frame has structure:
+ *	Stk_t
  *	struct stk
- * Frames have structure
+ *  Subsequent frames have structure:
  *	struct frame
  *	data
  */
 
 #define STK_ALIGN	ALIGN_BOUND
-#define STK_FSIZE	(1024*sizeof(char*))
-#define STK_HDRSIZE	(sizeof(Sfio_t)+sizeof(Sfdisc_t))
+constexpr size_t STK_FSIZE = 1024 * sizeof(char*);
+#define STK_HDRSIZE	(sizeof(Stk_t))
 
 typedef void* (*_stk_overflow_)(size_t);
-typedef char* (*_old_stk_overflow_)(size_t);	/* for stkinstall (deprecated) */
+typedef char* (*_old_stk_overflow_)(size_t);	/* for stkinstall */
 
-static int stkexcept(Sfio_t*,int,void*,Sfdisc_t*);
-static Sfdisc_t stkdisc = { 0, 0, 0, stkexcept };
-
-Sfio_t	_Stak_data = SFNEW(NULL,0,-1,SFIO_STATIC|SFIO_WRITE|SFIO_STRING,&stkdisc);
+/* zero-initialized BSS */
+Stk_t _Stak_data;
 
 struct frame
 {
@@ -81,12 +81,14 @@ struct stk
 
 static size_t		init;		/* 1 when initialized */
 static struct stk	*stkcur;	/* pointer to current stk */
-static char		*stkgrow(Sfio_t*, size_t);
+[[nodiscard]] static char *stkgrow(Stk_t*, size_t);
 
 #define stream2stk(stream)	((stream)==stkstd? stkcur:\
 				 ((struct stk*)(((char*)(stream))+STK_HDRSIZE)))
-#define stk2stream(sp)		((Sfio_t*)(((char*)(sp))-STK_HDRSIZE))
 #define stkleft(stream)		((stream)->_endb-(stream)->_data)
+
+/* NUL sentinel: maintain *_next == 0 after every write */
+#define STK_SENTINEL(sp)	do { if((sp)->_next && (sp)->_next < (sp)->_endb) *(sp)->_next = 0; } while(0)
 
 static const char Omsg[] = "out of memory while growing stack\n";
 
@@ -102,101 +104,33 @@ static noreturn void *overflow(size_t n)
 }
 
 /*
- * initialize stkstd, sfio operations may have already occurred
+ * initialize stkstd
  */
 static void stkinit(size_t size)
 {
-	Sfio_t *sp;
+	Stk_t *sp;
 	init = size;
 	sp = stkopen(0);
 	init = 1;
 	stkinstall(sp,(_old_stk_overflow_)overflow);
 }
 
-static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
-{
-	NoP(dp);
-	NoP(val);
-	switch(type)
-	{
-	    case SFIO_CLOSING:
-		{
-			struct stk *sp = stream2stk(stream);
-			char *cp = sp->stkbase;
-			struct frame *fp;
-			if(--sp->stkref == 0)
-			{
-				if(stream==stkstd)
-					stkset(stream,NULL,0);
-				else
-				{
-					while(1)
-					{
-						fp = (struct frame*)cp;
-						if(fp->prev)
-						{
-							cp = fp->prev;
-							free(fp);
-						}
-						else
-						{
-							free(fp);
-							break;
-						}
-					}
-				}
-			}
-			stream->_data = stream->_next = 0;
-		}
-		return 0;
-	    case SFIO_FINAL:
-		free(stream);
-		return 1;
-	    case SFIO_DPOP:
-		return -1;
-	    case SFIO_WRITE:
-	    case SFIO_SEEK:
-		{
-			long size = sfvalue(stream);
-			if(init)
-			{
-				Sfio_t *old = 0;
-				if(stream!=stkstd)
-					old = stkinstall(stream,NULL);
-				if(!stkgrow(stkstd,size-(stkstd->_endb-stkstd->_data)))
-					return -1;
-				if(old)
-					stkinstall(old,NULL);
-			}
-			else
-				stkinit(size);
-		}
-		return 1;
-	    case SFIO_NEW:
-		return -1;
-	}
-	return 0;
-}
-
 /*
  * create a stack
  */
-Sfio_t *stkopen(int flags)
+Stk_t *stkopen(int flags)
 {
 	size_t bsize;
-	Sfio_t *stream;
+	Stk_t *stream;
 	struct stk *sp;
 	struct frame *fp;
-	Sfdisc_t *dp;
 	char *cp;
-	if(!(stream=newof(NULL,Sfio_t, 1, sizeof(*dp)+sizeof(*sp))))
-		return NULL;
-	dp = (Sfdisc_t*)(stream+1);
-	dp->exceptf = stkexcept;
-	sp = (struct stk*)(dp+1);
+	if(!(stream=calloc(1, sizeof(*stream) + sizeof(*sp))))
+		return nullptr;
+	sp = (struct stk*)(stream+1);
 	sp->stkref = 1;
 	sp->stkflags = flags;
-	if(flags&STK_NULL) sp->stkoverflow = 0;
+	if(flags&STK_NULL) sp->stkoverflow = nullptr;
 	else sp->stkoverflow = stkcur?stkcur->stkoverflow:overflow;
 	bsize = init+sizeof(struct frame);
 	if(flags&STK_SMALL)
@@ -204,20 +138,20 @@ Sfio_t *stkopen(int flags)
 	else
 		bsize = roundof(bsize,STK_FSIZE);
 	bsize -= sizeof(struct frame);
-	if(!(fp=newof(NULL,struct frame, 1,bsize)))
+	if(!(fp=calloc(1, sizeof(struct frame)+bsize)))
 	{
 		free(stream);
-		return NULL;
+		return nullptr;
 	}
 	cp = (char*)(fp+1);
 	sp->stkbase = (char*)fp;
-	fp->prev = 0;
+	fp->prev = nullptr;
 	fp->nalias = 0;
-	fp->aliases = 0;
+	fp->aliases = nullptr;
 	fp->end = sp->stkend = cp+bsize;
-	if(!sfnew(stream,cp,bsize,-1,SFIO_STRING|SFIO_WRITE|SFIO_STATIC|SFIO_EOF))
-		return NULL;
-	sfdisc(stream,dp);
+	stream->_data = stream->_next = (unsigned char*)cp;
+	stream->_endb = (unsigned char*)(cp+bsize);
+	STK_SENTINEL(stream);
 	return stream;
 }
 
@@ -226,25 +160,36 @@ Sfio_t *stkopen(int flags)
  * if <stream> is not null, it becomes the new current stack
  * <oflow> becomes the new overflow function
  */
-Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
+Stk_t *stkinstall(Stk_t *stream, _old_stk_overflow_ oflow)
 {
-	Sfio_t *old;
+	Stk_t *old;
 	struct stk *sp;
 	if(!init)
 	{
 		stkinit(1);
 		if(oflow)
 			stkcur->stkoverflow = (_stk_overflow_)oflow;
-		return NULL;
+		return nullptr;
 	}
-	old = stkcur?stk2stream(stkcur):0;
+	old = stkcur? (Stk_t*)(((char*)stkcur)-STK_HDRSIZE) : nullptr;
 	if(stream)
 	{
+		/* save outgoing stream's state back from stkstd */
+		if(old && old != stkstd)
+		{
+			old->_data = stkstd->_data;
+			old->_next = stkstd->_next;
+			old->_endb = stkstd->_endb;
+		}
 		sp = stream2stk(stream);
-		while(sfstack(stkstd, SFIO_POPSTACK));
-		if(stream!=stkstd)
-			sfstack(stkstd,stream);
 		stkcur = sp;
+		/* load incoming stream's state into stkstd */
+		if(stream != stkstd)
+		{
+			stkstd->_data = stream->_data;
+			stkstd->_next = stream->_next;
+			stkstd->_endb = stream->_endb;
+		}
 	}
 	else
 		sp = stkcur;
@@ -256,19 +201,19 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 /*
  * set or unset the overflow function
  */
-void stkoverflow(Sfio_t *stream, _stk_overflow_ oflow)
+void stkoverflow(Stk_t *stream, _stk_overflow_ oflow)
 {
 	struct stk *sp;
 	if(!init)
 		stkinit(1);
 	sp = stream2stk(stream);
-	sp->stkoverflow = oflow ? oflow : (sp->stkflags & STK_NULL ? NULL : overflow);
+	sp->stkoverflow = oflow ? oflow : (sp->stkflags & STK_NULL ? nullptr : overflow);
 }
 
 /*
  * increase the reference count on the given <stack>
  */
-unsigned int stklink(Sfio_t* stream)
+unsigned int stklink(Stk_t* stream)
 {
 	struct stk *sp = stream2stk(stream);
 	return sp->stkref++;
@@ -280,15 +225,40 @@ unsigned int stklink(Sfio_t* stream)
  *  0 returned on last close
  * <0 returned on error
  */
-int stkclose(Sfio_t* stream)
+int stkclose(Stk_t* stream)
 {
 	struct stk *sp = stream2stk(stream);
+	char *cp;
+	struct frame *fp;
 	if(sp->stkref>1)
 	{
 		sp->stkref--;
 		return 1;
 	}
-	return sfclose(stream);
+	if(stream==stkstd)
+	{
+		stkset(stream,nullptr,0);
+	}
+	else
+	{
+		cp = sp->stkbase;
+		while(1)
+		{
+			fp = (struct frame*)cp;
+			if(fp->prev)
+			{
+				cp = fp->prev;
+				free(fp);
+			}
+			else
+			{
+				free(fp);
+				break;
+			}
+		}
+		free(stream);
+	}
+	return 0;
 }
 
 /*
@@ -297,7 +267,7 @@ int stkclose(Sfio_t* stream)
  * if <address> is not in this stack, the program dumps core
  * otherwise, the top of the stack is set to stkbot+<offset>
  */
-void *stkset(Sfio_t *stream, void *address, size_t offset)
+void *stkset(Stk_t *stream, void *address, size_t offset)
 {
 	struct stk *sp = stream2stk(stream);
 	char *cp, *loc = (char*)address;
@@ -322,10 +292,11 @@ void *stkset(Sfio_t *stream, void *address, size_t offset)
 		/* see whether <loc> is in current stack frame */
 		if(loc>=cp && loc<=sp->stkend)
 		{
-			if(frames)
-				sfsetbuf(stream,cp,sp->stkend-cp);
 			stream->_data = (unsigned char*)(cp + roundof(loc-cp,STK_ALIGN));
 			stream->_next = (unsigned char*)loc+offset;
+			if(frames)
+				stream->_endb = (unsigned char*)sp->stkend;
+			STK_SENTINEL(stream);
 			goto found;
 		}
 		if(fp->prev)
@@ -343,10 +314,10 @@ void *stkset(Sfio_t *stream, void *address, size_t offset)
 		abort();
 	/* set stack back to the beginning */
 	cp = (char*)(fp+1);
+	stream->_data = stream->_next = (unsigned char*)cp;
 	if(frames)
-		sfsetbuf(stream,cp,sp->stkend-cp);
-	else
-		stream->_data = stream->_next = (unsigned char*)cp;
+		stream->_endb = (unsigned char*)sp->stkend;
+	STK_SENTINEL(stream);
 found:
 	return stream->_data;
 }
@@ -354,29 +325,35 @@ found:
 /*
  * allocate <n> bytes on the current stack
  */
-void *stkalloc(Sfio_t *stream, size_t n)
+void *stkalloc(Stk_t *stream, size_t n)
 {
 	unsigned char *old;
 	if(!init)
 		stkinit(n);
 	n = roundof(n,STK_ALIGN);
-	if(stkleft(stream) <= (int)n && !stkgrow(stream,n))
-		return NULL;
+	if(stkleft(stream) <= n && !stkgrow(stream,n))
+		return nullptr;
 	old = stream->_data;
 	stream->_data = stream->_next = old+n;
+	STK_SENTINEL(stream);
 	return old;
 }
 
 /*
  * begin a new stack word of at least <n> bytes
  */
-void *_stkseek(Sfio_t *stream, ssize_t n)
+void *_stkseek(Stk_t *stream, ssize_t n)
 {
+	if(n < 0)
+		n = 0;
 	if(!init)
 		stkinit(n);
 	if(stkleft(stream) <= n && !stkgrow(stream,n))
-		return NULL;
+		return nullptr;
 	stream->_next = stream->_data+n;
+	/* no sentinel here: seek is a positioning op, not a write.
+	 * code uses seek-back-and-read (e.g., sig_number in trap.c)
+	 * where data above _next must be preserved. */
 	return stream->_data;
 }
 
@@ -384,7 +361,7 @@ void *_stkseek(Sfio_t *stream, ssize_t n)
  * advance the stack to the current top
  * if extra is non-zero, first add extra bytes and zero the first
  */
-void	*stkfreeze(Sfio_t *stream, size_t extra)
+void	*stkfreeze(Stk_t *stream, size_t extra)
 {
 	unsigned char *old, *top;
 	if(!init)
@@ -393,10 +370,10 @@ void	*stkfreeze(Sfio_t *stream, size_t extra)
 	top = stream->_next;
 	if(extra)
 	{
-		if(extra > (stream->_endb-stream->_next))
+		if(extra > (size_t)(stream->_endb-stream->_next))
 		{
 			if (!(top = (unsigned char*)stkgrow(stream,extra)))
-				return NULL;
+				return nullptr;
 			old = stream->_data;
 		}
 		*top = 0;
@@ -409,11 +386,11 @@ void	*stkfreeze(Sfio_t *stream, size_t extra)
 /*
  * copy string <str> onto the stack as a new stack word
  */
-char	*stkcopy(Sfio_t *stream, const char* str)
+char	*stkcopy(Stk_t *stream, const char* str)
 {
 	unsigned char *cp = (unsigned char*)str;
 	size_t n;
-	int off=stktell(stream);
+	size_t off=stktell(stream);
 	char buff[40], *tp=buff;
 	if(off)
 	{
@@ -423,7 +400,7 @@ char	*stkcopy(Sfio_t *stream, const char* str)
 			{
 				struct stk *sp = stream2stk(stream);
 				if(!sp->stkoverflow || !(tp = (*sp->stkoverflow)(off)))
-					return NULL;
+					return nullptr;
 			}
 		}
 		memcpy(tp, stream->_data, off);
@@ -456,21 +433,26 @@ char	*stkcopy(Sfio_t *stream, const char* str)
  * to the end is copied into the new stack frame
  */
 
-static char *stkgrow(Sfio_t *stream, size_t size)
+[[nodiscard]]
+static char *stkgrow(Stk_t *stream, size_t size)
 {
 	size_t n = size;
 	struct stk *sp = stream2stk(stream);
 	struct frame *fp= (struct frame*)sp->stkbase;
-	char *cp, *dp=0;
+	char *cp, *dp=nullptr;
 	size_t m = stktell(stream);
 	size_t endoff;
-	char *end=0, *oldbase=0;
+	char *end=nullptr, *oldbase=nullptr;
 	int nn=0,add=1;
-	n += (m + sizeof(struct frame)+1);
+	/* checked arithmetic: n = size + m + sizeof(struct frame) + 1 */
+	if(ckd_add(&n, n, m) || ckd_add(&n, n, sizeof(struct frame)) || ckd_add(&n, n, 1))
+		return nullptr;
 	if(sp->stkflags&STK_SMALL)
-		n = roundof(n,STK_FSIZE/16);
+		n = roundof_safe(n,STK_FSIZE/16);
 	else
-		n = roundof(n,STK_FSIZE);
+		n = roundof_safe(n,STK_FSIZE);
+	if(n == (size_t)-1)
+		return nullptr;
 	/* see whether current frame can be extended */
 	if(stkptr(stream,0)==sp->stkbase+sizeof(struct frame))
 	{
@@ -481,9 +463,20 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 		oldbase = dp;
 	}
 	endoff = end - dp;
-	cp = newof(dp, char, n, nn*sizeof(char*));
-	if(!cp && (!sp->stkoverflow || !(cp = (*sp->stkoverflow)(n))))
-		return NULL;
+	{
+		/* checked: total = n + nn*sizeof(char*) */
+		size_t aliasz, total;
+		if(ckd_mul(&aliasz, (size_t)nn, sizeof(char*)) || ckd_add(&total, n, aliasz))
+			return nullptr;
+		cp = realloc(dp, total);
+		if(!cp)
+		{
+			if(!dp)
+				cp = calloc(1, total);
+			if(!cp && (!sp->stkoverflow || !(cp = (*sp->stkoverflow)(total))))
+				return nullptr;
+		}
+	}
 	if(dp==cp)
 	{
 		nn--;
@@ -500,7 +493,7 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 	sp->stkend = fp->end = cp+n;
 	cp = (char*)(fp+1);
 	cp = sp->stkbase + roundof((cp-sp->stkbase),STK_ALIGN);
-	if(fp->nalias=nn)
+	if((fp->nalias=nn))
 	{
 		fp->aliases = (char**)fp->end;
 		if(end && nn>add)
@@ -510,38 +503,101 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 	}
 	if(m && !dp)
 		memcpy(cp,(char*)stream->_data,m);
-	sfsetbuf(stream,cp,sp->stkend-cp);
-	return (char*)(stream->_next = stream->_data+m);
+	stream->_data = (unsigned char*)cp;
+	stream->_next = (unsigned char*)(cp + m);
+	stream->_endb = (unsigned char*)sp->stkend;
+	STK_SENTINEL(stream);
+	return (char*)stream->_next;
 }
 
 /*
- * Write functions — thin wrappers around sfio.
- * Step 3 replaces these with direct buffer operations.
+ * Write functions — direct buffer operations with NUL sentinel.
+ *
+ * Invariant: after every write, if _next is non-NULL and _next < _endb,
+ * then *_next == 0.  This replicates the implicit NUL-copy behavior of
+ * sfputr (sfputr.c:102-104) that ~20 call sites depend on for valid
+ * C strings from stkptr().
  */
 
 int stkputc(Stk_t *sp, int c)
 {
-	return sfputc(sp, c);
+	if(!init)
+		stkinit(1);
+	if(sp->_next >= sp->_endb && !stkgrow(sp, 1))
+		return -1;
+	*sp->_next++ = (unsigned char)c;
+	STK_SENTINEL(sp);
+	return c;
 }
 
 ssize_t stkputs(Stk_t *sp, const char *s, int delim)
 {
-	return sfputr(sp, s, delim);
+	size_t len = strlen(s);
+	size_t need = (delim >= 0) ? len + 1 : len;
+	if(!init)
+		stkinit(need);
+	/* request need+1 for sentinel room */
+	if((size_t)(sp->_endb - sp->_next) <= need && !stkgrow(sp, need + 1))
+		return -1;
+	memcpy(sp->_next, s, len);
+	sp->_next += len;
+	if(delim >= 0)
+		*sp->_next++ = (unsigned char)delim;
+	STK_SENTINEL(sp);
+	return (ssize_t)need;
 }
 
 ssize_t stkwrite(Stk_t *sp, const void *buf, size_t n)
 {
-	return sfwrite(sp, buf, n);
+	if(!init)
+		stkinit(n);
+	/* request n+1 for sentinel room */
+	if((size_t)(sp->_endb - sp->_next) <= n && !stkgrow(sp, n + 1))
+		return -1;
+	memcpy(sp->_next, buf, n);
+	sp->_next += n;
+	STK_SENTINEL(sp);
+	return (ssize_t)n;
 }
 
 ssize_t stknputc(Stk_t *sp, int c, size_t n)
 {
-	return sfnputc(sp, c, n);
+	if(!init)
+		stkinit(n);
+	if((size_t)(sp->_endb - sp->_next) <= n && !stkgrow(sp, n + 1))
+		return -1;
+	memset(sp->_next, c, n);
+	sp->_next += n;
+	STK_SENTINEL(sp);
+	return (ssize_t)n;
 }
 
 int stkvprintf(Stk_t *sp, const char *fmt, va_list ap)
 {
-	return sfvprintf(sp, fmt, ap);
+	int n;
+	size_t avail;
+	va_list ap2;
+	if(!init)
+		stkinit(1);
+	avail = sp->_endb - sp->_next;
+	va_copy(ap2, ap);
+	n = vsnprintf((char*)sp->_next, avail, fmt, ap2);
+	va_end(ap2);
+	if(n < 0)
+		return -1;
+	if((size_t)n >= avail)
+	{
+		/* retry with enough room: n+1 for vsnprintf NUL + 1 for sentinel */
+		if(!stkgrow(sp, (size_t)n + 2))
+			return -1;
+		avail = sp->_endb - sp->_next;
+		n = vsnprintf((char*)sp->_next, avail, fmt, ap);
+		if(n < 0 || (size_t)n >= avail)
+			return -1;
+	}
+	sp->_next += n;
+	/* vsnprintf already wrote NUL at _next, satisfying sentinel */
+	return n;
 }
 
 int stkprintf(Stk_t *sp, const char *fmt, ...)

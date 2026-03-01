@@ -495,7 +495,7 @@ errorv(const char* id, int level, va_list ap)
 				error_info.last_errno = (level >= 0) ? 0 : errno;
 			}
 			if (error_info.auxiliary && level >= 0)
-				level = (*error_info.auxiliary)(stkstd, level, flags);
+				level = (*error_info.auxiliary)((void*)stkstd, level, flags);
 			stkputc(stkstd, '\n');
 		}
 		if (level > 0)

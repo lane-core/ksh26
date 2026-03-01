@@ -122,6 +122,16 @@ got=$(cat <<-EOF
 exp=$'Name: stk_test\nValue: 42'
 [[ $got == "$exp" ]] || err_exit "heredoc expansion via stk failed"
 
+# ======== seek-back-and-read: trap signal name lookup ========
+
+# sig_number in trap.c uses stkputc to uppercase the signal name,
+# then stkseek to reposition _next without erasing the data.
+# Regression: sentinel write in _stkseek overwrote the first byte.
+trap 'true' EXIT 2>/dev/null || err_exit "trap EXIT failed (seek-back-and-read regression)"
+trap 'true' ERR 2>/dev/null || err_exit "trap ERR failed"
+trap 'true' DEBUG 2>/dev/null || err_exit "trap DEBUG failed"
+trap - EXIT ERR DEBUG 2>/dev/null
+
 # ======== stkcopy: string copy onto stack ========
 
 # Command substitution exercises stkcopy

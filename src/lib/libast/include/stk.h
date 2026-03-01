@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,13 +27,22 @@
 #ifndef _STK_H
 #define _STK_H
 
-#include <sfio.h>
+#include <stddef.h>	/* size_t */
+#include <sys/types.h>	/* ssize_t */
+#include <stdarg.h>	/* va_list */
+
+typedef struct _stk_s
+{
+	unsigned char	*_data;
+	unsigned char	*_next;
+	unsigned char	*_endb;
+} Stk_t;
+
+static_assert(sizeof(Stk_t) == 3 * sizeof(void*),
+	"Stk_t must be exactly 3 pointers");
 
 #define _Stk_data	_Stak_data
-
 #define stkstd		(&_Stk_data)
-
-#define Stk_t		Sfio_t
 
 /* option bits for stkopen() */
 #define STK_SMALL	1		/* allocate small stack frames	*/
@@ -42,12 +51,12 @@
 #define stkptr(sp,n)	((char*)((sp)->_data)+(n))
 #define stktop(sp)	((char*)(sp)->_next)
 #define stktell(sp)	((sp)->_next-(sp)->_data)
-#define stkseek(sp,n)	((n)==0?(void*)((sp)->_next=(sp)->_data):_stkseek(sp,n))
+#define stkseek(sp,n)	_stkseek(sp,n)
 
-extern Sfio_t		_Stk_data;
+extern Stk_t		_Stk_data;
 
 extern Stk_t*		stkopen(int);
-extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));	/* deprecated */
+extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));
 extern void		stkoverflow(Stk_t*, void*(*)(size_t));
 extern int		stkclose(Stk_t*);
 extern unsigned int	stklink(Stk_t*);
@@ -57,7 +66,6 @@ extern void*		stkset(Stk_t*, void*, size_t);
 extern void*		_stkseek(Stk_t*, ssize_t);
 extern void*		stkfreeze(Stk_t*, size_t);
 
-/* write functions (thin wrappers, replaced in Step 3 with direct buffer ops) */
 extern int		stkputc(Stk_t*, int);
 extern ssize_t		stkputs(Stk_t*, const char*, int);
 extern ssize_t		stkwrite(Stk_t*, const void*, size_t);

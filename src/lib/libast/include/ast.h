@@ -250,6 +250,19 @@
 #define oldof(p,t,n,x)	((p)?(t*)realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)malloc(sizeof(t)*(n)+(x)))
 #define pointerof(x)	((void*)((uintptr_t)(x)))
 #define roundof(x,y)	(((x)+(y)-1)&~((y)-1))
+
+#include <stdckdint.h>
+/*
+ * Checked roundof: returns rounded value, or (size_t)-1 on overflow.
+ * Use for allocation sizes where overflow must not silently wrap.
+ */
+static inline size_t roundof_safe(size_t x, size_t y)
+{
+	size_t sum;
+	if(ckd_add(&sum, x, y - 1))
+		return (size_t)-1;
+	return sum & ~(y - 1);
+}
 #define ssizeof(x)	((int)sizeof(x))
 
 #define streq(a,b)	(!strcmp(a,b))
