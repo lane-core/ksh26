@@ -40,7 +40,7 @@ fmtsignal(int sig)
 		else
 		{
 			buf = fmtbuf(z = 20);
-			sfsprintf(buf, z, "Signal %d", sig);
+			snprintf(buf, z, "Signal %d", sig);
 		}
 	}
 	else
@@ -51,7 +51,7 @@ fmtsignal(int sig)
 		else
 		{
 			buf = fmtbuf(z = 20);
-			sfsprintf(buf, z, "%d", sig);
+			snprintf(buf, z, "%d", sig);
 		}
 	}
 	return buf;

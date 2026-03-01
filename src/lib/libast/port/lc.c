@@ -389,11 +389,11 @@ lccanon(Lc_t* lc, unsigned long flags, char* buf, size_t siz)
 		    	if (!GetLocaleInfo(lc->index, LOCALE_IDEFAULTANSICODEPAGE, code, sizeof(code)))
 				code[0] = 0;
 			if (!lc->charset || !lc->charset->ms)
-				return sfsprintf(buf, siz, "%s_%s", lang, ctry);
+				return snprintf(buf, siz, "%s_%s", lang, ctry);
 			else if (streq(lc->charset->ms, code))
-				return sfsprintf(buf, siz, "%s_%s.%s", lang, ctry, code);
+				return snprintf(buf, siz, "%s_%s.%s", lang, ctry, code);
 			else
-				return sfsprintf(buf, siz, "%s_%s.%s,%s", lang, ctry, code, lc->charset->ms);
+				return snprintf(buf, siz, "%s_%s.%s,%s", lang, ctry, code, lc->charset->ms);
 		}
 #endif
 		buf[0] = '-';

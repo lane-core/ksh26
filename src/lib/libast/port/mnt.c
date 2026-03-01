@@ -82,7 +82,7 @@ set(Header_t* hp, const char* fs, const char* dir, const char* type, const char*
 	else if (x = (const char*)strchr(fs, '@'))
 	{
 		hp->mnt.flags |= MNT_REMOTE;
-		sfsprintf(hp->buf, sizeof(hp->buf) - 1, "%s:%*.*s", x + 1, x - fs, x - fs, fs);
+		snprintf(hp->buf, sizeof(hp->buf) - 1, "%s:%*.*s", x + 1, x - fs, x - fs, fs);
 		fs = (const char*)hp->buf;
 	}
 	else if (strmatch(type, "[aAnN][fF][sS]*"))
@@ -294,7 +294,7 @@ mntread(void* handle)
 		n = 0;
 		for (i = 0; i < elementsof(options); i++)
 			if (flags & options[i].flag)
-				n += sfsprintf(mp->opt + n, sizeof(mp->opt) - n - 1, ",%s", options[i].name);
+				n += snprintf(mp->opt + n, sizeof(mp->opt) - n - 1, ",%s", options[i].name);
 		set(&mp->hdr, mp->next->f_mntfromname, mp->next->f_mntonname, TYPE(mp->next), n ? (mp->opt + 1) : NULL);
 		mp->next++;
 		return &mp->hdr.mnt;
@@ -369,7 +369,7 @@ mntread(void* handle)
 	{
 		if (vmt2datasize(mp->next, VMT_HOST) && (s = vmt2dataptr(mp->next, VMT_HOST)) && !streq(s, "-"))
 		{
-			sfsprintf(mp->remote, sizeof(mp->remote) - 1, "%s:%s", s, vmt2dataptr(mp->next, VMT_OBJECT));
+			snprintf(mp->remote, sizeof(mp->remote) - 1, "%s:%s", s, vmt2dataptr(mp->next, VMT_OBJECT));
 			s = mp->remote;
 		}
 		else
@@ -416,7 +416,7 @@ mntread(void* handle)
 			break;
 #endif
 		default:
-			sfsprintf(t = mp->type, sizeof(mp->type), "aix%+d", mp->next->vmt_gfstype);
+			snprintf(t = mp->type, sizeof(mp->type), "aix%+d", mp->next->vmt_gfstype);
 			break;
 		}
 		set(&mp->hdr, s, vmt2dataptr(mp->next, VMT_STUB), t, o);

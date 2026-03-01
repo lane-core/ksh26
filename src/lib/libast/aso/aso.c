@@ -142,11 +142,11 @@ asoerror(int type, const char* format, const char* a, const char* b, long n)
 	char	buf[128];
 
 	if (b)
-		sfsprintf(buf, sizeof(buf), format, a, b, n);
+		snprintf(buf, sizeof(buf), format, a, b, n);
 	else if (a)
-		sfsprintf(buf, sizeof(buf), format, a, n);
+		snprintf(buf, sizeof(buf), format, a, n);
 	else
-		sfsprintf(buf, sizeof(buf), format, n);
+		snprintf(buf, sizeof(buf), format, n);
 	return state.errorf(type, buf);
 }
 

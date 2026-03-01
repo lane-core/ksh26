@@ -55,6 +55,6 @@ fmtdev(struct stat* st)
 		buf[2] = 0;
 	}
 	else
-		sfsprintf(buf, z, "%03d,%03d", ma, mi);
+		snprintf(buf, z, "%03d,%03d", ma, mi);
 	return buf;
 }

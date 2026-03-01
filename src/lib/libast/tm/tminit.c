@@ -212,7 +212,7 @@ tmlocal(time_t now)
 
 		if (s = getenv("TZ"))
 		{
-			sfsprintf(TZ, sizeof(TZ), "TZ=%s", s);
+			snprintf(TZ, sizeof(TZ), "TZ=%s", s);
 			if (!environ || !*environ)
 				environ = TE;
 			else

@@ -273,12 +273,12 @@ cmdflush(Cmdarg_t* cmd)
 				{
 					if (!(u = strchr(t, c)))
 					{
-						b += sfsprintf(b, e - b, "%s", t);
+						b += snprintf(b, e - b, "%s", t);
 						break;
 					}
 					if (!strncmp(s, u, m))
 					{
-						b += sfsprintf(b, e - b, "%-.*s%s", u - t, t, a);
+						b += snprintf(b, e - b, "%-.*s%s", u - t, t, a);
 						t = u + m;
 					}
 					else if (b >= e)

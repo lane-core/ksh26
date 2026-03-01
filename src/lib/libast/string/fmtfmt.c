@@ -193,7 +193,7 @@ fmtfmt(const char* as)
 	for (i = 1; i <= m; i++)
 	{
 		if (extra[i])
-			s += sfsprintf(s, 10, "%d", extra[m]);
+			s += snprintf(s, 10, "%d", extra[m]);
 		*s++ = formats[i];
 	}
 	*s = 0;

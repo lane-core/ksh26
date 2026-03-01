@@ -43,9 +43,9 @@ fmtrec(Recfmt_t f, int fs)
 		{
 			del[1] = 0;
 			if (fs)
-				sfsprintf(s, e - s, "0x%02x", *(unsigned char*)del);
+				snprintf(s, e - s, "0x%02x", *(unsigned char*)del);
 			else
-				sfsprintf(s, e - s, "%s", fmtquote(del, NULL, NULL, 1, 0));
+				snprintf(s, e - s, "%s", fmtquote(del, NULL, NULL, 1, 0));
 		}
 		else
 			*s = 0;
@@ -53,18 +53,18 @@ fmtrec(Recfmt_t f, int fs)
 	case REC_fixed:
 		if (!fs)
 			*s++ = 'f';
-		sfsprintf(s, e - s, "%lu", REC_F_SIZE(f));
+		snprintf(s, e - s, "%lu", REC_F_SIZE(f));
 		break;
 	case REC_variable:
 		*s++ = 'v';
 		if (n = REC_V_SIZE(f))
-			s += sfsprintf(s, e - s, "%lu", n);
+			s += snprintf(s, e - s, "%lu", n);
 		if (REC_V_HEADER(f) != 4)
-			s += sfsprintf(s, e - s, "h%u", REC_V_HEADER(f));
+			s += snprintf(s, e - s, "h%u", REC_V_HEADER(f));
 		if (REC_V_OFFSET(f) != 0)
-			s += sfsprintf(s, e - s, "o%u", REC_V_OFFSET(f));
+			s += snprintf(s, e - s, "o%u", REC_V_OFFSET(f));
 		if (REC_V_LENGTH(f) != 2)
-			s += sfsprintf(s, e - s, "z%u", REC_V_LENGTH(f));
+			s += snprintf(s, e - s, "z%u", REC_V_LENGTH(f));
 		if (REC_V_LITTLE(f) != 0)
 			*s++ = 'l';
 		if (REC_V_INCLUSIVE(f) == 0)
@@ -76,13 +76,13 @@ fmtrec(Recfmt_t f, int fs)
 		switch (n = REC_M_INDEX(f))
 		{
 		case REC_M_data:
-			sfsprintf(s, e - s, "data");
+			snprintf(s, e - s, "data");
 			break;
 		case REC_M_path:
-			sfsprintf(s, e - s, "path");
+			snprintf(s, e - s, "path");
 			break;
 		default:
-			sfsprintf(s, e - s, "%lu", n);
+			snprintf(s, e - s, "%lu", n);
 			break;
 		}
 		break;
@@ -91,7 +91,7 @@ fmtrec(Recfmt_t f, int fs)
 		*s = 0;
 		break;
 	default:
-		sfsprintf(s, e - s, "u%u.0x%07x", RECTYPE(f), REC_U_ATTRIBUTES(f));
+		snprintf(s, e - s, "u%u.0x%07x", RECTYPE(f), REC_U_ATTRIBUTES(f));
 		break;
 	}
 	return b;

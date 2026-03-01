@@ -77,11 +77,11 @@ strtape(const char* s, char** e)
 		 */
 
 		if (!mtdensity) mtdensity = 'm';
-		sfsprintf(tapefile, sizeof(tapefile), "/dev/rmt/ctape%c%s", mtunit, mtrewind);
+		snprintf(tapefile, sizeof(tapefile), "/dev/rmt/ctape%c%s", mtunit, mtrewind);
 		if (!access(tapefile, F_OK)) return tapefile;
 		for (;;)
 		{
-			sfsprintf(tapefile, sizeof(tapefile), "/dev/rmt/%c%c%s%s", mtunit, mtdensity, mtbehavior, mtrewind);
+			snprintf(tapefile, sizeof(tapefile), "/dev/rmt/%c%c%s%s", mtunit, mtdensity, mtbehavior, mtrewind);
 			if (!access(tapefile, F_OK)) return tapefile;
 			if (!mtbehavior[0]) break;
 			mtbehavior[0] = 0;
@@ -93,7 +93,7 @@ strtape(const char* s, char** e)
 		 * Linux
 		 */
 
-		sfsprintf(tapefile, sizeof(tapefile), "/dev/%sst%c", mtrewind, mtunit);
+		snprintf(tapefile, sizeof(tapefile), "/dev/%sst%c", mtrewind, mtunit);
 	}
 	else if (!access("/dev/nrmt0", F_OK))
 	{
@@ -113,7 +113,7 @@ strtape(const char* s, char** e)
 			mtunit = '2';
 			break;
 		}
-		sfsprintf(tapefile, sizeof(tapefile), "/dev/%srmt%c", mtrewind, mtunit);
+		snprintf(tapefile, sizeof(tapefile), "/dev/%srmt%c", mtrewind, mtunit);
 	}
 	else
 	{
@@ -139,7 +139,7 @@ strtape(const char* s, char** e)
 			mtunit |= 040;
 			break;
 		}
-		sfsprintf(tapefile, sizeof(tapefile), "/dev/rmt%d", mtunit);
+		snprintf(tapefile, sizeof(tapefile), "/dev/rmt%d", mtunit);
 	}
 	return tapefile;
 }
