@@ -734,7 +734,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	if(fd==0 && sh.subshell)
 		sh_subtmpfile();
 #if SHOPT_DEVFD
-	sfwrite(sh.stk,e_devfdNN,8);
+	stkwrite(sh.stk,e_devfdNN,8);
 	pv[2] = 0;
 	sh_pipe(pv,0);
 #else
@@ -752,9 +752,9 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 		UNREACHABLE();
 	}
 	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
-	sfputr(sh.stk,sh.fifo,0);
+	stkputs(sh.stk,sh.fifo,0);
 #endif /* SHOPT_DEVFD */
-	sfputr(sh.stk,fmtint(pv[fd],1),0);
+	stkputs(sh.stk,fmtint(pv[fd],1),0);
 	ap = stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */

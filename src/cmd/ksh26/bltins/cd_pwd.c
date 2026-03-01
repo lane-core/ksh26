@@ -217,11 +217,11 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		{
 			char *last = stkfreeze(sh.stk,1);
 			stkseek(sh.stk,PATH_OFFSET);
-			sfputr(sh.stk,oldpwd,-1);
+			stkputs(sh.stk,oldpwd,-1);
 			/* don't add '/' if oldpwd is / itself */
 			if(*oldpwd!='/' || oldpwd[1])
-				sfputc(sh.stk,'/');
-			sfputr(sh.stk,last+PATH_OFFSET,0);
+				stkputc(sh.stk,'/');
+			stkputs(sh.stk,last+PATH_OFFSET,0);
 		}
 		if(!pflag)
 		{

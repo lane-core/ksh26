@@ -37,6 +37,7 @@
 #include	<ast.h>
 #include	<align.h>
 #include	<stk.h>
+#include	<stdarg.h>
 
 /*
  *  A stack is a header and a linked list of frames
@@ -511,4 +512,44 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 		memcpy(cp,(char*)stream->_data,m);
 	sfsetbuf(stream,cp,sp->stkend-cp);
 	return (char*)(stream->_next = stream->_data+m);
+}
+
+/*
+ * Write functions — thin wrappers around sfio.
+ * Step 3 replaces these with direct buffer operations.
+ */
+
+int stkputc(Stk_t *sp, int c)
+{
+	return sfputc(sp, c);
+}
+
+ssize_t stkputs(Stk_t *sp, const char *s, int delim)
+{
+	return sfputr(sp, s, delim);
+}
+
+ssize_t stkwrite(Stk_t *sp, const void *buf, size_t n)
+{
+	return sfwrite(sp, buf, n);
+}
+
+ssize_t stknputc(Stk_t *sp, int c, size_t n)
+{
+	return sfnputc(sp, c, n);
+}
+
+int stkvprintf(Stk_t *sp, const char *fmt, va_list ap)
+{
+	return sfvprintf(sp, fmt, ap);
+}
+
+int stkprintf(Stk_t *sp, const char *fmt, ...)
+{
+	va_list ap;
+	int n;
+	va_start(ap, fmt);
+	n = stkvprintf(sp, fmt, ap);
+	va_end(ap);
+	return n;
 }

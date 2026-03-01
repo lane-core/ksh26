@@ -213,8 +213,8 @@ int  sh_histinit(void)
 	{
 		int offset = stktell(sh.stk);
 		if(cp=nv_getval(HOME))
-			sfputr(sh.stk,cp,-1);
-		sfputr(sh.stk,hist_fname,0);
+			stkputs(sh.stk,cp,-1);
+		stkputs(sh.stk,hist_fname,0);
 		stkseek(sh.stk,offset);
 		histname = stkptr(sh.stk,offset);
 	}
@@ -753,9 +753,9 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	{
 		int timechars, offset;
 		offset = stktell(sh.stk);
-		sfputr(sh.stk,buff,-1);
+		stkputs(sh.stk,buff,-1);
 		stkseek(sh.stk,stktell(sh.stk) - 1);
-		timechars = sfprintf(sh.stk, "\t%s\t%x\n",logname,time(NULL));
+		timechars = stkprintf(sh.stk, "\t%s\t%x\n",logname,time(NULL));
 		lseek(acctfd, 0, SEEK_END);
 		write(acctfd, stkptr(sh.stk,offset), size - 2 + timechars);
 		stkseek(sh.stk,offset);

@@ -370,7 +370,7 @@ static int sig_number(const char *string)
 			c = *string++;
 			if(islower(c))
 				c = toupper(c);
-			sfputc(sh.stk,c);
+			stkputc(sh.stk,c);
 		}
 		while(c);
 		stkseek(sh.stk,o);

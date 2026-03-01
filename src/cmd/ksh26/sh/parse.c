@@ -770,7 +770,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		stkseek(sh.stk,offset);
 		/* check for empty condition and treat as while((1)) */
 		if(offset==ARGVAL)
-			sfputc(sh.stk,'1');
+			stkputc(sh.stk,'1');
 		argp = stkfreeze(sh.stk,1);
 		t = getanode(lexp,argp);
 		if(n==0)
@@ -780,7 +780,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 	}
 	while((offset=fcpeek(0)) && isspace(offset))
 		fcseek(1);
-	sfputr(sh.stk,fcseek(0),-1);
+	stkputs(sh.stk,fcseek(0),-1);
 	argp = stkfreeze(sh.stk,1);
 	fcrestore(&sav_input);
 	if(n<2)
@@ -1047,11 +1047,11 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 		{
 			ar = stkseek(sh.stk,ARGVAL);
 			ar->argflag= ARG_ASSIGN;
-			sfprintf(sh.stk,"[%d]=",index++);
+			stkprintf(sh.stk,"[%d]=",index++);
 			if(aq = ac->comarg.ap)
 			{
 				ac->comarg.ap = aq->argnxt.ap;
-				sfprintf(sh.stk,"%s",aq->argval);
+				stkprintf(sh.stk,"%s",aq->argval);
 				ar->argflag |= aq->argflag;
 			}
 			ar = stkfreeze(sh.stk,1);
@@ -1071,8 +1071,8 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 			{
 				ar = stkseek(sh.stk,ARGVAL);
 				ar->argflag= ARG_ASSIGN;
-				sfprintf(sh.stk,"[%d]=",index++);
-				sfputr(sh.stk,lexp->arg->argval,-1);
+				stkprintf(sh.stk,"[%d]=",index++);
+				stkputs(sh.stk,lexp->arg->argval,-1);
 				ar = stkfreeze(sh.stk,1);
 				ar->argnxt.ap = 0;
 				ar->argflag = lexp->arg->argflag;
@@ -1463,7 +1463,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 				if(assignment==1)
 				{
 					stkseek(sh.stk,ARGVAL);
-					sfwrite(sh.stk,argp->argval,lexp->varnamelength);
+					stkwrite(sh.stk,argp->argval,lexp->varnamelength);
 					ap = stkfreeze(sh.stk,1);
 					ap->argflag = ARG_RAW;
 					ap->argchn.ap = 0;
@@ -2055,17 +2055,17 @@ unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,
 {
 	Namval_t *np;
 	long offset = stktell(sh.stk);
-	sfputc(sh.stk,type);
+	stkputc(sh.stk,type);
 	if(len>0)
-		sfwrite(sh.stk,name,len);
+		stkwrite(sh.stk,name,len);
 	else
 	{
 		if(type=='p')
-			sfputr(sh.stk,path_basename(name),0);
+			stkputs(sh.stk,path_basename(name),0);
 		else
-			sfputr(sh.stk,name,0);
+			stkputs(sh.stk,name,0);
 	}
-	sfputc(sh.stk,'\0');  /* terminate name while writing database output */
+	stkputc(sh.stk,'\0');  /* terminate name while writing database output */
 	np = nv_search(stkptr(sh.stk,offset),kia.entity_tree,NV_ADD);
 	stkseek(sh.stk,offset);
 	np->nvalue = sh_malloc(sizeof(int));

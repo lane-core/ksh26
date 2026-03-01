@@ -44,9 +44,9 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	{
 		int savtop = stktell(stkp);
 		void *savptr = stkfreeze(stkp,0);
-		sfputc(stkp,'$');
-		sfputc(stkp,'(');
-		sfputr(stkp,s,')');
+		stkputc(stkp,'$');
+		stkputc(stkp,'(');
+		stkputs(stkp,s,')');
 		sfputr(sp,sh_mactry(stkfreeze(stkp,1)),-1);
 		stkset(stkp,savptr,savtop);
 	}

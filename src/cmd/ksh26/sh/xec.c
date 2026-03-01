@@ -146,7 +146,7 @@ static inline Sfdouble_t timeval_to_double(struct timeval tv)
 /*
  * print time <t> in h:m:s format with precision <p>
  */
-static void l_time(sh_stream_t *outfile, struct timeval *tv, int precision)
+static void l_time(Stk_t *stkp, struct timeval *tv, int precision)
 {
 	Sfulong_t hr = tv->tv_sec / (60 * 60);
 	Sfulong_t min = (tv->tv_sec / 60) % 60;
@@ -158,11 +158,11 @@ static void l_time(sh_stream_t *outfile, struct timeval *tv, int precision)
 	for(n = 3 + (3 - precision); n > 0; --n)
 		frac /= 10;
 	if(hr)
-		sfprintf(outfile,"%juh",hr);
+		stkprintf(stkp,"%juh",hr);
 	if(precision)
-		sfprintf(outfile, sh_isoption(SH_POSIX) ? "%jum%ju%c%0*jus" : "%jum%02ju%c%0*jus", min, sec, sh.radixpoint, precision, frac);
+		stkprintf(stkp, sh_isoption(SH_POSIX) ? "%jum%ju%c%0*jus" : "%jum%02ju%c%0*jus", min, sec, sh.radixpoint, precision, frac);
 	else
-		sfprintf(outfile, sh_isoption(SH_POSIX) ? "%jum%jus" : "%jum%02jus", min, sec);
+		stkprintf(stkp, sh_isoption(SH_POSIX) ? "%jum%jus" : "%jum%02jus", min, sec);
 }
 
 #define TM_REAL_IDX 0
@@ -182,13 +182,13 @@ static void p_time(sh_stream_t *out, const char *format, struct timeval tm[3])
 		c = *format;
 		if(c!='%')
 			continue;
-		sfwrite(sh.stk, first, format-first);
+		stkwrite(sh.stk, first, format-first);
 		c = *++format;
 		if(c=='\0')
 		{
 			/* If a lone percent is the last character of the format pretend
 			   the user had written '%%' for a literal percent */
-			sfwrite(sh.stk, "%", 1);
+			stkwrite(sh.stk, "%", 1);
 			first = format + 1;
 			break;
 		}
@@ -211,7 +211,7 @@ static void p_time(sh_stream_t *out, const char *format, struct timeval tm[3])
 			d = timeval_to_double(tv_real);
 			if(d)
 				d = 100.0 * timeval_to_double(tv_cpu) / d;
-			sfprintf(sh.stk, "%.*f", precision, d);
+			stkprintf(sh.stk, "%.*f", precision, d);
 			first = format + 1;
 			continue;
 		}
@@ -248,15 +248,15 @@ static void p_time(sh_stream_t *out, const char *format, struct timeval tm[3])
 			for(n = 3 + (3 - precision); n > 0; --n)
 				frac /= 10;
 			if(precision)
-				sfprintf(sh.stk, "%ju%c%0*ju", sec, sh.radixpoint, precision, frac);
+				stkprintf(sh.stk, "%ju%c%0*ju", sec, sh.radixpoint, precision, frac);
 			else
-				sfprintf(sh.stk, "%ju", sec);
+				stkprintf(sh.stk, "%ju", sec);
 		}
 		first = format+1;
 	}
 	if(format>first)
-		sfwrite(sh.stk,first, format-first);
-	sfputc(sh.stk,'\n');
+		stkwrite(sh.stk,first, format-first);
+	stkputc(sh.stk,'\n');
 	n = stktell(sh.stk)-offset;
 	sfwrite(out,stkptr(sh.stk,offset),n);
 	stkseek(sh.stk,offset);
@@ -381,7 +381,7 @@ static int p_switch(struct regnod *reg)
 }
 #endif /* SHOPT_OPTIMIZE */
 
-static void out_pattern(sh_stream_t *iop, const char *cp, int n)
+static void out_pattern_sfio(sh_stream_t *iop, const char *cp, int n)
 {
 	int c;
 	do
@@ -411,19 +411,49 @@ static void out_pattern(sh_stream_t *iop, const char *cp, int n)
 	while(*cp++);
 }
 
-static void out_string(sh_stream_t *iop, const char *cp, int c, int quoted)
+static void out_pattern(Stk_t *stkp, const char *cp, int n)
+{
+	int c;
+	do
+	{
+		switch(c= *cp)
+		{
+		    case 0:
+			if(n<0)
+				return;
+			c = n;
+			break;
+		    case '\n':
+			stkputs(stkp,"$'\\n",'\'');
+			continue;
+		    case '\\':
+			if (!(c = *++cp))
+				c = '\\';
+			/* FALLTHROUGH */
+		    case ' ':
+		    case '<': case '>': case ';':
+		    case '$': case '`': case '\t':
+			stkputc(stkp,'\\');
+			break;
+		}
+		stkputc(stkp,c);
+	}
+	while(*cp++);
+}
+
+static void out_string(Stk_t *stkp, const char *cp, int c, int quoted)
 {
 	if(quoted)
 	{
-		int n = stktell(sh.stk);
+		int n = stktell(stkp);
 		cp = sh_fmtq(cp);
-		if(iop==sh.stk && cp==stkptr(sh.stk,n))
+		if(cp==stkptr(stkp,n))
 		{
-			*stkptr(sh.stk,stktell(sh.stk)-1) = c;
+			*stkptr(stkp,stktell(stkp)-1) = c;
 			return;
 		}
 	}
-	sfputr(iop,cp,c);
+	stkputs(stkp,cp,c);
 }
 
 /*
@@ -539,17 +569,17 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	sh.indebug = 1;
 	if(name)
 	{
-		sfputr(sh.stk,name,-1);
+		stkputs(sh.stk,name,-1);
 		if(subscript)
 		{
-			sfputc(sh.stk,'[');
+			stkputc(sh.stk,'[');
 			out_string(sh.stk,subscript,']',1);
 		}
 		if(!(flags&ARG_APPEND))
 			cp+=1, n-=1;
 		if(!(flags&ARG_ASSIGN))
 			n -= 2;
-		sfwrite(sh.stk,cp,n);
+		stkwrite(sh.stk,cp,n);
 	}
 	if(*argv && !(flags&ARG_RAW))
 		out_string(sh.stk, *argv++,' ', 0);
@@ -562,7 +592,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 			out_string(sh.stk, cp,' ',n?0: (flags&(ARG_RAW|ARG_NOGLOB))||*argv);
 	}
 	if(flags&ARG_ASSIGN)
-		sfputc(sh.stk,')');
+		stkputc(sh.stk,')');
 	else
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
 	np->nvalue = stkfreeze(sh.stk,1);
@@ -2384,8 +2414,8 @@ int sh_exec(const Shnode_t *t, int flags)
 					error(ERROR_exit(3),"namespaces cannot be defined in a ksh function scope");
 					UNREACHABLE();
 				}
-				sfputc(sh.stk,'.');
-				sfputr(sh.stk,fname,0);
+				stkputc(sh.stk,'.');
+				stkputs(sh.stk,fname,0);
 				np = nv_open(stkptr(sh.stk,offset),sh.var_tree,flags);
 				offset = stktell(sh.stk);
 				if(nv_istable(np))
@@ -2428,12 +2458,12 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				else
 				{
-					sfwrite(sh.stk,fname,cp++-fname);
-					sfputc(sh.stk,0);
+					stkwrite(sh.stk,fname,cp++-fname);
+					stkputc(sh.stk,0);
 					npv = nv_open(stkptr(sh.stk,offset),sh.var_tree,NV_NOARRAY|NV_VARNAME);
 				}
 				offset = stktell(sh.stk);
-				sfprintf(sh.stk,"%s.%s%c",nv_name(npv),cp,0);
+				stkprintf(sh.stk,"%s.%s%c",nv_name(npv),cp,0);
 				fname = stkptr(sh.stk,offset);
 			}
 			else if((mp=nv_search(fname,sh.bltin_tree,0)))
@@ -2625,7 +2655,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					{
 						sfprintf(sfstderr,"%s %s ",sh_fmtq(left),op);
 						if(pattern)
-							out_pattern(sfstderr,right,-1);
+							out_pattern_sfio(sfstderr,right,-1);
 						else
 							sfputr(sfstderr,sh_fmtq(right),-1);
 					}

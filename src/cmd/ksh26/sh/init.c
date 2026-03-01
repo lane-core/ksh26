@@ -1100,8 +1100,8 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 		}
 		getname = 1;
 	}
-	sfputr(sh.stk,fake.nvname,'.');
-	sfputr(sh.stk,event,0);
+	stkputs(sh.stk,fake.nvname,'.');
+	stkputs(sh.stk,event,0);
 	name = stkptr(sh.stk,off);
 	mp = nv_search(name, sh.fun_tree, action?NV_ADD:0);
 	stkseek(sh.stk,off);
@@ -1133,7 +1133,7 @@ static int newconf(const char *name, const char *path, const char *value)
 			chdir(arg);
 		/* clear out old tracked alias */
 		stkseek(sh.stk,0);
-		sfputr(sh.stk,nv_getval(PATHNOD),0);
+		stkputs(sh.stk,nv_getval(PATHNOD),0);
 		nv_putval(PATHNOD,stkseek(sh.stk,0),NV_RDONLY);
 	}
 	return 1;
@@ -1978,7 +1978,7 @@ static void put_trans(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 			off += c;
 			stkseek(sh.stk,off);
 		}
-		sfputc(sh.stk,0);
+		stkputc(sh.stk,0);
 		val = stkptr(sh.stk,offset);
 	}
 	else

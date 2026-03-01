@@ -57,4 +57,13 @@ extern void*		stkset(Stk_t*, void*, size_t);
 extern void*		_stkseek(Stk_t*, ssize_t);
 extern void*		stkfreeze(Stk_t*, size_t);
 
+/* write functions (thin wrappers, replaced in Step 3 with direct buffer ops) */
+extern int		stkputc(Stk_t*, int);
+extern ssize_t		stkputs(Stk_t*, const char*, int);
+extern ssize_t		stkwrite(Stk_t*, const void*, size_t);
+extern ssize_t		stknputc(Stk_t*, int, size_t);
+extern int		stkprintf(Stk_t*, const char*, ...)
+			__attribute__((format(__printf__, 2, 3)));
+extern int		stkvprintf(Stk_t*, const char*, va_list);
+
 #endif

@@ -965,11 +965,11 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
 		sh.last_root = nv_dict(sh.last_table);
 	if(sh.last_root)
 		sh.var_tree = sh.last_root;
-	sfputr(sh.stk,nv_name(np),-1);
+	stkputs(sh.stk,nv_name(np),-1);
 	if(arp && !(arp->nelem&ARRAY_SCAN) && (subscript = nv_getsub(np)))
 	{
 		mp = nv_opensub(np);
-		sfprintf(sh.stk,"[%s].",subscript);
+		stkprintf(sh.stk,"[%s].",subscript);
 	}
 	else if(*stkptr(sh.stk,stktell(sh.stk)-1) == ']')
 		mp = np;
@@ -994,8 +994,8 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
 			if(!nq && (flags&NV_MOVE))
 				nq = nv_search(cp,walk.root,NV_NOADD);
 			stkseek(sh.stk,0);
-			sfputr(sh.stk,xpname,-1);
-			sfputr(sh.stk,cp+len,0);
+			stkputs(sh.stk,xpname,-1);
+			stkputs(sh.stk,cp+len,0);
 			sh.var_tree = save_tree;
 			mq = nv_open(stkptr(sh.stk,0),sh.prev_root,NV_VARNAME|NV_NOFAIL);
 			sh.var_tree = dp;
@@ -1008,7 +1008,7 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
 			continue;
 		}
 		stkseek(sh.stk,ARGVAL);
-		sfputr(sh.stk,cp,-1);
+		stkputs(sh.stk,cp,-1);
 		ap = stkfreeze(sh.stk,1);
 		ap->argflag = ARG_RAW;
 		ap->argchn.ap = arglist;
