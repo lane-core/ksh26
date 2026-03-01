@@ -1220,14 +1220,14 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (p->limit.string)
 				sfprintf(sp, "L[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->limit.string, "\"", "\"", strlen(p->limit.string), FMT_SHELL|FMT_ALWAYS) : p->limit.string);
 			else
-				sfprintf(sp, "L[%I*d] ", sizeof(p->limit.number), p->limit.number);
+				sfprintf(sp, "L[%jd] ", (intmax_t)p->limit.number);
 		}
 		if (p->flags & CONF_MINMAX_DEF)
 		{
 			if (p->minmax.string)
 				sfprintf(sp, "M[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->minmax.string, "\"", "\"", strlen(p->minmax.string), FMT_SHELL|FMT_ALWAYS) : p->minmax.string);
 			else
-				sfprintf(sp, "M[%I*d] ", sizeof(p->minmax.number), p->minmax.number);
+				sfprintf(sp, "M[%jd] ", (intmax_t)p->minmax.number);
 		}
 		if (flags & CONF_ERROR)
 			sfprintf(sp, "error");
@@ -1236,9 +1236,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (s)
 				sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 			else if (v != -1)
-				sfprintf(sp, "%I*d", sizeof(v), v);
+				sfprintf(sp, "%jd", (intmax_t)v);
 			else
-				sfprintf(sp, "%I*u", sizeof(v), v);
+				sfprintf(sp, "%ju", (uintmax_t)v);
 		}
 		sfprintf(sp, "\n");
 	}
@@ -1266,9 +1266,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 				if (s)
 					sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 				else if (v != -1)
-					sfprintf(sp, "%I*d", sizeof(v), v);
+					sfprintf(sp, "%jd", (intmax_t)v);
 				else
-					sfprintf(sp, "%I*u", sizeof(v), v);
+					sfprintf(sp, "%ju", (uintmax_t)v);
 			}
 			else
 				sfprintf(sp, "undefined");
@@ -1289,9 +1289,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 				v = p->minmax.number;
 			}
 			if (v != -1)
-				sfprintf(sp, "%I*d", sizeof(v), v);
+				sfprintf(sp, "%jd", (intmax_t)v);
 			else if (defined)
-				sfprintf(sp, "%I*u", sizeof(v), v);
+				sfprintf(sp, "%ju", (uintmax_t)v);
 			else
 				sfprintf(sp, "undefined");
 			sfprintf(sp, "\n");

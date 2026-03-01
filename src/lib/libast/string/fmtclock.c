@@ -55,6 +55,6 @@ fmtclock(Sfulong_t t)
 	else
 		return fmtelapsed(t / 10, 100);
 	buf = fmtbuf(z = 7);
-	sfsprintf(buf, z, "%I*u%cs", sizeof(t), t, u);
+	snprintf(buf, z, "%ju%cs", (uintmax_t)t, u);
 	return buf;
 }

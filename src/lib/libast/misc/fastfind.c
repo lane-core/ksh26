@@ -197,7 +197,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 						{
 							for (k = 0; k < elementsof(findnames); k++)
 							{
-								sfsprintf(fp->encode.file, sizeof(fp->encode.file), "%s/%s", path, findnames[k]);
+								snprintf(fp->encode.file, sizeof(fp->encode.file), "%s/%s", path, findnames[k]);
 								if (!eaccess(fp->encode.file, R_OK|W_OK))
 								{
 									path = fp->encode.file;
@@ -219,14 +219,14 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 						}
 						else if (st.st_uid == uid && (st.st_mode & S_IWUSR))
 						{
-							sfsprintf(fp->encode.file, sizeof(fp->encode.file), "%s", path);
+							snprintf(fp->encode.file, sizeof(fp->encode.file), "%s", path);
 							path = fp->encode.file;
 							break;
 						}
 					}
 					else if (i < 2 || strmatch(path, FIND_MATCH))
 					{
-						sfsprintf(fp->encode.file, sizeof(fp->encode.file), "%s", path);
+						snprintf(fp->encode.file, sizeof(fp->encode.file), "%s", path);
 						if (b = strrchr(fp->encode.file, '/'))
 						{
 							*b = 0;
@@ -246,11 +246,11 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 				}
 				else if (b = strrchr(path, '/'))
 				{
-					sfsprintf(fp->encode.file, sizeof(fp->encode.file), "%-.*s", b - path, path);
+					snprintf(fp->encode.file, sizeof(fp->encode.file), "%-.*s", b - path, path);
 					if (pathpath(fp->encode.file, "", PATH_EXECUTE|PATH_READ|PATH_WRITE, fp->encode.temp, sizeof(fp->encode.temp)) &&
 					    !stat(fp->encode.temp, &st) && st.st_uid == uid && (st.st_mode & S_IWUSR))
 					{
-						sfsprintf(fp->encode.file, sizeof(fp->encode.file), "%s%s", fp->encode.temp, b);
+						snprintf(fp->encode.file, sizeof(fp->encode.file), "%s%s", fp->encode.temp, b);
 						path = fp->encode.file;
 						break;
 					}
@@ -375,7 +375,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 						{
 							for (k = 0; k < elementsof(findnames); k++)
 							{
-								sfsprintf(fp->decode.path, sizeof(fp->decode.path), "%s/%s", path, findnames[k]);
+								snprintf(fp->decode.path, sizeof(fp->decode.path), "%s/%s", path, findnames[k]);
 								if (fp->fp = sfopen(NULL, fp->decode.path, "r"))
 								{
 									path = fp->decode.path;
@@ -514,11 +514,11 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 					for (i = q = 0; i < k; i++)
 					{
 						if (*(s = disc->dirs[i]) == '/')
-							sfsprintf(b, sizeof(fp->decode.temp) - 1, "%s", s);
+							snprintf(b, sizeof(fp->decode.temp) - 1, "%s", s);
 						else if (!p && !(p = getcwd(fp->decode.path, sizeof(fp->decode.path))))
 							goto nomemory;
 						else
-							sfsprintf(b, sizeof(fp->decode.temp) - 1, "%s/%s", p, s);
+							snprintf(b, sizeof(fp->decode.temp) - 1, "%s/%s", p, s);
 						s = pathcanon(b, sizeof(fp->decode.temp), 0);
 						*s = '/';
 						*(s + 1) = 0;
@@ -935,7 +935,7 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 		return -1;
 	if (type && fp->method == FF_dir)
 	{
-		len = sfsprintf(fp->encode.mark, sizeof(fp->encode.mark), "%-.*s/", len, path);
+		len = snprintf(fp->encode.mark, sizeof(fp->encode.mark), "%-.*s/", len, path);
 		path = fp->encode.mark;
 	}
 	s = (unsigned char*)path;

@@ -213,13 +213,13 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 			}
 			else
 				m = "1";
-			b += sfsprintf(b, e - b, cp->canon, m);
+			b += snprintf(b, e - b, cp->canon, m);
 		}
 		else if (cp->ccode == CC_ASCII)  /* assumes CC_NATIVE == CC_ASCII */
 		{
 			if ((locales[AST_LC_CTYPE]->flags & LC_default) || !locales[AST_LC_CTYPE]->charset || !(m = locales[AST_LC_CTYPE]->charset->code) || streq(m, "iso8859-1"))
 				m = (const char*)"ISO-8859-1";
-			b += sfsprintf(b, e - b, "%s", m);
+			b += snprintf(b, e - b, "%s", m);
 		}
 		*b = 0;
 #if DEBUG_TRACE
@@ -1136,11 +1136,11 @@ error(DEBUG_TRACE, "AHA#%d iconv_write %d => %d [%d]", __LINE__, *fn, tn, _r);
 				break;
 			case EINVAL:
 				if (disc->errorf)
-					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "incomplete multibyte sequence at offset %I*u", sizeof(fo), *fb - fo);
+					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "incomplete multibyte sequence at offset %ju", (uintmax_t)(*fb - fo));
 				goto bad;
 			default:
 				if (disc->errorf)
-					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "invalid multibyte sequence at offset %I*u", sizeof(fo), *fb - fo);
+					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "invalid multibyte sequence at offset %ju", (uintmax_t)(*fb - fo));
 			bad:
 				disc->errors++;
 				if (!(disc->flags & ICONV_FATAL))
@@ -1237,14 +1237,14 @@ _ast_iconv_move(_ast_iconv_t cd, Sfio_t* ip, Sfio_t* op, size_t n, Iconv_disc_t*
 				{
 					fe = OK;
 					if (disc->errorf)
-						(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "incomplete multibyte sequence at offset %I*u", sizeof(ft), ft + (fo - fn));
+						(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "incomplete multibyte sequence at offset %ju", (uintmax_t)(ft + (fo - fn)));
 					goto bad;
 				}
 				fe = ft;
 				break;
 			default:
 				if (disc->errorf)
-					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "invalid multibyte sequence at offset %I*u", sizeof(ft), ft + (fo - fn));
+					(*disc->errorf)(NULL, disc, ERROR_SYSTEM|2, "invalid multibyte sequence at offset %ju", (uintmax_t)(ft + (fo - fn)));
 			bad:
 				disc->errors++;
 				if (!(disc->flags & ICONV_FATAL))

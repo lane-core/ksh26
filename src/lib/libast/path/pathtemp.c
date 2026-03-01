@@ -144,7 +144,7 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 	int		z;
 	int		attempt;
 	Tv_t		tv;
-	char		keybuf[16];
+	char		keybuf[20];
 
 	if (pfx && *pfx == '/')
 	{
@@ -349,8 +349,8 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 		if (!tmp.seed)
 			tvgettime(&tv);
 		tmp.key = tmp.rng * key + tv.tv_nsec;
-		sfsprintf(keybuf, sizeof(keybuf), "%07.7.32I*u%07.7.32I*u", sizeof(key), key, sizeof(tmp.key), tmp.key);
-		sfsprintf(s, len, "%-.*s%s%-.*s", l, keybuf, z ? "." : "", r, keybuf + sizeof(keybuf) / 2);
+		snprintf(keybuf, sizeof(keybuf), "%08x%08x", (unsigned)key, (unsigned)tmp.key);
+		snprintf(s, len, "%-.*s%s%-.*s", l, keybuf, z ? "." : "", r, keybuf + sizeof(keybuf) / 2);
 		if (fdp)
 		{
 			if ((n = open(b, O_CREAT|O_RDWR|O_EXCL|O_TEMPORARY, tmp.mode)) >= 0)
