@@ -28,6 +28,7 @@
 #define _OPTION_H
 
 #include <ast.h>
+#include <ast_wbuf.h>
 
 #define OPT_VERSION	20070319L
 
@@ -36,7 +37,7 @@
 struct Opt_s;
 struct Optdisc_s;
 
-typedef int (*Optinfo_f)(struct Opt_s*, Sfio_t*, const char*, struct Optdisc_s*);
+typedef int (*Optinfo_f)(struct Opt_s*, ast_wbuf_t*, const char*, struct Optdisc_s*);
 
 typedef struct Optdisc_s
 {
@@ -82,7 +83,7 @@ extern int		optjoin(char**, ...);
 extern char*		opthelp(const char*, const char*);
 extern char*		optusage(const char*);
 extern int		optstr(const char*, const char*);
-extern int		optesc(Sfio_t*, const char*, int);
+extern int		optesc(ast_wbuf_t*, const char*, int);
 extern Opt_t*		optctx(Opt_t*, Opt_t*);
 
 #endif

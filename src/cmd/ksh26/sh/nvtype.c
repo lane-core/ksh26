@@ -592,7 +592,7 @@ static Namfun_t *clone_inttype(Namval_t* np, Namval_t *mp, int flags, Namfun_t *
 	return pp;
 }
 
-static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
+static int typeinfo(Opt_t* op, ast_wbuf_t* out, const char *str, Optdisc_t *fp)
 {
 	char		*cp,**help,buffer[256];
 	Namtype_t	*dp;
@@ -623,15 +623,30 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		nv_offattr(np,NV_RDONLY);
 		fp->type = 0;
 		if(np->nvmeta)
-			sfprintf(out,"[+?\b%s\b is a %s.]\n", tp->nvname, (char*)np->nvmeta);
-		cp = (char*)out->_next;
-		sfprintf(out,"[+?\b%s\b is a %n ", tp->nvname, &i);
-		nv_attribute(np,out,NULL, 1);
-		if(cp[i+1]=='i')
-			cp[i-1]='n';
+			ast_wbuf_printf(out,"[+?\b%s\b is a %s.]\n", tp->nvname, (char*)np->nvmeta);
+		{
+			Sfio_t	*attr_sp;
+			char	*attr_s;
+			size_t	pos;
+			pos = ast_wbuf_tell(out);
+			ast_wbuf_printf(out,"[+?\b%s\b is a %n ", tp->nvname, &i);
+			attr_sp = sfstropen();
+			if(attr_sp)
+			{
+				nv_attribute(np, attr_sp, NULL, 1);
+				if((attr_s = sfstruse(attr_sp)))
+					ast_wbuf_puts(out, attr_s);
+				sfstrclose(attr_sp);
+			}
+			{
+				char	*base = ast_wbuf_base(out);
+				if(base && base[pos + i + 1] == 'i')
+					base[pos + i - 1] = 'n';
+			}
+		}
 		fp->type = tp;
 		nv_onattr(np,NV_RDONLY);
-		sfprintf(out," with default value \b%s\b.]",nv_getval(np));
+		ast_wbuf_printf(out," with default value \b%s\b.]",nv_getval(np));
 		return 0;
 	}
 	if(strcmp(str,"other")==0)
@@ -642,20 +657,20 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 			for(i=0; i < bp->num; i++)
 			{
 				if(nv_isattr(bp->bltins[i],NV_OPTGET))
-					sfprintf(out,"\b%s.%s\b(3), ",np->nvname,bp->bnames[i]);
+					ast_wbuf_printf(out,"\b%s.%s\b(3), ",np->nvname,bp->bnames[i]);
 			}
 		}
 		return 0;
 	}
 	help = &dp->names[dp->ndisc];
 	sp = sfnew(NULL,buffer,sizeof(buffer),-1,SFIO_STRING|SFIO_WRITE);
-	sfprintf(out,"[+?\b%s\b defines the following fields:]{\n",np->nvname);
+	ast_wbuf_printf(out,"[+?\b%s\b defines the following fields:]{\n",np->nvname);
 	for(i=0; i < dp->numnodes; i++)
 	{
 		nq = nv_namptr(dp->nodes,i);
 		if(tp=nv_type(nq))
 		{
-			sfprintf(out,"\t[+%s?%s.\n",nq->nvname,tp->nvname);
+			ast_wbuf_printf(out,"\t[+%s?%s.\n",nq->nvname,tp->nvname);
 			n = strlen(nq->nvname);
 			while((cp=nv_namptr(dp->nodes,i+1)->nvname) && strncmp(cp,nq->nvname,n)==0 && cp[n]=='.')
 				i++;
@@ -671,22 +686,22 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 			for(n=strlen(buffer); n>0 && buffer[n-1]==' '; n--);
 			buffer[n] = 0;
 			if(cp)
-				sfprintf(out,"\t[+%s?%s, default value is %s.\n",nq->nvname,*buffer?buffer:"string",cp);
+				ast_wbuf_printf(out,"\t[+%s?%s, default value is %s.\n",nq->nvname,*buffer?buffer:"string",cp);
 			else
-				sfprintf(out,"\t[+%s?%s.\n",nq->nvname,*buffer?buffer:"string");
+				ast_wbuf_printf(out,"\t[+%s?%s.\n",nq->nvname,*buffer?buffer:"string");
 		}
 		if(help[i])
-			sfprintf(out,"  %s.",help[i]);
-		sfputc(out,']');
+			ast_wbuf_printf(out,"  %s.",help[i]);
+		ast_wbuf_putc(out,']');
 	}
-	sfprintf(out,"}\n");
+	ast_wbuf_printf(out,"}\n");
 	if(dp->ndisc>0)
 	{
 		stkseek(sh.stk,offset);
 		stkputs(sh.stk,NV_CLASS,'.');
 		stkputs(sh.stk,np->nvname,'.');
 		n = stktell(sh.stk);
-		sfprintf(out,"[+?\b%s\b defines the following discipline functions:]{\n",np->nvname);
+		ast_wbuf_printf(out,"[+?\b%s\b defines the following discipline functions:]{\n",np->nvname);
 		for(i=0; i < dp->ndisc; i++)
 		{
 			stkputs(sh.stk,dp->names[i],0);
@@ -694,14 +709,14 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 			if((nq = nv_search(stkptr(sh.stk,offset),sh.fun_tree,0)) && nq->nvalue)
 				cp = ((struct Ufunction*)nq->nvalue)->help;
 			if(nq && nv_isattr(nq,NV_STATICF))
-				sfprintf(out,"\t[+%s?:static:%s]\n",dp->names[i],cp?cp:Empty);
+				ast_wbuf_printf(out,"\t[+%s?:static:%s]\n",dp->names[i],cp?cp:Empty);
 			else
-				sfprintf(out,"\t[+%s?%s]\n",dp->names[i],cp?cp:Empty);
+				ast_wbuf_printf(out,"\t[+%s?%s]\n",dp->names[i],cp?cp:Empty);
 			if(cp)
-				sfputc(out,'.');
+				ast_wbuf_putc(out,'.');
 			stkseek(sh.stk,n);
 		}
-		sfprintf(out,"}\n");
+		ast_wbuf_printf(out,"}\n");
 	}
 	stkseek(sh.stk,offset);
 	sfclose(sp);
