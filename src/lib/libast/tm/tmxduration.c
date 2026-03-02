@@ -18,6 +18,7 @@
 ***********************************************************************/
 
 #include <tmx.h>
+#include <ast_wbuf.h>
 #include <ctype.h>
 
 /*
@@ -35,7 +36,7 @@ tmxduration(const char* s, char** e)
 	char*		last;
 	char*		t;
 	char*		x;
-	Sfio_t*		f;
+	ast_wbuf_t	wb = AST_WBUF_INIT;
 	int		i;
 
 	now = TMX_NOW;
@@ -46,10 +47,10 @@ tmxduration(const char* s, char** e)
 	else
 	{
 		ns = strtod(s, &last) * TMX_RESOLUTION;
-		if (*last && (f = sfstropen()))
+		if (*last && ast_wbuf_open(&wb) == 0)
 		{
-			sfprintf(f, "exact %s", s);
-			t = sfstruse(f);
+			ast_wbuf_printf(&wb, "exact %s", s);
+			t = ast_wbuf_use(&wb);
 			ts = tmxdate(t, &x, now);
 			if ((i = x - t - 6) > (last - s))
 			{
@@ -58,8 +59,8 @@ tmxduration(const char* s, char** e)
 			}
 			else
 			{
-				sfprintf(f, "p%s", s);
-				t = sfstruse(f);
+				ast_wbuf_printf(&wb, "p%s", s);
+				t = ast_wbuf_use(&wb);
 				ts = tmxdate(t, &x, now);
 				if ((i = x - t - 1) > (last - s))
 				{
@@ -67,7 +68,7 @@ tmxduration(const char* s, char** e)
 					ns = ts - now;
 				}
 			}
-			sfstrclose(f);
+			ast_wbuf_close(&wb);
 		}
 	}
 	if (e)
