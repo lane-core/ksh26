@@ -3300,13 +3300,20 @@ int nv_rename(Namval_t *np, int flags)
 	}
 	else
 	{
-		nv_putval(np,nv_getval(nr),0);
 		if(flags&NV_MOVE)
 		{
 			if(!nv_isattr(nr,NV_MINIMAL) && (mp = nr->nvmeta) && (ap = nv_arrayptr(mp)))
 				ap->nelem--;
-			nv_unset(nr,0);
+			if(nv_isattr(nr,NV_RDONLY) || nv_arrayptr(nr) || nv_arrayptr(np))
+			{
+				nv_putval(np,nv_getval(nr),0);
+				nv_unset(nr,0);
+			}
+			else
+				nv_clone(nr,np,NV_MOVE);
 		}
+		else
+			nv_putval(np,nv_getval(nr),0);
 	}
 	return 1;
 }

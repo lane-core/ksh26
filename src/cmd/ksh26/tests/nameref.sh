@@ -554,7 +554,7 @@ nameref l4=l[4]
 printf "( typeset -a ar=( 1\n2\n) b=1 )\n" | read -C l4
 [[ $(print -v l) == "$exp" ]] || err_exit  'nameref l4=l[4] not working with associative array read'
 
-exp=$'(\n\t[9]=(\n\t\tfish=4\n\t)\n)'
+exp=$'(\n\t[9]=(\n\t\ttypeset -i fish=4\n\t)\n)'
 function add_eval
 {
 	nameref pos=$1
