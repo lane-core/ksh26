@@ -536,7 +536,7 @@ lcmake(const char* name)
 	*s = 0;
 #if AHA
 	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %s language=%s territory=%s charset=%s attributes=%s\n", name, language_name, territory_name, charset_name, attributes_name);
+		fprintf(stderr, "locale make %s language=%s territory=%s charset=%s attributes=%s\n", name, language_name, territory_name, charset_name, attributes_name);
 #endif
 	tp = 0;
 	cp = ppa = 0;
@@ -734,7 +734,7 @@ lcmake(const char* name)
 				break;
 #if AHA
 	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %s charset_name=%s cp=%s ppa=%s lp=%s\n", name, charset_name, cp ? cp->code : 0, ppa, lp->charset);
+		fprintf(stderr, "locale make %s charset_name=%s cp=%s ppa=%s lp=%s\n", name, charset_name, cp ? cp->code : 0, ppa, lp->charset);
 #endif
 	if (!cp || !cp->code)
 		cp = ppa ? ppa : lp->charset;
@@ -800,7 +800,7 @@ lcmake(const char* name)
 	lc->next = lcs;
 	lcs = lc;
 	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %17s %16s %16s %16s language=%s territory=%s charset=%s%s\n", "", lc->name, lc->code, "", lc->language->name, lc->territory->name, lc->charset->code, (lc->flags & LC_local) ? " local" : "");
+		fprintf(stderr, "locale make %17s %16s %16s %16s language=%s territory=%s charset=%s%s\n", "", lc->name, lc->code, "", lc->language->name, lc->territory->name, lc->charset->code, (lc->flags & LC_local) ? " local" : "");
 	return lc;
 }
 

@@ -67,7 +67,7 @@ Error_info_t*		_error_infop_ = &_error_info_;
 static struct State_s
 {
 	char*		prefix;
-	Sfio_t*		tty;
+	FILE*		tty;
 	unsigned long	count;
 	int		breakpoint;
 	regex_t*	match;
@@ -282,11 +282,16 @@ error_break(void)
 {
 	char*	s;
 
-	if (error_state.tty || (error_state.tty = sfopen(NULL, "/dev/tty", "r+")))
+	if (error_state.tty || (error_state.tty = fopen("/dev/tty", "r+")))
 	{
-		sfprintf(error_state.tty, "error breakpoint: ");
-		if (s = sfgetr(error_state.tty, '\n', 1))
+		fprintf(error_state.tty, "error breakpoint: ");
+		char	tbuf[256];
+		if ((s = fgets(tbuf, sizeof(tbuf), error_state.tty)) != NULL)
 		{
+			/* strip trailing newline (sfgetr did this implicitly) */
+			size_t	tlen = strlen(s);
+			if (tlen > 0 && s[tlen - 1] == '\n')
+				s[tlen - 1] = '\0';
 			if (streq(s, "q") || streq(s, "quit"))
 				exit(0);
 			stropt(s, options, sizeof(*options), setopt, NULL);
@@ -514,9 +519,6 @@ errorv(const char* id, int level, va_list ap)
 				n -= ++t - s;
 				s = t;
 			}
-#if HUH_19980401 /* nasty problems if sfgetr() is in effect! */
-			sfsync(sfstdin);
-#endif
 			sfsync(sfstdout);
 			sfsync(sfstderr);
 			if (fd == sffileno(sfstderr) && error_info.write == write)

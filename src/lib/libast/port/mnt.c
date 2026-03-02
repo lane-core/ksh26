@@ -617,7 +617,7 @@ struct mntent
 typedef struct
 {
 	Header_t	hdr;
-	Sfio_t*		fp;
+	FILE*		fp;
 	struct mntent*	mnt;
 #if _lib_w_getmntent
 	int		count;
@@ -639,7 +639,7 @@ mntopen(const char* path, const char* mode)
 	else
 #else
 	mp->mnt = (struct mntent*)mp->buf;
-	if (!(mp->fp = sfopen(NULL, path, mode)))
+	if (!(mp->fp = fopen(path, mode)))
 #endif
 	{
 		free(mp);
@@ -670,7 +670,7 @@ mntread(void* handle)
 
 #if _hdr_mnttab
 
-	while (sfread(mp->fp, &mp->buf, sizeof(mp->buf)) == sizeof(mp->buf))
+	while (fread(&mp->buf, 1, sizeof(mp->buf), mp->fp) == sizeof(mp->buf))
 		if (*mp->mnt->mnt_fsname && *mp->mnt->mnt_dir)
 		{
 #ifndef mnt_type
@@ -700,7 +700,7 @@ mntread(void* handle)
 	x = 0;
 	b = s = mp->mnt->mnt_fsname;
 	m = s + sizeof(mp->mnt->mnt_fsname) - 1;
-	for (;;) switch (c = sfgetc(mp->fp))
+	for (;;) switch (c = fgetc(mp->fp))
 	{
 	case EOF:
 		return NULL;
@@ -766,7 +766,8 @@ mntclose(void* handle)
 
 	if (!mp)
 		return -1;
-	sfclose(mp->fp);
+	if (mp->fp)
+		fclose(mp->fp);
 	free(mp);
 	return 0;
 }

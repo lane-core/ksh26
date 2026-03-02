@@ -43,11 +43,11 @@ astquery(int quit, const char* format, ...)
 	int		n;
 	int		c;
 	int		r;
-	Sfio_t*		ip;
-	Sfio_t*		op;
+	FILE*		ip;
+	FILE*		op;
 
-	static Sfio_t*	rfp;
-	static Sfio_t*	wfp;
+	static FILE*	rfp;
+	static FILE*	wfp;
 
 	r = 0;
 	va_start(ap, format);
@@ -57,13 +57,13 @@ astquery(int quit, const char* format, ...)
 	if (!rfp)
 	{
 		c = errno;
-		if (isatty(sffileno(sfstdin)))
-			rfp = sfstdin;
-		else if (!(rfp = sfopen(NULL, "/dev/tty", "r")))
+		if (isatty(fileno(stdin)))
+			rfp = stdin;
+		else if (!(rfp = fopen("/dev/tty", "r")))
 			goto done;
-		if (isatty(sffileno(sfstderr)))
-			wfp = sfstderr;
-		else if (!(wfp = sfopen(NULL, "/dev/tty", "w")))
+		if (isatty(fileno(stderr)))
+			wfp = stderr;
+		else if (!(wfp = fopen("/dev/tty", "w")))
 			goto done;
 		errno = c;
 	}
@@ -75,13 +75,13 @@ astquery(int quit, const char* format, ...)
 	}
 	else
 	{
-		ip = sfstdin;
-		op = sfstderr;
+		ip = stdin;
+		op = stderr;
 	}
-	sfsync(sfstdout);
-	sfvprintf(op, format, ap);
-	sfsync(op);
-	for (n = c = sfgetc(ip);; c = sfgetc(ip))
+	fflush(stdout);
+	vfprintf(op, format, ap);
+	fflush(op);
+	for (n = c = fgetc(ip);; c = fgetc(ip))
 		switch (c)
 		{
 		case EOF:

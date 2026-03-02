@@ -25,6 +25,7 @@
 
 #include "lclib.h"
 
+#include <ast_wbuf.h>
 #include <cdt.h>
 #include <error.h>
 #include <mc.h>
@@ -59,16 +60,10 @@ typedef struct
 
 typedef struct
 {
-	Sfio_t*		sp;		/* temp string stream		*/
-	int		off;		/* string base offset		*/
-} Temp_t;
-
-typedef struct
-{
 	Dtdisc_t	message_disc;	/* message dict discipline	*/
 	Dtdisc_t	catalog_disc;	/* catalog dict discipline	*/
 	Dt_t*		catalogs;	/* catalog dictionary handle	*/
-	Sfio_t*		tmp;		/* temporary string stream	*/
+	ast_wbuf_t	wb;		/* temporary string writer	*/
 	int		error;		/* no dictionaries!		*/
 	char		null[1];	/* null string			*/
 } State_t;
@@ -78,21 +73,6 @@ static State_t	state =
 	{	offsetof(Message_t, text),	0,	0	},
 	{	offsetof(Catalog_t, name),	0,	0	},
 };
-
-static int
-tempget(Sfio_t* sp)
-{
-	if (sfstrtell(sp) > sfstrsize(sp) / 2)
-		sfstrseek(sp, 0, SEEK_SET);
-	return sfstrtell(sp);
-}
-
-static char*
-tempuse(Sfio_t* sp, int off)
-{
-	sfputc(sp, 0);
-	return sfstrbase(sp) + off;
-}
 
 /*
  * add msg to dict
@@ -114,7 +94,7 @@ entry(Dt_t* dict, int set, int seq, const char* msg)
 		return 0;
 	}
 #if DEBUG_trace > 1
-sfprintf(sfstderr, "AHA#%d:%s set %d seq %d msg `%s'\n", __LINE__, __FILE__, set, seq, msg);
+fprintf(stderr, "AHA#%d:%s set %d seq %d msg `%s'\n", __LINE__, __FILE__, set, seq, msg);
 #endif
 	return 1;
 }
@@ -293,7 +273,6 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 {
 	char*		r;
 	char*		t;
-	int		p;
 	int		oerrno;
 	Catalog_t*	cp = NULL;
 	Message_t*	mp;
@@ -321,14 +300,14 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	{
 		if (state.error)
 			goto done;
-		if (!(state.tmp = sfstropen()))
+		if (ast_wbuf_open(&state.wb) < 0)
 		{
 			state.error = 1;
 			goto done;
 		}
 		if (!(state.catalogs = dtopen(&state.catalog_disc, Dtset)))
 		{
-			sfclose(state.tmp);
+			ast_wbuf_close(&state.wb);
 			state.error = 1;
 			goto done;
 		}
@@ -346,7 +325,7 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	     !(cp = mp->cat))
 	{
 #if DEBUG_trace > 1
-sfprintf(sfstderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
+fprintf(stderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
 #endif
 		goto done;
 	}
@@ -356,7 +335,7 @@ sfprintf(sfstderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FI
 	 */
 
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FILE__, cp->locale, cp->locale, loc, loc);
+fprintf(stderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FILE__, cp->locale, cp->locale, loc, loc);
 #endif
 	if (serial != ast.env_serial)
 	{
@@ -374,22 +353,20 @@ sfprintf(sfstderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FIL
 		else
 			cp->debug = 0;
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE__, cp->cat, cp->debug, NOCAT);
+fprintf(stderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE__, cp->cat, cp->debug, NOCAT);
 #endif
 	}
 	if (cp->cat == NOCAT)
 	{
 		if (cp->debug)
 		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)", cp->name, mp->set, mp->seq);
-			r = tempuse(state.tmp, p);
+			ast_wbuf_printf(&state.wb, "(%s,%d,%d)", cp->name, mp->set, mp->seq);
+			r = ast_wbuf_use(&state.wb);
 		}
 		else if (ast.locale.set & AST_LC_debug)
 		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
-			r = tempuse(state.tmp, p);
+			ast_wbuf_printf(&state.wb, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
+			r = ast_wbuf_use(&state.wb);
 		}
 	}
 	else
@@ -405,25 +382,23 @@ sfprintf(sfstderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __F
 				r = (char*)msg;
 			else if (strcmp(fmtfmt(r), fmtfmt(msg)))
 			{
-				sfprintf(sfstderr, "locale %s catalog %s message %d.%d \"%s\" does not match \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, r, msg);
+				fprintf(stderr, "locale %s catalog %s message %d.%d \"%s\" does not match \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, r, msg);
 				r = (char*)msg;
 			}
 		}
 		if (ast.locale.set & AST_LC_debug)
 		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
-			r = tempuse(state.tmp, p);
+			ast_wbuf_printf(&state.wb, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
+			r = ast_wbuf_use(&state.wb);
 		}
 	}
 	if (ast.locale.set & AST_LC_translate)
-		sfprintf(sfstderr, "translate locale=%s catalog=%s set=%d seq=%d \"%s\" => \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, msg, r == (char*)msg ? "NOPE" : r);
+		fprintf(stderr, "translate locale=%s catalog=%s set=%d seq=%d \"%s\" => \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, msg, r == (char*)msg ? "NOPE" : r);
  done:
-	if (r == (char*)msg && (!cp && streq(loc, "debug") || cp && cp->debug))
+	if (r == (char*)msg && (!cp && streq(loc, "debug") || cp && cp->debug) && state.wb.fp)
 	{
-		p = tempget(state.tmp);
-		sfprintf(state.tmp, "(%s,%s,%s,%s)", loc, cmd, cat, r);
-		r = tempuse(state.tmp, p);
+		ast_wbuf_printf(&state.wb, "(%s,%s,%s,%s)", loc, cmd, cat, r);
+		r = ast_wbuf_use(&state.wb);
 	}
 	errno = oerrno;
 	return r;

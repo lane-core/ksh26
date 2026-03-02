@@ -305,11 +305,11 @@ cmdflush(Cmdarg_t* cmd)
 	if (cmd->flags & (CMD_QUERY|CMD_TRACE))
 	{
 		p = cmd->argv;
-		sfprintf(sfstderr, "+ %s", *p);
+		fprintf(stderr, "+ %s", *p);
 		while (s = *++p)
-			sfprintf(sfstderr, " %s", s);
+			fprintf(stderr, " %s", s);
 		if (!(cmd->flags & CMD_QUERY))
-			sfprintf(sfstderr, "\n");
+			fprintf(stderr, "\n");
 		else if (astquery(1, "? "))
 		{
 			return 0;
@@ -319,7 +319,10 @@ cmdflush(Cmdarg_t* cmd)
 	{
 		n = (cmd->flags & CMD_NEWLINE) ? '\n' : ' ';
 		for (p = cmd->argv + 1; s = *p++;)
-			sfputr(sfstdout, s, *p ? n : '\n');
+		{
+			fputs(s, stdout);
+			fputc(*p ? n : '\n', stdout);
+		}
 		n = 0;
 	}
 	else if ((n = (*cmd->runf)(n, cmd->argv, cmd->disc)) == -1)

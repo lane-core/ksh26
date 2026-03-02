@@ -173,12 +173,12 @@ _ast_iconv_name(const char* m, char* b, size_t n)
 	n = 0;
 	cp = ccmaplist(NULL);
 #if DEBUG_TRACE
-if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name m=\"%s\"\n", error_info.id, error_info.trace, __LINE__, m);
+if (error_info.trace < DEBUG_TRACE) fprintf(stderr, "%s: debug-%d: AHA%d _ast_iconv_name m=\"%s\"\n", error_info.id, error_info.trace, __LINE__, m);
 #endif
 	for (;;)
 	{
 #if DEBUG_TRACE
-if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name n=%d bp=%p cp=%p ccode=%d name=\"%s\"\n", error_info.id, error_info.trace, __LINE__, n, bp, cp, cp->ccode, cp->name);
+if (error_info.trace < DEBUG_TRACE) fprintf(stderr, "%s: debug-%d: AHA%d _ast_iconv_name n=%d bp=%p cp=%p ccode=%d name=\"%s\"\n", error_info.id, error_info.trace, __LINE__, n, bp, cp, cp->ccode, cp->name);
 #endif
 		if (strgrpmatch(m, cp->match, sub, elementsof(sub) / 2, STR_MAXIMAL|STR_LEFT|STR_ICASE))
 		{
@@ -223,7 +223,7 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 		}
 		*b = 0;
 #if DEBUG_TRACE
-if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, cp->ccode, o);
+if (error_info.trace < DEBUG_TRACE) fprintf(stderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, cp->ccode, o);
 #endif
 		return cp->ccode;
 	}
@@ -235,7 +235,7 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 	}
 	*b = 0;
 #if DEBUG_TRACE
-if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, CC_ICONV, o);
+if (error_info.trace < DEBUG_TRACE) fprintf(stderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, CC_ICONV, o);
 #endif
 	return CC_ICONV;
 }

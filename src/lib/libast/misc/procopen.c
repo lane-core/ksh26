@@ -448,7 +448,9 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 	proc->rfd = -1;
 	proc->wfd = -1;
 	proc->flags = flags;
+	/* flush all streams before fork — must include sfio (ksh I/O) */
 	sfsync(NULL);
+	fflush(NULL);
 	if (environ && envv != (char**)environ && (envv || (flags & PROC_PARANOID) || argv && (environ[0][0] != '_' || environ[0][1] != '=')))
 	{
 		if (!setenviron(NULL))
@@ -661,13 +663,13 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 		{
 			if ((debug & PROC_OPT_ENVIRONMENT) && (p = environ))
 				while (*p)
-					sfprintf(sfstderr, "%s\n", *p++);
-			sfprintf(sfstderr, "+ %s", cmd ? path : "sh");
+					fprintf(stderr, "%s\n", *p++);
+			fprintf(stderr, "+ %s", cmd ? path : "sh");
 			if ((p = argv) && *p)
 				while (*++p)
-					sfprintf(sfstderr, " %s", *p);
-			sfprintf(sfstderr, "\n");
-			sfsync(sfstderr);
+					fprintf(stderr, " %s", *p);
+			fprintf(stderr, "\n");
+			fflush(stderr);
 			if (!(debug & PROC_OPT_EXEC))
 				_exit(0);
 			p = argv;

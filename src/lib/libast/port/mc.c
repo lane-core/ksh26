@@ -184,11 +184,11 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 			else
 				strlcpy(file, catalog, elementsof(file));
 			if (ast.locale.set & AST_LC_find)
-				sfprintf(sfstderr, "locale find %s\n", file);
+				fprintf(stderr, "locale find %s\n", file);
 			if (s = pathpath(file, "", (!catalog && category == AST_LC_MESSAGES) ? PATH_READ : (PATH_REGULAR|PATH_READ|PATH_ABSOLUTE), path, size))
 			{
 				if (ast.locale.set & (AST_LC_find|AST_LC_setlocale))
-					sfprintf(sfstderr, "locale path %s\n", s);
+					fprintf(stderr, "locale path %s\n", s);
 				errno = oerrno;
 				return s;
 			}
@@ -500,96 +500,6 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	sp->msg[num] = s;
 	mc->nstrs += strlen(s) + 1;
 	return 0;
-}
-
-/*
- * dump message catalog mc to op
- * 0 returned on success, -1 otherwise
- */
-
-int
-mcdump(Mc_t* mc, Sfio_t* op)
-{
-	int		i;
-	int		j;
-	int		n;
-	char*		s;
-	Mcset_t*	sp;
-
-	/*
-	 * write the magic
-	 */
-
-	if (sfwrite(op, MC_MAGIC, MC_MAGIC_SIZE) != MC_MAGIC_SIZE)
-		return -1;
-
-	/*
-	 * write the translation record
-	 */
-
-	sfputr(op, mc->translation, 0);
-
-	/* optional header records here */
-
-	/*
-	 * end of optional header records
-	 */
-
-	sfputu(op, 0);
-
-	/*
-	 * write the global dimensions
-	 */
-
-	sfputu(op, mc->nstrs);
-	sfputu(op, mc->nmsgs);
-	sfputu(op, mc->num);
-
-	/*
-	 * write the set dimensions
-	 */
-
-	for (i = 1; i <= mc->num; i++)
-		if (mc->set[i].num)
-		{
-			sfputu(op, i);
-			sfputu(op, mc->set[i].num);
-		}
-	sfputu(op, 0);
-
-	/*
-	 * write the message sizes
-	 */
-
-	for (i = 1; i <= mc->num; i++)
-		if (mc->set[i].num)
-		{
-			sp = mc->set + i;
-			for (j = 1; j <= sp->num; j++)
-			{
-				n = (s = sp->msg[j]) ? (strlen(s) + 1) : 0;
-				sfputu(op, n);
-			}
-		}
-
-	/*
-	 * write the string table
-	 */
-
-	for (i = 1; i <= mc->num; i++)
-		if (mc->set[i].num)
-		{
-			sp = mc->set + i;
-			for (j = 1; j <= sp->num; j++)
-				if (s = sp->msg[j])
-					sfputr(op, s, 0);
-		}
-
-	/*
-	 * sync and return
-	 */
-
-	return sfsync(op);
 }
 
 /*
