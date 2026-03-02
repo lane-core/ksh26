@@ -30,6 +30,7 @@
  */
 
 #include <ast.h>
+#include <ast_wbuf.h>
 #include <mc.h>
 #include <nl_types.h>
 #include <iconv.h>
@@ -53,7 +54,7 @@ typedef struct
 	Mcset_t*	set;
 	nl_catd		cat;
 	iconv_t		cvt;
-	Sfio_t*		tmp;
+	ast_wbuf_t	tmp;
 } Cc_t;
 
 #else
@@ -70,7 +71,7 @@ _ast_catopen(const char* name, int flag)
 {
 	Mc_t*		mc;
 	char*		s;
-	Sfio_t*		ip;
+	FILE*		ip;
 	char		path[PATH_MAX];
 
 	/*
@@ -78,15 +79,15 @@ _ast_catopen(const char* name, int flag)
 	 */
 
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s %s LC_MESSAGES=%s:%s\n", __LINE__, __FILE__, name, _ast_setlocale(LC_MESSAGES, 0), setlocale(LC_MESSAGES, 0));
+fprintf(stderr, "AHA#%d:%s %s LC_MESSAGES=%s:%s\n", __LINE__, __FILE__, name, _ast_setlocale(LC_MESSAGES, 0), setlocale(LC_MESSAGES, 0));
 #endif
-	if ((s = mcfind(NULL, name, LC_MESSAGES, flag, path, sizeof(path))) && (ip = sfopen(NULL, s, "r")))
+	if ((s = mcfind(NULL, name, LC_MESSAGES, flag, path, sizeof(path))) && (ip = fopen(s, "r")))
 	{
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
+fprintf(stderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 #endif
 		mc = mcopen(ip);
-		sfclose(ip);
+		fclose(ip);
 		if (mc)
 			return (_ast_nl_catd)mc;
 	}
@@ -110,7 +111,7 @@ sfprintf(sfstderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 			cc->cat = d;
 			if ((s || *name == '/') && (ast.locale.set & (1<<AST_LC_MESSAGES)))
 			{
-				if ((cc->cvt = iconv_open("", "utf")) == (iconv_t)(-1) || !(cc->tmp = sfstropen()))
+				if ((cc->cvt = iconv_open("", "utf")) == (iconv_t)(-1) || ast_wbuf_open(&cc->tmp))
 				{
 					catclose(d);
 					free(cc);
@@ -120,7 +121,7 @@ sfprintf(sfstderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 			else
 				cc->cvt = (iconv_t)(-1);
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s %s %s native %p\n", __LINE__, __FILE__, s, name, cc->cat);
+fprintf(stderr, "AHA#%d:%s %s %s native %p\n", __LINE__, __FILE__, s, name, cc->cat);
 #endif
 			return (_ast_nl_catd)cc;
 		}
@@ -150,8 +151,9 @@ _ast_catgets(_ast_nl_catd cat, int set, int num, const char* msg)
 		{
 			s = (char*)msg;
 			n = strlen(s);
-			iconv_write(((Cc_t*)cat)->cvt, ((Cc_t*)cat)->tmp, &s, &n, NULL);
-			if (s = sfstruse(((Cc_t*)cat)->tmp))
+			ast_wbuf_seek(&((Cc_t*)cat)->tmp, 0, SEEK_SET);
+			iconv_write(((Cc_t*)cat)->cvt, &((Cc_t*)cat)->tmp, &s, &n, NULL);
+			if (s = ast_wbuf_use(&((Cc_t*)cat)->tmp))
 				return s;
 		}
 		return (char*)msg;
@@ -170,8 +172,7 @@ _ast_catclose(_ast_nl_catd cat)
 	{
 		if (((Cc_t*)cat)->cvt != (iconv_t)(-1))
 			iconv_close(((Cc_t*)cat)->cvt);
-		if (((Cc_t*)cat)->tmp)
-			sfclose(((Cc_t*)cat)->tmp);
+		ast_wbuf_close(&((Cc_t*)cat)->tmp);
 		return catclose(((Cc_t*)cat)->cat);
 	}
 #endif

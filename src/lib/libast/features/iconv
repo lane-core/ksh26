@@ -94,15 +94,9 @@ tst	output{
 		printf("extern int		%siconv_close(%siconv_t);\n", lib, lib);
 		printf("extern %siconv_list_t*	%siconv_list(%siconv_list_t*);\n", lib, lib, lib);
 		printf("extern int		%siconv_name(const char*, char*, size_t);\n", lib);
-		printf("#if _SFIO_H\n");
-		printf("extern ssize_t		%siconv_move(%siconv_t, Sfio_t*, Sfio_t*, size_t, Iconv_disc_t*);\n", lib, lib);
-		printf("extern ssize_t		%siconv_write(%siconv_t, Sfio_t*, char**, size_t*, Iconv_disc_t*);\n", lib, lib);
-		printf("#else\n");
-		printf("#if _SFSTDIO_H\n");
-		printf("extern ssize_t		%siconv_move(%siconv_t, FILE*, FILE*, size_t, Iconv_disc_t*);\n", lib, lib);
-		printf("extern ssize_t		%siconv_write(%siconv_t, FILE*, char**, size_t*, Iconv_disc_t*);\n", lib, lib);
-		printf("#endif\n");
-		printf("#endif\n");
+		printf("#include <ast_wbuf.h>\n");
+		printf("extern ssize_t\t\t%siconv_move(%siconv_t, FILE*, ast_wbuf_t*, size_t, Iconv_disc_t*);\n", lib, lib);
+		printf("extern ssize_t\t\t%siconv_write(%siconv_t, ast_wbuf_t*, char**, size_t*, Iconv_disc_t*);\n", lib, lib);
 		printf("\n");
 		return 0;
 	}

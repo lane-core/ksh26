@@ -25,22 +25,71 @@
  * machine independent binary message catalog implementation
  */
 
-#include "sfhdr.h"
+#include "sfhdr.h"	/* for SFCVINIT / _Sfcv36 in mcindex() */
 #include "lclib.h"
 
+#include <ast_wbuf.h>
 #include <iconv.h>
 
 #define _MC_PRIVATE_ \
 	size_t		nstrs; \
 	size_t		nmsgs; \
 	iconv_t		cvt; \
-	Sfio_t*		tmp; \
+	ast_wbuf_t	tmp; \
 	Vmalloc_t*	vm;
 
 #include <vmalloc.h>
 #include <error.h>
 #include <mc.h>
 #include <nl_types.h>
+
+/*
+ * sfio-compatible variable-length integer I/O
+ * 7 data bits per byte, MSB is continuation flag
+ */
+
+static unsigned long
+file_getu(FILE* fp)
+{
+	int		c;
+	unsigned long	v;
+
+	v = 0;
+	while ((c = fgetc(fp)) != EOF)
+	{
+		if (c & 0x80)
+			v = (v << 7) | (c & 0x7f);
+		else
+			return (v << 7) | c;
+	}
+	return v;
+}
+
+/*
+ * read NUL-delimited record from FILE*
+ */
+
+static char*
+file_getr_nul(FILE* fp)
+{
+	static char*	buf;
+	static size_t	cap;
+	size_t		n = 0;
+	int		c;
+
+	while ((c = fgetc(fp)) != EOF && c != '\0')
+	{
+		if (n >= cap)
+			buf = realloc(buf, cap = cap ? cap * 2 : 256);
+		buf[n++] = c;
+	}
+	if (c == EOF && n == 0)
+		return NULL;
+	if (n >= cap)
+		buf = realloc(buf, cap = cap ? cap * 2 : 256);
+	buf[n] = '\0';
+	return buf;
+}
 
 /*
  * find the binary message catalog path for <locale,catalog>
@@ -205,7 +254,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
  */
 
 Mc_t*
-mcopen(Sfio_t* ip)
+mcopen(FILE* ip)
 {
 	Mc_t*		mc;
 	char**		mp;
@@ -225,7 +274,7 @@ mcopen(Sfio_t* ip)
 		 * check the magic
 		 */
 
-		if (sfread(ip, buf, MC_MAGIC_SIZE) != MC_MAGIC_SIZE)
+		if (fread(buf, 1, MC_MAGIC_SIZE, ip) != MC_MAGIC_SIZE)
 		{
 			errno = oerrno;
 			return NULL;
@@ -251,7 +300,7 @@ mcopen(Sfio_t* ip)
 		 * read the translation record
 		 */
 
-		if (!(sp = sfgetr(ip, 0, 0)) || !(mc->translation = vmstrdup(vm, sp)))
+		if (!(sp = file_getr_nul(ip)) || !(mc->translation = vmstrdup(vm, sp)))
 			goto bad;
 
 		/*
@@ -260,7 +309,7 @@ mcopen(Sfio_t* ip)
 
 		do
 		{
-			if (!(sp = sfgetr(ip, 0, 0)))
+			if (!(sp = file_getr_nul(ip)))
 				goto bad;
 		} while (*sp);
 
@@ -268,10 +317,10 @@ mcopen(Sfio_t* ip)
 		 * get the component dimensions
 		 */
 
-		mc->nstrs = sfgetu(ip);
-		mc->nmsgs = sfgetu(ip);
-		mc->num = sfgetu(ip);
-		if (sfeof(ip))
+		mc->nstrs = file_getu(ip);
+		mc->nmsgs = file_getu(ip);
+		mc->num = file_getu(ip);
+		if (feof(ip))
 			goto bad;
 	}
 	else if (!(mc->translation = vmnewof(vm, 0, char, 1, 0)))
@@ -294,11 +343,11 @@ mcopen(Sfio_t* ip)
 	 * get the set dimensions and initialize the msg pointers
 	 */
 
-	while (i = sfgetu(ip))
+	while (i = file_getu(ip))
 	{
 		if (i > mc->num)
 			goto bad;
-		n = sfgetu(ip);
+		n = file_getu(ip);
 		mc->set[i].num = n;
 		mc->set[i].msg = mp;
 		mp += n + 1;
@@ -310,7 +359,7 @@ mcopen(Sfio_t* ip)
 
 	for (i = 1; i <= mc->num; i++)
 		for (j = 1; j <= mc->set[i].num; j++)
-			if (n = sfgetu(ip))
+			if (n = file_getu(ip))
 			{
 				mc->set[i].msg[j] = sp;
 				sp += n;
@@ -320,9 +369,9 @@ mcopen(Sfio_t* ip)
 	 * read the string table
 	 */
 
-	if (sfread(ip, rp, mc->nstrs) != mc->nstrs || sfgetc(ip) != EOF)
+	if (fread(rp, 1, mc->nstrs, ip) != mc->nstrs || fgetc(ip) != EOF)
 		goto bad;
-	if (!(mc->tmp = sfstropen()))
+	if (ast_wbuf_open(&mc->tmp))
 		goto bad;
 	mc->cvt = iconv_open("", "utf");
 	errno = oerrno;
@@ -344,20 +393,15 @@ mcget(Mc_t* mc, int set, int num, const char* msg)
 {
 	char*		s;
 	size_t		n;
-	int		p;
 
 	if (!mc || set < 0 || set > mc->num || num < 1 || num > mc->set[set].num || !(s = mc->set[set].msg[num]))
 		return (char*)msg;
 	if (mc->cvt == (iconv_t)(-1))
 		return s;
-	if ((p = sfstrtell(mc->tmp)) > sfstrsize(mc->tmp) / 2)
-	{
-		p = 0;
-		sfstrseek(mc->tmp, p, SEEK_SET);
-	}
+	ast_wbuf_seek(&mc->tmp, 0, SEEK_SET);
 	n = strlen(s) + 1;
-	iconv_write(mc->cvt, mc->tmp, &s, &n, NULL);
-	return sfstrbase(mc->tmp) + p;
+	iconv_write(mc->cvt, &mc->tmp, &s, &n, NULL);
+	return ast_wbuf_base(&mc->tmp);
 }
 
 /*
@@ -574,8 +618,7 @@ mcclose(Mc_t* mc)
 {
 	if (!mc)
 		return -1;
-	if (mc->tmp)
-		sfclose(mc->tmp);
+	ast_wbuf_close(&mc->tmp);
 	if (mc->cvt != (iconv_t)(-1))
 		iconv_close(mc->cvt);
 	vmclose(mc->vm);
