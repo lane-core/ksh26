@@ -952,4 +952,33 @@ exp='typeset -a toto=(SUCCESS)'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# T1-15: array slice with negative offset
+
+# ${arr[@]: -2} → last two elements
+typeset -a _t15_a=(one two three four five)
+got="${_t15_a[@]: -2}"
+exp='four five'
+[[ $got == "$exp" ]] || err_exit '${arr[@]: -2} should give last two elements' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${arr[@]: -3:2} → two elements starting 3 from end
+got="${_t15_a[@]: -3:2}"
+exp='three four'
+[[ $got == "$exp" ]] || err_exit '${arr[@]: -3:2} should give two elements starting 3 from end' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${arr[@]: -1:1} → last element only
+got="${_t15_a[@]: -1:1}"
+exp=five
+[[ $got == "$exp" ]] || err_exit '${arr[@]: -1:1} should give last element' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# second array for cross-check
+typeset -a _t15_b=(x y z)
+got="${_t15_b[@]: -2}"
+exp='y z'
+[[ $got == "$exp" ]] || err_exit '${arr[@]: -2} cross-check with different array' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

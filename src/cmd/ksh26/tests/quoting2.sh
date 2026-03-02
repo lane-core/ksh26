@@ -388,4 +388,75 @@ case ${.sh.version} in
 esac
 
 # ======
+# T1-03: ANSI C quoting ($'...')
+
+# single-char escapes
+[[ $'\a' == $'\x07' ]] || err_exit '$'"'"'\\a'"'"' should be BEL (0x07)'
+[[ $'\b' == $'\x08' ]] || err_exit '$'"'"'\\b'"'"' should be BS (0x08)'
+[[ $'\f' == $'\x0c' ]] || err_exit '$'"'"'\\f'"'"' should be FF (0x0c)'
+[[ $'\n' == $'\x0a' ]] || err_exit '$'"'"'\\n'"'"' should be LF (0x0a)'
+[[ $'\r' == $'\x0d' ]] || err_exit '$'"'"'\\r'"'"' should be CR (0x0d)'
+[[ $'\t' == $'\x09' ]] || err_exit '$'"'"'\\t'"'"' should be HT (0x09)'
+[[ $'\v' == $'\x0b' ]] || err_exit '$'"'"'\\v'"'"' should be VT (0x0b)'
+[[ $'\\' == '\' ]] || err_exit '$'"'"'\\\\'"'"' should be backslash'
+[[ $'\'' == "'" ]] || err_exit '$'"'"'\\'"'"''"'"' should be single quote'
+[[ $'\"' == '"' ]] || err_exit '$'"'"'\\"'"'"' should be double quote'
+[[ $'\E' == $'\x1b' ]] || err_exit '$'"'"'\\E'"'"' should be ESC (0x1b)'
+[[ $'\e' == $'\x1b' ]] || err_exit '$'"'"'\\e'"'"' should be ESC (0x1b)'
+
+# octal escapes (\NNN is 3-digit octal in ksh93)
+[[ $'\101' == A ]] || err_exit '$'"'"'\\101'"'"' should be A'
+[[ $'\132' == Z ]] || err_exit '$'"'"'\\132'"'"' should be Z'
+
+# hex escapes
+[[ $'\x41' == A ]] || err_exit '$'"'"'\\x41'"'"' should be A'
+[[ $'\x7a' == z ]] || err_exit '$'"'"'\\x7a'"'"' should be z'
+
+# unicode BMP
+[[ $'\u0041' == A ]] || err_exit '$'"'"'\\u0041'"'"' should be A'
+
+# combined escapes in one string
+got=$'\t\n\r'
+exp=$'\x09\x0a\x0d'
+[[ $got == "$exp" ]] || err_exit 'combined escapes in $'"'"'...'"'"'' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# empty $''
+[[ $'' == '' ]] || err_exit '$'"'"''"'"' should be empty string'
+
+# ======
+# T1-04: locale-dependent quoting ($"...")
+
+# $"string" == "string" in C locale
+got=$(LC_ALL=C; print -r -- $"hello world")
+exp='hello world'
+[[ $got == "$exp" ]] || err_exit '$"..." should equal "..." in C locale' \
+	"(expected '$exp', got '$got')"
+
+# variable expansion inside $"..."
+typeset _q2_var=test
+got=$"value is $_q2_var"
+exp='value is test'
+[[ $got == "$exp" ]] || err_exit 'variable expansion inside $"..."' \
+	"(expected '$exp', got '$got')"
+
+# command substitution inside $"..."
+got=$"count is $(print 42)"
+exp='count is 42'
+[[ $got == "$exp" ]] || err_exit 'command substitution inside $"..."' \
+	"(expected '$exp', got '$got')"
+
+# backslash handling in $"..."
+got=$"a\\b"
+exp='a\b'
+[[ $got == "$exp" ]] || err_exit 'backslash in $"..."' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# escaped double quote inside $"..."
+got=$"say \"hi\""
+exp='say "hi"'
+[[ $got == "$exp" ]] || err_exit 'escaped double quote inside $"..."' \
+	"(expected '$exp', got '$got')"
+
+# ======
 exit $((Errors<125?Errors:125))

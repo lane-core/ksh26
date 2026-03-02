@@ -349,4 +349,29 @@ wait $pid
 x=$?
 [[ $x == 0 ]] || err_exit "coprocess exitval should be 0, not $x"
 
+# ======
+# T3-05: command substitution output preserved when signal fires during execution
+
+# signal during comsub: output produced before signal is preserved
+got=$("$SHELL" -c '
+	trap ":" USR1
+	x=$( print hello; kill -USR1 $$ )
+	print "$x"
+' 2>/dev/null)
+exp=hello
+[[ $got == "$exp" ]] || err_exit "comsub output before signal should be preserved" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# signal after comsub completes doesn't corrupt result
+got=$("$SHELL" -c '
+	trap ":" USR1
+	x=$( print hello; print world )
+	kill -USR1 $$
+	print "$x"
+' 2>/dev/null)
+exp=$'hello\nworld'
+[[ $got == "$exp" ]] || err_exit "signal after comsub should not corrupt result" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

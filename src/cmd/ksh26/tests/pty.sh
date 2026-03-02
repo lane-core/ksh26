@@ -1411,4 +1411,140 @@ r ^1\r\n$
 !
 
 # ======
+# T2-07: SIGINT forwarding to foreground process
+
+tst $LINENO <<"!"
+L T2-07: INT trap fires after Ctrl+C to foreground process
+
+d 15
+I ^\r?\n$
+p :test-1:
+w trap 'print INT_TRAPPED' INT
+p :test-2:
+w sleep 10
+s 500
+c \cC
+u INT_TRAPPED
+!
+
+# shell exits with signal-based status when killed by SIGINT (ksh93: 256+signum)
+"$SHELL" -c 'kill -INT $$' 2>/dev/null
+got=$?
+(( got > 128 )) || err_exit "shell killed by SIGINT should have signal-based exit status (got $got)"
+
+# ======
+# T2-08: SIGTSTP and fg
+
+tst $LINENO <<"!"
+L T2-08: kill -TSTP stops background job and fg resumes it
+
+d 15
+I ^\r?\n$
+p :test-1:
+w sleep 60 &
+u [[:digit:]]\r?\n$
+s 100
+p :test-2:
+w kill -TSTP $!
+u (Stopped|Suspended)
+p :test-3:
+w fg
+s 500
+c \cC
+!
+
+# ======
+# T2-09: SIGTERM to stopped job also sends SIGCONT
+
+tst $LINENO <<"!"
+L T2-09: kill -TERM to stopped job delivers signal (not stuck stopped)
+
+d 15
+I ^\r?\n$
+p :test-1:
+w sleep 60 &
+u [[:digit:]]\r?\n$
+s 100
+p :test-2:
+w kill -TSTP $!
+u (Stopped|Suspended)
+p :test-3:
+w kill -TERM $!
+w wait
+u (Terminated|Done)
+!
+
+# ======
+# T2-10: login shell exit with running/stopped jobs
+
+tst $LINENO <<"!"
+L T2-10: exit with stopped jobs warns first, then exits
+
+d 15
+I ^\r?\n$
+P :test-.:
+w set -o monitor
+w sleep 60 &
+u [[:digit:]]\r?\n$
+s 100
+w kill -TSTP %1
+u (Stopped|Suspended)
+w exit
+u (You have|There are).*(stopped|running)
+w exit
+!
+
+tst $LINENO <<"!"
+L T2-10: exit with no jobs exits cleanly
+
+d 15
+P :test-.:
+w exit
+!
+
+# ======
+# T2-11: disown prevents SIGHUP
+
+tst $LINENO <<"!"
+L T2-11: disown prevents SIGHUP on exit
+
+d 15
+I ^\r?\n$
+P :test-.:
+w set -o monitor
+w sleep 60 &
+u [[:digit:]]\r?\n$
+s 100
+w disown %1
+w exit
+!
+
+# ======
+# T2-15: TMOUT grace period
+
+tst $LINENO <<"!"
+L T2-15: TMOUT warns after timeout
+
+d 15
+P :test-.:
+w TMOUT=2
+s 2500
+u (timed out|TMOUT)
+!
+
+tst $LINENO <<"!"
+L T2-15: input resets TMOUT timer
+
+d 15
+P :test-.:
+w TMOUT=3
+s 2000
+w true
+s 2000
+w true
+s 2000
+w unset TMOUT
+!
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -1794,6 +1794,83 @@ got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "
 exp=$'end: <one\ntwo\nthree>'
 [[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
+# T1-13: cd old new (path substitution)
+
+# cd old new substitutes component and prints new path
+mkdir -p "$tmp/cdswap_aaa/sub" "$tmp/cdswap_bbb/sub"
+got=$(cd "$tmp/cdswap_aaa/sub" && cd cdswap_aaa cdswap_bbb 2>&1)
+exp="$tmp/cdswap_bbb/sub"
+[[ $got == "$exp" ]] || err_exit "'cd old new' should substitute path component" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# cd old new with no match fails
+(cd "$tmp/cdswap_aaa/sub" && cd xyznonexistent xyzreplacement) 2>/dev/null
+(( $? != 0 )) || err_exit "'cd old new' with no match should fail"
+
+# ======
+# T2-21: read -d $'\n' should behave same as plain read
+
+# read -d with newline delimiter behaves as plain read
+unset v
+read -d $'\n' v <<< hello
+exp=hello
+[[ $v == "$exp" ]] || err_exit "read -d newline should behave as plain read" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$v"))"
+
+# read -d with colon (control for non-newline delimiter)
+unset v
+read -d : v <<< 'hello:world'
+exp=hello
+[[ $v == "$exp" ]] || err_exit "read -d : should stop at colon" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$v"))"
+
+# ======
+# T2-22: read -C for compound variables
+
+# basic compound variable read
+got=$("$SHELL" -c '
+	typeset -C var
+	print "( x=1 y=2 )" | read -C var
+	print "${var.x} ${var.y}"
+')
+exp='1 2'
+[[ $got == "$exp" ]] || err_exit "read -C should read compound variable" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# nested compound
+got=$("$SHELL" -c '
+	typeset -C var
+	print "( sub=( a=hello b=world ) )" | read -C var
+	print "${var.sub.a} ${var.sub.b}"
+')
+exp='hello world'
+[[ $got == "$exp" ]] || err_exit "read -C should handle nested compound" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# round-trip through print -v / read -C
+got=$("$SHELL" -c '
+	typeset -C v1=( x=1 y=two )
+	typeset -C v2
+	print -v v1 | read -C v2
+	[[ $(print -v v1) == $(print -v v2) ]] && print ok || print fail
+')
+exp=ok
+[[ $got == "$exp" ]] || err_exit "read -C should round-trip through print -v" \
+	"(got $(printf %q "$got"))"
+
+# ======
+# T2-32: cd -Pe exit status
+
+cd "$tmp"
+cd -Pe "$tmp/notadir_t232" >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -Pe should exit 2 on nonexistent dir (expected $exp, got $got)"
+
+cd -Pe "$tmp" >/dev/null 2>&1
+got=$?; exp=0
+(( got == exp )) || err_exit "cd -Pe should exit 0 on valid dir (expected $exp, got $got)"
+
 # ====== MUST BE AT END ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"

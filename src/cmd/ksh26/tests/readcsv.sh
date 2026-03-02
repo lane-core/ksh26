@@ -58,5 +58,36 @@ diff "$tmp1" "$tmp2" >/dev/null 2>&1 || err_exit "files $tmp1 and $tmp2 differ"
 IFS=',' read -S a b c <<<'foo,"""title"" data",bar'
 [[ $b == '"title" data' ]] || err_exit '"" inside "" not handled correctly with read -S'
 
+
+# ======
+# T2-20: read -S field handling
+
+# read -S handles empty fields correctly
+got=$($SHELL -c '
+	printf "a,,c\n" | IFS="," read -S x y z
+	[[ $x == a && $y == "" && $z == c ]] && print ok || print fail
+')
+exp=ok
+[[ $got == "$exp" ]] || err_exit "read -S should handle empty CSV fields" \
+	"(got $(printf %q "$got"))"
+
+# read -S with \n-only line endings has no CR (control)
+got=$($SHELL -c '
+	printf "a,b,c\n" | IFS="," read -S x y z
+	[[ $z == c ]] && print ok || print fail
+')
+exp=ok
+[[ $got == "$exp" ]] || err_exit "read -S with LF-only should not have CR" \
+	"(got $(printf %q "$got"))"
+
+# read -S round-trip preserves embedded newlines in quoted fields
+got=$($SHELL -c '
+	printf "\"one\ntwo\",three\n" | IFS="," read -S a b
+	[[ $a == $'\''one\ntwo'\'' ]] && print ok || print fail
+')
+exp=ok
+[[ $got == "$exp" ]] || err_exit "read -S should preserve embedded newlines in quoted fields" \
+	"(got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))

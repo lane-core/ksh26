@@ -290,4 +290,19 @@ PATH=${PATH%"$PWD:"}
 unset -f foo
 
 # ======
+# T2-24: return at top level acts as exit
+
+# return N at top level exits with status N
+"$SHELL" -c 'return 42' 2>/dev/null
+got=$?
+exp=42
+(( got == exp )) || err_exit "'return 42' at top level should exit with 42 (expected $exp, got $got)"
+
+# return (no arg) after false exits with $?
+"$SHELL" -c 'false; return' 2>/dev/null
+got=$?
+exp=1
+(( got == exp )) || err_exit "'return' (no arg) at top level should pass through \$? (expected $exp, got $got)"
+
+# ======
 exit $((Errors<125?Errors:125))

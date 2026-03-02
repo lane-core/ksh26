@@ -671,4 +671,73 @@ done
 unset e t
 
 # ======
+# T1-10: [[ -R ]] nameref test operator
+
+# -R true for nameref
+got=$($SHELL -c '
+	typeset target=value
+	typeset -n ref=target
+	[[ -R ref ]] && print yes || print no
+')
+[[ $got == yes ]] || err_exit '[[ -R ref ]] should be true for nameref'
+
+# -R false for regular variable
+got=$($SHELL -c '
+	typeset var=value
+	[[ -R var ]] && print yes || print no
+')
+[[ $got == no ]] || err_exit '[[ -R var ]] should be false for regular variable'
+
+# -R false for unset variable
+got=$($SHELL -c '
+	unset nosuch
+	[[ -R nosuch ]] && print yes || print no
+')
+[[ $got == no ]] || err_exit '[[ -R unset ]] should be false for unset variable'
+
+# -R false for integer variable
+got=$($SHELL -c '
+	typeset -i num=5
+	[[ -R num ]] && print yes || print no
+')
+[[ $got == no ]] || err_exit '[[ -R int ]] should be false for integer variable'
+
+# test -R (builtin form) true for nameref
+got=$($SHELL -c '
+	typeset target=value
+	typeset -n ref=target
+	test -R ref && print yes || print no
+')
+[[ $got == yes ]] || err_exit "'test -R ref' should be true for nameref"
+
+# test -R (builtin form) false for regular variable
+got=$($SHELL -c '
+	typeset var=value
+	test -R var && print yes || print no
+')
+[[ $got == no ]] || err_exit "'test -R var' should be false for regular variable"
+
+# -R true for dangling nameref (target doesn't exist)
+got=$($SHELL -c '
+	typeset -n ref=nonexistent
+	[[ -R ref ]] && print yes || print no
+')
+[[ $got == yes ]] || err_exit '[[ -R ref ]] should be true even for dangling nameref'
+
+# ======
+# T2-19: [[ -v ]] with namerefs and sparse arrays
+
+# dangling nameref: target doesn't exist
+$SHELL -c 'typeset -n ref=nosuchvar; [[ -v ref ]]' 2>/dev/null
+(($? != 0)) || err_exit "[[ -v ref ]] should be false for dangling nameref"
+
+# nameref to existing variable (control)
+$SHELL -c 'x=hello; typeset -n ref=x; [[ -v ref ]]'
+(($? == 0)) || err_exit "[[ -v ref ]] should be true for nameref to existing var"
+
+# unset sparse array element
+$SHELL -c 'typeset -a arr; arr[5]=yes; [[ -v arr[999] ]]'
+(($? != 0)) || err_exit "[[ -v arr[999] ]] should be false for unset sparse element"
+
+# ======
 exit $((Errors<125?Errors:125))
