@@ -50,6 +50,9 @@ FEATURE/
 # Git worktrees (machine-local)
 /dev/
 
+# Nix build output symlink
+result
+
 # Miscellaneous artefacts
 *.stackdump
 *.dSYM/
