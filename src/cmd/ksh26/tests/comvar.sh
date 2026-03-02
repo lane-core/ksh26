@@ -734,6 +734,118 @@ exp=$'(\n\ttypeset -C -a c\n)'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# T2-01: .getn discipline fires in arithmetic context
+
+got=$("$SHELL" -c '
+	typeset num=0
+	function num.getn { .sh.value=42; }
+	(( result = num + 0 ))
+	print "$result"
+')
+exp=42
+[[ $got == "$exp" ]] || err_exit ".getn should fire in arithmetic context" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# .getn fires in string context too (overrides string value)
+got=$("$SHELL" -c '
+	typeset num=hello
+	function num.getn { .sh.value=42; }
+	print "$num"
+')
+exp=42
+[[ $got == "$exp" ]] || err_exit ".getn should fire in string context" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# .getn returns correct numeric value
+got=$("$SHELL" -c '
+	typeset num=0
+	function num.getn { .sh.value=99; }
+	print $(( num ))
+')
+exp=99
+[[ $got == "$exp" ]] || err_exit ".getn should return correct numeric value" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T2-02: .unset discipline behavior in subshells
+
+# .unset fires for explicit unset
+got=$("$SHELL" -c '
+	typeset var=value
+	function var.unset { print unset_fired; }
+	unset var
+' 2>/dev/null)
+[[ $got == unset_fired ]] || err_exit ".unset should fire for explicit unset" \
+	"(expected 'unset_fired', got $(printf %q "$got"))"
+
+# .unset does NOT fire at subshell exit (implicit cleanup)
+got=$("$SHELL" -c '
+	typeset var=value
+	function var.unset { print unset_fired; }
+	( var=sub_value )
+' 2>/dev/null)
+[[ $got != *unset_fired* ]] || err_exit ".unset should NOT fire at subshell exit" \
+	"(got $(printf %q "$got"))"
+
+# .unset fires in parent scope after subshell exits (control)
+got=$("$SHELL" -c '
+	typeset var=value
+	function var.unset { print unset_fired; }
+	( : )
+	unset var
+' 2>/dev/null)
+[[ $got == unset_fired ]] || err_exit ".unset should fire in parent after subshell" \
+	"(expected 'unset_fired', got $(printf %q "$got"))"
+
+# ======
+# T2-05: discipline sees caller's $? (nvdisc.c saves sh.savexit)
+
+# .get discipline sees caller's previous $? at time of variable access
+got=$("$SHELL" -c '
+	function var.get { print $?; .sh.value=hello; }
+	typeset var=hello
+	(exit 77)
+	: $var
+' 2>/dev/null)
+exp=77
+[[ $got == "$exp" ]] || err_exit ".get discipline should see caller previous \$?" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# .set discipline sees caller's previous $?
+got=$("$SHELL" -c '
+	function var.set { print $?; }
+	typeset var
+	(exit 33)
+	var=newval
+' 2>/dev/null)
+exp=33
+[[ $got == "$exp" ]] || err_exit ".set discipline should see caller previous \$?" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T2-06: .append blocks .get
+
+# inside .append, reading var returns raw value (.get bypassed)
+got=$("$SHELL" -c '
+	typeset var=base
+	function var.get { .sh.value="GET:${.sh.value}"; }
+	function var.append { print "in_append:$var"; }
+	var+=suffix
+')
+exp='in_append:base'
+[[ $got == "$exp" ]] || err_exit ".get should be bypassed inside .append" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# outside .append, .get fires normally (control)
+got=$("$SHELL" -c '
+	typeset var=base
+	function var.get { .sh.value="GET:${.sh.value}"; }
+	print "$var"
+')
+[[ $got == GET:* ]] || err_exit ".get should fire in normal context" \
+	"(expected 'GET:*', got $(printf %q "$got"))"
+
+# ======
 # Expansion of compound-associative member in typeset assignment RHS
 # should not cause "invalid variable name" error.
 # The lexer's S_DOT handler was incorrectly resetting varnamelength

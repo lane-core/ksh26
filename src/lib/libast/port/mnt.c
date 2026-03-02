@@ -82,7 +82,7 @@ set(Header_t* hp, const char* fs, const char* dir, const char* type, const char*
 	else if (x = (const char*)strchr(fs, '@'))
 	{
 		hp->mnt.flags |= MNT_REMOTE;
-		sfsprintf(hp->buf, sizeof(hp->buf) - 1, "%s:%*.*s", x + 1, x - fs, x - fs, fs);
+		snprintf(hp->buf, sizeof(hp->buf) - 1, "%s:%*.*s", x + 1, x - fs, x - fs, fs);
 		fs = (const char*)hp->buf;
 	}
 	else if (strmatch(type, "[aAnN][fF][sS]*"))
@@ -294,7 +294,7 @@ mntread(void* handle)
 		n = 0;
 		for (i = 0; i < elementsof(options); i++)
 			if (flags & options[i].flag)
-				n += sfsprintf(mp->opt + n, sizeof(mp->opt) - n - 1, ",%s", options[i].name);
+				n += snprintf(mp->opt + n, sizeof(mp->opt) - n - 1, ",%s", options[i].name);
 		set(&mp->hdr, mp->next->f_mntfromname, mp->next->f_mntonname, TYPE(mp->next), n ? (mp->opt + 1) : NULL);
 		mp->next++;
 		return &mp->hdr.mnt;
@@ -369,7 +369,7 @@ mntread(void* handle)
 	{
 		if (vmt2datasize(mp->next, VMT_HOST) && (s = vmt2dataptr(mp->next, VMT_HOST)) && !streq(s, "-"))
 		{
-			sfsprintf(mp->remote, sizeof(mp->remote) - 1, "%s:%s", s, vmt2dataptr(mp->next, VMT_OBJECT));
+			snprintf(mp->remote, sizeof(mp->remote) - 1, "%s:%s", s, vmt2dataptr(mp->next, VMT_OBJECT));
 			s = mp->remote;
 		}
 		else
@@ -416,7 +416,7 @@ mntread(void* handle)
 			break;
 #endif
 		default:
-			sfsprintf(t = mp->type, sizeof(mp->type), "aix%+d", mp->next->vmt_gfstype);
+			snprintf(t = mp->type, sizeof(mp->type), "aix%+d", mp->next->vmt_gfstype);
 			break;
 		}
 		set(&mp->hdr, s, vmt2dataptr(mp->next, VMT_STUB), t, o);
@@ -617,7 +617,7 @@ struct mntent
 typedef struct
 {
 	Header_t	hdr;
-	Sfio_t*		fp;
+	FILE*		fp;
 	struct mntent*	mnt;
 #if _lib_w_getmntent
 	int		count;
@@ -639,7 +639,7 @@ mntopen(const char* path, const char* mode)
 	else
 #else
 	mp->mnt = (struct mntent*)mp->buf;
-	if (!(mp->fp = sfopen(NULL, path, mode)))
+	if (!(mp->fp = fopen(path, mode)))
 #endif
 	{
 		free(mp);
@@ -670,7 +670,7 @@ mntread(void* handle)
 
 #if _hdr_mnttab
 
-	while (sfread(mp->fp, &mp->buf, sizeof(mp->buf)) == sizeof(mp->buf))
+	while (fread(&mp->buf, 1, sizeof(mp->buf), mp->fp) == sizeof(mp->buf))
 		if (*mp->mnt->mnt_fsname && *mp->mnt->mnt_dir)
 		{
 #ifndef mnt_type
@@ -700,7 +700,7 @@ mntread(void* handle)
 	x = 0;
 	b = s = mp->mnt->mnt_fsname;
 	m = s + sizeof(mp->mnt->mnt_fsname) - 1;
-	for (;;) switch (c = sfgetc(mp->fp))
+	for (;;) switch (c = fgetc(mp->fp))
 	{
 	case EOF:
 		return NULL;
@@ -766,7 +766,8 @@ mntclose(void* handle)
 
 	if (!mp)
 		return -1;
-	sfclose(mp->fp);
+	if (mp->fp)
+		fclose(mp->fp);
 	free(mp);
 	return 0;
 }

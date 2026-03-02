@@ -47,6 +47,12 @@ FEATURE/
 /src/lib/libcmd/cmdext.h
 /src/lib/libcmd/cmdlist.h
 
+# Git worktrees (machine-local)
+/dev/
+
+# Nix build output symlink
+result
+
 # Miscellaneous artefacts
 *.stackdump
 *.dSYM/

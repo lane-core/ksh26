@@ -716,14 +716,14 @@ dump(int from, int to)
 	int			i;
 
 	m = ccmap(from, to);
-	sfprintf(sfstdout, "\n /* %s => %s */\n\n", ccmapname(from), ccmapname(to));
+	fprintf(stdout, "\n /* %s => %s */\n\n", ccmapname(from), ccmapname(to));
 	for (c = i = 0; c <= UCHAR_MAX; c++)
 	{
-		sfprintf(sfstdout, " 0x%02x,", m ? m[c] : c);
+		fprintf(stdout, " 0x%02x,", m ? m[c] : c);
 		if (!(++i & 0x7))
 		{
 			i = 0;
-			sfprintf(sfstdout, "\n");
+			fprintf(stdout, "\n");
 		}
 	}
 }

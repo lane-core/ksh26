@@ -77,7 +77,7 @@ fmtuid(int uid)
 	else
 	{
 		name = fmtbuf(z = sizeof(uid) * 3 + 1);
-		sfsprintf(name, z, "%I*d", sizeof(uid), uid);
+		snprintf(name, z, "%jd", (intmax_t)uid);
 	}
 	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{

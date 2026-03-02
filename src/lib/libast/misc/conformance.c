@@ -19,6 +19,7 @@
 ***********************************************************************/
 
 #include <ast.h>
+#include <ast_wbuf.h>
 #include <ctype.h>
 
 static char**		ids;
@@ -39,12 +40,12 @@ initconformance(void)
 	int			i;
 	int			j;
 	int			c;
-	Sfio_t*			sp;
+	ast_wbuf_t		wb = AST_WBUF_INIT;
 
 	static const char*	conf[] = { "CONFORMANCE", "HOSTTYPE", "UNIVERSE" };
 
 	p = 0;
-	if (sp = sfstropen())
+	if (ast_wbuf_open(&wb) == 0)
 	{
 		for (i = h = 0, j = 1; i < elementsof(conf); i++)
 			if (*(m = astconf(conf[i], NULL, NULL)) && (h |= (1<<i)) || !i && (m = "ast"))
@@ -54,29 +55,30 @@ initconformance(void)
 				{
 					if (isupper(c))
 						c = tolower(c);
-					sfputc(sp, c);
+					ast_wbuf_putc(&wb, c);
 				}
-				sfputc(sp, 0);
+				ast_wbuf_putc(&wb, 0);
 				j++;
 				if ((c = (m - t)) == 6 && strneq(t, "linux", 5))
 				{
-					sfputr(sp, "gnu", 0);
+					ast_wbuf_puts(&wb, "gnu");
+					ast_wbuf_putc(&wb, 0);
 					j++;
 				}
 				else if (c > 3 && strneq(t, "bsd", 3) || c == 7 && strneq(t, "debian", 7))
 				{
-					sfputr(sp, "bsd", 0);
+					ast_wbuf_puts(&wb, "bsd");
+					ast_wbuf_putc(&wb, 0);
 					j++;
 				}
 				if (h & 1)
 					break;
 			}
-		i = sfstrtell(sp);
-		sfstrseek(sp, 0, SEEK_SET);
+		i = ast_wbuf_tell(&wb);
 		if (p = newof(0, char*, j, i))
 		{
 			m = (char*)(p + j--);
-			memcpy(m, sfstrbase(sp), i);
+			memcpy(m, ast_wbuf_base(&wb), i);
 			i = 0;
 			p[i++] = m;
 			while (i < j)
@@ -86,7 +88,7 @@ initconformance(void)
 			}
 			p[i] = 0;
 		}
-		sfstrclose(sp);
+		ast_wbuf_close(&wb);
 	}
 	if (!p)
 		p = (char**)dflt;

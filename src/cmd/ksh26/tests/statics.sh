@@ -673,4 +673,36 @@ function fun1
 )
 [[ $out == $'a=3, b=3\na=3, b=3' ]] || err_exit 'static variables in functions with initializers not working'
 
+# ======
+# T1-07: typeset -S (static variables)
+
+# static variable in recursive function accumulates across calls
+got=$($SHELL -c '
+	function counter {
+		typeset -S -i count=0
+		(( count++ ))
+		print $count
+	}
+	counter; counter; counter
+')
+exp=$'1\n2\n3'
+[[ $got == "$exp" ]] || err_exit "static variable should accumulate across calls" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# static variable in subshell gets isolated copy
+got=$($SHELL -c '
+	function inc {
+		typeset -S -i val=0
+		(( val++ ))
+		print $val
+	}
+	inc; inc
+	( inc; inc )
+	inc
+')
+exp=$'1\n2\n3\n4\n3'
+[[ $got == "$exp" ]] || err_exit "static variable in subshell should get isolated copy" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

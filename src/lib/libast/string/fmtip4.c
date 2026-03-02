@@ -32,8 +32,8 @@ fmtip4(uint32_t addr, int bits)
 	int	i;
 
 	buf = fmtbuf(z = 20);
-	i = sfsprintf(buf, z, "%d.%d.%d.%d", (addr>>24)&0xff, (addr>>16)&0xff, (addr>>8)&0xff, (addr)&0xff);
+	i = snprintf(buf, z, "%d.%d.%d.%d", (addr>>24)&0xff, (addr>>16)&0xff, (addr>>8)&0xff, (addr)&0xff);
 	if (bits >= 0 && bits <= 32)
-		sfsprintf(buf + i, z - i, "/%d", bits);
+		snprintf(buf + i, z - i, "/%d", bits);
 	return buf;
 }

@@ -58,6 +58,7 @@ static const char usage[] =
 ;
 
 #include	<cmd.h>
+#include	<ast_wbuf.h>
 #include	<ctype.h>
 #include	<ast_tty.h>
 
@@ -811,69 +812,69 @@ static void set(char *argv[], struct termios *sp)
 }
 
 
-static void listchars(Sfio_t *sp,int type)
+static void listchars(ast_wbuf_t *sp,int type)
 {
 	int i,c;
 	c = (type==CHAR?'c':'n');
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].type==type && *Ttable[i].description)
-			sfprintf(sp,"[+%s \a%c\a?%s.]",Ttable[i].name,c,Ttable[i].description);
+			ast_wbuf_printf(sp,"[+%s \a%c\a?%s.]",Ttable[i].name,c,Ttable[i].description);
 	}
 }
 
-static void listgroup(Sfio_t *sp,int type, const char *description)
+static void listgroup(ast_wbuf_t *sp,int type, const char *description)
 {
 	int i;
-	sfprintf(sp,"[+");
+	ast_wbuf_printf(sp,"[+");
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].type==type)
-			sfprintf(sp,"%s ",Ttable[i].name);
+			ast_wbuf_printf(sp,"%s ",Ttable[i].name);
 	}
-	sfprintf(sp,"?%s.]",description);
+	ast_wbuf_printf(sp,"?%s.]",description);
 }
 
-static void listmask(Sfio_t *sp,unsigned int mask,const char *description)
+static void listmask(ast_wbuf_t *sp,unsigned int mask,const char *description)
 {
 	int i;
-	sfprintf(sp,"[+");
+	ast_wbuf_printf(sp,"[+");
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].mask==mask && Ttable[i].type==BITS)
-			sfprintf(sp,"%s ",Ttable[i].name);
+			ast_wbuf_printf(sp,"%s ",Ttable[i].name);
 	}
-	sfprintf(sp,"?%s.]",description);
+	ast_wbuf_printf(sp,"?%s.]",description);
 }
 
-static void listfields(Sfio_t *sp,int field)
+static void listfields(ast_wbuf_t *sp,int field)
 {
 	int i;
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].field==field &&  Ttable[i].type==BIT && *Ttable[i].description)
-			sfprintf(sp,"[+%s (-%s)?%s.]",Ttable[i].name,Ttable[i].name,Ttable[i].description);
+			ast_wbuf_printf(sp,"[+%s (-%s)?%s.]",Ttable[i].name,Ttable[i].name,Ttable[i].description);
 	}
 }
 
-static void listmode(Sfio_t *sp,const char *name)
+static void listmode(ast_wbuf_t *sp,const char *name)
 {
-	sfprintf(sp,"[+%s?%s.]",name,lookup(name)->description);
+	ast_wbuf_printf(sp,"[+%s?%s.]",name,lookup(name)->description);
 }
 
-static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
+static int infof(Opt_t* op, ast_wbuf_t* sp, const char* s, Optdisc_t* dp)
 {
 	NoP(op);
 	NoP(s);
 	NoP(dp);
-	sfprintf(sp,"[+Control Modes.]{");
+	ast_wbuf_printf(sp,"[+Control Modes.]{");
 	listfields(sp,C_FLAG);
 	listgroup(sp,SPEED,"Attempt to set input and output baud rate to number given.  A value of \b0\b causes immediate hangup");
 	listchars(sp,NUM);
 	listgroup(sp,SIZE,"Number of bits in a character");
-	sfprintf(sp,"}[+Input Modes.]{");
+	ast_wbuf_printf(sp,"}[+Input Modes.]{");
 	listfields(sp,I_FLAG);
-	sfprintf(sp,"}[+Output Modes.]{");
+	ast_wbuf_printf(sp,"}[+Output Modes.]{");
 	listfields(sp,O_FLAG);
 #ifdef CRDLY
 	listmask(sp,CRDLY,"Carriage return delay style");
@@ -893,14 +894,14 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 #ifdef VTDLY
 	listmask(sp,VTDLY,"Vertical tab delay style");
 #endif
-	sfprintf(sp,"}[+Local Modes.]{");
+	ast_wbuf_printf(sp,"}[+Local Modes.]{");
 	listfields(sp,L_FLAG);
-	sfprintf(sp,"}[+Control Assignments.?If \ac\a is \bundef\b or an empty "
+	ast_wbuf_printf(sp,"}[+Control Assignments.?If \ac\a is \bundef\b or an empty "
 		"string then the control assignment is disabled.]{");
 	listchars(sp,WIND);
 	listmode(sp,"size");
 	listchars(sp,CHAR);
-	sfprintf(sp,"}[+Combination Modes.]{");
+	ast_wbuf_printf(sp,"}[+Combination Modes.]{");
 	listmode(sp,"ek");
 	listmode(sp,"evenp");
 	listmode(sp,"lcase");
@@ -909,7 +910,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	listmode(sp,"sane");
 	listmode(sp,"tabs");
 	listmode(sp,"LCASE");
-	sfputc(sp,'}');
+	ast_wbuf_putc(sp,'}');
 	return 1;
 }
 

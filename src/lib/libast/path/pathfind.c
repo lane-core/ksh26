@@ -100,7 +100,7 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	}
 	if (type)
 	{
-		sfsprintf(buf, size, "%s.%s", name, type);
+		snprintf(buf, size, "%s.%s", name, type);
 		if (regular(buf, &st))
 			return buf;
 	}
@@ -114,12 +114,12 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 
 	if (error_info.file && (s = strrchr(error_info.file, '/')))
 	{
-		sfsprintf(buf, size, "%-.*s%s", s - error_info.file + 1, error_info.file, name);
+		snprintf(buf, size, "%-.*s%s", s - error_info.file + 1, error_info.file, name);
 		if (regular(buf, &st))
 			return buf;
 		if (type)
 		{
-			sfsprintf(buf, size, "%-.*s%s%.s", s - error_info.file + 1, error_info.file, name, type);
+			snprintf(buf, size, "%-.*s%s%.s", s - error_info.file + 1, error_info.file, name, type);
 			if (regular(buf, &st))
 				return buf;
 		}
@@ -131,12 +131,12 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 
 	for (dp = state.head; dp; dp = dp->next)
 	{
-		sfsprintf(tmp, sizeof(tmp), "%s/%s", dp->dir, name);
+		snprintf(tmp, sizeof(tmp), "%s/%s", dp->dir, name);
 		if (pathpath(tmp, "", PATH_REGULAR, buf, size))
 			return buf;
 		if (type)
 		{
-			sfsprintf(tmp, sizeof(tmp), "%s/%s.%s", dp->dir, name, type);
+			snprintf(tmp, sizeof(tmp), "%s/%s.%s", dp->dir, name, type);
 			if (pathpath(tmp, "", PATH_REGULAR, buf, size))
 				return buf;
 		}
@@ -150,12 +150,12 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	{
 		if (s = strrchr((char*)lib, ':'))
 			lib = (const char*)s + 1;
-		sfsprintf(tmp, sizeof(tmp), "lib/%s/%s", lib, name);
+		snprintf(tmp, sizeof(tmp), "lib/%s/%s", lib, name);
 		if (pathpath(tmp, "", PATH_REGULAR, buf, size))
 			return buf;
 		if (type)
 		{
-			sfsprintf(tmp, sizeof(tmp), "lib/%s/%s.%s", lib, name, type);
+			snprintf(tmp, sizeof(tmp), "lib/%s/%s.%s", lib, name, type);
 			if (pathpath(tmp, "", PATH_REGULAR, buf, size))
 				return buf;
 		}

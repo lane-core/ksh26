@@ -149,7 +149,7 @@ int    b_printf(int argc, char *argv[],Shbltin_t *context)
 	return b_print(-1,argv,(Shbltin_t*)&prdata);
 }
 
-static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
+static int infof(Opt_t* op, ast_wbuf_t* sp, const char* s, Optdisc_t* dp)
 {
 	const struct printmap *pm;
 	char c='%';
@@ -157,7 +157,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	NOT_USED(s);
 	NOT_USED(dp);
 	for(pm=Pmap;pm->size>0;pm++)
-		sfprintf(sp, "[+%c(%s)q?Equivalent to %s.]",c,pm->name,pm->equivalent);
+		ast_wbuf_printf(sp, "[+%c(%s)q?Equivalent to %s.]",c,pm->name,pm->equivalent);
 	return 1;
 }
 

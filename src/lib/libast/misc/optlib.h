@@ -28,6 +28,7 @@
 #define _OPTLIB_H
 
 #include <ast.h>
+#include <ast_wbuf.h>
 #include <cdt.h>
 
 #define OPT_append		0x001
@@ -76,15 +77,15 @@ typedef struct Optcache_s
 
 typedef struct Optstate_s
 {
-	Sfio_t*		mp;		/* opt_info.msg string stream	*/
-	Sfio_t*		vp;		/* translation string stream	*/
-	Sfio_t*		xp;		/* translation string stream	*/
-	Sfio_t*		cp;		/* compatibility string stream	*/
+	ast_wbuf_t	mp;		/* opt_info.msg writer		*/
+	ast_wbuf_t	vp;		/* translation writer		*/
+	ast_wbuf_t	xp;		/* translation writer		*/
+	ast_wbuf_t	cp;		/* compatibility writer		*/
 	Optpass_t	pass[8];	/* optjoin() list		*/
 	char*		argv[2];	/* initial argv copy		*/
 	char*		strv[3];	/* optstr() argv		*/
 	char*		str;		/* optstr() string		*/
-	Sfio_t*		strp;		/* optstr() stream		*/
+	ast_wbuf_t	strp;		/* optstr() writer		*/
 	int		force;		/* force this style		*/
 	int		pindex;		/* prev index for backup	*/
 	int		poffset;	/* prev offset for backup	*/

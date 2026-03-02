@@ -44,16 +44,6 @@ test: build
 test-one name locale="C": build
     {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
 
-# Run tests sequentially via legacy shtests harness
-test-serial: build
-    HOSTTYPE={{HOSTTYPE}} \
-    PACKAGEROOT="$PWD" \
-    INSTALLROOT="$PWD/{{BUILDDIR}}" \
-    LD_LIBRARY_PATH="" \
-    SHELL={{BUILDDIR}}/bin/ksh \
-    KSH={{BUILDDIR}}/bin/ksh \
-    bin/shtests
-
 # Pass arbitrary args to samu
 samu *args: bootstrap
     {{SAMU}} -C {{BUILDDIR}} {{args}}
@@ -89,11 +79,20 @@ doc:
         printf '%s\n' "  DOC $base"
     done
 
-# Remove build artifacts for this host
-clean:
-    rm -rf {{BUILDDIR}}
+# Remove build artifacts: just clean [stage]
+# Stages: test, obj, lib, bin, all (default: all)
+clean stage="all":
+    #!/bin/sh
+    case "{{stage}}" in
+    test) rm -rf "{{BUILDDIR}}/test" ;;
+    obj)  rm -rf "{{BUILDDIR}}/obj" ;;
+    lib)  rm -rf "{{BUILDDIR}}/lib" ;;
+    bin)  rm -f "{{BUILDDIR}}/bin/ksh" "{{BUILDDIR}}/bin/shcomp" ;;
+    all)  rm -rf "{{BUILDDIR}}" ;;
+    *)    printf 'unknown stage: %s\nstages: test obj lib bin all\n' "{{stage}}" >&2; exit 1 ;;
+    esac
 
-# Remove all build artifacts
+# Remove all build artifacts (every host)
 cleanall:
     rm -rf build
 

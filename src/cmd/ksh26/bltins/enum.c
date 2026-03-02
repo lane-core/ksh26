@@ -116,7 +116,7 @@ short b_enum_nelem(Namfun_t *fp)
 	return ((struct Enum *)fp)->nelem;
 }
 
-static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
+static int enuminfo(Opt_t* op, ast_wbuf_t* out, const char *str, Optdisc_t *fp)
 {
 	Namval_t	*np;
 	struct Enum	*ep;
@@ -128,24 +128,24 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	if(!ep)
 		return 0;
 	if(strcmp(str,"default")==0)
-		sfprintf(out,"\b%s\b",ep->values[0]);
+		ast_wbuf_printf(out,"\b%s\b",ep->values[0]);
 	else if(strncmp(str,"last",4)==0)
 	{
 		while(ep->values[++n])
 			;
 		n--;
 		if(str[4]=='v')
-			sfprintf(out,"\b%s\b",ep->values[n]);
+			ast_wbuf_printf(out,"\b%s\b",ep->values[n]);
 		else
-			sfprintf(out,"\b%d\b",n);
+			ast_wbuf_printf(out,"\b%d\b",n);
 	}
 	else if(strcmp(str,"case")==0)
 	{
 		if(ep->iflag)
-			sfprintf(out,"not ");
+			ast_wbuf_printf(out,"not ");
 	}
 	else while(v=ep->values[n])
-		sfprintf(out, n++ ? ", \b%s\b" : "\b%s\b", v);
+		ast_wbuf_printf(out, n++ ? ", \b%s\b" : "\b%s\b", v);
 	return 0;
 }
 

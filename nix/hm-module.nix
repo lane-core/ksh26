@@ -76,6 +76,10 @@ let
     [[ -o interactive ]] || return 0
 
     # Source hm session variables
+    # Reset guard: ~/.profile may have sourced hm-session-vars.sh before
+    # /etc/kshrc's setEnvironment hard-reset PATH. Re-sourcing restores
+    # home-manager's PATH additions (e.g. ~/.local/bin, homebrew).
+    unset __HM_SESS_VARS_SOURCED 2>/dev/null
     for _hm_f in /etc/profiles/per-user/$USER/etc/profile.d/*.sh; do
       [[ -f "$_hm_f" ]] && . "$_hm_f"
     done

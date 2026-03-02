@@ -477,20 +477,23 @@ tmxscan(const char* s, char** e, const char* format, char** f, Time_t t, long fl
 	{
 		if (!initialized)
 		{
-			Sfio_t*	sp;
+			FILE*	sp;
 			int		n;
+			int		c;
 			off_t			m;
 
 			initialized = 1;
-			if ((v = getenv("DATEMSK")) && *v && (sp = sfopen(NULL, v, "r")))
+			if ((v = getenv("DATEMSK")) && *v && (sp = fopen(v, "r")))
 			{
-				for (n = 1; sfgetr(sp, '\n', 0); n++);
-				m = sfseek(sp, 0L, SEEK_CUR);
+				for (n = 1; (c = fgetc(sp)) != EOF;)
+					if (c == '\n')
+						n++;
+				m = ftell(sp);
 				if (p = newof(0, char*, n, m))
 				{
-					sfseek(sp, 0L, SEEK_SET);
+					fseek(sp, 0L, SEEK_SET);
 					v = (char*)(p + n);
-					if (sfread(sp, v, m) != m)
+					if (fread(v, 1, m, sp) != m)
 					{
 						free(p);
 						p = 0;
@@ -509,6 +512,7 @@ tmxscan(const char* s, char** e, const char* format, char** f, Time_t t, long fl
 						*p = 0;
 					}
 				}
+				fclose(sp);
 			}
 		}
 		if (p = datemask)

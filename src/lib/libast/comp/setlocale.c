@@ -32,6 +32,7 @@
 #include <ast_wchar.h>
 #include <ctype.h>
 #include <ast_iconv.h>
+#include <ast_wbuf.h>
 #include <mc.h>
 #include <namval.h>
 #include <error.h>
@@ -76,7 +77,7 @@ header(void)
 	if (!done)
 	{
 		done = 1;
-		sfprintf(sfstderr, "locale      %17s %16s %16s %16s %s\n", "CATEGORY", "AST", "SYSTEM", "PREVIOUS", "ATTRIBUTES");
+		fprintf(stderr, "locale      %17s %16s %16s %16s %s\n", "CATEGORY", "AST", "SYSTEM", "PREVIOUS", "ATTRIBUTES");
 	}
 }
 
@@ -2191,7 +2192,7 @@ set_ctype(Lc_category_t* cp)
 	}
 #if AHA
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
+		fprintf(stderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
 #endif
 #if !AST_NOMULTIBYTE
 	if (locales[cp->internal]->flags & LC_debug)
@@ -2281,7 +2282,7 @@ set_numeric(Lc_category_t* cp)
 
 #if AHA
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
+		fprintf(stderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
 #endif
 	if (!LCINFO(category)->data)
 	{
@@ -2394,7 +2395,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 
 #if AHA
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale single %16s %16s flags %04x\n", lc_categories[category].name, lc ? lc->name : 0, flags);
+		fprintf(stderr, "locale single %16s %16s flags %04x\n", lc_categories[category].name, lc ? lc->name : 0, flags);
 #endif
 	if (flags & (LC_setenv|LC_setlocale))
 	{
@@ -2475,9 +2476,9 @@ single(int category, Lc_t* lc, unsigned int flags)
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 	{
 		header();
-		sfprintf(sfstderr, "locale set  %17s %16s %16s %16s", lc_categories[category].name, lc->name, sys, lc_categories[category].prev ? lc_categories[category].prev->name : NULL);
+		fprintf(stderr, "locale set  %17s %16s %16s %16s", lc_categories[category].name, lc->name, sys, lc_categories[category].prev ? lc_categories[category].prev->name : NULL);
 		if (category == AST_LC_CTYPE)
-			sfprintf(sfstderr, " MB_CUR_MAX=%d%s%s%s%s%s"
+			fprintf(stderr, " MB_CUR_MAX=%d%s%s%s%s%s"
 				, ast.mb.cur_max
 				, ast.mb.len == debug_mblen ? " debug_mblen" : ast.mb.len == utf8_mblen ? " utf8_mblen" : ast.mb.len == mblen ? " mblen" : ""
 				, ast.mb.towc == debug_mbtowc ? " debug_mbtowc" : ast.mb.towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb.towc == mbtowc ? " mbtowc"
@@ -2493,17 +2494,17 @@ single(int category, Lc_t* lc, unsigned int flags)
 		{
 			Lc_numeric_t*		dp = (Lc_numeric_t*)LCINFO(category)->data;
 
-			sfprintf(sfstderr, " decimal='%c' thousands='%c'", dp->decimal, dp->thousand >= 0 ? dp->thousand : 'X');
+			fprintf(stderr, " decimal='%c' thousands='%c'", dp->decimal, dp->thousand >= 0 ? dp->thousand : 'X');
 		}
 		if ((locales[category]->flags | lc_categories[category].flags) & LC_default)
-			sfprintf(sfstderr, " default");
+			fprintf(stderr, " default");
 		if ((locales[category]->flags | lc_categories[category].flags) & LC_local)
-			sfprintf(sfstderr, " local");
+			fprintf(stderr, " local");
 		if ((locales[category]->flags | lc_categories[category].flags) & LC_setlocale)
-			sfprintf(sfstderr, " setlocale");
+			fprintf(stderr, " setlocale");
 		if ((locales[category]->flags | lc_categories[category].flags) & LC_setenv)
-			sfprintf(sfstderr, " setenv");
-		sfprintf(sfstderr, "\n");
+			fprintf(stderr, " setenv");
+		fprintf(stderr, "\n");
 	}
 #endif /* !AST_NOMULTIBYTE */
 	return (char*)lc->name;
@@ -2639,7 +2640,7 @@ _ast_setlocale(int category, const char* locale)
 	Lc_t*			p;
 	int			cat[AST_LC_COUNT];
 
-	static Sfio_t*		sp;
+	static ast_wbuf_t	wb = AST_WBUF_INIT;
 	static int		initialized;
 	static const char	local[] = "local";
 
@@ -2654,7 +2655,7 @@ _ast_setlocale(int category, const char* locale)
 	compose:
 		if (category != AST_LC_ALL && category != AST_LC_LANG)
 			return (char*)locales[category]->name;
-		if (!sp && !(sp = sfstropen()))
+		if (!wb.fp && ast_wbuf_open(&wb) < 0)
 			return NULL;
 		for (i = 1; i < AST_LC_COUNT; i++)
 			cat[i] = -1;
@@ -2672,19 +2673,19 @@ _ast_setlocale(int category, const char* locale)
 		for (i = 1; i < AST_LC_COUNT; i++)
 			if (cat[i] >= 0 && !(locales[i]->flags & LC_default))
 			{
-				if (sfstrtell(sp))
-					sfprintf(sp, ";");
+				if (ast_wbuf_tell(&wb))
+					ast_wbuf_printf(&wb, ";");
 				for (j = i, k = cat[i]; j < AST_LC_COUNT; j++)
 					if (cat[j] == k)
 					{
 						cat[j] = -1;
-						sfprintf(sp, "%s=", lc_categories[j].name);
+						ast_wbuf_printf(&wb, "%s=", lc_categories[j].name);
 					}
-				sfprintf(sp, "%s", locales[i]->name);
+				ast_wbuf_printf(&wb, "%s", locales[i]->name);
 			}
-		if (!sfstrtell(sp))
+		if (!ast_wbuf_tell(&wb))
 			return (char*)locales[0]->name;
-		return sfstruse(sp);
+		return ast_wbuf_use(&wb);
 	}
 	if (!ast.locale.serial++)
 	{
@@ -2694,7 +2695,7 @@ _ast_setlocale(int category, const char* locale)
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 	{
 		header();
-		sfprintf(sfstderr, "locale user %17s %16s %16s %16s%s%s\n", category == AST_LC_LANG ? "LANG" : lc_categories[category].name, locale && !*locale ? "''" : locale, "", "", initialized ? "" : " initial", (ast.locale.set & AST_LC_setenv) ? " setenv" : "");
+		fprintf(stderr, "locale user %17s %16s %16s %16s%s%s\n", category == AST_LC_LANG ? "LANG" : lc_categories[category].name, locale && !*locale ? "''" : locale, "", "", initialized ? "" : " initial", (ast.locale.set & AST_LC_setenv) ? " setenv" : "");
 	}
 	if (ast.locale.set & AST_LC_setenv)
 	{
@@ -2754,7 +2755,7 @@ _ast_setlocale(int category, const char* locale)
 				}
 			if (ast.locale.set & AST_LC_debug)
 				for (i = 1; i < AST_LC_COUNT; i++)
-					sfprintf(sfstderr, "locale env  %17s %16s %16s %16s\n", lc_categories[i].name, locales[i]->name, "", lc_categories[i].prev ? lc_categories[i].prev->name : NULL);
+					fprintf(stderr, "locale env  %17s %16s %16s %16s\n", lc_categories[i].name, locales[i]->name, "", lc_categories[i].prev ? lc_categories[i].prev->name : NULL);
 			initialized = 1;
 		}
 		goto compose;

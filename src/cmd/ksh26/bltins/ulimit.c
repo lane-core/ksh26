@@ -46,7 +46,7 @@
 	}
 #else
 
-static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
+static int infof(Opt_t* op, ast_wbuf_t* sp, const char* s, Optdisc_t* dp)
 {
 	const Limit_t*	tp;
 
@@ -55,10 +55,10 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	NOT_USED(dp);
 	for (tp = shtab_limits; tp->option; tp++)
 	{
-		sfprintf(sp, "[%c=%d:%s?The %s", tp->option, tp - shtab_limits + 1, tp->name, tp->description);
+		ast_wbuf_printf(sp, "[%c=%d:%s?The %s", tp->option, tp - shtab_limits + 1, tp->name, tp->description);
 		if(tp->type != LIM_COUNT)
-			sfprintf(sp, " in %ss", e_units[tp->type]);
-		sfprintf(sp, ".]");
+			ast_wbuf_printf(sp, " in %ss", e_units[tp->type]);
+		ast_wbuf_printf(sp, ".]");
 	}
 	return 1;
 }

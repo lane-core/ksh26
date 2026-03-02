@@ -632,6 +632,90 @@ do	for cmd in kill $(whence -p kill)
 done
 
 # ======
+# T1-12: trap '' SIG (ignore) vs trap - SIG (default)
+
+# trap '' ignores signal — process survives
+got=$($SHELL -c '
+	trap "" USR2
+	kill -USR2 $$
+	print survived
+' 2>/dev/null)
+[[ $got == survived ]] || err_exit "trap '' USR2 should let process survive kill -USR2"
+
+# trap - after handler removes trap from output
+got=$($SHELL -c '
+	trap ":" USR2
+	trap - USR2
+	trap
+' 2>/dev/null)
+[[ $got != *USR2* ]] || err_exit "'trap - USR2' should remove handler from trap output" \
+	"(got $(printf %q "$got"))"
+
+# trap '' is inherited by child processes
+got=$($SHELL -c '
+	trap "" USR2
+	$SHELL -c "kill -USR2 \$\$; print child_survived" 2>/dev/null
+')
+[[ $got == child_survived ]] || err_exit "trap '' USR2 should be inherited by child processes"
+
+# trap - restores default: child dies from signal
+$SHELL -c '
+	trap "" USR2
+	trap - USR2
+	$SHELL -c "kill -USR2 \$\$; print should_not_reach" 2>/dev/null
+' 2>/dev/null
+e=$?
+# child killed by USR2 → parent sees nonzero exit
+(( e != 0 )) || err_exit "after 'trap - USR2', child should die from USR2 (got exit status $e)"
+
+# ======
+# T2-16: ERR trap behavior
+
+# ERR fires on failed command
+got=$($SHELL -c 'typeset result=; trap "result=yes" ERR; false; print "$result"')
+exp=yes
+[[ $got == "$exp" ]] || err_exit "ERR trap should fire on failed command" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ERR fires on 'false' even with other signal traps present
+got=$($SHELL -c 'typeset err_fired=no; trap "err_fired=yes" ERR; trap "" USR1; false; print "$err_fired"')
+exp=yes
+[[ $got == "$exp" ]] || err_exit "ERR trap should fire on 'false' with signal trap present" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ERR does not fire on successful command (control)
+got=$($SHELL -c 'typeset err_fired=no; trap "err_fired=yes" ERR; true; print "$err_fired"')
+exp=no
+[[ $got == "$exp" ]] || err_exit "ERR trap should not fire on successful command" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T2-17: $(trap) in subshell reflects parent's traps
+
+got=$($SHELL -c 'trap ":" USR1; x=$(trap); print "$x"')
+[[ $got == *USR1* ]] || err_exit '$(trap) in subshell should reflect parent trap' \
+	"(got $(printf %q "$got"))"
+
+# subshell trap changes don't affect parent's trap state
+got=$($SHELL -c 'trap ":" USR1; $(trap ":" USR2); x=$(trap); print "$x"')
+[[ $got == *USR1* ]] || err_exit 'parent traps should survive subshell trap changes' \
+	"(got $(printf %q "$got"))"
+
+# ======
+# T3-01/T3-03: EXIT trap fires after external command in function
+
+# ksh function
+bintrue=$(whence -p true)
+got=$($SHELL -c "function f { trap \"print exit_fired\" EXIT; $bintrue; }; f")
+[[ $got == exit_fired ]] || err_exit "EXIT trap should fire in ksh function after external command" \
+	"(expected 'exit_fired', got $(printf %q "$got"))"
+
+# POSIX function
+got=$($SHELL -c "f() { trap \"print exit_fired\" EXIT; $bintrue; }; f")
+[[ $got == exit_fired ]] || err_exit "EXIT trap should fire in POSIX function after external command" \
+	"(expected 'exit_fired', got $(printf %q "$got"))"
+
+# ======
 # checks for tests run in parallel (see top)
 
 wait "$parallel_1"

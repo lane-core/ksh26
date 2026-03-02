@@ -252,4 +252,24 @@ exp=9
 let "(got=$?)==exp" || err_exit "explicit exit status outside trap not honoured (got $got, expected $exp)"
 
 # ======
+# T3-11: EXIT trap $? overrides signal exit code
+
+# trap 'exit 0' EXIT + TERM → exit status 0
+got=$("$SHELL" -c 'trap "exit 0" EXIT; kill -TERM $$' 2>/dev/null; print $?)
+exp=0
+[[ $got == "$exp" ]] || err_exit "trap 'exit 0' EXIT should override signal exit" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# trap ':' EXIT + TERM → exit status is signal-based
+"$SHELL" -c 'trap ":" EXIT; kill -TERM $$' 2>/dev/null
+got=$?
+(( got > 128 )) || err_exit "trap ':' EXIT + TERM should have signal-based exit (got $got)"
+
+# trap 'exit 7' EXIT + TERM → exit status 7
+got=$("$SHELL" -c 'trap "exit 7" EXIT; kill -TERM $$' 2>/dev/null; print $?)
+exp=7
+[[ $got == "$exp" ]] || err_exit "trap 'exit 7' EXIT should override signal exit" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -31,7 +31,7 @@
 #include	<nval.h>
 #include	"builtins.h"
 
-static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
+static int infof(Opt_t* op, ast_wbuf_t* sp, const char* s, Optdisc_t* dp)
 {
 	Stk_t	*stkp = sh.stk;
 	NOT_USED(op);
@@ -47,7 +47,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 		stkputc(stkp,'$');
 		stkputc(stkp,'(');
 		stkputs(stkp,s,')');
-		sfputr(sp,sh_mactry(stkfreeze(stkp,1)),-1);
+		ast_wbuf_puts(sp,sh_mactry(stkfreeze(stkp,1)));
 		stkset(stkp,savptr,savtop);
 	}
 	return 1;

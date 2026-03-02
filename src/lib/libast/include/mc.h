@@ -76,10 +76,9 @@ typedef struct Mc_s
 } Mc_t;
 
 extern char*		mcfind(const char*, const char*, int, int, char*, size_t);
-extern Mc_t*		mcopen(Sfio_t*);
+extern Mc_t*		mcopen(FILE*);
 extern char*		mcget(Mc_t*, int, int, const char*);
 extern int		mcput(Mc_t*, int, int, const char*);
-extern int		mcdump(Mc_t*, Sfio_t*);
 extern int		mcindex(const char*, char**, int*, int*);
 extern int		mcclose(Mc_t*);
 

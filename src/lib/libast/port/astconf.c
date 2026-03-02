@@ -26,6 +26,7 @@
 #include "univlib.h"
 
 #include <ast.h>
+#include <ast_wbuf.h>
 #include <error.h>
 #include <ctype.h>
 #include <regex.h>
@@ -526,12 +527,12 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 		{
 			int		r = 1;
 			char*		d = p;
-			Sfio_t*		tmp;
+			ast_wbuf_t	wb = AST_WBUF_INIT;
 
 #if DEBUG_astconf
 			error(-6, "astconf initialize name=%s ok=%d PATH=%s", fp->name, ok, p);
 #endif
-			if (tmp = sfstropen())
+			if (ast_wbuf_open(&wb) == 0)
 			{
 				for (;;)
 				{
@@ -544,10 +545,10 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 						{
 							if (r = p - d - 1)
 							{
-								sfwrite(tmp, d, r);
-								sfputc(tmp, '/');
-								sfputr(tmp, command, 0);
-								if ((d = sfstruse(tmp)) && !eaccess(d, X_OK))
+								ast_wbuf_write(&wb, d, r);
+								ast_wbuf_putc(&wb, '/');
+								ast_wbuf_puts(&wb, command);
+								if ((d = ast_wbuf_use(&wb)) && !eaccess(d, X_OK))
 								{
 									ok = 1;
 									if (fp->op != OP_universe)
@@ -594,7 +595,7 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 					}
 					break;
 				}
-				sfclose(tmp);
+				ast_wbuf_close(&wb);
 			}
 			else
 				ok = 1;
@@ -1220,14 +1221,14 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (p->limit.string)
 				sfprintf(sp, "L[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->limit.string, "\"", "\"", strlen(p->limit.string), FMT_SHELL|FMT_ALWAYS) : p->limit.string);
 			else
-				sfprintf(sp, "L[%I*d] ", sizeof(p->limit.number), p->limit.number);
+				sfprintf(sp, "L[%jd] ", (intmax_t)p->limit.number);
 		}
 		if (p->flags & CONF_MINMAX_DEF)
 		{
 			if (p->minmax.string)
 				sfprintf(sp, "M[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->minmax.string, "\"", "\"", strlen(p->minmax.string), FMT_SHELL|FMT_ALWAYS) : p->minmax.string);
 			else
-				sfprintf(sp, "M[%I*d] ", sizeof(p->minmax.number), p->minmax.number);
+				sfprintf(sp, "M[%jd] ", (intmax_t)p->minmax.number);
 		}
 		if (flags & CONF_ERROR)
 			sfprintf(sp, "error");
@@ -1236,9 +1237,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (s)
 				sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 			else if (v != -1)
-				sfprintf(sp, "%I*d", sizeof(v), v);
+				sfprintf(sp, "%jd", (intmax_t)v);
 			else
-				sfprintf(sp, "%I*u", sizeof(v), v);
+				sfprintf(sp, "%ju", (uintmax_t)v);
 		}
 		sfprintf(sp, "\n");
 	}
@@ -1266,9 +1267,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 				if (s)
 					sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 				else if (v != -1)
-					sfprintf(sp, "%I*d", sizeof(v), v);
+					sfprintf(sp, "%jd", (intmax_t)v);
 				else
-					sfprintf(sp, "%I*u", sizeof(v), v);
+					sfprintf(sp, "%ju", (uintmax_t)v);
 			}
 			else
 				sfprintf(sp, "undefined");
@@ -1289,9 +1290,9 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 				v = p->minmax.number;
 			}
 			if (v != -1)
-				sfprintf(sp, "%I*d", sizeof(v), v);
+				sfprintf(sp, "%jd", (intmax_t)v);
 			else if (defined)
-				sfprintf(sp, "%I*u", sizeof(v), v);
+				sfprintf(sp, "%ju", (uintmax_t)v);
 			else
 				sfprintf(sp, "undefined");
 			sfprintf(sp, "\n");
@@ -1319,10 +1320,10 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
  */
 
 #ifdef _pth_getconf_a
-static Sfio_t*
+static FILE*
 nativeconf(Proc_t** pp, const char* operand)
 {
-	Sfio_t*		sp;
+	FILE*		sp;
 	char*		cmd[3];
 	int64_t		ops[2];
 
@@ -1336,11 +1337,8 @@ nativeconf(Proc_t** pp, const char* operand)
 	ops[1] = 0;
 	if (*pp = procopen(_pth_getconf, cmd, environ, ops, PROC_READ))
 	{
-		if (sp = sfnew(NULL, NULL, SFIO_UNBOUND, (*pp)->rfd, SFIO_READ))
-		{
-			sfdisc(sp, SFIO_POPDISC);
+		if (sp = fdopen((*pp)->rfd, "r"))
 			return sp;
-		}
 		procclose(*pp);
 	}
 	return NULL;
@@ -1373,7 +1371,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 	char*		s;
 	int		n;
 	Lookup_t	look;
-	Sfio_t*		tmp;
+	ast_wbuf_t	wb = AST_WBUF_INIT;
 
 	if (!name)
 	{
@@ -1419,20 +1417,23 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 	{
 		if (streq(name + n - 3, "DEV"))
 		{
-			if (tmp = sfstropen())
+			if (ast_wbuf_open(&wb) == 0)
 			{
-				sfprintf(tmp, "/dev/");
+				ast_wbuf_printf(&wb, "/dev/");
 				for (s = (char*)name; s < (char*)name + n - 3; s++)
-					sfputc(tmp, isupper(*s) ? tolower(*s) : *s);
-				if ((s = sfstruse(tmp)) && !access(s, F_OK))
+					ast_wbuf_putc(&wb, isupper(*s) ? tolower(*s) : *s);
+				if ((s = ast_wbuf_use(&wb)) && !access(s, F_OK))
 				{
 					if (value)
+					{
+						ast_wbuf_close(&wb);
 						goto ro;
+					}
 					s = buffer(s);
-					sfclose(tmp);
+					ast_wbuf_close(&wb);
 					return s;
 				}
-				sfclose(tmp);
+				ast_wbuf_close(&wb);
 			}
 		}
 		else if (streq(name + n - 3, "DIR"))
@@ -1458,21 +1459,24 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			for (s = altname; *s; s++)
 				if (isupper(*s))
 					*s = tolower(*s);
-			if (tmp = sfstropen())
+			if (ast_wbuf_open(&wb) == 0)
 			{
 				for (n = 0; n < elementsof(dirs); n++)
 				{
-					sfprintf(tmp, "%s/%s/.", dirs[n], altname);
-					if ((s = sfstruse(tmp)) && !access(s, F_OK))
+					ast_wbuf_printf(&wb, "%s/%s/.", dirs[n], altname);
+					if ((s = ast_wbuf_use(&wb)) && !access(s, F_OK))
 					{
 						if (value)
+						{
+							ast_wbuf_close(&wb);
 							goto ro;
+						}
 						s = buffer(s);
-						sfclose(tmp);
+						ast_wbuf_close(&wb);
 						return s;
 					}
 				}
-				sfclose(tmp);
+				ast_wbuf_close(&wb);
 			}
 		}
 	}
@@ -1529,7 +1533,10 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 	char		flg[8];
 #ifdef _pth_getconf_a
 	Proc_t*		proc;
-	Sfio_t*		pp;
+	FILE*		pp;
+	char*		linebuf;
+	size_t		linebufsz;
+	ssize_t		linelen;
 #endif
 
 	INITIALIZE();
@@ -1587,8 +1594,14 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 		if (pp = nativeconf(&proc, _pth_getconf_a))
 		{
 			call = "GC";
-			while (f = sfgetr(pp, '\n', 1))
+			linebuf = NULL;
+			linebufsz = 0;
+			while ((linelen = getline(&linebuf, &linebufsz, pp)) > 0)
 			{
+				/* strip trailing newline (sfgetr did this) */
+				if (linelen > 0 && linebuf[linelen - 1] == '\n')
+					linebuf[linelen - 1] = '\0';
+				f = linebuf;
 				for (s = f; *s && *s != '=' && *s != ':' && !isspace(*s); s++);
 				if (*s)
 					for (*s++ = 0; isspace(*s); s++);
@@ -1626,7 +1639,8 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 						sfprintf(sp, "%s=%s\n", (flags & ASTCONF_lower) ? fmtlower(f) : f, (flags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 				}
 			}
-			sfclose(pp);
+			free(linebuf);
+			fclose(pp);
 			procclose(proc);
 		}
 #endif

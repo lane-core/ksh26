@@ -861,4 +861,216 @@ got=$(s=$'1\n2\a3\t4\v5'; typeset -L s; typeset -p s)
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 
 # ======
+# T1-08: typeset -m (move semantics)
+
+# scalar move: dst gets value, src unset
+got=$($SHELL -c '
+	typeset src=hello
+	typeset dst
+	typeset -m dst=src
+	print -r "dst=$dst src_set=$([[ -v src ]] && print y || print n)"
+')
+exp='dst=hello src_set=n'
+[[ $got == "$exp" ]] || err_exit "typeset -m scalar move" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# move transfers value from typed source
+got=$($SHELL -c '
+	typeset -i src=42
+	typeset dst
+	typeset -m dst=src
+	print "$dst"
+')
+exp=42
+[[ $got == "$exp" ]] || err_exit "typeset -m should transfer value from integer source (expected '$exp', got '$got')"
+
+# move array variable
+got=$($SHELL -c '
+	typeset -a src=(a b c)
+	typeset -a dst
+	typeset -m dst=src
+	print -r "${dst[@]}"
+	[[ -v src ]] && print src_exists || print src_gone
+')
+exp=$'a b c\nsrc_gone'
+[[ $got == "$exp" ]] || err_exit "typeset -m array move" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# move compound variable
+got=$($SHELL -c '
+	compound src=(typeset x=1; typeset y=2)
+	compound dst
+	typeset -m dst=src
+	print -r "x=${dst.x} y=${dst.y}"
+	[[ -v src ]] && print src_exists || print src_gone
+')
+exp=$'x=1 y=2\nsrc_gone'
+[[ $got == "$exp" ]] || err_exit "typeset -m compound move" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# ksh26: typeset -m should preserve attributes on scalar move
+# (broken in upstream ksh93u+m — attributes are silently dropped)
+
+# integer attribute preserved after move
+got=$($SHELL -c '
+	typeset -i src=42
+	typeset dst
+	typeset -m dst=src
+	typeset -p dst
+')
+exp='typeset -i dst=42'
+[[ $got == "$exp" ]] || err_exit "typeset -m should preserve -i attribute" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# float attribute preserved after move
+got=$($SHELL -c '
+	typeset -F src=3.14
+	typeset dst
+	typeset -m dst=src
+	[[ $(typeset -p dst) == *-F* ]] && print preserved || print lost
+')
+[[ $got == preserved ]] || err_exit "typeset -m should preserve -F attribute"
+
+# uppercase attribute preserved after move
+got=$($SHELL -c '
+	typeset -u src=hello
+	typeset dst
+	typeset -m dst=src
+	[[ $(typeset -p dst) == *-u* ]] && print preserved || print lost
+')
+[[ $got == preserved ]] || err_exit "typeset -m should preserve -u attribute"
+
+# ======
+# ksh26: typeset -m should preserve discipline functions on scalar move
+# (broken in upstream ksh93u+m — disciplines are silently dropped)
+
+# .get discipline survives move (assign after move to avoid false positive)
+got=$($SHELL -c '
+	typeset src=original
+	function src.get { .sh.value="intercepted:${.sh.value}"; }
+	typeset dst
+	typeset -m dst=src
+	dst=changed
+	print -r -- "$dst"
+')
+exp='intercepted:changed'
+[[ $got == "$exp" ]] || err_exit "typeset -m should preserve .get discipline" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# .set discipline survives move
+got=$($SHELL -c '
+	typeset src=initial
+	typeset _set_log=
+	function src.set { _set_log+="${.sh.value} "; }
+	typeset dst
+	typeset -m dst=src
+	# if discipline survived, dst.set should fire on assignment
+	dst=newval
+	print -r -- "$_set_log"
+')
+# the .set should fire for the assignment to dst
+[[ $got == *newval* ]] || err_exit "typeset -m should preserve .set discipline" \
+	"(got $(printf %q "$got"))"
+
+# .unset discipline survives move (count fires on dst unset, not just src cleanup)
+got=$($SHELL -c '
+	typeset src=value
+	typeset -i _unset_count=0
+	function src.unset { (( _unset_count++ )); }
+	typeset dst
+	typeset -m dst=src
+	# count=1 here from src cleanup during move
+	unset dst
+	# if discipline survived, count should be 2 (src cleanup + dst unset)
+	print $_unset_count
+')
+exp=2
+[[ $got == "$exp" ]] || err_exit "typeset -m should preserve .unset discipline" \
+	"(expected count $exp, got $got)"
+
+# combined: attribute + discipline preserved together (assign after move)
+got=$($SHELL -c '
+	typeset -i src=10
+	function src.get { ((.sh.value *= 2)); }
+	typeset dst
+	typeset -m dst=src
+	dst=15
+	attr=$([[ $(typeset -p dst) == *-i* ]] && print yes || print no)
+	val=$dst
+	print "attr=$attr val=$val"
+')
+exp='attr=yes val=30'
+[[ $got == "$exp" ]] || err_exit "typeset -m should preserve both attribute and discipline" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T1-09: typeset -g (global scope bypass)
+
+# -g inside function creates global
+got=$($SHELL -c '
+	function f { typeset -g gvar=hello; }
+	f
+	print -r "$gvar"
+')
+exp=hello
+[[ $got == "$exp" ]] || err_exit "typeset -g inside function should create global (expected '$exp', got '$got')"
+
+# -g modifies existing global
+got=$($SHELL -c '
+	typeset gvar=before
+	function f { typeset -g gvar=after; }
+	f
+	print -r "$gvar"
+')
+exp=after
+[[ $got == "$exp" ]] || err_exit "typeset -g should modify existing global (expected '$exp', got '$got')"
+
+# without -g, typeset creates local (control case)
+got=$($SHELL -c '
+	typeset gvar=global
+	function f { typeset gvar=local; }
+	f
+	print -r "$gvar"
+')
+exp=global
+[[ $got == "$exp" ]] || err_exit "typeset without -g should create local (expected '$exp', got '$got')"
+
+# -g with attributes
+got=$($SHELL -c '
+	function f { typeset -g -i gnum=42; }
+	f
+	[[ $(typeset -p gnum) == *-i* ]] && print -r "$gnum" || print "no attr"
+')
+exp=42
+[[ $got == "$exp" ]] || err_exit "typeset -g -i should create global integer (expected '$exp', got '$got')"
+
+# ======
+# T2-25: typeset incompatible flag combinations should produce errors (exit status 2)
+
+# -i -L (integer + left-justify)
+$SHELL -c 'typeset -i -L v=1' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -i -L should fail (incompatible flags)"
+
+# -b -L (binary + left-justify)
+$SHELL -c 'typeset -b -L v' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -b -L should fail (incompatible flags)"
+
+# -m -i (move + integer)
+$SHELL -c 'typeset x=1; typeset -m -i v=x' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -m -i should fail (incompatible flags)"
+
+# -n -i (nameref + integer)
+$SHELL -c 'typeset -n -i v=x' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -n -i should fail (incompatible flags)"
+
+# -T -i (type + integer)
+$SHELL -c 'typeset -T -i Foo_t=(typeset x)' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -T -i should fail (incompatible flags)"
+
+# -f -i (function + integer)
+$SHELL -c 'typeset -f -i' 2>/dev/null
+(( $? != 0 )) || err_exit "typeset -f -i should fail (incompatible flags)"
+
+# ======
 exit $((Errors<125?Errors:125))

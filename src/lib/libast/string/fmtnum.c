@@ -81,8 +81,8 @@ fmtnum(unsigned long n, int m)
 	}
 	buf = fmtbuf(z = 8);
 	if (r)
-		sfsprintf(buf, z, "%lu.%0*lu%s", n, i, r, suf);
+		snprintf(buf, z, "%lu.%0*lu%s", n, i, r, suf);
 	else
-		sfsprintf(buf, z, "%lu%s", n, suf);
+		snprintf(buf, z, "%lu%s", n, suf);
 	return buf;
 }

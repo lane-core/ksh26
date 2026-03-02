@@ -67,7 +67,7 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 		}
 		else
 			*p++ = 'W';
-		p += sfsprintf(p, sizeof(off) - 2, "%u", d / 60);
+		p += snprintf(p, sizeof(off) - 2, "%u", d / 60);
 		if (d = (d % 60) / 15)
 			*p++ = 'A' + d - 1;
 		*p = 0;

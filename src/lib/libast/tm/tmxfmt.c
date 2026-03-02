@@ -71,11 +71,11 @@ number(char* s, char* e, long n, int p, int w, int pad)
 	}
 	b = s;
 	if (p > 0)
-		s += sfsprintf(s, e - s, "%0*lu", p, n);
+		s += snprintf(s, e - s, "%0*lu", p, n);
 	else if (p < 0)
-		s += sfsprintf(s, e - s, "%*lu", -p, n);
+		s += snprintf(s, e - s, "%*lu", -p, n);
 	else
-		s += sfsprintf(s, e - s, "%lu", n);
+		s += snprintf(s, e - s, "%lu", n);
 	if (w && (s - b) > w)
 		*(s = b + w) = 0;
 	return s;
@@ -532,12 +532,14 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			if (pad == '0')
 				*f++ = pad;
 			if (width)
-				f += sfsprintf(f, &fmt[sizeof(fmt)] - f, "%d", width);
-			f += sfsprintf(f, &fmt[sizeof(fmt)] - f, "I%du", sizeof(Tmxsec_t));
-			cp += sfsprintf(cp, ep - cp, fmt, tmxsec(now));
+				f += snprintf(f, &fmt[sizeof(fmt)] - f, "%d", width);
+			*f++ = 'j';
+			*f++ = 'u';
+			*f = '\0';
+			cp += snprintf(cp, ep - cp, fmt, (uintmax_t)tmxsec(now));
 			if (parts > 1)
 			{
-				n = sfsprintf(cp, ep - cp, ".%09I*u", sizeof(Tmxnsec_t), tmxnsec(now));
+				n = snprintf(cp, ep - cp, ".%09ju", (uintmax_t)tmxnsec(now));
 				if (prec && n >= prec)
 					n = prec + 1;
 				cp += n;

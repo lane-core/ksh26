@@ -25,6 +25,7 @@
  */
 
 #include <ast.h>
+#include <ast_wbuf.h>
 #include <cdt.h>
 #include <iconv.h>
 #include <mc.h>
@@ -552,12 +553,13 @@ load(Lc_info_t* li)
 	char**		b;
 	char**		v;
 	char**		e;
-	unsigned char*		u;
-	ssize_t			n;
-	iconv_t			cvt;
-	Sfio_t*			sp;
-	Sfio_t*			tp;
-	char			path[PATH_MAX];
+	unsigned char	bom[3];
+	ssize_t		n;
+	iconv_t		cvt;
+	FILE*		sp;
+	ast_wbuf_t	tp = AST_WBUF_INIT;
+	int		have_tp = 0;
+	char		path[PATH_MAX];
 
 	if (b = (char**)li->data)
 	{
@@ -569,30 +571,33 @@ load(Lc_info_t* li)
 	tm_info.format = tm_data.format;
 	if (!(tm_info.deformat = state.format))
 		tm_info.deformat = tm_info.format[TM_DEFAULT];
-	if (mcfind(NULL, NULL, LC_TIME, 0, path, sizeof(path)) && (sp = sfopen(NULL, path, "r")))
+	if (mcfind(NULL, NULL, LC_TIME, 0, path, sizeof(path)) && (sp = fopen(path, "r")))
 	{
-		n = sfsize(sp);
-		tp = 0;
-		if (u = (unsigned char*)sfreserve(sp, 3, 1))
+		fseek(sp, 0, SEEK_END);
+		n = ftell(sp);
+		fseek(sp, 0, SEEK_SET);
+		if (fread(bom, 1, 3, sp) == 3)
 		{
-			if (u[0] == 0xef && u[1] == 0xbb && u[2] == 0xbf && (cvt = iconv_open("", "utf")) != (iconv_t)(-1))
+			if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf && (cvt = iconv_open("", "utf")) != (iconv_t)(-1))
 			{
-				if (tp = sfstropen())
+				if (!ast_wbuf_open(&tp))
 				{
-					sfread(sp, u, 3);
-					n = iconv_move(cvt, sp, tp, SFIO_UNBOUND, NULL);
+					n = iconv_move(cvt, sp, &tp, (size_t)(-1), NULL);
+					have_tp = 1;
 				}
 				iconv_close(cvt);
 			}
-			if (!tp)
-				sfread(sp, u, 0);
+			if (!have_tp)
+				fseek(sp, 0, SEEK_SET);
 		}
+		else
+			fseek(sp, 0, SEEK_SET);
 		if (b = newof(0, char*, TM_NFORM, n + 2))
 		{
 			v = b;
 			e = b + TM_NFORM;
 			s = (char*)e;
-			if (tp && memcpy(s, sfstrbase(tp), n) || !tp && sfread(sp, s, n) == n)
+			if (have_tp && memcpy(s, ast_wbuf_base(&tp), n) || !have_tp && (ssize_t)fread(s, 1, n, sp) == n)
 			{
 				s[n] = '\n';
 				while (v < e)
@@ -607,9 +612,9 @@ load(Lc_info_t* li)
 			else
 				free(b);
 		}
-		if (tp)
-			sfclose(tp);
-		sfclose(sp);
+		if (have_tp)
+			ast_wbuf_close(&tp);
+		fclose(sp);
 	}
 	else
 		native_lc_time(li);

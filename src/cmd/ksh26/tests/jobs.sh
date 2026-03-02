@@ -95,4 +95,26 @@ got=$(set +x; ENV=$tmp/profile "$SHELL" -i </dev/null 2>&1)
 fi # !SHOPT_SCRIPTONLY
 
 # ======
+# T1-14: monitor mode (job control)
+
+# set -o monitor activates
+got=$($SHELL -c 'set -o monitor 2>/dev/null; [[ -o monitor ]] && print yes || print no' 2>/dev/null)
+[[ $got == yes ]] || err_exit "'set -o monitor' does not activate monitor mode"
+
+# set +o monitor deactivates
+got=$($SHELL -c 'set -o monitor 2>/dev/null; set +o monitor; [[ -o monitor ]] && print yes || print no' 2>/dev/null)
+[[ $got == no ]] || err_exit "'set +o monitor' does not deactivate monitor mode"
+
+# job references work under monitor mode
+if	(set -o monitor) 2>/dev/null
+then	got=$(
+		set -o monitor 2>/dev/null
+		sleep 10 &
+		kill %1 2>/dev/null && print killed || print failed
+		wait 2>/dev/null
+	) 2>/dev/null
+	[[ $got == killed ]] || err_exit "'kill %1' should work under monitor mode (got '$got')"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -583,4 +583,52 @@ T $'a \n'			'%s %99$s\n'		a b c d e f g h i j
 T $'first fifth\nsixth \n'	'%s %5$s\n'		first 2+ @ 2/0 fifth sixth
 
 # ======
+# T2-26: printf %Q — elapsed time formatting
+
+# %Q with integer seconds → human-readable elapsed time
+got=$(printf '%Q' 3661)
+exp='1h01m'
+[[ $got == "$exp" ]] || err_exit "printf '%Q' 3661 should produce human-readable elapsed time" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# %(fmt)Q → integer seconds
+got=$(printf '%(x)Q' '1h')
+exp=3600
+[[ $got == "$exp" ]] || err_exit "printf '%(x)Q' '1h' should output integer seconds" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# %Q with 0 → zero representation
+got=$(printf '%Q' 0)
+exp=0
+[[ $got == "$exp" ]] || err_exit "printf '%Q' 0 should produce '0'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T2-27: printf %H and %#H — HTML and URI encoding
+
+# %H encodes HTML entities
+got=$(printf '%H' '<>&"')
+exp='&lt;&gt;&amp;&quot;'
+[[ $got == "$exp" ]] || err_exit "printf '%H' should encode HTML entities" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# %#H percent-encodes spaces
+got=$(printf '%#H' 'a b')
+exp='a%20b'
+[[ $got == "$exp" ]] || err_exit "printf '%#H' should percent-encode spaces" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# %#H passes through RFC 3986 unreserved chars
+got=$(printf '%#H' 'a-b_c.d~e')
+exp='a-b_c.d~e'
+[[ $got == "$exp" ]] || err_exit "printf '%#H' should pass through unreserved chars" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# %#H percent-encodes reserved chars
+got=$(printf '%#H' 'a/b?c=d')
+exp='a%2Fb%3Fc%3Dd'
+[[ $got == "$exp" ]] || err_exit "printf '%#H' should percent-encode reserved chars" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

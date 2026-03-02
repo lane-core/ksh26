@@ -879,4 +879,90 @@ Version*93u+m/1.0* | Version*93??\ * | Version*93?\ *)
 esac
 
 # ======
+# T1-06: ${@var} type/attribute query
+
+# integer → contains "-i"
+typeset -i _t06_int=5
+got=${@_t06_int}
+[[ $got == *-i* ]] || err_exit '${@var} for integer should contain -i' \
+	"(got $(printf %q "$got"))"
+
+# float → contains "-F"
+typeset -F _t06_flt=3.14
+got=${@_t06_flt}
+[[ $got == *-F* ]] || err_exit '${@var} for float should contain -F' \
+	"(got $(printf %q "$got"))"
+
+# uppercase → contains "-u"
+typeset -u _t06_up=hello
+got=${@_t06_up}
+[[ $got == *-u* ]] || err_exit '${@var} for uppercase should contain -u' \
+	"(got $(printf %q "$got"))"
+
+# user-defined type → type name
+typeset -T _T06_type_t=(typeset x; typeset y)
+_T06_type_t _t06_typed
+got=${@_t06_typed}
+[[ $got == _T06_type_t ]] || err_exit '${@var} for user-defined type should return type name' \
+	"(expected '_T06_type_t', got $(printf %q "$got"))"
+
+# unset → empty
+unset _t06_nosuch
+got=${@_t06_nosuch}
+[[ -z $got ]] || err_exit '${@var} for unset variable should be empty' \
+	"(got $(printf %q "$got"))"
+
+# ======
+# T2-03: type with readonly field
+
+# readonly field without default: instance created, assignment rejected
+"$SHELL" -c '
+	typeset -T Foo_t=(
+		typeset -r required_field
+	)
+	Foo_t x
+	x.required_field=changed
+' 2>/dev/null
+(( $? != 0 )) || err_exit "type readonly field should reject assignment"
+
+# readonly field + default → OK, value preserved
+got=$("$SHELL" -c '
+	typeset -T Foo_t=(
+		typeset -r required_field=default_val
+	)
+	Foo_t x
+	print "${x.required_field}"
+')
+exp=default_val
+[[ $got == "$exp" ]] || err_exit "type with readonly field + default should work" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T2-04: static vs non-static methods
+
+# static method cannot be overridden per-instance
+got=$("$SHELL" -c '
+	typeset -T Foo_t=(
+		function static_method { print static; }
+	)
+	Foo_t x
+	x.static_method
+' 2>&1)
+[[ $got == static ]] || err_exit "static method should not be overridable per-instance" \
+	"(expected 'static', got $(printf %q "$got"))"
+
+# non-static method (discipline) CAN be overridden (control)
+got=$("$SHELL" -c '
+	typeset -T Foo_t=(
+		typeset val=original
+	)
+	Foo_t x
+	function x.val.get { .sh.value=overridden; }
+	print "${x.val}"
+')
+exp=overridden
+[[ $got == "$exp" ]] || err_exit "discipline function should be overridable per-instance" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

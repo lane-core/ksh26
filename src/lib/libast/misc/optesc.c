@@ -28,7 +28,7 @@
 #include <ctype.h>
 
 int
-optesc(Sfio_t* sp, const char* s, int esc)
+optesc(ast_wbuf_t* sp, const char* s, int esc)
 {
 	const char*	m;
 	int		c;
@@ -38,7 +38,7 @@ optesc(Sfio_t* sp, const char* s, int esc)
 		c = strlen(s);
 		if (s[c - 1] == ']')
 		{
-			sfprintf(sp, "%-.*s", c - 4, s + 3);
+			ast_wbuf_printf(sp, "%-.*s", c - 4, s + 3);
 			return 0;
 		}
 	}
@@ -51,14 +51,14 @@ optesc(Sfio_t* sp, const char* s, int esc)
 			for (m = s - 1; isalnum(*s); s++);
 			if (isalpha(c) && *s == '(' && isdigit(*(s + 1)) && *(s + 2) == ')')
 			{
-				sfputc(sp, '\b');
-				sfwrite(sp, m, s - m);
-				sfputc(sp, '\b');
-				sfwrite(sp, s, 3);
+				ast_wbuf_putc(sp, '\b');
+				ast_wbuf_write(sp, m, s - m);
+				ast_wbuf_putc(sp, '\b');
+				ast_wbuf_write(sp, s, 3);
 				s += 3;
 			}
 			else
-				sfwrite(sp, m, s - m);
+				ast_wbuf_write(sp, m, s - m);
 		}
 		else if (c == '-' && *s == '-' || c == '<')
 		{
@@ -71,18 +71,18 @@ optesc(Sfio_t* sp, const char* s, int esc)
 				s++;
 			if (c == '<' && *s == '>' || isspace(*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
 			{
-				sfputc(sp, '\b');
-				sfwrite(sp, m, s - m);
-				sfputc(sp, '\b');
+				ast_wbuf_putc(sp, '\b');
+				ast_wbuf_write(sp, m, s - m);
+				ast_wbuf_putc(sp, '\b');
 			}
 			else
-				sfwrite(sp, m, s - m);
+				ast_wbuf_write(sp, m, s - m);
 		}
 		else
 		{
 			if (c == ']' || c == esc)
-				sfputc(sp, c);
-			sfputc(sp, c);
+				ast_wbuf_putc(sp, c);
+			ast_wbuf_putc(sp, c);
 		}
 	}
 	return 0;

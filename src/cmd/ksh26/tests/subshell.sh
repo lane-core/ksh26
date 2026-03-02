@@ -1250,4 +1250,76 @@ echo ok" 2>&1)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# T3-02: .sh.subshell increments inside subshells
+
+# .sh.subshell increments inside ( ... )
+got=$("$SHELL" -c '
+	typeset outer=${.sh.subshell}
+	typeset inner=$(print ${.sh.subshell})
+	(( inner > outer )) && print yes || print no
+')
+exp=yes
+[[ $got == "$exp" ]] || err_exit ".sh.subshell should increment inside subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# .sh.subshell returns to parent value after subshell exits
+got=$("$SHELL" -c '
+	typeset before=${.sh.subshell}
+	( : )
+	typeset after=${.sh.subshell}
+	(( before == after )) && print yes || print "no: before=$before after=$after"
+')
+exp=yes
+[[ $got == "$exp" ]] || err_exit ".sh.subshell should return to parent value after subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T3-04: RANDOM in subshell diverges from parent
+
+# $(echo $RANDOM) should differ from parent's next RANDOM
+got=$("$SHELL" -c '
+	RANDOM=12345
+	sub_r=$(print $RANDOM)
+	parent_r=$RANDOM
+	[[ $sub_r != "$parent_r" ]] && print yes || print no
+')
+exp=yes
+[[ $got == "$exp" ]] || err_exit "RANDOM in subshell should diverge from parent" \
+	"(got $(printf %q "$got"))"
+
+# two subshells get different RANDOM sequences
+got=$("$SHELL" -c '
+	RANDOM=12345
+	r1=$(print $RANDOM)
+	r2=$(print $RANDOM)
+	[[ $r1 != "$r2" ]] && print yes || print no
+')
+exp=yes
+[[ $got == "$exp" ]] || err_exit "two subshells should get different RANDOM sequences" \
+	"(got $(printf %q "$got"))"
+
+# ======
+# T3-10: trapped signal handler runs in subshell, parent variable unchanged
+
+got=$("$SHELL" -c '
+	typeset var=parent
+	trap "var=trapped" USR1
+	( kill -USR1 $$ )
+	print "$var"
+')
+# after signal handler runs, var should be "trapped" (signal handled in parent)
+[[ $got == trapped ]] || err_exit "signal handler should run when signal sent from subshell" \
+	"(expected 'trapped', got $(printf %q "$got"))"
+
+# subshell variable modification doesn't leak to parent (control)
+got=$("$SHELL" -c '
+	typeset var=parent
+	( var=child )
+	print "$var"
+')
+exp=parent
+[[ $got == "$exp" ]] || err_exit "subshell variable should not leak to parent" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
