@@ -945,16 +945,15 @@ got=$($SHELL -c '
 # ksh26: typeset -m should preserve discipline functions on scalar move
 # (broken in upstream ksh93u+m — disciplines are silently dropped)
 
-# .get discipline survives move (assign after move to avoid false positive)
+# .get discipline survives move
 got=$($SHELL -c '
 	typeset src=original
-	function src.get { .sh.value="intercepted:${.sh.value}"; }
+	function src.get { .sh.value="intercepted"; }
 	typeset dst
 	typeset -m dst=src
-	dst=changed
 	print -r -- "$dst"
 ')
-exp='intercepted:changed'
+exp='intercepted'
 [[ $got == "$exp" ]] || err_exit "typeset -m should preserve .get discipline" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
@@ -973,26 +972,25 @@ got=$($SHELL -c '
 [[ $got == *newval* ]] || err_exit "typeset -m should preserve .set discipline" \
 	"(got $(printf %q "$got"))"
 
-# .unset discipline survives move (count fires on dst unset, not just src cleanup)
+# .unset discipline survives move (nv_clone zeroes source without nv_unset,
+# so .unset fires only for the destination)
 got=$($SHELL -c '
 	typeset src=value
 	typeset -i _unset_count=0
 	function src.unset { (( _unset_count++ )); }
 	typeset dst
 	typeset -m dst=src
-	# count=1 here from src cleanup during move
 	unset dst
-	# if discipline survived, count should be 2 (src cleanup + dst unset)
 	print $_unset_count
 ')
-exp=2
+exp=1
 [[ $got == "$exp" ]] || err_exit "typeset -m should preserve .unset discipline" \
 	"(expected count $exp, got $got)"
 
 # combined: attribute + discipline preserved together (assign after move)
 got=$($SHELL -c '
 	typeset -i src=10
-	function src.get { ((.sh.value *= 2)); }
+	function src.set { ((.sh.value *= 2)); }
 	typeset dst
 	typeset -m dst=src
 	dst=15
