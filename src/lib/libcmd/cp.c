@@ -134,6 +134,7 @@ static const char usage_tail[] =
 #include <hashkey.h>
 #include <stk.h>
 #include <tmx.h>
+#include <ast_wbuf.h>
 
 #define PATH_CHUNK	256
 
@@ -185,7 +186,7 @@ typedef struct State_s			/* program state		*/
 	char*		opname;		/* state.op message string	*/
 	char*		suffix;		/* backup suffix		*/
 
-	Sfio_t*		tmp;		/* tmp string stream		*/
+	ast_wbuf_t	tmp;		/* tmp string stream		*/
 
 	char		text[PATH_MAX];	/* link text buffer		*/
 } State_t;
@@ -223,6 +224,21 @@ preserve(State_t* state, const char* path, struct stat* ns, struct stat* os)
 }
 
 /*
+ * copy file contents via stdio
+ */
+
+static int
+file_copy(FILE *src, FILE *dst)
+{
+	char	buf[8192];
+	size_t	n;
+	while ((n = fread(buf, 1, sizeof(buf), src)) > 0)
+		if (fwrite(buf, 1, n, dst) != n)
+			return -1;
+	return ferror(src) ? -1 : 0;
+}
+
+/*
  * visit a single file and state.op to the destination
  */
 
@@ -238,8 +254,8 @@ visit(State_t* state, FTSENT* ent)
 	char*		s;
 	char*		e;
 	char*		protection;
-	Sfio_t*		ip;
-	Sfio_t*		op;
+	FILE*		ip;
+	FILE*		op;
 	FTS*		fts;
 	FTSENT*		sub;
 	struct stat	st;
@@ -501,14 +517,14 @@ visit(State_t* state, FTSENT* ent)
 				*--s = '/';
 			if (v || state->backup == BAK_number)
 			{
-				sfprintf(state->tmp, "%s.%s%d%s", state->path, state->suffix, v + 1, state->suffix);
+				ast_wbuf_printf(&state->tmp, "%s.%s%d%s", state->path, state->suffix, v + 1, state->suffix);
 				goto backup;
 			}
 			/* FALLTHROUGH */
 		case BAK_simple:
-			sfprintf(state->tmp, "%s%s", state->path, state->suffix);
+			ast_wbuf_printf(&state->tmp, "%s%s", state->path, state->suffix);
 		backup:
-			if (!(s = sfstruse(state->tmp)))
+			if (!(s = ast_wbuf_use(&state->tmp)))
 			{
 				error(ERROR_SYSTEM|3, "%s: out of memory", state->path);
 				UNREACHABLE();
@@ -585,28 +601,28 @@ visit(State_t* state, FTSENT* ent)
 			}
 			else if (ent->fts_statp->st_size > 0)
 			{
-				if (!(ip = sfnew(NULL, NULL, SFIO_UNBOUND, rfd, SFIO_READ)))
+				if (!(ip = fdopen(rfd, "r")))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s read stream error", ent->fts_path, state->path);
 					ast_close(rfd);
 					ast_close(wfd);
 					return 0;
 				}
-				if (!(op = sfnew(NULL, NULL, SFIO_UNBOUND, wfd, SFIO_WRITE)))
+				if (!(op = fdopen(wfd, "w")))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s write stream error", ent->fts_path, state->path);
 					ast_close(wfd);
-					sfclose(ip);
+					fclose(ip);
 					return 0;
 				}
 				n = 0;
-				if (sfmove(ip, op, (Sfoff_t)SFIO_UNBOUND, -1) < 0)
+				if (file_copy(ip, op) < 0)
 					n |= 3;
-				if (!sfeof(ip))
+				if (!feof(ip))
 					n |= 1;
-				if (sfsync(op) || state->sync && fsync(wfd) || sfclose(op))
+				if (fflush(op) || state->sync && fsync(wfd) || fclose(op))
 					n |= 2;
-				if (sfclose(ip))
+				if (fclose(ip))
 					n |= 1;
 				if (n)
 				{
@@ -697,25 +713,25 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	state->flags = FTS_NOCHDIR|FTS_NOSEEDOTDIR;
 	state->uid = geteuid();
 	state->wflags = O_WRONLY|O_CREAT|O_TRUNC|O_BINARY;
-	if (!state->tmp && !(state->tmp = sfstropen()))
+	if (!state->tmp.fp && ast_wbuf_open(&state->tmp))
 	{
 		error(ERROR_SYSTEM|3, "out of memory");
 		UNREACHABLE();
 	}
-	sfputr(state->tmp, usage_head, -1);
+	ast_wbuf_puts(&state->tmp, usage_head);
 	standard = !!conformance(0, 0);
 	switch (error_info.id[0])
 	{
 	case 'c':
 	case 'C':
-		sfputr(state->tmp, usage_cp, -1);
+		ast_wbuf_puts(&state->tmp, usage_cp);
 		state->op = CP;
 		state->stat = stat;
 		path_resolve = -1;
 		break;
 	case 'l':
 	case 'L':
-		sfputr(state->tmp, usage_ln, -1);
+		ast_wbuf_puts(&state->tmp, usage_ln);
 		state->op = LN;
 		state->flags |= FTS_PHYSICAL;
 		state->link = link;
@@ -725,7 +741,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		break;
 	case 'm':
 	case 'M':
-		sfputr(state->tmp, usage_mv, -1);
+		ast_wbuf_puts(&state->tmp, usage_mv);
 		state->op = MV;
 		state->flags |= FTS_PHYSICAL;
 		state->preserve = PRESERVE_IDS|PRESERVE_PERM|PRESERVE_TIME;
@@ -736,8 +752,8 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		error(3, "not implemented");
 		break;
 	}
-	sfputr(state->tmp, usage_tail, -1);
-	if (!(usage = sfstruse(state->tmp)))
+	ast_wbuf_puts(&state->tmp, usage_tail);
+	if (!(usage = ast_wbuf_use(&state->tmp)))
 	{
 		error(ERROR_SYSTEM|3, "out of memory");
 		UNREACHABLE();
@@ -1009,6 +1025,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_SYSTEM|2, "%s: cannot link to %s", *argv, state->path);
 	if (cleanup && !sh)
 	{
+		ast_wbuf_close(&state->tmp);
 		if (state->path)
 			free(state->path);
 		free(state);
