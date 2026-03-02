@@ -73,6 +73,123 @@ static const char lib[] = "libast:fastfind";
 
 #include "findlib.h"
 
+/*
+ * sfio-compatible variable-length integer I/O
+ *
+ * Unsigned: 7 data bits per byte, MSB (0x80) is continuation flag,
+ * most significant group first.
+ *
+ * Signed: same as unsigned except the last byte uses bit 6 (0x40)
+ * as sign flag, leaving 6 data bits. Negative v stored as -(v+1).
+ */
+
+static unsigned long
+file_getu(FILE *fp)
+{
+	int		c;
+	unsigned long	v;
+	v = 0;
+	while ((c = fgetc(fp)) != EOF)
+	{
+		if (c & 0x80)
+			v = (v << 7) | (c & 0x7f);
+		else
+			return (v << 7) | c;
+	}
+	return v;
+}
+
+static int
+file_putu(FILE *fp, unsigned long v)
+{
+	unsigned char	buf[2 * sizeof(unsigned long)];
+	unsigned char	*s, *ps;
+	size_t		n;
+	s = ps = &buf[sizeof(buf) - 1];
+	*s = v & 0x7f;
+	while (v >>= 7)
+		*--s = (v & 0x7f) | 0x80;
+	n = (ps - s) + 1;
+	return fwrite(s, 1, n, fp) == n ? (int)n : -1;
+}
+
+static long
+file_getl(FILE *fp)
+{
+	int		c;
+	unsigned long	v;
+	v = 0;
+	while ((c = fgetc(fp)) != EOF)
+	{
+		if (c & 0x80)
+			v = (v << 7) | (c & 0x7f);
+		else
+		{
+			v = (v << 6) | (c & 0x3f);
+			return (c & 0x40) ? -(long)v - 1 : (long)v;
+		}
+	}
+	return -1;
+}
+
+static int
+file_putl(FILE *fp, long v)
+{
+	unsigned char	buf[2 * sizeof(long)];
+	unsigned char	*s, *ps;
+	size_t		n;
+	s = ps = &buf[sizeof(buf) - 1];
+	if (v < 0)
+	{
+		v = -(v + 1);
+		*s = (v & 0x3f) | 0x40;
+	}
+	else
+		*s = v & 0x3f;
+	v = (unsigned long)v >> 6;
+	while (v > 0)
+	{
+		*--s = (v & 0x7f) | 0x80;
+		v = (unsigned long)v >> 7;
+	}
+	n = (ps - s) + 1;
+	return fwrite(s, 1, n, fp) == n ? (int)n : -1;
+}
+
+/* Read NUL-delimited record from FILE*, returns pointer to static buf */
+static char *
+file_getr_nul(FILE *fp)
+{
+	static char	*buf;
+	static size_t	cap;
+	size_t		n = 0;
+	int		c;
+	while ((c = fgetc(fp)) != EOF && c != '\0')
+	{
+		if (n >= cap)
+			buf = realloc(buf, cap = cap ? cap * 2 : 256);
+		buf[n++] = c;
+	}
+	if (c == EOF && n == 0)
+		return NULL;
+	if (n >= cap)
+		buf = realloc(buf, cap = cap ? cap * 2 : 256);
+	buf[n] = '\0';
+	return buf;
+}
+
+/* Copy entire contents of src to dst */
+static int
+file_copy(FILE *src, FILE *dst)
+{
+	char	buf[8192];
+	size_t	n;
+	while ((n = fread(buf, 1, sizeof(buf), src)) > 0)
+		if (fwrite(buf, 1, n, dst) != n)
+			return -1;
+	return ferror(src) ? -1 : 0;
+}
+
 #define FIND_MATCH	"*/(find|locate)/*"
 
 /*
@@ -270,7 +387,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			 */
 
 			fp->method = FF_old;
-			if (!(fp->fp = sftmp(32 * PATH_MAX)))
+			if (!(fp->fp = tmpfile()))
 			{
 				if (fp->disc->errorf)
 					(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "cannot create tmp file");
@@ -299,7 +416,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			}
 			if (s)
 				*s = '/';
-			if (!(fp->fp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, fd, SFIO_WRITE)))
+			if (!(fp->fp = fdopen(fd, "w")))
 			{
 				if (fp->disc->errorf)
 					(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "%s: cannot open tmp file", fp->encode.temp);
@@ -336,14 +453,16 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			else if (fp->disc->flags & FIND_GNU)
 			{
 				fp->method = FF_gnu;
-				sfputc(fp->fp, 0);
-				sfputr(fp->fp, FF_gnu_magic, 0);
+				fputc(0, fp->fp);
+				fputs(FF_gnu_magic, fp->fp);
+				fputc(0, fp->fp);
 			}
 			else
 			{
 				fp->method = FF_dir;
-				sfputc(fp->fp, 0);
-				sfputr(fp->fp, FF_dir_magic, 0);
+				fputc(0, fp->fp);
+				fputs(FF_dir_magic, fp->fp);
+				fputc(0, fp->fp);
 			}
 		}
 	}
@@ -376,7 +495,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 							for (k = 0; k < elementsof(findnames); k++)
 							{
 								snprintf(fp->decode.path, sizeof(fp->decode.path), "%s/%s", path, findnames[k]);
-								if (fp->fp = sfopen(NULL, fp->decode.path, "r"))
+								if (fp->fp = fopen(fp->decode.path, "r"))
 								{
 									path = fp->decode.path;
 									break;
@@ -385,11 +504,11 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 							if (fp->fp)
 								break;
 						}
-						else if (fp->fp = sfopen(NULL, path, "r"))
+						else if (fp->fp = fopen(path, "r"))
 							break;
 					}
 				}
-				else if ((path = pathpath(path, "", PATH_REGULAR|PATH_READ, fp->decode.path, sizeof(fp->decode.path))) && (fp->fp = sfopen(NULL, path, "r")))
+				else if ((path = pathpath(path, "", PATH_REGULAR|PATH_READ, fp->decode.path, sizeof(fp->decode.path))) && (fp->fp = fopen(path, "r")))
 					break;
 			}
 		if (!fp->fp)
@@ -398,7 +517,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 				(*fp->disc->errorf)(fp, fp->disc, 2, "%s: cannot locate codes", file ? file : findcodes[2]);
 			goto drop;
 		}
-		if (fstat(sffileno(fp->fp), &st))
+		if (fstat(fileno(fp->fp), &st))
 		{
 			if (fp->disc->errorf)
 				(*fp->disc->errorf)(fp, fp->disc, 2, "%s: cannot stat codes", path);
@@ -410,14 +529,14 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		b = (s = fp->decode.temp) + 1;
 		for (i = 0; i < elementsof(fp->decode.bigram1); i++)
 		{
-			if ((j = sfgetc(fp->fp)) == EOF)
+			if ((j = fgetc(fp->fp)) == EOF)
 				goto invalid;
 			if (!(*s++ = fp->decode.bigram1[i] = j) && i)
 			{
 				i = -i;
 				break;
 			}
-			if ((j = sfgetc(fp->fp)) == EOF)
+			if ((j = fgetc(fp->fp)) == EOF)
 				goto invalid;
 			if (!(*s++ = fp->decode.bigram2[i] = j) && (i || fp->decode.bigram1[0] >= '0' && fp->decode.bigram1[0] <= '1'))
 				break;
@@ -432,7 +551,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			fp->method = FF_typ;
 			for (j = 0, i = 1;; i++)
 			{
-				if (!(s = sfgetr(fp->fp, 0, 0)))
+				if (!(s = file_getr_nul(fp->fp)))
 					goto invalid;
 				if (!*s)
 					break;
@@ -453,7 +572,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		else if (!*b && *--b >= '0' && *b <= '1')
 		{
 			fp->method = FF_gnu;
-			while (j = sfgetc(fp->fp))
+			while (j = fgetc(fp->fp))
 			{
 				if (j == EOF || fp->decode.count >= sizeof(fp->decode.path))
 					goto invalid;
@@ -465,20 +584,20 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			fp->method = FF_old;
 			if (i < 0)
 			{
-				if ((j = sfgetc(fp->fp)) == EOF)
+				if ((j = fgetc(fp->fp)) == EOF)
 					goto invalid;
 				fp->decode.bigram2[i = -i] = j;
 			}
 			while (++i < elementsof(fp->decode.bigram1))
 			{
-				if ((j = sfgetc(fp->fp)) == EOF)
+				if ((j = fgetc(fp->fp)) == EOF)
 					goto invalid;
 				fp->decode.bigram1[i] = j;
-				if ((j = sfgetc(fp->fp)) == EOF)
+				if ((j = fgetc(fp->fp)) == EOF)
 					goto invalid;
 				fp->decode.bigram2[i] = j;
 			}
-			if ((fp->decode.peek = sfgetc(fp->fp)) != FF_OFF)
+			if ((fp->decode.peek = fgetc(fp->fp)) != FF_OFF)
 				goto invalid;
 		}
 
@@ -662,7 +781,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 	if (!fp->generate && fp->decode.match)
 		regfree(&fp->decode.re);
 	if (fp->fp)
-		sfclose(fp->fp);
+		fclose(fp->fp);
 	vmclose(fp->vm);
 	return NULL;
 }
@@ -704,17 +823,17 @@ findread(Find_t* fp)
 		{
 		case FF_dir:
 			t = 0;
-			n = sfgetl(fp->fp);
+			n = file_getl(fp->fp);
 			goto grab;
 		case FF_gnu:
-			if ((c = sfgetc(fp->fp)) == EOF)
+			if ((c = fgetc(fp->fp)) == EOF)
 				return NULL;
 			if (c == 0x80)
 			{
-				if ((c = sfgetc(fp->fp)) == EOF)
+				if ((c = fgetc(fp->fp)) == EOF)
 					return NULL;
 				n = c << 8;
-				if ((c = sfgetc(fp->fp)) == EOF)
+				if ((c = fgetc(fp->fp)) == EOF)
 					return NULL;
 				n |= c;
 				if (n & 0x8000)
@@ -725,13 +844,13 @@ findread(Find_t* fp)
 			t = 0;
 			goto grab;
 		case FF_typ:
-			t = sfgetu(fp->fp);
-			n = sfgetl(fp->fp);
+			t = file_getu(fp->fp);
+			n = file_getl(fp->fp);
 		grab:
 			p = fp->decode.path + (fp->decode.count += n);
 			do
 			{
-				if ((c = sfgetc(fp->fp)) == EOF)
+				if ((c = fgetc(fp->fp)) == EOF)
 					return NULL;
 			} while (*p++ = c);
 			p -= 2;
@@ -744,7 +863,7 @@ findread(Find_t* fp)
 			}
 			if (c == FF_ESC)
 			{
-				if (sfread(fp->fp, w, sizeof(w)) != sizeof(w))
+				if (fread(w, 1, sizeof(w), fp->fp) != sizeof(w))
 					return NULL;
 				if (fp->decode.swap >= 0)
 				{
@@ -780,7 +899,7 @@ findread(Find_t* fp)
 					c = (int32_t)((w[3] << 24) | (w[2] << 16) | (w[1] << 8) | w[0]);
 			}
 			fp->decode.count += c - FF_OFF;
-			for (p = fp->decode.path + fp->decode.count; (c = sfgetc(fp->fp)) > FF_ESC;)
+			for (p = fp->decode.path + fp->decode.count; (c = fgetc(fp->fp)) > FF_ESC;)
 				if (c & (1<<(CHAR_BIT-1)))
 				{
 					*p++ = fp->decode.bigram1[c & ((1<<(CHAR_BIT-1))-1)];
@@ -961,20 +1080,20 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 	case FF_gnu:
 		d = n - fp->encode.prefix;
 		if (d >= -127 && d <= 127)
-			sfputc(fp->fp, d & 0xff);
+			fputc(d & 0xff, fp->fp);
 		else
 		{
-			sfputc(fp->fp, 0x80);
-			sfputc(fp->fp, (d >> 8) & 0xff);
-			sfputc(fp->fp, d & 0xff);
+			fputc(0x80, fp->fp);
+			fputc((d >> 8) & 0xff, fp->fp);
+			fputc(d & 0xff, fp->fp);
 		}
 		fp->encode.prefix = n;
-		sfputr(fp->fp, (char*)s, 0);
+		fputs((char*)s, fp->fp); fputc(0, fp->fp);
 		break;
 	case FF_old:
-		sfprintf(fp->fp, "%ld", n - fp->encode.prefix + FF_OFF);
+		fprintf(fp->fp, "%ld", (long)(n - fp->encode.prefix + FF_OFF));
 		fp->encode.prefix = n;
-		sfputc(fp->fp, ' ');
+		fputc(' ', fp->fp);
 		p = s;
 		while (s < e)
 		{
@@ -987,9 +1106,9 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 		{
 			if ((n = *p++) < FF_MIN || n >= FF_MAX)
 				n = '?';
-			sfputc(fp->fp, n);
+			fputc(n, fp->fp);
 		}
-		sfputc(fp->fp, 0);
+		fputc(0, fp->fp);
 		break;
 	case FF_typ:
 		if (type)
@@ -1009,13 +1128,13 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 		}
 		else
 			u = 0;
-		sfputu(fp->fp, u);
+		file_putu(fp->fp, u);
 		/* FALLTHROUGH */
 	case FF_dir:
 		d = n - fp->encode.prefix;
-		sfputl(fp->fp, d);
+		file_putl(fp->fp, d);
 		fp->encode.prefix = n;
-		sfputr(fp->fp, (char*)s, 0);
+		fputs((char*)s, fp->fp); fputc(0, fp->fp);
 		break;
 	}
 	memcpy(fp->encode.path, path, len);
@@ -1031,24 +1150,24 @@ finddone(Find_t* fp)
 {
 	int	r;
 
-	if (sfsync(fp->fp))
+	if (fflush(fp->fp))
 	{
 		if (fp->disc->errorf)
-			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [sfsync]", fp->encode.file);
+			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [fflush]", fp->encode.file);
 		return -1;
 	}
-	if (sferror(fp->fp))
+	if (ferror(fp->fp))
 	{
 		if (fp->disc->errorf)
-			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [sferror]", fp->encode.file);
+			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [ferror]", fp->encode.file);
 		return -1;
 	}
-	r = sfclose(fp->fp);
+	r = fclose(fp->fp);
 	fp->fp = 0;
 	if (r)
 	{
 		if (fp->disc->errorf)
-			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [sfclose]", fp->encode.file);
+			(*fp->disc->errorf)(fp, fp->disc, 2, "%s: write error [fclose]", fp->encode.file);
 		return -1;
 	}
 	return 0;
@@ -1069,7 +1188,7 @@ findsync(Find_t* fp)
 	char*		t;
 	int		b;
 	long		z;
-	Sfio_t*		sp;
+	FILE*		sp;
 
 	switch (fp->method)
 	{
@@ -1128,56 +1247,56 @@ findsync(Find_t* fp)
 		 * commit the real file
 		 */
 
-		if (sfseek(fp->fp, 0, SEEK_SET))
+		if (fseek(fp->fp, 0, SEEK_SET))
 		{
 			if (fp->disc->errorf)
 				(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "cannot rewind tmp file");
 			return -1;
 		}
-		if (!(sp = sfopen(NULL, fp->encode.file, "w")))
+		if (!(sp = fopen(fp->encode.file, "w")))
 			goto badcreate;
 
 		/*
 		 * dump the bigrams
 		 */
 
-		sfwrite(sp, fp->encode.bigram, sizeof(fp->encode.bigram));
+		fwrite(fp->encode.bigram, 1, sizeof(fp->encode.bigram), sp);
 
 		/*
 		 * encode the massaged paths
 		 */
 
-		while (s = sfgetr(fp->fp, 0, 0))
+		while (s = file_getr_nul(fp->fp))
 		{
 			z = strtol(s, &t, 0);
 			s = t;
 			if (z < 0 || z > 2 * FF_OFF)
 			{
-				sfputc(sp, FF_ESC);
-				sfputc(sp, (z >> 24));
-				sfputc(sp, (z >> 16));
-				sfputc(sp, (z >> 8));
-				sfputc(sp, z);
+				fputc(FF_ESC, sp);
+				fputc((z >> 24), sp);
+				fputc((z >> 16), sp);
+				fputc((z >> 8), sp);
+				fputc(z, sp);
 			}
 			else
-				sfputc(sp, z);
+				fputc(z, sp);
 			while (n = *s++)
 			{
 				if (!(m = *s++))
 				{
-					sfputc(sp, n);
+					fputc(n, sp);
 					break;
 				}
 				if (d = fp->encode.code[n][m])
-					sfputc(sp, d);
+					fputc(d, sp);
 				else
 				{
-					sfputc(sp, n);
-					sfputc(sp, m);
+					fputc(n, sp);
+					fputc(m, sp);
 				}
 			}
 		}
-		sfclose(fp->fp);
+		fclose(fp->fp);
 		fp->fp = sp;
 		if (finddone(fp))
 			goto bad;
@@ -1185,7 +1304,7 @@ findsync(Find_t* fp)
 	case FF_typ:
 		if (finddone(fp))
 			goto bad;
-		if (!(fp->fp = sfopen(NULL, fp->encode.temp, "r")))
+		if (!(fp->fp = fopen(fp->encode.temp, "r")))
 		{
 			if (fp->disc->errorf)
 				(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "%s: cannot read tmp file", fp->encode.temp);
@@ -1197,36 +1316,36 @@ findsync(Find_t* fp)
 		 * commit the output file
 		 */
 
-		if (!(sp = sfopen(NULL, fp->encode.file, "w")))
+		if (!(sp = fopen(fp->encode.file, "w")))
 			goto badcreate;
 
 		/*
 		 * write the header magic
 		 */
 
-		sfputc(sp, 0);
-		sfputr(sp, FF_typ_magic, 0);
+		fputc(0, sp);
+		fputs(FF_typ_magic, sp); fputc(0, sp);
 
 		/*
 		 * write the type table in index order starting with 1
 		 */
 
 		for (x = (Type_t*)dtfirst(fp->encode.indexdict); x; x = (Type_t*)dtnext(fp->encode.indexdict, x))
-			sfputr(sp, x->name, 0);
-		sfputc(sp, 0);
+			fputs(x->name, sp); fputc(0, sp);
+		fputc(0, sp);
 
 		/*
 		 * append the front compressed strings
 		 */
 
-		if (sfmove(fp->fp, sp, SFIO_UNBOUND, -1) < 0 || !sfeof(fp->fp))
+		if (file_copy(fp->fp, sp) < 0 || !feof(fp->fp))
 		{
-			sfclose(sp);
+			fclose(sp);
 			if (fp->disc->errorf)
 				(*fp->disc->errorf)(fp, fp->disc, 2, "%s: cannot append codes", fp->encode.file);
 			goto bad;
 		}
-		sfclose(fp->fp);
+		fclose(fp->fp);
 		fp->fp = sp;
 		if (finddone(fp))
 			goto bad;
@@ -1240,7 +1359,7 @@ findsync(Find_t* fp)
  bad:
 	if (fp->fp)
 	{
-		sfclose(fp->fp);
+		fclose(fp->fp);
 		fp->fp = 0;
 	}
 	remove(fp->encode.temp);
@@ -1273,7 +1392,7 @@ findclose(Find_t* fp)
 		n = 0;
 	}
 	if (fp->fp)
-		sfclose(fp->fp);
+		fclose(fp->fp);
 	vmclose(fp->vm);
 	return n;
 }

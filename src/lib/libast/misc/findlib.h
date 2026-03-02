@@ -103,7 +103,7 @@ typedef struct
 	Vmalloc_t*	vm;		\
 	char**		dirs;		\
 	int*		lens;		\
-	Sfio_t*		fp;		\
+	FILE*		fp;		\
 	Findverify_f	verifyf;	\
 	int		generate;	\
 	int		method;		\
