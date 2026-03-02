@@ -320,4 +320,19 @@ chmod +x bad_func  # bug only triggered if file is executable
 (($? > 0)) || err_exit "'hash'/'alias -t' autoloads function"
 
 # ======
+# T2-29: multi-hop trailing-blank alias chaining
+
+# 2-level chain: trailing blank causes next word to be alias-expanded
+got=$($SHELL -c 'alias a="b "; alias b="print hello"; eval "a world"')
+exp='hello world'
+[[ $got == "$exp" ]] || err_exit "2-level trailing-blank alias chain" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# 3-level chain
+got=$($SHELL -c 'alias x="y "; alias y="z "; alias z=print; eval "x hi"')
+exp=hi
+[[ $got == "$exp" ]] || err_exit "3-level trailing-blank alias chain" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -602,4 +602,36 @@ exp=$'startONE TWO THREEend\nstartONE/TWO/THREEend'
 
 
 # ======
+# T2-28: <<# with mixed indentation
+
+# <<# with tabs only (control)
+got=$($SHELL -c '
+cat <<# EOF
+	hello
+	world
+EOF
+')
+exp=$'hello\nworld'
+[[ $got == "$exp" ]] || err_exit "<<# with tabs only" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# <<# with spaces only
+got=$($SHELL -c '
+cat <<# EOF
+        hello
+        world
+EOF
+')
+exp=$'hello\nworld'
+[[ $got == "$exp" ]] || err_exit "<<# with spaces only" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# <<# with mixed tab+space: tab-stop-8 column arithmetic
+# tab = 8 columns, tab+4spaces = 12 columns; minimum = 8 → 4 spaces remain
+got=$($SHELL -c $'cat <<# EOF\n\thello\n\t    world\nEOF\n')
+exp=$'hello\n    world'
+[[ $got == "$exp" ]] || err_exit "<<# with mixed tab+space indentation" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -286,4 +286,47 @@ got=$("$SHELL" -c 'namespace foo { export "_dEfInItElY_NoNeXiStEnT_VaR_=1"; }' 2
 	err_exit "export with quoted assignment-argument fails in namespace (got $(printf %q "$got"))"
 
 # ======
+# T2-31: nameref across namespace boundary
+
+# nameref inside namespace pointing to global variable
+got=$("$SHELL" -c '
+	typeset gvar=global_value
+	namespace ns
+	{
+		typeset -n ref=gvar
+		print "$ref"
+	}
+')
+exp=global_value
+[[ $got == "$exp" ]] || err_exit "nameref in namespace should resolve to global" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# nameref in global scope pointing into namespace
+got=$("$SHELL" -c '
+	namespace ns
+	{
+		typeset nsvar=ns_value
+	}
+	typeset -n ref=.ns.nsvar
+	print "$ref"
+')
+exp=ns_value
+[[ $got == "$exp" ]] || err_exit "global nameref should resolve into namespace" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# write through cross-boundary nameref modifies the target
+got=$("$SHELL" -c '
+	typeset gvar=before
+	namespace ns
+	{
+		typeset -n ref=gvar
+		ref=after
+	}
+	print "$gvar"
+')
+exp=after
+[[ $got == "$exp" ]] || err_exit "write through cross-boundary nameref should modify target" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

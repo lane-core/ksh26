@@ -1121,4 +1121,95 @@ got=$(eval ': <<&2' 2>&1)
 [[ e=$? -eq 3 && $got == *'syntax error'* ]] || err_exit "<<&2 should be a syntax error (got \$?==$e, $(printf %q "$got"))"
 
 # ======
+# T2-12: close-on-exec for fds > 2
+
+# fd opened in shell should not leak to external commands (cloexec)
+got=$("$SHELL" -c '
+	exec 9>cloexec_test
+	'$(whence -p cat)' /dev/fd/9 2>/dev/null
+	print $?
+')
+[[ $got != 0 ]] || err_exit "fd > 2 should be close-on-exec by default"
+rm -f cloexec_test
+
+# POSIX mode disables cloexec on user fds
+# (some implementations may not support this; skip if so)
+if "$SHELL" -c 'set -o posix' 2>/dev/null
+then
+	got=$("$SHELL" -o posix -c '
+		exec 9<&0
+		[[ -e /dev/fd/9 ]] && print inherited || print closed
+	' < /dev/null 2>/dev/null)
+	[[ $got == inherited ]] || err_exit "posix mode should not close-on-exec user fds" \
+		"(got $(printf %q "$got"))"
+fi
+
+# ======
+# T2-13: redirect same fd twice, restore returns to original
+
+got=$("$SHELL" -c '
+	exec 3>file_orig
+	print -u3 original
+	(
+		exec 3>file_redir1
+		print -u3 redir1
+	)
+	print -u3 back
+	exec 3>&-
+	cat file_orig
+')
+exp=$'original\nback'
+[[ $got == "$exp" ]] || err_exit "redirect fd in subshell, restore on exit should work" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+rm -f file_orig file_redir1
+
+# no "too many open files" from fd save stack bloat
+got=$("$SHELL" -c '
+	for ((i=0; i<100; i++))
+	do	exec 3>/dev/null
+		exec 3>&-
+	done
+	print ok
+' 2>&1)
+exp=ok
+[[ $got == "$exp" ]] || err_exit "repeated redirect of same fd should not bloat fd save stack" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# T3-08: user fds 3-9 not clobbered by shell operations
+
+# open user fds, verify shell operations don't clobber them
+got=$("$SHELL" -c '
+	print test_data > fd_test_file
+	exec 9<fd_test_file
+	# do some shell operations that use internal fds
+	x=$(print hello)
+	y=${ print world; }
+	# verify fd 9 still points to original file
+	read line <&9
+	print "$line"
+	exec 9<&-
+')
+exp=test_data
+[[ $got == "$exp" ]] || err_exit "shell operations should not clobber user fd 9" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+rm -f fd_test_file
+
+# after redirections in subshell, user fd still works in parent
+got=$("$SHELL" -c '
+	print fd_content > fd_test_file2
+	exec 8<fd_test_file2
+	(
+		exec 8</dev/null
+	)
+	read line <&8
+	print "$line"
+	exec 8<&-
+')
+exp=fd_content
+[[ $got == "$exp" ]] || err_exit "user fd 8 should survive subshell redirect" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+rm -f fd_test_file2
+
+# ======
 exit $((Errors<125?Errors:125))

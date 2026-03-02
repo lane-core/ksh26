@@ -870,4 +870,37 @@ else
 fi
 
 # ======
+# T1-16: ${@:n:m} with negative offset for positional parameters
+
+# ${@: -2} → last two positional params
+got=$($SHELL -c 'print -r "${@: -2}"' x a b c d e)
+exp='d e'
+[[ $got == "$exp" ]] || err_exit '${@: -2} should give last two params' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${@: -3:2} → two params starting 3 from end
+got=$($SHELL -c 'print -r "${@: -3:2}"' x a b c d e)
+exp='c d'
+[[ $got == "$exp" ]] || err_exit '${@: -3:2} should give two params starting 3 from end' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${@: -1} → last param
+got=$($SHELL -c 'print -r "${@: -1}"' x a b c d e)
+exp=e
+[[ $got == "$exp" ]] || err_exit '${@: -1} should give last param' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${*: -2} with IFS=, → comma-joined
+got=$($SHELL -c 'IFS=,; print -r "${*: -2}"' x a b c d e)
+exp='d,e'
+[[ $got == "$exp" ]] || err_exit '${*: -2} with IFS=, should join with comma' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ${@: -2} inside function
+got=$($SHELL -c 'function f { print -r "${@: -2}"; }; f p q r s t')
+exp='s t'
+[[ $got == "$exp" ]] || err_exit '${@: -2} inside function should give last two args' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
