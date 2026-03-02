@@ -47,6 +47,9 @@ FEATURE/
 /src/lib/libcmd/cmdext.h
 /src/lib/libcmd/cmdlist.h
 
+# Git worktrees (machine-local)
+/dev/
+
 # Miscellaneous artefacts
 *.stackdump
 *.dSYM/
