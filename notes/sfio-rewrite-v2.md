@@ -10,8 +10,10 @@ the same API surface that ksh expects, but without sfio's legacy
 complexity.
 
 sfio is ~12,800 lines across 78 files. ksh uses 39 of 77 exported
-functions. A clean reimplementation targeting only what ksh needs should
-be ~2,000–3,000 lines in a single file, with a clean header.
+functions (plus `sfsetfd_cloexec`, a ksh26 extension). A clean
+reimplementation targeting only what ksh needs should be ~2,600 lines
+across 7 source files, plus headers with 11 `static inline` entry
+points.
 
 ## Rollback point
 
@@ -29,7 +31,7 @@ surface ksh depends on.
 v2 takes the opposite approach: **one implementation, same API names,
 same semantics, new code.** The result is a drop-in replacement for
 `src/lib/libast/sfio/` — same `sfio.h` header, same `Sfio_t` type,
-same sf\* functions — but implemented in ~3K lines instead of ~13K.
+same sf\* functions — but implemented in ~2,600 lines instead of ~13K.
 
 This means:
 - Zero changes to ksh call sites
@@ -38,82 +40,162 @@ This means:
 - libast's non-sfio code (CDT, stk, optget, error, etc.) continues
   to work because the API is identical
 
-## What to implement
 
-### Tier 1: Core (ksh startup requires these)
+## Polarity architecture
 
-These functions must work before `ksh -c 'print hello'` produces output.
+sfio's functions map naturally to the duploid polarity framework from
+SPEC.md. Rather than organizing by implementation priority (tier 1/2/3),
+the reimplementation organizes source files by **polarity role** — what
+each function *is* in the structural vocabulary.
 
-| Function | Calls | Contract summary |
-|----------|-------|-----------------|
-| `sfnew` | 18 | Create/reinit stream. Handle STATIC flag preservation. |
-| `sfsetbuf` | 11 | Buffer assignment. Magic `(f,f,0)` query. Mode inference. |
-| `sfset` | 30 | Flag manipulation with protection mask. |
-| `sfopen` | 13 | Mode string → flags → fd or string stream. |
-| `sfclose` | 24 | Drain → CLOSING event → close fd → free → FINAL event. |
-| `sfsync` | 40 | Drain writes. NULL = sync all tracked streams. |
-| `sfnotify` | 1 | Register global callback (already trivial). |
-| `sfdisc` | 12 | Push/pop discipline. DPUSH/DPOP events. Dccache on push. |
-| `sfpool` | 11 | Pool membership (linked list through pool pointer). |
-| `sfputc` | 61 | Write byte. Line-buffer flush on '\n'. |
-| `sfwrite` | 50 | Write buffer. n=0 releases LOCKR. Line-buffer check. |
-| `sfprintf` | 118 | **The gate.** Must support %! format stacking for print.c. |
-| `sfputr` | 66 | Write string + optional delimiter. |
-| `sfnputc` | 30 | Write repeated byte. |
-| `sfgetc` | — | Read byte. (Used via macro/fcin.) |
-| `sfread` | — | Read buffer. n=0 releases LOCKR. |
-| `sfreserve` | 11 | **The nucleus.** 4+ calling patterns (see below). |
-| `sfgetr` | — | Record read. 3 modes (default, STRING, LASTR). |
-| `sfseek` | 24 | Seek with buffer accounting. String stream extent. |
-| `sftell` | — | Position query with buffer offset correction. |
-| `sfsetfd` | — | Change fd. Sync first if needed. |
-| `sfswap` | — | Content exchange. STATIC stays with memory location. |
-| `sfstack` | — | Push/pop stream (lexer, aliases, here-strings). |
-| `sftmp` | — | Temp stream (string initially, spill to file). |
-| `sffileno` | 27 | Macro: `f->file`. |
-| `sfvalue` | — | Macro: `f->val`. |
-| `sfeof` | — | Macro: `f->flags & SF_EOF`. |
-| `sferror` | — | Macro: `f->flags & SF_ERROR`. |
-| `sfclrerr` | — | Macro: clear EOF+ERROR. |
+### File layout
 
-### Tier 2: Used but simpler
+| File | Polarity role | Functions | Est. lines |
+|------|---------------|-----------|------------|
+| `sfmode.c` | **Shift mediator** | `_sfmode`, `sfsetbuf`, `sfclrlock`, `_sfsetpool`, `_sfcleanup` | ~250 |
+| `sfread.c` | **Negative (consumers)** | `sfrd`, `_sffilbuf`, `sfread`, `sfreserve`, `sfgetr`, `sfungetc`, `sfpkrd`, `sfmove`, `_sfrsrv` | ~500 |
+| `sfwrite.c` | **Positive (producers)** | `sfwr`, `_sfflsbuf`, `sfwrite`, `sfputr`, `sfnputc` | ~350 |
+| `sfdisc.c` | **Interception layer** | `sfdisc`, `_sfexcept`, `sfraise`, `Dccache_t` | ~200 |
+| `sflife.c` | **Cuts (lifecycle/identity)** | `sfnew`, `sfopen`, `sfclose`, `sfstack`, `sfswap`, `sfsetfd`, `sfsetfd_cloexec`, `sfset`, `sfseek`, `sftell`, `sfsize`, `sfsync`, `sfpurge`, `sftmp`, `sfpool`, `sfnotify` | ~450 |
+| `sfvprintf.c` | **Positive + shift (format)** | `sfvprintf`, `sfprintf`, `sfprints`, format tables | ~700 |
+| `sfvle.c` | **Neutral (encoding)** | `sfputl/sfgetl`, `sfputu/sfgetu`, `sfputd/sfgetd`, `sfputm/sfgetm` | ~150 |
+| **Total** | | **40 exported + 9 internal** | **~2,600** |
 
-| Function | Calls | Notes |
-|----------|-------|-------|
-| `sfmove` | — | Bulk copy between streams. |
-| `sfungetc` | — | Push back one byte. |
-| `sfsize` | — | fstat or extent for string streams. |
-| `sfstacked` | — | Boolean: stack != NULL. |
-| `sfclrlock` | — | Clear PEEK/GETR mode bits. |
-| `sfpurge` | — | Discard buffered data. |
-| `sfraise` | — | Walk discipline chain, call exceptf. |
-| `sfpkrd` | — | Raw read with optional timeout and delimiter. |
-| `sfrd` | — | Read through discipline chain. |
-| `sfputu/sfgetu` | 14/11 | 7-bit VLE (unsigned). |
-| `sfputl/sfgetl` | 12/— | 6-bit VLE with sign (zigzag). |
-| `sfprints` | — | Format to static buffer. |
-| `sfsetfd_cloexec` | — | ksh26-specific extension. |
+Plus headers:
+- `sfio.h` (public, ~200 lines)
+- `sfhdr.h` (internal, ~250 lines)
 
-### Tier 3: Not needed (eliminate)
+### Role descriptions
 
-| Subsystem | Lines | Why not needed |
-|-----------|-------|---------------|
-| scanf engine (`sfvscanf.c`) | 1,061 | ksh never calls scanf. |
-| Float conversion (`sfcvt.c`) | 458 | ksh uses libc for floats. |
-| Type encoding (`sfputd/sfgetd/sfputm/sfgetm`) | ~200 | Unused by ksh. |
-| Memory mapping | ~300 | Complexity for marginal perf. |
-| Process co-pipes (`sfpopen.c`) | 70 | ksh has its own pipe management. |
-| Poll wrapper (`sfpoll.c`) | 244 | ksh has its own poll/select. |
-| Stdio compatibility (`ast_stdio.h` interception) | ~500 | The thing we're trying to eliminate. |
-| Position args in printf (`sftable.c`) | 523 | Can use libc for `%n$` if ever needed. |
-| Inline macro wrappers (19 `_sf*.c` files) | ~400 | Modern compiler handles inlining. |
+**Shift mediator** (`sfmode.c`): `_sfmode()` runs at every operation
+entry. It mediates between the stream's current state and the caller's
+expected polarity. GETR restore (`f->next[-1] = f->getr`) undoes STRING
+mode observation. Mode transitions (WRITE→READ, READ→WRITE) are polarity
+boundary crossings — the function's entire purpose is managing these
+shifts.
 
-**Eliminated: ~3,756 lines (29% of sfio) that ksh never touches.**
+**Negative polarity** (`sfread.c`): Operations that observe/demand data.
+The LOCKR protocol creates thunks (↓N: suspend computation into storable
+value). `sfreserve(..., SF_LOCKR)` suspends; `sfread(f,buf,0)` forces.
+Every function here demands data from below (fd or discipline chain) and
+presents it upward as a value (pointer, record, byte).
 
-The remaining ~9,000 lines of sfio implement the Tier 1+2 functions
-with aggressive optimization, K&R compatibility, and internal macro
-complexity. A clean reimplementation of the same semantics in modern
-C should be 2,000–3,000 lines.
+**Positive polarity** (`sfwrite.c`): Operations that produce data.
+String stream buffer extension is a positive operation triggering a cut
+(buffer reallocation). `sfwrite(f,buf,0)` also releases LOCKR — polarity
+mixing by design (see "Polarity-mixing operations" below).
+
+**Interception layer** (`sfdisc.c`): Disciplines sit at the boundary
+between buffer (value) and OS (computation). `Dccache_t` is the non-
+associativity witness: `(push-disc . read) ≠ read . (push-disc)` — if
+buffered data exists when a discipline is pushed, it must be replayed
+through the new discipline, not served directly.
+
+**Cuts** (`sflife.c`): Restructure context without producing or
+consuming. `sfswap` (identity exchange), `sfstack` (source management),
+`sftmp` with `_tmpexcept` (value→computation substrate promotion — a
+textbook ↑A shift: string buffer becomes fd-backed file when size
+threshold is crossed).
+
+**Format engine** (`sfvprintf.c`): Positive with internal shift. `%!`
+shifts into computation (extf callback). `FMTSET`/`FMTGET` is the
+format engine's own polarity frame — save/restore around the shift,
+analogous to `sh_polarity_enter`/`sh_polarity_leave` in the interpreter.
+
+**Neutral** (`sfvle.c`): Pure encoding/decoding with no mode interaction.
+7-bit VLE unsigned (sfputu/sfgetu), 6-bit VLE with zigzag sign
+(sfputl/sfgetl), and the less-used sfputd/sfgetd/sfputm/sfgetm. Self-
+contained, no dependency on the rest of the library beyond basic buffer
+access.
+
+
+## Polarity-mixing operations
+
+Three places where polarity boundaries are deliberately crossed within
+the library. These are structural features, not bugs:
+
+### 1. LOCKR protocol
+
+`sfreserve` (negative) → `sfwrite(f,buf,0)` or `sfread(f,buf,0)`
+(positive/negative release). Both endpoints live in their respective
+files; shared state (the SFIO_PEEK flag) lives in `sfhdr.h`.
+
+This is the clearest polarity boundary crossing in sfio. The reserve
+creates a thunk (suspended computation stored as a value — the locked
+buffer pointer), and the zero-length write/read forces it (resumes
+computation by releasing the lock). Confirmed in ksh source:
+- edit.c:539-543 — `sfreserve(sfstderr, LOCKR)` to get write buffer,
+  then `sfwrite(sfstderr, ptr, 0)` to release
+- history.c:686-689 — `sfreserve(histfp, LOCKR)` then `sfwrite` to
+  release
+
+### 2. String stream extension
+
+Positive write triggers `_sfexcept` → realloc. A value-mode operation
+(writing bytes into a buffer) causes a computation-mode side effect
+(memory allocation, pointer invalidation). The `_sfexcept` call is the
+shift — it enters computation mode to resize the substrate, then returns
+to value mode with updated buffer pointers.
+
+### 3. sftmp promotion
+
+`_tmpexcept` switches from string (value substrate) to fd (computation
+substrate) when the string buffer exceeds a size threshold. This is
+the cleanest genuine ↑A shift in sfio: a value (in-memory buffer) is
+promoted to a computation substrate (file descriptor) while preserving
+identity. The stream handle is the same before and after; only the
+backing store changes.
+
+
+## Headers strategy
+
+### Public `sfio.h` (~200 lines)
+
+Full `Sfio_t` struct definition — no more `_SFIO_PRIVATE` macro dance.
+The stdio compat layer is gone; stk already has its own struct. Add
+`static_assert` verifying the three-pointer prefix (`data`, `endb`,
+`next`) matches stk's expectations.
+
+C23 features:
+- `constexpr` for buffer size constants and flag values
+- `[[nodiscard]]` on I/O functions that return error indicators
+- `static inline` replacing fast-path macros (`sfputc`, `sfgetc`,
+  `sffileno`, `sfvalue`, `sfeof`, `sferror`, `sfclrerr`, `sfstacked`,
+  `sfstropen`, `sfstruse`, `sfstrclose`)
+- Typed enums for mode/flag constants
+
+### Internal `sfhdr.h` (~250 lines)
+
+Consolidate from legacy's 772 lines. Drop: `NIL(t)`, `reg`, hand-
+unrolled `MEMCPY`/`MEMSET`, Research UNIX/Apollo probes. Keep:
+`SFLOCK`/`SFOPEN` (lock acquisition/release macros), `SFDISC`
+(discipline dispatch), `SFDCRD`/`SFDCWR` (discipline read/write
+dispatch), `SFRPEEK`/`SFWPEEK` (buffer access macros), `SFSTRSIZE`
+(string stream growth), discipline dispatch macros, `_Sfextern`
+global state struct, format engine types.
+
+
+## What gets eliminated
+
+Legacy sfio carries ~3,435 lines that ksh never touches:
+
+| Component | Lines | Reason |
+|-----------|-------|--------|
+| sfvscanf + sfscanf | 1,124 | ksh never calls scanf |
+| sfstrtod + sfstrtof | ~540 | scanf support only |
+| sfecvt + sffcvt | ~80 | stdio compat wrappers |
+| sfpopen + sfpoll | ~300 | ksh has own pipe/poll mgmt |
+| 19 `_sf*.c` wrapper files | 881 | `static inline` in header |
+| mmap infrastructure | ~200 | POSIX Issue 8 fd primitives |
+| Platform probes | ~150 | Dead platforms |
+| Position args (`sftable.c`) | ~160 | Can use libc for `%n$` if ever needed |
+| **Total eliminated** | **~3,435** | **27% of legacy sfio** |
+
+The remaining ~9,000 lines of legacy sfio implement the 39 ksh-used
+functions with aggressive optimization, K&R compatibility, and internal
+macro complexity. The clean reimplementation provides the same semantics
+in ~2,600 lines of modern C.
+
 
 ## The sfreserve contract (nucleus)
 
@@ -156,6 +238,7 @@ calling patterns used by ksh:
 - Not sfreserve, but tightly coupled: returns last partial record
   saved by sfgetr when it hit EOF without finding delimiter
 
+
 ## The sfprintf/%! format engine
 
 This is the biggest single function (sfvprintf.c = 1,434 lines in sfio).
@@ -174,14 +257,17 @@ The %! protocol:
 7. Handle standard specifiers (d/i/o/u/x/X/s/c/p/f/e/g) via
    libc snprintf on a temp buffer
 
-The reimplementation can delegate standard specifiers to libc vsnprintf
-and handle only the %!/extf protocol ourselves. This should reduce
-sfvprintf from 1,434 lines to ~300–400 lines.
+The reimplementation delegates standard specifiers to libc vsnprintf
+and handles only the %!/extf protocol. This should reduce sfvprintf
+from 1,434 lines to ~400 lines (in sfvprintf.c, the positive+shift
+polarity file).
 
 Key detail: the FMTSET/FMTGET macros save and restore format state
-around extf calls. The extf may modify ft->fmt, ft->size, ft->flags,
-ft->width, ft->precis, ft->base, ft->t_str, ft->n_str. After extf
-returns, we read these back to determine how to format the value.
+around extf calls — this is the format engine's own polarity frame.
+The extf may modify ft->fmt, ft->size, ft->flags, ft->width,
+ft->precis, ft->base, ft->t_str, ft->n_str. After extf returns, we
+read these back to determine how to format the value.
+
 
 ## The discipline system
 
@@ -201,10 +287,15 @@ which we can implement simply: if data is buffered when a discipline
 is pushed, save it and replay it before reading through the new
 discipline.
 
+Dccache is the non-associativity witness in the interception layer:
+the order of `push-discipline` and `read` operations matters because
+buffered data predating the discipline must still be served.
+
+
 ## The _sfmode state machine
 
 sfio calls `_sfmode()` at the start of every operation to ensure the
-stream is in the right mode. This handles:
+stream is in the right mode. This is the shift mediator — it handles:
 
 1. GETR restore: if `f->mode & SF_GETR`, restore `f->next[-1] = f->getr`
 2. Mode switch: WRITE→READ (drain, reset, seek back for unread),
@@ -213,70 +304,52 @@ stream is in the right mode. This handles:
 4. Pool management: if SF_POOL, move to head of pool
 5. Lock acquisition
 
-The reimplementation should be a single `_sfmode()` function (~100
-lines) called at the entry of every public function. This replaces
-the scattered mode checks in the v1 approach.
+The reimplementation is a single `_sfmode()` function (~100 lines) in
+`sfmode.c`, called at the entry of every public function. Each mode
+transition is a polarity boundary crossing; the function's structure
+directly reflects the shift rules.
 
-## Implementation plan
 
-### Phase 1: Contracts and structure (~1 day)
+## Implementation sequence
 
-Write `src/lib/libsfio/sfio.h` (public header) and
-`src/lib/libsfio/sfio_impl.h` (internal header) defining:
+The dependency order reflects polarity structure:
 
-- `Sfio_t` struct (same field names as sfio for sfio_s.h compat)
-- Mode bits, flag constants
-- Discipline types
-- All function declarations
+```
+sfio.h + sfhdr.h  →  sfmode.c  →  sflife.c  →  sfdisc.c  →  sfwrite.c  →  sfread.c  →  sfvprintf.c  →  sfvle.c
+   contracts         shift        lifecycle     intercept     positive      negative     format          encoding
+```
 
-Write contracts as comments for every function, extracted from reading
-the sfio source. No implementation yet — just the spec.
+Each step is independently compilable. The ordering:
 
-### Phase 2: Core (~2 days)
+1. **Headers** (`sfio.h`, `sfhdr.h`): Contracts and types. Everything
+   depends on these; nothing depends on anything else yet.
 
-Implement in `src/lib/libsfio/sfio.c` (single file):
+2. **Shift mediator** (`sfmode.c`): The keystone — every other file
+   calls `_sfmode()`. Must exist before any operation can be implemented.
 
-1. `_sfmode()` — the mode state machine
-2. `_sfdrain()` / `_sffill()` — buffer drain and fill through disciplines
-3. `sfreserve` — all 5+ calling patterns
-4. `sfgetc` / `sfputc` / `sfread` / `sfwrite` — byte and buffer I/O
-5. `sfgetr` — record read with getr_buf accumulation
-6. `sfnew` / `sfclose` / `sfsync` / `sfset` / `sfsetbuf` — lifecycle
-7. `sfopen` / `sftmp` — stream creation
-8. `sfseek` / `sftell` / `sfsize` — positioning
-9. `sfswap` / `sfstack` — content exchange and stacking
-10. `sfdisc` / `sfraise` — discipline push/pop/dispatch
-11. `sfpool` — pool membership
-12. `sfsetfd` / `sfsetfd_cloexec` — fd manipulation
-13. `sfputr` / `sfnputc` / `sfungetc` / `sfmove` — convenience
-14. `sfpkrd` / `sfrd` — raw I/O
-15. `sfputu` / `sfgetu` / `sfputl` / `sfgetl` — VLE
-16. `sfprints` / `sfstropen` / `sfstruse` / `sfstrclose` — string ops
+3. **Lifecycle/cuts** (`sflife.c`): Creation, destruction, identity
+   operations. Needed before anything can be tested (can't test reads
+   without `sfnew`/`sfopen`).
 
-### Phase 3: Format engine (~1 day)
+4. **Interception** (`sfdisc.c`): Exception handling and discipline
+   dispatch. Called by read/write on error paths. Needed before I/O
+   operations can handle failures correctly.
 
-Implement `sfvprintf` with %! support in
-`src/lib/libsfio/sfvprintf.c` (~300–400 lines):
+5. **Positive** (`sfwrite.c`): Write operations. Before read because
+   `sfwrite(f,buf,0)` LOCKR release path is simpler to test than the
+   full read pipeline, and `sfputr`/`sfnputc` are needed by early ksh
+   startup (prompt, error messages).
 
-1. Parse format directives (flags, width, precision, size, specifier)
-2. Handle %! format stacking (push/pop Fmt_t context)
-3. Call extf with FMTSET/FMTGET protocol
-4. Delegate standard specifiers to libc vsnprintf
-5. Handle padding/alignment ourselves for exact parity
+6. **Negative** (`sfread.c`): Read operations. The hardest file —
+   sfreserve's 5+ patterns, sfgetr's record accumulation, sfpkrd's
+   timed reads. All the v1 failures were here.
 
-### Phase 4: Integration (~1 day)
+7. **Format engine** (`sfvprintf.c`): Depends on all write operations
+   being correct. 48/58 test files exercise printf → sfprintf.
 
-1. Update build system to compile libsfio instead of libast/sfio
-2. Remove old sfio directory from libast
-3. Remove ast_stdio.h interception
-4. Build and test: target 115/115
+8. **Encoding** (`sfvle.c`): Self-contained, can be implemented at any
+   point. Listed last because nothing else depends on it.
 
-### Phase 5: Cleanup
-
-1. Remove KSH_IO_SFIO conditional compilation
-2. Remove shim headers
-3. Remove sh_io.h abstraction layer (sfio.h IS the API now)
-4. Update REDESIGN.md
 
 ## POSIX Issue 8 (IEEE 1003.1-2024) integration
 
@@ -298,8 +371,9 @@ eliminate fd-leak races that sfio and io.c currently work around:
 | `mkostemp(tmpl, O_CLOEXEC)` | `mkstemp()` + `fcntl()` | Atomic — for sftmp file creation |
 | `O_CLOFORK` | Manual `FD_CLOEXEC` everywhere | Close-on-fork — ksh forks constantly |
 
-These go into io.c, sfpkrd, sftmp, sfclose. Pure improvements, zero
-design tension with the buffer model.
+These go into `sflife.c` (sfclose, sftmp), `sfread.c` (sfpkrd), and
+ksh's `io.c`. Pure improvements, zero design tension with the buffer
+model.
 
 ### Dangerous: FILE\*-based primitives (do NOT use)
 
@@ -328,48 +402,32 @@ However, sfprints intentionally uses a static buffer (zero-alloc,
 thread-unsafe — matches sfio's behavior). Use vasprintf only where
 allocation is acceptable.
 
+
 ## Polarity analysis: why FILE\* fails for negative polarity
 
-sfio operations map to the duploid polarity framework:
-
-**Positive polarity (value-generating)** — producing data:
-sfputc, sfwrite, sfputr, sfnputc, sfprintf, sfsync, sfstruse
-
-**Negative polarity (computation/consuming)** — demanding data:
-sfreserve, sfgetr, sfgetc, sfread, sfungetc, sfstack, sfmove, sfpkrd
-
-An earlier analysis suggested FILE\* works for positive polarity but
-fails for negative. Investigation of the actual sfio source reveals
-this is **partially true but the boundary is porous**:
+sfio's positive-polarity operations are entangled with negative-polarity
+buffer state:
 
 1. **sfputc is a buffer-pointer macro.** The inline form
    `*f->_next++ = c` directly writes into the buffer. fputc would
    work semantically but loses the inline fast path.
 
 2. **sfwrite handles LOCKR release.** sfwrite(f, buf, 0) is the
-   standard idiom for releasing an sfreserve lock (lines 42-75 of
-   sfwrite.c). This is negative-polarity state management masquerading
-   as a write call. If writes go through FILE\*, who releases LOCKR?
+   standard idiom for releasing an sfreserve lock (sfwrite.c:42-75).
+   This is negative-polarity state management masquerading as a write
+   call.
 
 3. **sfstruse accesses buffer pointers.** The macro does
    `sfputc(f,0)` then `f->_next = f->_data` — NUL-terminate and
    rewind. Even this value-producing operation needs direct buffer
    access.
 
-4. **Polarity mixing on the same stream.** Confirmed in ksh source:
-   - edit.c:539-543 — sfreserve(sfstderr, LOCKR) to get write buffer,
-     then sfwrite(sfstderr, ptr, 0) to release
-   - history.c:686-689 — sfreserve(histfp, LOCKR) then sfwrite to
-     release
-
 **Conclusion:** sfio's design deliberately mixes positive and negative
 polarity on the same buffer. The LOCKR protocol is the clearest
 example: sfreserve (negative) locks the buffer, sfwrite with n=0
 (nominally positive) releases it. This polarity mixing in the shared
 buffer model is the fundamental reason FILE\* cannot serve as the
-buffer layer for **either** polarity. A clean separation would require
-two buffer representations per stream and synchronization between them
-at every mode switch — worse than either approach alone.
+buffer layer for **either** polarity.
 
 The correct architecture: **custom buffer for everything, FILE\* never
 appears.** Issue 8's fd-level primitives improve the layer below the
@@ -381,9 +439,9 @@ masks). The buffer layer is ours.
 │  ksh call sites (unchanged)                 │
 │  sfprintf, sfreserve, sfgetr, sfputr, ...   │
 ├─────────────────────────────────────────────┤
-│  libsfio (new, ~3K lines)                   │
-│  Custom buffer: f->next, f->endb, f->data   │
-│  _sfmode() state machine                    │
+│  libsfio (new, ~2,600 lines)                │
+│  7 source files by polarity role            │
+│  _sfmode() shift mediator                   │
 │  %! format engine                           │
 │  Discipline chains                          │
 │  String stream extent tracking              │
@@ -395,6 +453,7 @@ masks). The buffer layer is ours.
 │  kernel: read/write/lseek/close/poll        │
 └─────────────────────────────────────────────┘
 ```
+
 
 ## Philosophy-compatible libraries
 
@@ -416,6 +475,7 @@ No external libraries needed beyond existing ksh26 dependencies.
 The substrate is POSIX Issue 8 libc — specifically the fd-level
 primitives, not the FILE\*-based ones.
 
+
 ## Success criteria
 
 1. `just build && just test` passes 115/115
@@ -426,6 +486,7 @@ primitives, not the FILE\*-based ones.
 6. Total I/O code: ≤3,500 lines (vs ~12,800 in sfio)
 7. Zero changes to ksh call sites (same API)
 8. All fd creation uses Issue 8 atomic primitives where available
+
 
 ## Risk: what we might get wrong again
 

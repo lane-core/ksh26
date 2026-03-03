@@ -47,7 +47,7 @@ Directions 10, 11, and 15 are done. Remaining directions clear the path
 for features:
 - **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
 - **11**: Library reduction — strip dead libraries and thin survivors (**done**)
-- **12**: sfio → stdio migration — stdio backend boots, 36/115 tests pass
+- **12**: sfio reimplementation — clean-room rewrite, polarity-structured (architecture documented)
 - **13**: Platform targeting — declare what we support, delete the rest
 - **14**: Security hardening — audit the reduced codebase
 - **15**: Build system — just + samu, retire MAM (**done**)
@@ -727,55 +727,55 @@ checking, locale awareness, error catalogs) and are actively linked.
 deleted directories, `cdtlib.h`.
 
 
-### Direction 12: sfio → stdio migration
+### Direction 12: sfio reimplementation
 
-**Status: in progress (stdio backend boots, 36/115 tests pass)**
+**Status: architecture documented, implementation not started**
 
-ksh26 inherits AT&T's sfio (Safe/Fast I/O) library — 80 files, ~11.5k LOC
-of buffered I/O built in the '90s as a stdio replacement. ~1000 sfio call
-sites in ksh26 proper, ~800 in libast. The goal is replacing sfio with
-modern POSIX I/O while reducing code surface.
+ksh26 inherits AT&T's sfio (Safe/Fast I/O) library — 78 files, ~12,800
+LOC of buffered I/O built in the '90s as a stdio replacement. ~1000 sfio
+call sites in ksh26 proper, ~800 in libast. ksh uses 39 of 77 exported
+functions.
 
-#### Phase 1–4: type abstraction + early conversions (done)
+#### Previous approach (abandoned)
 
-**sh_io.h** (`include/sh_io.h`) — I/O type abstraction header with
-conditional compilation (`KSH_IO_SFIO` flag). When set (default), types
-map to sfio. The `#else` branch provides stdio + custom implementations.
-Types abstracted:
+Three attempts at replacing sfio with stdio all failed. The v1 postmortem
+(`notes/sfio-rewrite-failure-analysis.md`) identified the root cause:
+sfio is not a library ksh uses — it's the semantic substrate. The buffer
+IS the API (code does pointer arithmetic on `f->next`, `f->endb`,
+`f->data`). FILE\* is opaque by design. The polarity analysis showed that
+even positive-polarity operations (writes) are entangled with negative-
+polarity buffer state through the LOCKR protocol. A dual-representation
+approach would be worse than either approach alone.
 
-- `sh_stream_t` = `Sfio_t` (stream handle)
-- `sh_disc_t` = `Sfdisc_t` (discipline callbacks)
-- `sh_off_t` = `Sfoff_t` (file offsets)
-- Discipline callback types, flag constants, standard streams
+All v1 infrastructure (sh_io.h abstraction, sh_strbuf.h, stdio backend,
+conditional compilation) has been removed. main is rolled back to v0.0.1
++ cherry-picked build infrastructure. 115/115 tests pass.
 
-Function names (`sf*`) are NOT abstracted — they stay as-is at all call
-sites. Under stdio, `sfprintf` becomes a macro wrapping `fprintf` (with
-arg reordering where needed), giving zero diff on ~1000 call sites.
+#### Current approach: clean-room rewrite
 
-**sh_strbuf.h** (`include/sh_strbuf.h`) — String buffer abstraction.
-Under sfio, wraps `sfstropen`/`sfstruse`/`sfstrclose`. Under stdio,
-wraps `open_memstream` (POSIX 2008, available on all Tier 1 targets).
+Same API, same semantics, new code. Drop-in replacement for
+`src/lib/libast/sfio/` — ~2,600 lines in 7 source files (+ headers)
+instead of ~12,800 lines across 78 files.
 
-**Headers converted** — All 12 ksh26 headers that referenced `Sfio_t` or
-`Sfdisc_t` now use `sh_stream_t`/`sh_disc_t`. Headers that included
-`<sfio.h>` directly now include `"sh_io.h"` instead (defs.h, io.h,
-fcin.h, fault.h, jobs.h).
+Source files organized by duploid polarity role:
 
-**Source files converted** (types only, sf* calls unchanged):
-- `io.c` — 119 sfio calls, all discipline definitions (~50 type changes)
-- `xec.c` — 58 sfio calls (~9 type changes)
-- `macro.c` — 83 sfio calls (~7 type changes)
+| File | Polarity role | Est. lines |
+|------|---------------|------------|
+| `sfmode.c` | Shift mediator (`_sfmode`, `sfsetbuf`, `sfclrlock`) | ~250 |
+| `sfread.c` | Negative / consumers (`sfreserve`, `sfgetr`, `sfread`, `sfpkrd`) | ~500 |
+| `sfwrite.c` | Positive / producers (`sfwrite`, `sfputr`, `sfnputc`) | ~350 |
+| `sfdisc.c` | Interception (`sfdisc`, `_sfexcept`, `Dccache_t`) | ~200 |
+| `sflife.c` | Cuts / lifecycle (`sfnew`, `sfopen`, `sfclose`, `sfstack`, `sfswap`, `sfsetfd_cloexec`, `sftmp`) | ~450 |
+| `sfvprintf.c` | Positive + shift / format (`sfvprintf`, `%!` engine) | ~700 |
+| `sfvle.c` | Neutral / encoding (`sfputl/sfgetl`, `sfputu/sfgetu`) | ~150 |
 
-**cp.c** (`libcmd/cp.c`) — Full conversion from sfio to stdio/wbuf as
-a proof of concept. Uses a custom write-buffer (`wbuf_t`) for the inner
-copy loop. Validates the macro-wrapping strategy.
+Targets POSIX Issue 8 fd primitives (pipe2, dup3, ppoll, posix_close,
+mkostemp, O_CLOFORK) for race-free fd lifecycle. FILE\*-based Issue 8
+primitives explicitly excluded.
 
-#### Phase 5: stdio backend (in progress)
-
-The stdio backend (`sh_io_stdio.c`, ~1180 lines) implements all `sf*`
-functions. Shell boots, parses, and executes commands. 36/115 tests pass;
-79 crash on I/O paths not yet correct. The sfio build remains at 115/115
-(zero regressions).
+See `notes/sfio-rewrite-v2.md` for the full proposal: polarity
+architecture, contract details, elimination analysis, implementation
+sequence, risk assessment.
 
 **Build/test:** `just build-stdio` / `just test-stdio`
 
