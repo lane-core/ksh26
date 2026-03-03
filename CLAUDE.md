@@ -15,11 +15,14 @@ modern standards. Guided by System L / duploid theory (see `REDESIGN.md`).
 
 ```sh
 just build              # build (default recipe)
-just test               # parallel test suite (111 tests)
+just test               # parallel test suite (115 tests)
 just test-one basic     # run a single test
 just clean              # remove build artifacts
 just configure          # (re)run feature detection
 just reconfigure        # force all probes to rerun
+just compile-commands   # generate compile_commands.json for clangd/LSP
+just build-stdio        # build with stdio backend (KSH_IO_SFIO=0)
+just test-stdio         # test the stdio build
 ```
 
 The build system is three layers: `just` (porcelain) → `configure.sh` (probes
@@ -28,6 +31,40 @@ Output goes to `build/$HOSTTYPE/`. Feature probes are cached — reconfigure tak
 ~5s when nothing changed.
 
 Tests live in `src/cmd/ksh26/tests/`. Use the `err_exit` pattern for assertions.
+
+## Nix development environment
+
+The flake provides reproducible development shells — no host toolchain needed.
+
+```sh
+nix develop             # default shell: compiler, just, pkg-config, debugger, ccache
+nix develop .#agent     # agent shell: auto-configures on entry if needed
+nix develop -c just build   # one-shot build inside the nix environment
+```
+
+### Devshells
+
+| Shell | Purpose |
+|-------|---------|
+| `default` | Full build+test environment. Provides stdenv (cc, ld, ar), just, git, scdoc, pkg-config, ccache. lldb on Darwin, gdb+valgrind on Linux. Dependencies (utf8proc, libiconv) inherited from the package derivation via `inputsFrom`. |
+| `agent` | Extends default. Auto-detects HOSTTYPE and runs `just configure` on entry if no `build.ninja` exists. Use this for CI or automated agents that need a ready-to-build environment. |
+
+### Compiler caching
+
+ccache is available in the devshell but opt-in:
+```sh
+CC="ccache cc" just build
+```
+
+### Cross-platform checks
+
+```sh
+nix flake check                              # run test suite on all configured systems
+nix build .#checks.x86_64-linux.default      # explicit Linux check (remote builder)
+```
+
+The check derivation excludes `sigchld.sh` (signal timing differs in the Nix
+sandbox) and asserts ≥110 test stamps as a regression guard.
 
 ## Coding conventions
 

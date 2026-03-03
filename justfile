@@ -6,11 +6,14 @@
 #   samu       — vendored ninja implementation, executes build.ninja
 #
 # Usage: just build | just test | just clean | just install
+#        just build-stdio | just test-stdio | just clean-stdio
 #
 # Override: CC=clang just build
+#          CC="ccache cc" just build    (compiler caching)
 
 HOSTTYPE := env("HOSTTYPE", `uname -s | tr 'A-Z' 'a-z' | tr -d '\n'; printf '.'; uname -m | sed 's/aarch64/arm64/;s/i.86/i386/' | tr -d '\n'; printf -- '-'; getconf LONG_BIT 2>/dev/null || echo 64`)
 BUILDDIR := "build" / HOSTTYPE
+STDIODIR := "build" / (HOSTTYPE + "-stdio")
 SAMU := BUILDDIR / "bin" / "samu"
 
 # Build ksh26 (default recipe)
@@ -79,6 +82,15 @@ doc:
         printf '%s\n' "  DOC $base"
     done
 
+# Generate compile_commands.json for clangd/LSP
+# Uses samu's built-in compdb — no build or bear needed
+compile-commands: bootstrap
+    @test -f {{BUILDDIR}}/build.ninja \
+        -a {{BUILDDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh
+    @{{SAMU}} -C {{BUILDDIR}} -t compdb cc > compile_commands.json
+    @printf '%s\n' "wrote compile_commands.json ($(grep -c '"file"' compile_commands.json) entries)"
+
 # Remove build artifacts: just clean [stage]
 # Stages: test, obj, lib, bin, all (default: all)
 clean stage="all":
@@ -101,3 +113,20 @@ install prefix="/usr/local": build
     install -d {{prefix}}/bin
     install -m 755 {{BUILDDIR}}/bin/ksh {{prefix}}/bin/ksh
     install -m 755 {{BUILDDIR}}/bin/shcomp {{prefix}}/bin/shcomp
+
+# ── stdio backend (KSH_IO_SFIO=0) ────────────────────────────────
+
+# Build ksh26 with stdio backend
+build-stdio: bootstrap
+    @test -f {{STDIODIR}}/build.ninja \
+        -a {{STDIODIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh --stdio
+    {{SAMU}} -C {{STDIODIR}}
+
+# Run tests against the stdio build
+test-stdio: build-stdio
+    {{SAMU}} -k 0 -C {{STDIODIR}} test
+
+# Remove stdio build artifacts
+clean-stdio:
+    rm -rf {{STDIODIR}}

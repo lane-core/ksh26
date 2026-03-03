@@ -91,15 +91,34 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      default = pkgs.mkShellNoCC {
+      default = pkgs.mkShell {
         packages = [
           pkgs.just
           pkgs.git
           pkgs.scdoc
-          pkgs.utf8proc
+          pkgs.pkg-config
+          pkgs.ccache
         ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-          pkgs.libiconv
+          pkgs.lldb
+        ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+          pkgs.gdb
+          pkgs.valgrind
         ];
+
+        # Inherit buildInputs (utf8proc, libiconv) from the ksh26 package
+        inputsFrom = [ self.packages.${system}.default ];
+      };
+
+      agent = pkgs.mkShell {
+        inputsFrom = [ self.devShells.${system}.default ];
+        shellHook = ''
+          _ht="$(uname -s | tr 'A-Z' 'a-z').$(uname -m | sed 's/aarch64/arm64/;s/i.86/i386/')-$(getconf LONG_BIT 2>/dev/null || echo 64)"
+          echo "ksh26 agent shell — $(git rev-parse --short HEAD) on $(git branch --show-current) [$_ht]"
+          if [[ ! -f "build/$_ht/build.ninja" ]]; then
+            echo "Running initial configure..."
+            just configure
+          fi
+        '';
       };
     });
 
@@ -115,9 +134,18 @@
         checkPhase = ''
           # sigchld.sh is excluded: its SIGCHLD-after-notfound test
           # depends on signal delivery timing that differs in the
-          # Nix sandbox. All 111 tests pass outside the sandbox.
+          # Nix sandbox. All 115 tests pass outside the sandbox.
           sed -i '/^build test: phony/s| test/sigchld\.[^ ]*\.stamp||g' \
             build/$HOSTTYPE/build.ninja
+
+          # Sanity check: fail if test count drops below expected minimum
+          stamp_count=$(grep '^build test: phony' build/$HOSTTYPE/build.ninja \
+            | tr ' ' '\n' | grep -c '\.stamp$' || true)
+          if (( stamp_count < 110 )); then
+            echo "FAIL: expected >=110 test stamps, found $stamp_count" >&2
+            exit 1
+          fi
+
           ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE test
         '';
 
