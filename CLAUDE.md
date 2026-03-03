@@ -132,6 +132,69 @@ When you notice something that should be fixed but isn't part of the current tas
 add it to `TODO.md` with a brief description, severity, and enough context for
 someone to pick it up later. Don't fix it inline — capture it and move on.
 
+## Pre-commit review protocol
+
+Every commit requires a correctness review before staging. No exceptions —
+documentation-only changes still get reference accuracy checks.
+
+### Mechanism
+
+- **Non-trivial changes** (multi-file, approach-level, new subsystem work):
+  spawn a `feature-dev:code-reviewer` agent. The agent reviews the full diff
+  against the checklist below and returns a verdict.
+- **Small changes** (single-file fixes, typo corrections, config tweaks):
+  the committing agent runs through the checklist inline before staging.
+
+The threshold is judgment-based: if you'd want a second pair of eyes on it
+in a human team, use the agent. When in doubt, use the agent.
+
+### Checklist
+
+1. **Task completion**: Does the diff accomplish what was requested? Read the
+   task description or conversation context and verify each stated requirement
+   against the actual changes. Flag anything claimed-but-missing or
+   present-but-unrequested.
+
+2. **Correctness against project materials**: Cross-reference the diff against:
+   - This file (CLAUDE.md) — conventions, contracts, known pitfalls
+   - SPEC.md / REDESIGN.md — theoretical constraints, direction status
+   - Source comments and headers in modified files
+   - TODO.md — does this resolve or create tracked issues?
+
+   Flag any implementation that contradicts or ignores documented constraints.
+
+3. **Reference accuracy**: Every line number, test count, file path, function
+   name, or cross-reference in the diff — including in documentation and
+   comments — must be verified against the current state of the codebase.
+   Stale references are bugs.
+
+4. **Approach validity**: For non-trivial changes, ask: is this the right
+   approach? Does it respect the contracts of the subsystems it touches?
+   Could the approach fail for reasons not yet visible in test results?
+   A wrong approach that passes tests is worse than a right approach with
+   a failing test.
+
+5. **Build and test**: `just check` must pass. New warnings must be
+   acknowledged or fixed. Test count must not regress.
+
+### Verdict format
+
+The review produces one of:
+
+- **PASS** — all checks satisfied, proceed to commit.
+- **PASS with notes** — minor issues that don't block the commit. Notes go
+  in the commit message or TODO.md.
+- **REVISE** — issues identified. Each listed with severity
+  (critical/moderate/minor) and a concrete fix. Do not commit until
+  critical and moderate issues are resolved.
+
+### Escalation
+
+If the review reveals the *approach itself* may be wrong — not just the
+implementation — stop and raise this before attempting fixes. Per the
+discovery-driven restart rule (see agent memory): re-evaluate the design
+against the expanded understanding rather than patching forward.
+
 ## Coding conventions
 
 - Indent with tabs (8-space width)
