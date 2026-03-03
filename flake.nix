@@ -111,6 +111,10 @@
 
       agent = pkgs.mkShell {
         inputsFrom = [ self.devShells.${system}.default ];
+
+        # ccache by default — override with CC=cc if needed
+        env.CC = "ccache cc";
+
         shellHook = ''
           _ht="$(uname -s | tr 'A-Z' 'a-z').$(uname -m | sed 's/aarch64/arm64/;s/i.86/i386/')-$(getconf LONG_BIT 2>/dev/null || echo 64)"
           echo "ksh26 agent shell — $(git rev-parse --short HEAD) on $(git branch --show-current) [$_ht]"

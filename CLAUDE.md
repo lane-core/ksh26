@@ -84,7 +84,7 @@ exit $((Errors<125?Errors:125))
 Inside `nix develop`:
 - **Darwin**: `lldb -- build/$HOSTTYPE/bin/ksh -c '...'`
 - **Linux**: `gdb --args build/$HOSTTYPE/bin/ksh -c '...'`; `valgrind build/$HOSTTYPE/bin/ksh -c '...'`
-- **Compiler cache**: `CC="ccache cc" just build`
+- **Compiler cache**: on by default in agent shell (`CC="ccache cc"`); opt out with `CC=cc just build`
 - **LSP/clangd**: `just compile-commands` (generates `compile_commands.json` via samu)
 
 ### Cross-platform checks

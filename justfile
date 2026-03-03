@@ -62,6 +62,20 @@ test: build
 test-one name locale="C": build
     {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
 
+# Run tests sequentially via legacy shtests harness
+test-serial: build
+    HOSTTYPE={{HOSTTYPE}} \
+    PACKAGEROOT="$PWD" \
+    INSTALLROOT="$PWD/{{BUILDDIR}}" \
+    LD_LIBRARY_PATH="" \
+    SHELL={{BUILDDIR}}/bin/ksh \
+    KSH={{BUILDDIR}}/bin/ksh \
+    bin/shtests
+
+# Run I/O benchmarks comparing sfio vs stdio backends
+bench: build build-stdio
+    ksh bench/io-bench.ksh {{BUILDDIR}}/bin/ksh {{STDIODIR}}/bin/ksh
+
 # Pass arbitrary args to samu
 samu *args: bootstrap
     {{SAMU}} -C {{BUILDDIR}} {{args}}
