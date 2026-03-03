@@ -15,27 +15,9 @@ be ~2,000–3,000 lines in a single file, with a clean header.
 
 ## Rollback point
 
-Start from `v0.0.1` (commit `a98a33db`). This is the last known-good
-state: Directions 1–11 complete, sfio build at 114/115, build system
-functional. Cherry-pick forward:
-
-**Infrastructure** (must preserve):
-- `configure.sh` improvements (shim headers, dsymutil fix, test runner)
-- `justfile` recipes (stdio build/test, asan, diagnostics)
-- `flake.nix` improvements (agent devshell, checks, formatter)
-- `CLAUDE.md` updates (recipes, workflow docs)
-
-**Documentation** (preserve selectively):
-- `notes/sfio-retirement-plan.md` — root cause analysis is gold, keep
-- `notes/sfio-rewrite-failure-analysis.md` — this document, keep
-- `REDESIGN.md` — update Direction 12 to reflect v2 approach
-- `SPEC.md` — unchanged, still the theoretical foundation
-
-**Discard**:
-- `sh_io_stdio.c` (FILE\*-based approach, 1227 lines)
-- `sh_io_core.c` (fd+buffer approach, ~2000 lines with debug)
-- Phase 7/8 commits (structural approach was wrong)
-- The dual KSH_IO_SFIO build flag complexity
+**Complete.** main is at v0.0.1 + cherry-picked infrastructure.
+115/115 tests pass. All stdio-specific build/test/CI infrastructure
+has been removed (justfile, flake.nix, configure.sh --stdio flag).
 
 ## Strategy: don't abstract, reimplement
 
@@ -296,6 +278,124 @@ Implement `sfvprintf` with %! support in
 3. Remove sh_io.h abstraction layer (sfio.h IS the API now)
 4. Update REDESIGN.md
 
+## POSIX Issue 8 (IEEE 1003.1-2024) integration
+
+The reimplementation targets POSIX Issue 8 as its standard baseline.
+Issue 8 adds several primitives relevant to sfio's domain, but they
+fall into two sharply different categories.
+
+### Safe: fd-level primitives (use unconditionally)
+
+These operate on file descriptors, have well-specified semantics, and
+eliminate fd-leak races that sfio and io.c currently work around:
+
+| Primitive | Replaces | Benefit |
+|-----------|----------|---------|
+| `pipe2(O_CLOEXEC\|O_CLOFORK)` | `pipe()` + `fcntl(FD_CLOEXEC)` | Atomic — no race between creation and flag set |
+| `dup3(old, new, O_CLOEXEC)` | `dup2()` + `fcntl(FD_CLOEXEC)` | Atomic fd dup |
+| `ppoll(fds, n, ts, sigmask)` | `poll()` + `sigprocmask()` | Atomic signal mask — for sfpkrd timeout reads |
+| `posix_close(fd, 0)` | `close(fd)` | Defined EINTR behavior — for sfclose |
+| `mkostemp(tmpl, O_CLOEXEC)` | `mkstemp()` + `fcntl()` | Atomic — for sftmp file creation |
+| `O_CLOFORK` | Manual `FD_CLOEXEC` everywhere | Close-on-fork — ksh forks constantly |
+
+These go into io.c, sfpkrd, sftmp, sfclose. Pure improvements, zero
+design tension with the buffer model.
+
+### Dangerous: FILE\*-based primitives (do NOT use)
+
+These return or operate on `FILE*`, whose internal buffer is opaque.
+They reintroduce the exact problem that killed v1.
+
+| Primitive | Proposed use | Why it fails |
+|-----------|-------------|-------------|
+| `open_memstream()` | String streams | Buffer pointer only valid after fflush — but sfreserve gives direct `f->next` pointers into the buffer. Seek-past-extent is **implementation-defined** (Issue 8 defect 1406). glibc updates bufp on fclose/fflush; musl on write. |
+| `fmemopen()` | Read-only string streams | Binary mode **implementation-defined**. Can't get pointer into buffer for sfreserve LOCKR. |
+| `getdelim()` | Inner loop of sfgetr | Requires FILE\* input. Allocation strategy differs across libc (musl had a heap overflow). sfgetr's SF_STRING mode and LASTR recovery have no getdelim equivalent — we'd still write the hard parts ourselves. |
+
+**Why not even for the "easy" cases.** The v1 postmortem established
+that sfio is ksh's semantic substrate. The buffer IS the API — code
+does pointer arithmetic on `f->next`, `f->endb`, `f->data` directly.
+`FILE*` is opaque by POSIX design. The moment you wrap a FILE*, every
+sfreserve call becomes fflush-to-get-pointer + fseek-to-set-position,
+fighting the abstraction rather than using it.
+
+### Borderline: vasprintf()
+
+`vasprintf()` is now POSIX-standard (Issue 8, previously GNU extension).
+It's a leaf operation — format to allocated buffer, return — with no
+buffer state entanglement. Could replace sfprints' internal formatting.
+However, sfprints intentionally uses a static buffer (zero-alloc,
+thread-unsafe — matches sfio's behavior). Use vasprintf only where
+allocation is acceptable.
+
+## Polarity analysis: why FILE\* fails for negative polarity
+
+sfio operations map to the duploid polarity framework:
+
+**Positive polarity (value-generating)** — producing data:
+sfputc, sfwrite, sfputr, sfnputc, sfprintf, sfsync, sfstruse
+
+**Negative polarity (computation/consuming)** — demanding data:
+sfreserve, sfgetr, sfgetc, sfread, sfungetc, sfstack, sfmove, sfpkrd
+
+An earlier analysis suggested FILE\* works for positive polarity but
+fails for negative. Investigation of the actual sfio source reveals
+this is **partially true but the boundary is porous**:
+
+1. **sfputc is a buffer-pointer macro.** The inline form
+   `*f->_next++ = c` directly writes into the buffer. fputc would
+   work semantically but loses the inline fast path.
+
+2. **sfwrite handles LOCKR release.** sfwrite(f, buf, 0) is the
+   standard idiom for releasing an sfreserve lock (lines 42-75 of
+   sfwrite.c). This is negative-polarity state management masquerading
+   as a write call. If writes go through FILE\*, who releases LOCKR?
+
+3. **sfstruse accesses buffer pointers.** The macro does
+   `sfputc(f,0)` then `f->_next = f->_data` — NUL-terminate and
+   rewind. Even this value-producing operation needs direct buffer
+   access.
+
+4. **Polarity mixing on the same stream.** Confirmed in ksh source:
+   - edit.c:539-543 — sfreserve(sfstderr, LOCKR) to get write buffer,
+     then sfwrite(sfstderr, ptr, 0) to release
+   - history.c:686-689 — sfreserve(histfp, LOCKR) then sfwrite to
+     release
+
+**Conclusion:** sfio's design deliberately mixes positive and negative
+polarity on the same buffer. The LOCKR protocol is the clearest
+example: sfreserve (negative) locks the buffer, sfwrite with n=0
+(nominally positive) releases it. This polarity mixing in the shared
+buffer model is the fundamental reason FILE\* cannot serve as the
+buffer layer for **either** polarity. A clean separation would require
+two buffer representations per stream and synchronization between them
+at every mode switch — worse than either approach alone.
+
+The correct architecture: **custom buffer for everything, FILE\* never
+appears.** Issue 8's fd-level primitives improve the layer below the
+buffer (race-free fd creation, defined close semantics, atomic signal
+masks). The buffer layer is ours.
+
+```
+┌─────────────────────────────────────────────┐
+│  ksh call sites (unchanged)                 │
+│  sfprintf, sfreserve, sfgetr, sfputr, ...   │
+├─────────────────────────────────────────────┤
+│  libsfio (new, ~3K lines)                   │
+│  Custom buffer: f->next, f->endb, f->data   │
+│  _sfmode() state machine                    │
+│  %! format engine                           │
+│  Discipline chains                          │
+│  String stream extent tracking              │
+├─────────────────────────────────────────────┤
+│  POSIX Issue 8 fd primitives                │
+│  pipe2, dup3, ppoll, posix_close, mkostemp  │
+│  O_CLOFORK                                  │
+├─────────────────────────────────────────────┤
+│  kernel: read/write/lseek/close/poll        │
+└─────────────────────────────────────────────┘
+```
+
 ## Philosophy-compatible libraries
 
 The goal is minimal code. Where a well-maintained library provides
@@ -305,14 +405,16 @@ functionality that sfio reimplements from scratch, use it:
 |------|--------------|----------------|
 | Buffer management | Custom with mmap fallback | Direct malloc/realloc (mmap unnecessary) |
 | Printf formatting | 1,434-line custom engine | libc vsnprintf for standard specifiers |
-| Temp files | Custom with string→file spill | mkstemp + unlink |
+| Temp files | Custom with string→file spill | `mkostemp(O_CLOEXEC)` + unlink |
 | Unicode width | None (added later) | utf8proc (already a dependency) |
 | Float conversion | 458-line custom `sfcvt` | libc `snprintf` with %e/%f/%g |
+| Timed reads | Custom poll + signal juggling | `ppoll()` (POSIX Issue 8, mandatory) |
+| fd lifecycle | Manual FD_CLOEXEC everywhere | `pipe2`, `dup3`, `O_CLOFORK` (Issue 8) |
+| Close semantics | `close()` with EINTR ambiguity | `posix_close()` (Issue 8) |
 
-No external libraries are needed beyond what ksh26 already depends on.
-The "library" is libc itself — modern libc's snprintf, mkstemp, poll,
-read, write are the building blocks. sfio was written in the 1990s when
-these either didn't exist or weren't portable. They're all POSIX now.
+No external libraries needed beyond existing ksh26 dependencies.
+The substrate is POSIX Issue 8 libc — specifically the fd-level
+primitives, not the FILE\*-based ones.
 
 ## Success criteria
 
@@ -323,6 +425,7 @@ these either didn't exist or weren't portable. They're all POSIX now.
 5. ast_stdio.h interception eliminated
 6. Total I/O code: ≤3,500 lines (vs ~12,800 in sfio)
 7. Zero changes to ksh call sites (same API)
+8. All fd creation uses Issue 8 atomic primitives where available
 
 ## Risk: what we might get wrong again
 
@@ -348,3 +451,10 @@ these either didn't exist or weren't portable. They're all POSIX now.
    notification hooks, exit handler). Must replicate this correctly.
    Mitigation: `_sfcleanup` atexit handler is straightforward;
    pool list is a linked list through `f->pool`.
+
+6. **Issue 8 availability.** Not all targets may have pipe2/dup3/ppoll/
+   posix_close yet. configure.sh must probe for each and provide
+   fallbacks (e.g. pipe+fcntl when pipe2 unavailable). The fd-level
+   Issue 8 primitives are available on all Tier 1 targets (glibc 2.9+,
+   musl, macOS 11+, FreeBSD 10+, OpenBSD 5.7+, illumos) but feature
+   probes ensure correctness.

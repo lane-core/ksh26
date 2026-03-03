@@ -133,9 +133,50 @@ the replacement itself depends on.
    Phase 8 Step 0 fixed the build system and suddenly everything
    changed.
 
+## Polarity analysis: where FILE\* actually fails
+
+An earlier phase of analysis suggested that FILE\*-based POSIX
+primitives (open_memstream, fmemopen, getdelim) would work for
+positive-polarity operations (writes, formatting) even if they fail
+for negative-polarity operations (reads, peeks, buffer locking).
+
+Investigation of the actual sfio source disproves this. sfio's
+positive-polarity operations are entangled with negative-polarity
+buffer state:
+
+- **sfputc** is an inline buffer-pointer macro: `*f->_next++ = c`.
+  It bypasses function calls entirely and writes directly into the
+  buffer. fputc would work semantically but can't replicate this.
+
+- **sfwrite** handles LOCKR release. sfwrite(f, buf, 0) is the
+  standard idiom for releasing an sfreserve peek lock (sfwrite.c:42-75).
+  This is negative-polarity state management through a nominally
+  positive-polarity call.
+
+- **sfstruse** does `sfputc(f,0)` then `f->_next = f->_data` —
+  NUL-terminate and rewind via direct pointer manipulation.
+
+- **Polarity mixing on the same stream** is confirmed in ksh:
+  edit.c:539-543 calls sfreserve(sfstderr, LOCKR) to get the write
+  buffer pointer, then sfwrite(sfstderr, ptr, 0) to release it.
+
+The LOCKR protocol crosses the polarity boundary by design. A
+dual-representation approach (FILE\* for writes, custom buffer for
+reads) would require synchronizing two buffer states at every mode
+switch and every LOCKR release — worse than either approach alone.
+
+**Conclusion:** FILE\* cannot serve as the buffer layer for either
+polarity. The buffer model must be custom and unified.
+
+POSIX Issue 8 does contribute — but only at the fd layer below the
+buffer: pipe2, dup3, ppoll, posix_close, mkostemp, O_CLOFORK. These
+eliminate fd-leak races without touching buffer semantics.
+
 ## What to do instead
 
-Don't replace sfio. Reimplement it.
+Don't replace sfio. Reimplement it. Target POSIX Issue 8 (IEEE
+1003.1-2024) as the standard baseline — but use Issue 8's fd-level
+primitives, not its FILE\*-based ones.
 
 sfio is ~12,800 lines. ksh uses ~39 of its 77 exported functions.
 The functions ksh doesn't use (scanf family, float conversion, memory
@@ -149,7 +190,7 @@ modern C, no legacy baggage — could be ~2,000–3,000 lines. It would:
 - Provide the exact sfreserve/sfgetr/sfdisc/sfpool contracts ksh needs
 - Eliminate the scanf engine, float conversion, mmap, and popen code
 - Eliminate the stdio compatibility layer (ast_stdio.h interception)
-- Use modern C (C23) idioms instead of K&R/ANSI hybrid
+- Use C23 idioms, POSIX Issue 8 fd primitives
 - Be auditable (3K lines vs 13K lines)
 - Preserve all existing call sites unchanged (same API)
 
