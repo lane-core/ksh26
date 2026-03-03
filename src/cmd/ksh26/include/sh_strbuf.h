@@ -20,7 +20,7 @@
  * behind a backend-independent interface.
  *
  * KSH_IO_SFIO=1: thin wrappers around sfio string stream macros
- * KSH_IO_SFIO=0 (future): wraps open_memstream (POSIX 2008)
+ * KSH_IO_SFIO=0: wraps open_memstream (POSIX 2008)
  */
 
 #include	"sh_io.h"
@@ -56,19 +56,14 @@ typedef sh_stream_t	sh_strbuf_t;
 #else /* !KSH_IO_SFIO */
 
 /*
- * Future: open_memstream() based implementation.
+ * open_memstream-backed string buffer.
  *
- * typedef struct {
- *     char   *buf;   allocated buffer (owned by memstream)
- *     size_t  len;   current length
- *     FILE   *fp;    from open_memstream(&buf, &len)
- * } sh_strbuf_t;
+ * sh_stream_t is the first member (IS-A), so sh_strbuf_t* can be
+ * cast to sh_stream_t* for use with sf* macros that operate on
+ * the embedded ->fp.  The buf/len fields are managed by
+ * open_memstream and updated on fflush/fclose.
  *
- * sh_strbuf_open():  open_memstream + init struct
- * sh_strbuf_use():   fflush, NUL-terminate, return buf, reset pos
- * sh_strbuf_close(): fclose + free buf
- *
- * open_memstream portability (all ksh26 Tier 1 targets):
+ * Portability (all ksh26 Tier 1 targets):
  *   glibc:   since 2.x
  *   musl:    since 1.0
  *   macOS:   since 11.0 (Big Sur, 2020)
@@ -76,7 +71,26 @@ typedef sh_stream_t	sh_strbuf_t;
  *   OpenBSD: since 5.4 (2013)
  *   illumos: available
  */
-#error "stdio strbuf backend not yet implemented — see REDESIGN.md Direction 12"
+
+typedef struct
+{
+	sh_stream_t	stream;		/* first member — IS-A sh_stream_t */
+	char		*buf;		/* open_memstream buffer */
+	size_t		len;		/* open_memstream length */
+} sh_strbuf_t;
+
+/* lifecycle — implemented in sh_io_stdio.c */
+extern sh_strbuf_t	*sh_strbuf_open(void);
+extern char		*sh_strbuf_use(sh_strbuf_t*);
+extern int		sh_strbuf_close(sh_strbuf_t*);
+
+/* positioning */
+extern off_t		sh_strbuf_seek(sh_strbuf_t*, off_t, int);
+extern off_t		sh_strbuf_tell(sh_strbuf_t*);
+
+/* raw access */
+extern char		*sh_strbuf_base(sh_strbuf_t*);
+extern size_t		sh_strbuf_size(sh_strbuf_t*);
 
 #endif /* KSH_IO_SFIO */
 

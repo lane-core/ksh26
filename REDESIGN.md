@@ -47,7 +47,7 @@ Directions 10, 11, and 15 are done. Remaining directions clear the path
 for features:
 - **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
 - **11**: Library reduction — strip dead libraries and thin survivors (**done**)
-- **12**: sfio → stdio migration — type abstraction done, stdio backend next
+- **12**: sfio → stdio migration — stdio backend boots, 36/115 tests pass
 - **13**: Platform targeting — declare what we support, delete the rest
 - **14**: Security hardening — audit the reduced codebase
 - **15**: Build system — just + samu, retire MAM (**done**)
@@ -729,19 +729,19 @@ deleted directories, `cdtlib.h`.
 
 ### Direction 12: sfio → stdio migration
 
-**Status: in progress (type abstraction done)**
+**Status: in progress (stdio backend boots, 36/115 tests pass)**
 
 ksh26 inherits AT&T's sfio (Safe/Fast I/O) library — 80 files, ~11.5k LOC
 of buffered I/O built in the '90s as a stdio replacement. ~1000 sfio call
 sites in ksh26 proper, ~800 in libast. The goal is replacing sfio with
 modern POSIX I/O while reducing code surface.
 
-#### What's done
+#### Phase 1–4: type abstraction + early conversions (done)
 
 **sh_io.h** (`include/sh_io.h`) — I/O type abstraction header with
-conditional compilation (`KSH_IO_SFIO` flag). When defined (default),
-types map to sfio. The `#else` branch (future) provides stdio + custom
-implementations. Types abstracted:
+conditional compilation (`KSH_IO_SFIO` flag). When set (default), types
+map to sfio. The `#else` branch provides stdio + custom implementations.
+Types abstracted:
 
 - `sh_stream_t` = `Sfio_t` (stream handle)
 - `sh_disc_t` = `Sfdisc_t` (discipline callbacks)
@@ -749,14 +749,12 @@ implementations. Types abstracted:
 - Discipline callback types, flag constants, standard streams
 
 Function names (`sf*`) are NOT abstracted — they stay as-is at all call
-sites. When the stdio backend lands, `sfprintf` becomes a macro wrapping
-`fprintf` (with arg reordering where needed), giving zero diff on ~1000
-call sites.
+sites. Under stdio, `sfprintf` becomes a macro wrapping `fprintf` (with
+arg reordering where needed), giving zero diff on ~1000 call sites.
 
 **sh_strbuf.h** (`include/sh_strbuf.h`) — String buffer abstraction.
-Under sfio, wraps `sfstropen`/`sfstruse`/`sfstrclose`. Under stdio
-(future), wraps `open_memstream` (POSIX 2008, available on all Tier 1
-targets).
+Under sfio, wraps `sfstropen`/`sfstruse`/`sfstrclose`. Under stdio,
+wraps `open_memstream` (POSIX 2008, available on all Tier 1 targets).
 
 **Headers converted** — All 12 ksh26 headers that referenced `Sfio_t` or
 `Sfdisc_t` now use `sh_stream_t`/`sh_disc_t`. Headers that included
@@ -768,48 +766,122 @@ fcin.h, fault.h, jobs.h).
 - `xec.c` — 58 sfio calls (~9 type changes)
 - `macro.c` — 83 sfio calls (~7 type changes)
 
-All 111 tests pass. Zero behavioral changes.
+**cp.c** (`libcmd/cp.c`) — Full conversion from sfio to stdio/wbuf as
+a proof of concept. Uses a custom write-buffer (`wbuf_t`) for the inner
+copy loop. Validates the macro-wrapping strategy.
 
-#### Remaining sfio call sites (not converted this session)
+#### Phase 5: stdio backend (in progress)
 
-~40 source files still use `Sfio_t` directly in local declarations.
-Since `sh_stream_t` is a typedef for `Sfio_t`, these interoperate
-seamlessly. They migrate as files are touched.
+The stdio backend (`sh_io_stdio.c`, ~1180 lines) implements all `sf*`
+functions. Shell boots, parses, and executes commands. 36/115 tests pass;
+79 crash on I/O paths not yet correct. The sfio build remains at 115/115
+(zero regressions).
+
+**Build/test:** `just build-stdio` / `just test-stdio`
+
+**What's implemented:**
+
+| Category | Functions | Status |
+|---|---|---|
+| Stream lifecycle | sh_stream_init, sh_stream_new, sh_stream_close, sfnew, sfopen, sftmp | Working |
+| Stream control | sfswap, sfsetfd, sfsetfd_cloexec, sfset, sfsetbuf, sfpool, sfpurge, sfclrlock | Working (sfpool is no-op) |
+| Formatted output | sfprintf→fprintf, sfputc→fputc, sfwrite→fwrite, sfputr, sfnputc, sfprints, sfsprintf | Working (macros) |
+| Read ops | sfgetc, sfread, sfreserve (LOCKR + non-LOCKR), sfgetr, sfmove | Working |
+| Positioning | sfseek, sftell, sfsize | Working |
+| Discipline | sfdisc (push/pop), sfraise, sfrd | Structural; needs event protocol |
+| Stream stacking | sfstack (push/pop), sfstacked | Working |
+| Raw fd ops | sfpkrd (poll+recv peek), sffileno | Working |
+| Integer encoding | sfputu, sfputl, sfgetu, sfgetl | Working |
+| String buffers | sfstropen, sfstrclose, sfstruse, sfstrseek, sfstrtell, sfstrbase, sfstrsize | Working (open_memstream) |
+| Notifications | sfnotify | Working |
+| Not implemented | sfpoll (1 call site, optional), sfkeyprintf (0 call sites) | N/A |
+
+**Key design decisions:**
+
+1. **Wrapper struct** — `sh_stream_t` wraps `FILE*` with metadata (fd,
+   flags, val, disc chain, stack). Enables sfswap (memcpy-swap), sfvalue
+   state tracking, discipline chains, and stream stacking without fighting
+   stdio's opaque `FILE*`.
+
+2. **sfreserve dual-mode consumption** — sfio's sfreserve has two caller
+   contracts that map to the polarity framework:
+
+   - **LOCKR mode (μ-binding / context capture)**: Buffer is bound into a
+     continuation context. Caller reads directly, releases explicitly via
+     `sfread(f,buf,0)`. Data persists across sfreserve calls.
+   - **Non-LOCKR mode (μ̃-binding / let)**: Buffer is a produced value.
+     Consumed on return; next sfreserve reads fresh from FILE*.
+
+   The implementation marks this via `f->data`: LOCKR preserves it;
+   non-LOCKR clears it to NULL after returning the pointer. Prevents the
+   infinite loop where non-LOCKR callers (macro.c) saw stale data.
+
+3. **sfswap SFIO_STATIC preservation** — SFIO_STATIC tracks struct
+   *identity* (is this address a global?), not content. `sfswap(f, NULL)`
+   clears SFIO_STATIC on the heap copy; two-arg swap preserves each
+   struct's original static flag regardless of swapped content.
+
+4. **`_ksh_` prefixed globals** — sfstdin/sfstdout/sfstderr are real
+   pointer variables (not macros) because subshell.c reassigns them.
+   Prefixed `_ksh_` to avoid linker collision with libast's sfextern.c.
+
+**Remaining 79 test failures** — concentrated in polarity-boundary paths:
+
+| Failure class | Likely cause | Where |
+|---|---|---|
+| Here-docs/here-strings | sftmp+sfseek+sfmove chain (positive→cut→negative) | io.c heredoc setup |
+| I/O redirections | sfnew/sfsetfd without FILE* properly initialized | io.c sh_iorenumber |
+| Discipline callbacks | sfdisc event protocol (DPUSH/DPOP/DBUFFER) incomplete | io.c discipline defs |
+| Pipe in subshell | Stream state after fork — FILE* buffers not synced | subshell.c, jobs.c |
+| Edit/interactive | sfpkrd + sfreserve interaction on tty fds | edit/*.c |
 
 #### Replacement roadmap
 
-| sfio feature | Sites | Replacement | Effort |
+| sfio feature | Sites | Replacement | Status |
 |---|---|---|---|
-| Formatted I/O (sfprintf, sfwrite, etc.) | ~670 | stdio (fprintf, fwrite) | Direct swap |
-| String streams (sfstropen/sfstruse) | ~40 | `open_memstream()` (POSIX 2008) | Via sh_strbuf.h |
-| Temp streams (sftmp) | 9 | `tmpfile()` or `memfd_create()+fdopen()` | Standard POSIX |
-| Disciplines (sfdisc) | 12 | Custom callback chain (~200 lines) | Shell-specific |
-| Stream stacking (sfstack) | 8 | Custom push/pop list (~100 lines) | Shell-specific |
-| Zero-copy reserve (sfreserve) | 21 | Custom buffer peek (~50 lines) | Used by read builtin, fcin.c |
-| Stream pools (sfpool) | 13 | Custom sync wrapper (~30 lines) | Stdout/stderr coordination |
-| Standard streams (sfstdin/out/err) | ~350 | stdin/stdout/stderr | Trivial |
+| Formatted I/O (sfprintf, sfwrite, etc.) | ~670 | stdio (fprintf, fwrite) | **Done** (macros) |
+| String streams (sfstropen/sfstruse) | ~40 | `open_memstream()` (POSIX 2008) | **Done** (sh_strbuf) |
+| Temp streams (sftmp) | 9 | `tmpfile()` | **Done** |
+| Standard streams (sfstdin/out/err) | ~350 | sh_stream_t pointer vars | **Done** |
+| Zero-copy reserve (sfreserve) | 21 | Custom buffer + LOCKR protocol | **Done** |
+| Stream stacking (sfstack) | 8 | Linked list on sh_stream_t | **Done** |
+| Disciplines (sfdisc) | 12 | Push/pop chain on sh_stream_t | Structural, needs events |
+| Stream pools (sfpool) | 13 | No-op (stdio self-buffers) | Sufficient for now |
 
-**Net: delete ~11.5k lines of sfio, add ~500 lines of custom code.**
+**Net: delete ~11.5k lines of sfio, add ~1200 lines of custom code.**
+(Estimate revised upward from 500 — sfreserve, sfgetr, sfpkrd, and
+integer encoding were more complex than "custom buffer peek".)
 
 #### Other libast subsystems
 
 | Subsystem | Sites | Status | Rationale |
 |---|---|---|---|
-| **stk** (stack allocator) | 273 | Decouple from sfio (future) | `Stk_t = Sfio_t` — must decouple before sfio removal. ~200 lines custom arena. |
+| **stk** (stack allocator) | 273 | Decoupled (Phase 3) | `Stk_t` is now a real 24-byte struct, 0 sfio symbols. |
 | **cdt** (containers) | 85 | Keep | `dtview()` scope chaining is shell-specific. ~4k lines, stable. |
 | **AST regex** | — | Keep | Working, tested. PCRE2 migration deferred. |
 
-#### Future sessions
+#### Remaining phases
 
 ```
-Session N+1: Write sh_strbuf stdio backend (open_memstream)
-             Write sh_disc custom discipline layer
-             Convert remaining ksh26 files to sh_io.h types
+Phase 6: Fix the 79 remaining stdio test failures
+         - FILE* lifecycle (sfnew/sfsetfd/_sh_ensure_fp)
+         - Discipline event protocol (DPUSH/DPOP/DBUFFER)
+         - Here-doc I/O path (sftmp+sfseek+sfmove chain)
+         - Fork buffer sync (fflush before fork)
 
-Session N+2: Decouple stk from sfio (sh_stk.h, custom arena)
-             Remove sfio from build
+Phase 7: Parity — stdio build passes 115/115
+         - Edit/interactive paths (sfpkrd+sfreserve on tty)
+         - Edge cases from full test suite
 
-Session N+3: Direction 16 — utf8proc integration
+Phase 8: Remove sfio from build
+         - Delete libast/sfio/ (80 files, ~11.5k LOC)
+         - Remove KSH_IO_SFIO conditional compilation
+         - sh_io.h becomes the only I/O header
+         - Update configure.sh, build.ninja generation
+
+Phase 9: Post-sfio cleanup
+         - Typed error handling (Result_t, notes/FUTURE.md)
+         - Direction 16 — utf8proc integration
 ```
 
 

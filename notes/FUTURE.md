@@ -48,3 +48,26 @@ Key items for future breaking-change evaluation:
 - `typeset -m` attribute/discipline preservation (currently broken)
 - Intrinsic utility category (new POSIX classification between special
   and regular built-ins)
+
+### Typed error handling for post-sfio I/O
+
+Once the sfio→stdio migration is complete and the legacy I/O substrate
+is gone, evaluate lightweight result-type libraries (e.g. zerror.h) or
+a custom `Result_t` for security hardening of the I/O layer.
+
+During migration, assertion-based error detection (`assert()` in debug
+builds) is the right approach — it catches contract violations without
+adding complexity to an already-complex transition. But assertions
+compile away in release builds, leaving silent corruption as the failure
+mode for violated invariants.
+
+A typed result approach would:
+- Make error propagation explicit and compiler-checkable
+- Replace `NULL`-return + `errno` conventions with structured results
+- Allow the I/O layer to distinguish "no data" from "error" from
+  "would block" without errno inspection
+- Integrate with ksh26's existing `func.ksh` `Result_t` pattern
+
+Scope: post-sfio-retirement only. The current dual-world (sfio+stdio)
+coexistence makes this impractical — error semantics must match sfio's
+conventions until sfio is fully removed.
