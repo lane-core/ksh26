@@ -5,10 +5,10 @@
 #   configure  — ksh script that probes platform + emits build.ninja
 #   samu       — vendored ninja implementation, executes build.ninja
 #
-# Usage: just build | just test | just clean | just install
-#        just build-stdio | just test-stdio | just clean-stdio
-#        just build-debug | just build-asan
-#        just test-summary | just test-compare
+# Usage: just build | just test | just clean
+#        just errors | just failures | just log
+#        just build-stdio | just test-stdio
+#        just check | just check-asan | just check-all
 #
 # Override: CC=clang just build
 #          CC="ccache cc" just build    (compiler caching)
@@ -31,18 +31,43 @@ _nix-warn:
         printf '  run: nix develop -c just <recipe>\n' >&2; \
     fi
 
-# Build ksh26 (default recipe)
-build: _nix-warn bootstrap
-    @test -f {{BUILDDIR}}/build.ninja \
-        -a {{BUILDDIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh
-    {{SAMU}} -C {{BUILDDIR}}
-
 # Bootstrap just the build tool
 bootstrap:
     @mkdir -p {{BUILDDIR}}/bin
     @test -x {{SAMU}} \
         || cc -o {{SAMU}} src/cmd/INIT/samu/*.c
+
+# ── Build ────────────────────────────────────────────────────────
+
+# Internal: build with logging and auto-reconfigure
+[private]
+_build dir flags="": bootstrap
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir="{{dir}}"
+    if [[ ! -f "$dir/build.ninja" || configure.sh -nt "$dir/build.ninja" ]]; then
+        sh configure.sh {{flags}}
+    fi
+    mkdir -p "$dir/log"
+    {{SAMU}} -C "$dir" 2>&1 | tee "$dir/log/build.log"
+
+# Build ksh26 (default recipe)
+build: _nix-warn (_build BUILDDIR)
+
+# Build ksh26 with stdio backend
+build-stdio: _nix-warn (_build STDIODIR "--stdio")
+
+# Build with debug flags: no optimization, full debug info
+build-debug: _nix-warn (_build DEBUGDIR "--debug")
+
+# Build with sanitizers: catches use-after-free, buffer overflow, UB
+build-asan: _nix-warn (_build ASANDIR "--asan")
+
+# Build stdio + debug
+build-stdio-debug: _nix-warn (_build STDIO_DEBUGDIR "--stdio --debug")
+
+# Build stdio + sanitizers
+build-stdio-asan: _nix-warn (_build STDIO_ASANDIR "--stdio --asan")
 
 # (Re)run feature detection and generate build.ninja
 # Probes are cached — only stale probes rerun (~5s when nothing changed)
@@ -53,14 +78,76 @@ configure: _nix-warn bootstrap
 reconfigure: _nix-warn bootstrap
     sh configure.sh --force
 
-# Run all regression tests in parallel via samu
-# -k 0 = keep going on failure so all tests run
-test: build
-    {{SAMU}} -k 0 -C {{BUILDDIR}} test
+# ── Test ─────────────────────────────────────────────────────────
+
+# Internal: run tests with logging, summary, and regression detection
+[private]
+_test dir:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    dir="{{dir}}"
+    mkdir -p "$dir/log" "$dir/test"
+    summary="$dir/test/summary.log"
+    # Save previous for regression detection
+    [[ -f "$summary" ]] && cp "$summary" "${summary%.log}.prev" || true
+    rm -f "$summary"
+    t=$SECONDS
+    rc=0
+    {{SAMU}} -k 0 -C "$dir" test 2>&1 | tee "$dir/log/test.log" || rc=$?
+    elapsed=$(( SECONDS - t ))
+    # Summary
+    if [[ -f "$summary" && -s "$summary" ]]; then
+        printf '\n'
+        sort "$summary" | grep -v '^PASS' || true
+        total=$(wc -l < "$summary" | tr -d ' ')
+        pass=$(grep -c '^PASS' "$summary" || true)
+        printf -- '---\n%d/%d pass (%ds)\n' "$pass" "$total" "$elapsed"
+        # Regression detection (only counts tests that ran both times)
+        prev="${summary%.log}.prev"
+        if [[ -f "$prev" && -s "$prev" ]]; then
+            regressed=$(awk '
+                FILENAME==ARGV[1] && /^PASS/ { prev[$2]=1 }
+                FILENAME==ARGV[2] && !/^PASS/ { cur[$2]=1 }
+                END { for (t in cur) if (t in prev) n++; print n+0 }
+            ' "$prev" "$summary")
+            improved=$(awk '
+                FILENAME==ARGV[1] && !/^PASS/ { prev[$2]=1 }
+                FILENAME==ARGV[2] && /^PASS/ { cur[$2]=1 }
+                END { for (t in cur) if (t in prev) n++; print n+0 }
+            ' "$prev" "$summary")
+            if (( regressed > 0 || improved > 0 )); then
+                printf 'vs previous:'
+                (( regressed > 0 )) && printf ' %d regressed' "$regressed"
+                (( improved > 0 )) && printf ' %d improved' "$improved"
+                printf '\n'
+            fi
+        fi
+    else
+        printf '\n---\n0 tests ran — stamps current, use: just clean test && just test\n'
+    fi
+    exit $rc
+
+# Run all regression tests in parallel
+test: build (_test BUILDDIR)
 
 # Run a single test: just test-one basic
 test-one name locale="C": build
     {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
+
+# Run tests against the stdio build
+test-stdio: build-stdio (_test STDIODIR)
+
+# Run tests against the debug build
+test-debug: build-debug (_test DEBUGDIR)
+
+# Run tests against the asan build
+test-asan: build-asan (_test ASANDIR)
+
+# Run tests against stdio + debug
+test-stdio-debug: build-stdio-debug (_test STDIO_DEBUGDIR)
+
+# Run tests against stdio + asan
+test-stdio-asan: build-stdio-asan (_test STDIO_ASANDIR)
 
 # Run tests sequentially via legacy shtests harness
 test-serial: build
@@ -80,9 +167,97 @@ bench: build build-stdio
 samu *args: bootstrap
     {{SAMU}} -C {{BUILDDIR}} {{args}}
 
-# Show the most recent test failure logs
-log:
-    @find {{BUILDDIR}}/test -name '*.log' 2>/dev/null | xargs ls -t 2>/dev/null | head -5 | xargs cat 2>/dev/null || echo "No test logs found."
+# ── Diagnostics ──────────────────────────────────────────────────
+
+# Show errors from last build
+errors dir=BUILDDIR:
+    @grep -iE 'error[: ]|undefined|fatal' "{{dir}}/log/build.log" 2>/dev/null \
+        || echo "No errors (or no build log). Run: just build"
+
+# Show warnings from last build
+warnings dir=BUILDDIR:
+    @grep -i 'warning:' "{{dir}}/log/build.log" 2>/dev/null \
+        || echo "No warnings (or no build log)."
+
+# Show failed tests with their individual logs
+failures dir=BUILDDIR:
+    #!/bin/sh
+    summary="{{dir}}/test/summary.log"
+    # Fall back to previous summary if current was cleared by a no-op test run
+    if [ ! -f "$summary" ] && [ -f "{{dir}}/test/summary.prev" ]; then
+        summary="{{dir}}/test/summary.prev"
+    fi
+    if [ ! -f "$summary" ]; then
+        echo "No test summary. Run: just test"; exit 1
+    fi
+    non_pass=$(grep -v '^PASS' "$summary" || true)
+    if [ -n "$non_pass" ]; then
+        printf '%s\n' "$non_pass" | sort
+    else
+        echo "(all pass)"
+    fi
+    for f in $(find "{{dir}}/test" -name '*.stamp.log' 2>/dev/null | sort); do
+        printf '\n== %s ==\n' "$(basename "$f" .stamp.log)"
+        cat "$f"
+    done
+
+# Show build or test logs: just log [build|test] [name]
+log what="all" name="":
+    #!/bin/sh
+    dir="{{BUILDDIR}}"
+    case "{{what}}" in
+    build)
+        cat "$dir/log/build.log" 2>/dev/null || echo "No build log." ;;
+    test)
+        if [ -n "{{name}}" ]; then
+            f=$(find "$dir/test" -name '{{name}}*.stamp.log' 2>/dev/null | head -1)
+            [ -n "$f" ] && cat "$f" || echo "No log for {{name}}"
+        else
+            just failures "$dir"
+        fi ;;
+    *)
+        [ -f "$dir/log/build.log" ] && { printf '=== Build (last 20) ===\n'; tail -20 "$dir/log/build.log"; }
+        if [ -f "$dir/test/summary.log" ] || [ -f "$dir/test/summary.prev" ]; then
+            printf '\n=== Tests ===\n'; just failures "$dir"
+        fi ;;
+    esac
+
+# ── Investigation ────────────────────────────────────────────────
+
+# Run a test N times to detect flakiness
+test-repeat name n="10" locale="C": build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    pass=0 fail=0
+    for i in $(seq 1 {{n}}); do
+        rm -f "{{BUILDDIR}}/test/{{name}}.{{locale}}.stamp"
+        if {{SAMU}} -C "{{BUILDDIR}}" "test/{{name}}.{{locale}}.stamp" >/dev/null 2>&1; then
+            ((pass++))
+        else
+            ((fail++))
+        fi
+    done
+    printf '%s.%s: %d/%d pass' "{{name}}" "{{locale}}" "$pass" "{{n}}"
+    (( fail > 0 )) && printf ' (FLAKY)\n' && exit 1 || printf ' (STABLE)\n'
+
+# Run a test under the debugger
+debug name locale="C": build
+    #!/bin/sh
+    export SHELL="{{BUILDDIR}}/bin/ksh"
+    export SHCOMP="{{BUILDDIR}}/bin/shcomp"
+    export SHTESTS_COMMON="$PWD/src/cmd/ksh26/tests/_common"
+    export ENV=/./dev/null
+    . "{{BUILDDIR}}/test-env.sh"
+    case "{{locale}}" in
+    C)       unset LANG LC_ALL 2>/dev/null ;;
+    C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
+    esac
+    case "$(uname -s)" in
+    Darwin) lldb -- "{{BUILDDIR}}/bin/ksh" "src/cmd/ksh26/tests/{{name}}.sh" ;;
+    *)      gdb --args "{{BUILDDIR}}/bin/ksh" "src/cmd/ksh26/tests/{{name}}.sh" ;;
+    esac
+
+# ── Code tools ───────────────────────────────────────────────────
 
 # Build man pages from scdoc sources (no C build dependency)
 doc:
@@ -120,8 +295,10 @@ compile-commands: bootstrap
     @{{SAMU}} -C {{BUILDDIR}} -t compdb cc > compile_commands.json
     @printf '%s\n' "wrote compile_commands.json ($(grep -c '"file"' compile_commands.json) entries)"
 
+# ── Clean ────────────────────────────────────────────────────────
+
 # Remove build artifacts: just clean [stage]
-# Stages: test, obj, lib, bin, all (default: all)
+# Stages: test, obj, lib, bin, log, all (default: all)
 clean stage="all":
     #!/bin/sh
     case "{{stage}}" in
@@ -129,9 +306,22 @@ clean stage="all":
     obj)  rm -rf "{{BUILDDIR}}/obj" ;;
     lib)  rm -rf "{{BUILDDIR}}/lib" ;;
     bin)  rm -f "{{BUILDDIR}}/bin/ksh" "{{BUILDDIR}}/bin/shcomp" ;;
+    log)  rm -rf "{{BUILDDIR}}/log" ;;
     all)  rm -rf "{{BUILDDIR}}" ;;
-    *)    printf 'unknown stage: %s\nstages: test obj lib bin all\n' "{{stage}}" >&2; exit 1 ;;
+    *)    printf 'unknown stage: %s\nstages: test obj lib bin log all\n' "{{stage}}" >&2; exit 1 ;;
     esac
+
+# Remove stdio build artifacts
+clean-stdio:
+    rm -rf {{STDIODIR}}
+
+# Remove debug build artifacts
+clean-debug:
+    rm -rf {{DEBUGDIR}}
+
+# Remove asan build artifacts
+clean-asan:
+    rm -rf {{ASANDIR}}
 
 # Remove all build artifacts (every host)
 cleanall:
@@ -143,78 +333,27 @@ install prefix="/usr/local": build
     install -m 755 {{BUILDDIR}}/bin/ksh {{prefix}}/bin/ksh
     install -m 755 {{BUILDDIR}}/bin/shcomp {{prefix}}/bin/shcomp
 
+# ── CI checks (nix sandbox) ─────────────────────────────────────
+
 # Run the same checks CI runs (build + full test suite in nix sandbox)
 check:
     nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
 
-# ── stdio backend (KSH_IO_SFIO=0) ────────────────────────────────
+# Run asan checks in nix sandbox
+check-asan:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
 
-# Build ksh26 with stdio backend
-build-stdio: _nix-warn bootstrap
-    @test -f {{STDIODIR}}/build.ninja \
-        -a {{STDIODIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh --stdio
-    {{SAMU}} -C {{STDIODIR}}
+# Run stdio checks in nix sandbox
+check-stdio:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".stdio --print-build-logs
 
-# Run tests against the stdio build
-test-stdio: build-stdio
-    {{SAMU}} -k 0 -C {{STDIODIR}} test
+# Run all CI checks
+check-all:
+    nix flake check --print-build-logs
 
-# Remove stdio build artifacts
-clean-stdio:
-    rm -rf {{STDIODIR}}
-
-# ── Debug build (-O0 -g) ─────────────────────────────────────────
-
-# Build with debug flags: no optimization, full debug info
-build-debug: _nix-warn bootstrap
-    @test -f {{DEBUGDIR}}/build.ninja \
-        -a {{DEBUGDIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh --debug
-    {{SAMU}} -C {{DEBUGDIR}}
-
-test-debug: build-debug
-    {{SAMU}} -k 0 -C {{DEBUGDIR}} test
-
-clean-debug:
-    rm -rf {{DEBUGDIR}}
-
-# ── ASAN build (AddressSanitizer + UBSan) ────────────────────────
-
-# Build with sanitizers: catches use-after-free, buffer overflow, UB
-build-asan: _nix-warn bootstrap
-    @test -f {{ASANDIR}}/build.ninja \
-        -a {{ASANDIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh --asan
-    {{SAMU}} -C {{ASANDIR}}
-
-test-asan: build-asan
-    {{SAMU}} -k 0 -C {{ASANDIR}} test
-
-clean-asan:
-    rm -rf {{ASANDIR}}
-
-# ── Combined variants (stdio + debug/asan) ───────────────────────
-
-build-stdio-debug: _nix-warn bootstrap
-    @test -f {{STDIO_DEBUGDIR}}/build.ninja \
-        -a {{STDIO_DEBUGDIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh --stdio --debug
-    {{SAMU}} -C {{STDIO_DEBUGDIR}}
-
-test-stdio-debug: build-stdio-debug
-    {{SAMU}} -k 0 -C {{STDIO_DEBUGDIR}} test
-
-build-stdio-asan: _nix-warn bootstrap
-    @test -f {{STDIO_ASANDIR}}/build.ninja \
-        -a {{STDIO_ASANDIR}}/build.ninja -nt configure.sh \
-        || sh configure.sh --stdio --asan
-    {{SAMU}} -C {{STDIO_ASANDIR}}
-
-test-stdio-asan: build-stdio-asan
-    {{SAMU}} -k 0 -C {{STDIO_ASANDIR}} test
-
-# ── Test summaries ───────────────────────────────────────────────
+# ── Test summaries (quiet mode) ──────────────────────────────────
+# These run tests silently and print categorized results.
+# Different from `just test` which shows inline output + summary.
 
 # Show categorized test results (pass/segv/abrt/fail counts)
 [no-exit-message]

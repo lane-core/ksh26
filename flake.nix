@@ -108,6 +108,15 @@
 
         # Inherit buildInputs (utf8proc, libiconv) from the ksh26 package
         inputsFrom = [ self.packages.${system}.default ];
+
+        # Broad memory protection for interactive dev sessions.
+        # Linux: ulimit works. Darwin: no-op (Apple removed RLIMIT_AS),
+        # test runner has its own RSS monitor as fallback.
+        shellHook = ''
+          case "$(uname -s)" in
+          Linux) ulimit -v 2097152 2>/dev/null ;; # 2G per process
+          esac
+        '';
       };
 
       agent = pkgs.mkShell {
@@ -194,6 +203,46 @@
           # Allow failures — stdio is a work in progress.
           # The threshold above guards against regressions.
           ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-stdio test || true
+        '';
+
+        installPhase = "touch $out";
+      });
+
+      # asan check — AddressSanitizer + UBSan in nix sandbox
+      asan = ksh26.overrideAttrs (old: {
+        name = "ksh26-asan-tests";
+
+        buildPhase = ''
+          runHook preBuild
+
+          mkdir -p build/$HOSTTYPE/bin
+          $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
+
+          # Base build first (asan shares feature probes via symlinks)
+          sh configure.sh
+          ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
+
+          # Asan variant
+          sh configure.sh --asan
+          ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-asan
+
+          runHook postBuild
+        '';
+
+        doCheck = true;
+        checkPhase = ''
+          sed -i '/^build test: phony/s| test/sigchld\.[^ ]*\.stamp||g' \
+            build/$HOSTTYPE-asan/build.ninja
+
+          stamp_count=$(grep '^build test: phony' build/$HOSTTYPE-asan/build.ninja \
+            | tr ' ' '\n' | grep -c '\.stamp$' || true)
+          if (( stamp_count < 110 )); then
+            echo "FAIL: expected >=110 test stamps, found $stamp_count" >&2
+            exit 1
+          fi
+
+          export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
+          ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-asan test
         '';
 
         installPhase = "touch $out";

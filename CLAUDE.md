@@ -49,15 +49,28 @@ nothing changed.
 | Recipe | Purpose |
 |--------|---------|
 | `just build` | Build ksh26 (default) |
-| `just test` | Run all 115 tests in parallel |
+| `just test` | Run all 115 tests in parallel (with summary) |
 | `just test-one NAME [LOCALE]` | Run a single test (`C` or `C.UTF-8`) |
+| `just errors [DIR]` | Show build errors from log (no re-build) |
+| `just warnings [DIR]` | Show build warnings from log |
+| `just failures [DIR]` | Show failed tests with individual logs |
+| `just log [build\|test] [NAME]` | Show build/test logs |
+| `just test-repeat NAME [N] [LOCALE]` | Run a test N times for flakiness |
+| `just debug NAME [LOCALE]` | Run a test under lldb/gdb |
 | `just check` | Build + test in nix sandbox (CI parity) |
+| `just check-asan` | Asan check in nix sandbox |
+| `just check-stdio` | Stdio check in nix sandbox |
+| `just check-all` | All nix checks (`nix flake check`) |
 | `just configure` | (Re)run feature detection |
 | `just reconfigure` | Force all probes to rerun |
 | `just compile-commands` | Generate `compile_commands.json` for clangd/LSP |
 | `just build-stdio` | Build with stdio backend (`KSH_IO_SFIO=0`) |
 | `just test-stdio` | Test the stdio build |
-| `just log` | Show recent test failure logs |
+| `just build-stdio-debug` | stdio with `-O0` for debugger stepping |
+| `just build-stdio-asan` | stdio + AddressSanitizer + UBSan |
+| `just test-stdio-summary` | Categorized stdio results (PASS/SEGV/ABRT/FAIL) |
+| `just test-stdio-asan-summary` | Same, for stdio-asan build |
+| `just test-compare` | Side-by-side sfio vs stdio results |
 
 ### Adding tests
 
@@ -96,6 +109,36 @@ nix build .#checks.x86_64-linux.default      # explicit Linux (remote builder)
 
 The check derivation excludes `sigchld.sh` (signal timing in Nix sandbox) and
 asserts ≥110 test stamps as a regression guard against build.ninja generation bugs.
+
+## Agent build/test workflow
+
+Named recipes exist for every common operation. Use them.
+
+| Need | Recipe | NOT this |
+|------|--------|----------|
+| Build | `just build` | — |
+| See build errors | `just errors` | `just build 2>&1 \| grep error` |
+| See build warnings | `just warnings` | `just build 2>&1 \| grep warning` |
+| Full build log | `just log build` | re-running the build |
+| Test | `just test` | — |
+| See test failures | `just failures` | `just test 2>&1 \| grep FAIL` |
+| Specific test log | `just log test NAME` | `cat build/.../test/NAME...` |
+| CI validation | `just check` | — |
+| Sanitizer check | `just check-asan` | ad-hoc asan invocations |
+| All CI checks | `just check-all` | — |
+| Flaky test? | `just test-repeat NAME` | loop in shell |
+| Debug a test | `just debug NAME` | manual lldb/gdb setup |
+
+Build output is logged to `build/$HOSTTYPE/log/build.log`. Test output is logged
+to `build/$HOSTTYPE/log/test.log`. Per-test failure logs are in
+`build/$HOSTTYPE/test/*.stamp.log`. The `just test` summary includes regression
+detection against the previous run.
+
+### Noticed issues → TODO.md
+
+When you notice something that should be fixed but isn't part of the current task,
+add it to `TODO.md` with a brief description, severity, and enough context for
+someone to pick it up later. Don't fix it inline — capture it and move on.
 
 ## Coding conventions
 

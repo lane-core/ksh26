@@ -205,6 +205,12 @@ printf '%s\n' "$CACHE_KEY" > "$CACHE_KEY_FILE"
 # Detect optional external libraries not always in the default search path.
 # On Nix-based macOS, libiconv is a separate derivation outside the
 # linker's default -L paths. On stock macOS, it's reexported via libSystem.
+#
+# Probe output goes to a temp file, not /dev/null: clang's dsymutil
+# chokes on /dev/null when -g is in CFLAGS.
+
+_probe_out=$(mktemp "${TMPDIR:-/tmp}/ksh26.probe.XXXXXX") || exit 1
+trap 'rm -f "$_probe_out"' EXIT
 
 ICONV_FLAGS=""
 iconv_cache=$BUILDDIR_ABS/.iconv_cache
@@ -216,9 +222,9 @@ else
 	iconv_test='#include <iconv.h>
 int main(void) { iconv_open("",""); return 0; }'
 
-	if printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null 2>/dev/null; then
+	if printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o "$_probe_out" 2>/dev/null; then
 		ICONV_FLAGS=""
-	elif printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -liconv 2>/dev/null; then
+	elif printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o "$_probe_out" -liconv 2>/dev/null; then
 		ICONV_FLAGS="-liconv"
 	else
 		_nix_dirs=""
@@ -228,7 +234,7 @@ int main(void) { iconv_open("",""); return 0; }'
 				| sort -r | head -3 | sed 's|$|/lib|')
 		fi
 		for _d in /usr/local/lib /opt/homebrew/lib $_nix_dirs; do
-			if [ -d "$_d" ] && printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -L"$_d" -liconv 2>/dev/null; then
+			if [ -d "$_d" ] && printf '%s' "$iconv_test" | $CC_PATH $CFLAGS -x c - -o "$_probe_out" -L"$_d" -liconv 2>/dev/null; then
 				ICONV_FLAGS="-L$_d -liconv"
 				break
 			fi
@@ -265,7 +271,7 @@ else
 	utf8proc_test='#include <utf8proc.h>
 int main(void) { utf8proc_grapheme_break(0,0); return 0; }'
 
-	if printf '%s' "$utf8proc_test" | $CC_PATH $CFLAGS -x c - -o /dev/null -lutf8proc 2>/dev/null; then
+	if printf '%s' "$utf8proc_test" | $CC_PATH $CFLAGS -x c - -o "$_probe_out" -lutf8proc 2>/dev/null; then
 		UTF8PROC_LIBS="-lutf8proc"
 		HAVE_UTF8PROC=1
 		printf '%s\n' "configure: utf8proc: system (-lutf8proc)"
@@ -1513,6 +1519,33 @@ trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$(dirname "$log")"
 
+# ── Memory limit ──────────────────────────────────────────────
+# Prevent runaway allocations from killing the machine.
+# Linux: ulimit -v works (kernel-enforced). Darwin: ulimit -v is
+# a no-op (Apple removed RLIMIT_AS), so we poll RSS instead.
+_memlimit_kb=524288  # 512 MiB
+_use_rss_monitor=false
+if ! ulimit -v "$_memlimit_kb" 2>/dev/null; then
+	case $(uname -s) in
+	Darwin) _use_rss_monitor=true ;;
+	esac
+fi
+
+# RSS monitor: poll child process RSS, kill on excess
+_rss_monitor() {
+	_parent=$1 _max=$2
+	while kill -0 "$_parent" 2>/dev/null; do
+		sleep 1
+		for _child in $(pgrep -P "$_parent" 2>/dev/null); do
+			_rss=$(ps -o rss= -p "$_child" 2>/dev/null) || continue
+			if [ "${_rss:-0}" -gt "$_max" ]; then
+				kill -KILL "$_child" 2>/dev/null
+				return
+			fi
+		done
+	done
+}
+
 # ── Run ──────────────────────────────────────────────────────
 cd "$tmp" || exit 1
 
@@ -1523,7 +1556,17 @@ rc=0
 # timeouts. The nix devshell guarantees coreutils; non-nix users
 # get _nix-warn and a no-timeout fallback.
 if command -v timeout >/dev/null 2>&1; then
-	timeout 60 "$SHELL" "$test_file" >"$log" 2>&1 || rc=$?
+	if $_use_rss_monitor; then
+		# Darwin: run timeout in background so we can monitor RSS
+		timeout 60 "$SHELL" "$test_file" >"$log" 2>&1 &
+		_tpid=$!
+		_rss_monitor "$_tpid" "$_memlimit_kb" &
+		_mpid=$!
+		wait "$_tpid" 2>/dev/null || rc=$?
+		kill "$_mpid" 2>/dev/null; wait "$_mpid" 2>/dev/null
+	else
+		timeout 60 "$SHELL" "$test_file" >"$log" 2>&1 || rc=$?
+	fi
 else
 	"$SHELL" "$test_file" >"$log" 2>&1 || rc=$?
 fi

@@ -20,6 +20,9 @@
 
 # ======
 # The following tests are run in parallel because they are slow; they are checked at the end
+# Pre-create .err files so the test doesn't abort if a subshell fails before its redirect
+> parallel_1.err
+> parallel_3.err
 
 (
 	# begin standalone SIGINT test generation
