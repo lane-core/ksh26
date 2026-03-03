@@ -13,58 +13,89 @@ modern standards. Guided by System L / duploid theory (see `REDESIGN.md`).
 
 ## Building and testing
 
+**All build and test commands MUST run inside `nix develop`.** The flake provides
+the complete toolchain (compiler, linker, pkg-config, utf8proc, libiconv). Do not
+use host tools. The justfile warns if you're outside a nix shell; treat this as
+an error.
+
 ```sh
-just build              # build (default recipe)
-just test               # parallel test suite (115 tests)
-just test-one basic     # run a single test
-just clean              # remove build artifacts
-just configure          # (re)run feature detection
-just reconfigure        # force all probes to rerun
-just compile-commands   # generate compile_commands.json for clangd/LSP
-just build-stdio        # build with stdio backend (KSH_IO_SFIO=0)
-just test-stdio         # test the stdio build
+# ── Standard workflow (one-shot commands) ────────────────────────
+nix develop -c just build          # build ksh26
+nix develop -c just test           # parallel test suite (115 tests)
+nix develop -c just test-one basic # run a single test
+nix develop -c just configure      # (re)run feature detection
+nix develop -c just reconfigure    # force all probes to rerun
+
+# ── Interactive session ──────────────────────────────────────────
+nix develop .#agent                # enter agent shell (auto-configures)
+just build                         # then run recipes directly
+just test
+
+# ── Validation before committing ─────────────────────────────────
+just check                         # build + full test suite in nix sandbox
+                                   # (same derivation CI runs — does not
+                                   # require being inside nix develop)
 ```
 
-The build system is three layers: `just` (porcelain) → `configure.sh` (probes
-+ generates `build.ninja`) → `samu` (vendored ninja, executes `build.ninja`).
-Output goes to `build/$HOSTTYPE/`. Feature probes are cached — reconfigure takes
-~5s when nothing changed.
+### Build system
 
-Tests live in `src/cmd/ksh26/tests/`. Use the `err_exit` pattern for assertions.
+Three layers: `just` (porcelain) → `configure.sh` (probes + generates
+`build.ninja`) → `samu` (vendored ninja, executes `build.ninja`). Output goes to
+`build/$HOSTTYPE/`. Feature probes are cached — reconfigure takes ~5s when
+nothing changed.
 
-## Nix development environment
+### Recipes
 
-The flake provides reproducible development shells — no host toolchain needed.
+| Recipe | Purpose |
+|--------|---------|
+| `just build` | Build ksh26 (default) |
+| `just test` | Run all 115 tests in parallel |
+| `just test-one NAME [LOCALE]` | Run a single test (`C` or `C.UTF-8`) |
+| `just check` | Build + test in nix sandbox (CI parity) |
+| `just configure` | (Re)run feature detection |
+| `just reconfigure` | Force all probes to rerun |
+| `just compile-commands` | Generate `compile_commands.json` for clangd/LSP |
+| `just build-stdio` | Build with stdio backend (`KSH_IO_SFIO=0`) |
+| `just test-stdio` | Test the stdio build |
+| `just log` | Show recent test failure logs |
 
-```sh
-nix develop             # default shell: compiler, just, pkg-config, debugger, ccache
-nix develop .#agent     # agent shell: auto-configures on entry if needed
-nix develop -c just build   # one-shot build inside the nix environment
+### Adding tests
+
+Tests live in `src/cmd/ksh26/tests/`. Drop a `.sh` file, reconfigure, done —
+`configure.sh` discovers all `*.sh` files automatically and generates both
+`C` and `C.UTF-8` locale variants. No manifest to update.
+
+Use the `err_exit` pattern:
+```ksh
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
+[[ $(some_command) == expected ]] || err_exit "description of failure"
+exit $((Errors<125?Errors:125))
 ```
 
 ### Devshells
 
 | Shell | Purpose |
 |-------|---------|
-| `default` | Full build+test environment. Provides stdenv (cc, ld, ar), just, git, scdoc, pkg-config, ccache. lldb on Darwin, gdb+valgrind on Linux. Dependencies (utf8proc, libiconv) inherited from the package derivation via `inputsFrom`. |
-| `agent` | Extends default. Auto-detects HOSTTYPE and runs `just configure` on entry if no `build.ninja` exists. Use this for CI or automated agents that need a ready-to-build environment. |
+| `default` | Full build+test environment. stdenv (cc, ld, ar), just, git, scdoc, pkg-config, ccache. lldb on Darwin; gdb + valgrind on Linux. Dependencies (utf8proc, libiconv) inherited from the package via `inputsFrom`. |
+| `agent` | Extends default. Auto-detects HOSTTYPE and runs `just configure` on entry if no `build.ninja` exists. Use for automated agents. |
 
-### Compiler caching
+### Debugging
 
-ccache is available in the devshell but opt-in:
-```sh
-CC="ccache cc" just build
-```
+Inside `nix develop`:
+- **Darwin**: `lldb -- build/$HOSTTYPE/bin/ksh -c '...'`
+- **Linux**: `gdb --args build/$HOSTTYPE/bin/ksh -c '...'`; `valgrind build/$HOSTTYPE/bin/ksh -c '...'`
+- **Compiler cache**: `CC="ccache cc" just build`
+- **LSP/clangd**: `just compile-commands` (generates `compile_commands.json` via samu)
 
 ### Cross-platform checks
 
 ```sh
-nix flake check                              # run test suite on all configured systems
-nix build .#checks.x86_64-linux.default      # explicit Linux check (remote builder)
+just check                                   # local system (same as CI)
+nix build .#checks.x86_64-linux.default      # explicit Linux (remote builder)
 ```
 
-The check derivation excludes `sigchld.sh` (signal timing differs in the Nix
-sandbox) and asserts ≥110 test stamps as a regression guard.
+The check derivation excludes `sigchld.sh` (signal timing in Nix sandbox) and
+asserts ≥110 test stamps as a regression guard against build.ninja generation bugs.
 
 ## Coding conventions
 

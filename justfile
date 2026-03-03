@@ -21,9 +21,18 @@ ASANDIR  := "build" / (HOSTTYPE + "-asan")
 STDIO_DEBUGDIR := "build" / (HOSTTYPE + "-stdio-debug")
 STDIO_ASANDIR  := "build" / (HOSTTYPE + "-stdio-asan")
 SAMU := BUILDDIR / "bin" / "samu"
+_IN_NIX := env("IN_NIX_SHELL", "")
+
+# Warn if building outside nix devshell (soft gate — continues anyway)
+[private]
+_nix-warn:
+    @if [ -z "{{_IN_NIX}}" ] && command -v nix >/dev/null 2>&1; then \
+        printf '\033[33mwarning:\033[0m not in nix devshell — build may use host toolchain\n' >&2; \
+        printf '  run: nix develop -c just <recipe>\n' >&2; \
+    fi
 
 # Build ksh26 (default recipe)
-build: bootstrap
+build: _nix-warn bootstrap
     @test -f {{BUILDDIR}}/build.ninja \
         -a {{BUILDDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh
@@ -37,11 +46,11 @@ bootstrap:
 
 # (Re)run feature detection and generate build.ninja
 # Probes are cached — only stale probes rerun (~5s when nothing changed)
-configure: bootstrap
+configure: _nix-warn bootstrap
     sh configure.sh
 
 # Force all probes to rerun (ignores cache)
-reconfigure: bootstrap
+reconfigure: _nix-warn bootstrap
     sh configure.sh --force
 
 # Run all regression tests in parallel via samu
@@ -120,10 +129,14 @@ install prefix="/usr/local": build
     install -m 755 {{BUILDDIR}}/bin/ksh {{prefix}}/bin/ksh
     install -m 755 {{BUILDDIR}}/bin/shcomp {{prefix}}/bin/shcomp
 
+# Run the same checks CI runs (build + full test suite in nix sandbox)
+check:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
+
 # ── stdio backend (KSH_IO_SFIO=0) ────────────────────────────────
 
 # Build ksh26 with stdio backend
-build-stdio: bootstrap
+build-stdio: _nix-warn bootstrap
     @test -f {{STDIODIR}}/build.ninja \
         -a {{STDIODIR}}/build.ninja -nt configure.sh \
         || sh configure.sh --stdio
