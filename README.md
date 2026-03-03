@@ -1,5 +1,10 @@
 # ksh26
 
+> **Warning:** ksh26 is under heavy development and is not yet suitable
+> for production use. APIs, internals, and behavior may change without
+> notice. If you need a stable ksh, use
+> [ksh93u+m](https://github.com/ksh93/ksh).
+
 ksh26 is a Unix shell. It is an independent fork of
 [ksh93u+m](https://github.com/ksh93/ksh), redesigned from ksh93 to
 modern standards. ksh26 is a superset of ksh93: every ksh93 script
