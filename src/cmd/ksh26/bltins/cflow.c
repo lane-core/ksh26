@@ -36,7 +36,7 @@
 
 /*
  * return and exit
- * ⅋ longjmp: return/exit converts exit status to continuation jump (Direction 5)
+ * ⅋ longjmp: return/exit converts exit status to continuation jump (error duality)
  */
 #if 0
     /* for the dictionary generator */

@@ -243,7 +243,7 @@ fi
 
 # ── Optional dependency: utf8proc ─────────────────────────────────────
 # utf8proc provides correct Unicode grapheme/width support for the line
-# editor (Direction 15). Check system first, fall back to fetching.
+# editor (build system). Check system first, fall back to fetching.
 
 UTF8PROC_CFLAGS=""
 UTF8PROC_LIBS=""

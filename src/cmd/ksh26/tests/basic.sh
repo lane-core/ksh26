@@ -1155,7 +1155,7 @@ got=$("$SHELL" -c '
 	[[ -v .foo.bar ]]
 ' 2>&1) || err_exit "namespace variable not set when DEBUG trap active inside namespace block"
 
-# Direction 4: ERR trap during compound assignment must not see outer sh.prefix
+# Polarity boundary: ERR trap during compound assignment must not see outer sh.prefix
 got=$("$SHELL" -c '
 	trap "echo TRAP" ERR
 	typeset -A assoc
@@ -1169,7 +1169,7 @@ got=$("$SHELL" -c '
 ' 2>&1)
 [[ $got == *TRAP* || $? == 0 ]] || err_exit "ERR trap during compound assignment crashes or misbehaves (got $(printf %q "$got"))"
 
-# Direction 4: trap handler setting a new trap must survive polarity frame restore
+# Polarity boundary: trap handler setting a new trap must survive polarity frame restore
 got=$("$SHELL" -c '
 	function handler {
 		trap "echo EXIT" EXIT
@@ -1180,7 +1180,7 @@ got=$("$SHELL" -c '
 ' 2>&1)
 [[ $got == *EXIT* ]] || err_exit "trap set inside handler lost after polarity frame restore (got $(printf %q "$got"))"
 
-# Direction 3: compound assignment with macro expansion must preserve prefix context
+# Prefix isolation: compound assignment with macro expansion must preserve prefix context
 got=$("$SHELL" -c '
 	typeset -A data
 	x=hello
@@ -1189,7 +1189,7 @@ got=$("$SHELL" -c '
 ' 2>&1)
 [[ $got == hello ]] || err_exit "compound assignment with macro expansion lost prefix context (got $(printf %q "$got"))"
 
-# Direction 3: nested compound-associative assignment with subscript resolution
+# Prefix isolation: nested compound-associative assignment with subscript resolution
 got=$("$SHELL" -c '
 	typeset -A outer
 	outer=(
@@ -1202,7 +1202,7 @@ got=$("$SHELL" -c '
 ' 2>&1)
 [[ $got == 1 ]] || err_exit "nested compound-associative assignment fails (got $(printf %q "$got"))"
 
-# Direction 1: var_tree must be restored atomically with sh.st
+# Context frames: var_tree must be restored atomically with sh.st
 got=$("$SHELL" -c '
 	function outer
 	{

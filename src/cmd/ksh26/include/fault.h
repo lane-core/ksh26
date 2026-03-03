@@ -67,7 +67,7 @@ typedef void (*SH_SIGTYPE)(int,void(*)(int));
 /*
  * Longjmp modes, ordered by severity. When jmpval > current frame's
  * mode, the error propagates upward; when jmpval <= mode, it's caught
- * locally. This ordering encodes the ⊕/⅋ boundary. (Direction 5)
+ * locally. This ordering encodes the ⊕/⅋ boundary. (error duality)
  */
 enum sh_jmpmode : int
 {

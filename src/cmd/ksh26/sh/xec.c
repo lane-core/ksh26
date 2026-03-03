@@ -558,7 +558,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 {
 	Namval_t		*np = SH_COMMANDNOD;
 	struct sh_polarity_lite	polframe;
-	/* three-layer nesting: stk outermost, lite polarity middle, no inner checkpt (Direction 6) */
+	/* three-layer nesting: stk outermost, lite polarity middle, no inner checkpt (allocator boundaries) */
 	int			n=4, offset=stktell(sh.stk);
 	void			*sav = stkfreeze(sh.stk,0);
 	const char		*cp = "+=( ";
@@ -641,7 +641,7 @@ int sh_eval(sh_stream_t *iop, int mode)
 	io_save = iop; /* preserve correct value across longjmp */
 	sh.binscript = 0;
 	sh.comsub = 0;
-	/* computation-only: eval/source stream execution (Direction 4) */
+	/* computation-only: eval/source stream execution (polarity boundary) */
 	sh_pushcontext(buffp,SH_JMPEVAL);
 	buffp->olist = pp->olist;
 	jmpval = sigsetjmp(buffp->buff,0);
@@ -945,16 +945,16 @@ int sh_exec(const Shnode_t *t, int flags)
 		char 		*sav=stkfreeze(sh.stk,0);
 		char		*cp=0, **com=0, *comn;
 		int		argn;
-		int 		skipexitset = 0; /* ⊕ gating: prevents exitset() commit to $? (Direction 5) */
+		int 		skipexitset = 0; /* ⊕ gating: prevents exitset() commit to $? (error duality) */
 		volatile int	was_interactive = 0;
 		volatile int	was_errexit = sh_isstate(SH_ERREXIT);
 		volatile int	was_monitor = sh_isstate(SH_MONITOR);
 		volatile int	echeck = 0;
 		sh_offstate(SH_DEFPATH);
-		/* ⊕→⅋ suppression: strip SH_ERREXIT in conditional contexts (Direction 5) */
+		/* ⊕→⅋ suppression: strip SH_ERREXIT in conditional contexts (error duality) */
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		/* Polarity classification: see sh_node_polarity[] in shnodes.h (Direction 2). */
+		/* Polarity classification: see sh_node_polarity[] in shnodes.h (polarity classification). */
 		switch(type&COMMSK)
 		{
 		    /*
@@ -1106,7 +1106,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					else
 					{
 						/* avoid exit on error from nv_setlist, e.g. read-only variable */
-						/* computation-only: assignment error recovery (Direction 4) */
+						/* computation-only: assignment error recovery (polarity boundary) */
 						struct checkpt *chkp = stkalloc(sh.stk,sizeof(struct checkpt));
 						sh_pushcontext(chkp,SH_JMPCMD);
 						jmpval = sigsetjmp(chkp->buff,0);
@@ -1235,7 +1235,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					if(execflg)
 						sh_onstate(SH_NOFORK);
 					buffp = stkalloc(sh.stk,sizeof(struct checkpt));
-					/* computation-only: builtin execution (Direction 4) */
+					/* computation-only: builtin execution (polarity boundary) */
 					sh_pushcontext(buffp,SH_JMPCMD);
 					jmpval = sigsetjmp(buffp->buff,0);
 					if(jmpval == 0)
@@ -1432,7 +1432,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					if(io)
 					{
 						indx = sh.topfd;
-						/* computation-only: I/O redirection for builtin (Direction 4) */
+						/* computation-only: I/O redirection for builtin (polarity boundary) */
 						sh_pushcontext(buffp,SH_JMPIO);
 						jmpval = sigsetjmp(buffp->buff,0);
 					}
@@ -1611,7 +1611,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				sh_invalidate_rand_seed();
 				if(no_fork)
 					sh_sigreset(2);
-				/* computation-only: child process setup (Direction 4) */
+				/* computation-only: child process setup (polarity boundary) */
 				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval)
@@ -1755,7 +1755,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					}
 				}
 			}
-			/* computation-only: I/O redirection for command (Direction 4) */
+			/* computation-only: I/O redirection for command (polarity boundary) */
 			sh_pushcontext(buffp,SH_JMPIO);
 			if(type&FPIN)
 			{
@@ -1843,7 +1843,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				sh_invalidate_rand_seed();
 				sh.realsubshell++;
 				sh_sigreset(0);
-				/* computation-only: virtual subshell/group execution (Direction 4) */
+				/* computation-only: virtual subshell/group execution (polarity boundary) */
 				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval==0)
@@ -2027,7 +2027,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			void *optlist = sh.optlist;
 			sh.optlist = 0;
 			sh_tclear(t->for_.fortre);
-			/* computation-only: for-loop optimizer checkpoint (Direction 4) */
+			/* computation-only: for-loop optimizer checkpoint (polarity boundary) */
 			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
@@ -2166,7 +2166,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			sh.optlist = 0;
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
-			/* computation-only: while-loop optimizer checkpoint (Direction 4) */
+			/* computation-only: while-loop optimizer checkpoint (polarity boundary) */
 			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
@@ -2429,7 +2429,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				oldnspace = enter_namespace(np);
 				/* make sure to restore oldnspace if a special builtin throws an error */
-				/* computation-only: namespace body execution (Direction 4) */
+				/* computation-only: namespace body execution (polarity boundary) */
 				sh_pushcontext(chkp,SH_JMPCMD);
 				jmpval = sigsetjmp(chkp->buff,0);
 				if(!jmpval)
@@ -2445,7 +2445,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			error_info.line = t->funct.functline-sh.st.firstline;
 			if(cp || sh.prefix)
 			{
-				/* within-value: isolate prefix for discipline nv_open (Direction 3) */
+				/* within-value: isolate prefix for discipline nv_open (prefix isolation) */
 				int offset = stktell(sh.stk);
 				if(sh.prefix)
 				{
@@ -2669,7 +2669,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			break;
 		    }
 		}
-		/* ⊕→⅋ bridge: nonzero sh.exitval + SH_ERREXIT → sh_chktrap (Direction 5) */
+		/* ⊕→⅋ bridge: nonzero sh.exitval + SH_ERREXIT → sh_chktrap (error duality) */
 		if(sh.trapnote || (sh.exitval && sh_isstate(SH_ERREXIT)) && t && echeck)
 			sh_chktrap();
 		/* set $_ */
@@ -2695,7 +2695,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		if(!skipexitset)
 			exitset();
 		/* ARG_OPTIMIZE suppresses stk restore in conditional contexts —
-		 * intentional: loop body allocations persist for the optimizer (Direction 6) */
+		 * intentional: loop body allocations persist for the optimizer (allocator boundaries) */
 		if(!(flags & ARG_OPTIMIZE))
 		{
 			if(sav != stkptr(sh.stk,0))
@@ -3014,7 +3014,7 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
  * This routine is used to execute the given function <fun> in a new scope.
  * If <fun> is NULL, then arg points to a structure containing a pointer
  * to a function that will be executed in the current environment.
- * scope boundary: full sh.st save/restore (Direction 4)
+ * scope boundary: full sh.st save/restore (polarity boundary)
  */
 int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {
@@ -3133,7 +3133,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh.invoc_local = 0;
 	}
 	argsav = sh_argnew(argv,&saveargfor);
-	/* scope boundary: full function scope (Direction 4) */
+	/* scope boundary: full function scope (polarity boundary) */
 	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
@@ -3327,7 +3327,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	char		*av[3];
 	Fcin_t		save;
 	fcsave(&save);
-	/* three-layer nesting: stk outermost, polarity middle, checkpt innermost (Direction 6) */
+	/* three-layer nesting: stk outermost, polarity middle, checkpt innermost (allocator boundaries) */
 	if((offset=stktell(sh.stk))>0)
 		base=stkfreeze(sh.stk,0);
 	sh_polarity_enter(&polframe);
@@ -3343,7 +3343,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 		mode = set_instance(nq,&node, &nr);
 	jmpthresh = is_abuiltin(np) ? SH_JMPCMD : SH_JMPFUN;
 	checkpoint = stkalloc(sh.stk,sizeof(struct checkpt));
-	/* polarity boundary: sh_polarity_enter above (Direction 4) */
+	/* polarity boundary: sh_polarity_enter above (polarity boundary) */
 	sh_pushcontext(checkpoint, jmpthresh);
 	jmpval = sigsetjmp(checkpoint->buff,1);
 	if(jmpval == 0)
@@ -3454,7 +3454,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
 	Pathcomp_t	*pp;
-	/* computation-only: process spawn attempt (Direction 4) */
+	/* computation-only: process spawn attempt (polarity boundary) */
 	sh_pushcontext(buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */

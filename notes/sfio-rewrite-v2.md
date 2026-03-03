@@ -2,7 +2,7 @@
 
 ## Premise
 
-The Direction 12 failure analysis (see `sfio-rewrite-failure-analysis.md`)
+The sfio failure analysis (see `sfio-rewrite-failure-analysis.md`)
 established that the problem was "replace sfio with stdio" rather than
 "provide ksh's I/O semantics cleanly." This proposal takes the second
 approach: reimplement sfio's contracts from scratch in modern C, keeping

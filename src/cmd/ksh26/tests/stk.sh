@@ -11,7 +11,7 @@
 #                                                                      #
 ########################################################################
 #
-# Regression tests for stk allocator (Direction 12, Step 3).
+# Regression tests for stk allocator (sfio stk decoupling).
 # Exercises stk write functions through shell operations that hit
 # each code path: stkputc, stkputs, stkwrite, stkprintf, stkgrow,
 # stkset/stkfreeze.

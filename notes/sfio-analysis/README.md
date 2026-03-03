@@ -4,7 +4,7 @@
 
 Independent reference documenting what SFIO *actually does*, derived from the
 legacy source code (`src/lib/libast/sfio/`). This suite serves as a control for
-the sfio→stdio rewrite (Direction 12): it records the behavior that any
+the sfio→stdio rewrite: it records the behavior that any
 replacement must preserve or consciously deviate from.
 
 This is **not** a rewrite plan. Rewrite decisions live in `REDESIGN.md`.

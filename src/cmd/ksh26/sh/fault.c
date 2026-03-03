@@ -393,7 +393,7 @@ void	sh_sigclear(int sig)
 
 /*
  * check for traps
- * ⊕→⅋ bridge: convert nonzero exit status to ERR trap / errexit longjmp (Direction 5)
+ * ⊕→⅋ bridge: convert nonzero exit status to ERR trap / errexit longjmp (error duality)
  */
 void	sh_chktrap(void)
 {
@@ -462,7 +462,7 @@ void	sh_chktrap(void)
 /*
  * parse and execute the given trap string, stream or tree depending on mode
  * mode==0 for string, mode==1 for stream, mode==2 for parse tree
- * ⊕ return: execute trap action; restores caller's sh.exitval (Direction 5)
+ * ⊕ return: execute trap action; restores caller's sh.exitval (error duality)
  */
 int sh_trap(const char *trap, int mode)
 {
@@ -472,7 +472,7 @@ int sh_trap(const char *trap, int mode)
 	int	was_verbose = sh_isstate(SH_VERBOSE);
 	char	was_no_trapdontexec = !sh.st.trapdontexec;
 	char	save_chldexitsig = sh.chldexitsig;
-	/* three-layer nesting: stk outermost, polarity middle, continuation innermost (Direction 6) */
+	/* three-layer nesting: stk outermost, polarity middle, continuation innermost (allocator boundaries) */
 	int	staktop = stktell(sh.stk);
 	void	*savptr = stkfreeze(sh.stk,0);
 	struct	checkpt buff;
@@ -484,7 +484,7 @@ int sh_trap(const char *trap, int mode)
 	/* disable last-command exec optimisation so the caller gets to complete execution */
 	if(was_no_trapdontexec)
 		sh.st.trapdontexec = 's';  /* special value for direct sh_trap() call */
-	/* polarity boundary: trap handler runs in computation mode (Direction 4).
+	/* polarity boundary: trap handler runs in computation mode (polarity boundary).
 	 * double-framing (sh_trap inside sh_debug) is safe because var_tree
 	 * is in the polarity frame, keeping sh.st and sh.var_tree in sync. */
 	sh_polarity_enter(&polframe);
@@ -538,7 +538,7 @@ int sh_trap(const char *trap, int mode)
 
 /*
  * exit the current scope and jump to an earlier one based on pp->mode
- * ⅋ terminal: longjmp to sh.jmplist (Direction 5)
+ * ⅋ terminal: longjmp to sh.jmplist (error duality)
  */
 void sh_exit(int xno)
 {
@@ -612,7 +612,7 @@ void sh_exit(int xno)
 	sh.arithrecursion = 0;
 	sh.intrace = 0;
 	sh.prefix = nullptr;
-	/* Direction 8: restore L_ARGNOD if longjmp escapes compound assignment */
+	/* Longjmp safety: restore L_ARGNOD if longjmp escapes compound assignment */
 	if(sh.argnod_guard.nvalue)
 	{
 		L_ARGNOD->nvalue = sh.argnod_guard.nvalue;

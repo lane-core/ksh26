@@ -308,7 +308,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
-	/* scope boundary: dot script uses sh_funscope-style scope management (Direction 4) */
+	/* scope boundary: dot script uses sh_funscope-style scope management (polarity boundary) */
 	sh_pushcontext(&buff,SH_JMPDOT);
 	errorpush(&buff.err,0);
 	error_info.id = argv[0];

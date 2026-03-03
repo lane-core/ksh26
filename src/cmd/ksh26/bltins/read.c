@@ -357,7 +357,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		was_share = (sfset(iop,SFIO_SHARE,sh.redir0!=2)&SFIO_SHARE)!=0;
 	if(timeout || (sh.fdstatus[fd]&(IOTTY|IONOSEEK)))
 	{
-		/* computation-only: I/O timeout recovery (Direction 4) */
+		/* computation-only: I/O timeout recovery (polarity boundary) */
 		sh_pushcontext(&buff,1);
 		jmpval = sigsetjmp(buff.buff,0);
 		if(jmpval)

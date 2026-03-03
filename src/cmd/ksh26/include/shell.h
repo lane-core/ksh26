@@ -256,7 +256,7 @@ struct sh_polarity_lite
 /*
  * Prefix guard: lightweight save/clear/restore for within-value
  * operations. Unlike a polarity frame, this does NOT save sh.st
- * (no mode crossing). See REDESIGN.md Direction 3.
+ * (no mode crossing). See REDESIGN.md §Prefix isolation.
  */
 struct sh_prefix_guard
 {
@@ -341,7 +341,7 @@ struct Shell_s
 	char		*shname;	/* shell name */
 	char		*comdiv;	/* points to sh -c argument */
 	char		*prefix;	/* prefix for compound assignment */
-	/* Direction 8: L_ARGNOD restore guard for longjmp safety */
+	/* L_ARGNOD restore guard for longjmp safety (longjmp safety) */
 	struct
 	{
 		void		*nvalue;
@@ -554,10 +554,10 @@ extern Shell_t		sh;
 
 #if _BLD_ksh
 /*
- * Compile-time invariants for Directions 8, 9, and polarity frames.
+ * Compile-time invariants for longjmp safety, scope unification, and polarity frames.
  */
 
-/* Direction 8: argnod_guard must match Namval_t field types exactly.
+/* Longjmp safety: argnod_guard must match Namval_t field types exactly.
  * The guard saves/restores nvalue, nvflag, nvfun across longjmp. */
 static_assert(
 	sizeof(((Shell_t*)0)->argnod_guard.nvalue) == sizeof(((Namval_t*)0)->nvalue),

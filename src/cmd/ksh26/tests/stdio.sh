@@ -11,7 +11,7 @@
 #                                                                      #
 ########################################################################
 #
-# Regression tests for sfio → stdio migration (Direction 12).
+# Regression tests for sfio → stdio migration (sfio reimplementation).
 # These exercise I/O behaviors where the inline-macro and function-call
 # dispatch paths could differ: sfputc/sfgetc character I/O, sfeof/sferror
 # status checks, sffileno fd tracking, sfvalue byte counts, and string

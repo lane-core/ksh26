@@ -208,7 +208,7 @@ union Shnode_u
 };
 
 /*
- * Polarity classification for AST node types (Direction 2).
+ * Polarity classification for AST node types (polarity classification).
  *
  * SH_POL_VALUE:   Word expansion, pattern matching, arithmetic.
  *                 Produce values; sh_debug calls cross via polarity frame.

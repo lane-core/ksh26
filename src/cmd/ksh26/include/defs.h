@@ -113,7 +113,7 @@ extern void		sh_prefix_enter(struct sh_prefix_guard*);
 extern void		sh_prefix_leave(struct sh_prefix_guard*);
 /*
  * Atomically set the current scope dictionary.
- * Keeps sh.var_tree and sh.st.own_tree in sync (Direction 9).
+ * Keeps sh.var_tree and sh.st.own_tree in sync (scope unification).
  * Use only at identity-changing sites, not temporary navigation.
  */
 static inline void	sh_scope_set(Dt_t *tree)

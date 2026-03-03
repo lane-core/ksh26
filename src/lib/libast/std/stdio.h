@@ -3,6 +3,6 @@
  *
  * This file previously redirected to ast_stdio.h which intercepted
  * all stdio symbols and routed them through sfio. That interception
- * layer has been retired (Direction 12 Step 4).
+ * layer has been retired (sfio retirement).
  */
 #include_next <stdio.h>

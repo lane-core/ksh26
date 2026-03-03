@@ -1927,7 +1927,7 @@ deployable).
 ## Part 8: Relationship to existing ksh26 work
 
 The proposals in Part 4 are designed to build on ksh26's completed
-directions (REDESIGN.md §Direction status), not to compete with them.
+foundations (REDESIGN.md §Foundations), not to compete with them.
 
 ### What the polarity frame enables for interactive features
 
@@ -1980,7 +1980,7 @@ directly benefits interactive responsiveness.
 ### Continuation stack and editor events
 
 The continuation stack (`sh_pushcontext`/`sh_popcontext`) and the polarity
-frame nest in a defined order (REDESIGN.md §Direction 6): stk (outermost)
+frame nest in a defined order (REDESIGN.md §Stack allocator boundaries): stk (outermost)
 → polarity (middle) → continuation (innermost). Editor widget dispatch
 fits this pattern: the editor freezes stk, enters a polarity frame, and
 the widget function may push its own continuation frame internally.

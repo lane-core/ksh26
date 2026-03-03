@@ -50,7 +50,7 @@
 
 /*
  * Ensure real stdio FILE is available.
- * (The old FILE = Sfio_t interception was retired in Direction 12 Step 4.)
+ * (The old FILE = Sfio_t interception was retired during sfio retirement.)
  */
 #include <stdio.h>
 

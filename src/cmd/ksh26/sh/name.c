@@ -142,7 +142,7 @@ static char *getbuf(size_t len)
  * operations that must not inherit the outer compound assignment
  * prefix.  Companion fields prefix_root and first_root are included
  * because they track the scope associated with sh.prefix.
- * See REDESIGN.md Direction 3.
+ * See REDESIGN.md §Prefix isolation.
  */
 void sh_prefix_enter(struct sh_prefix_guard *guard)
 {
@@ -321,7 +321,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		sh.used_pos = 0;
 		if(arg->argflag&ARG_MAC)
 		{
-			/* within-value: isolate prefix for sub-expansion (Direction 3) */
+			/* within-value: isolate prefix for sub-expansion (prefix isolation) */
 			struct sh_prefix_guard pfg;
 			sh_prefix_enter(&pfg);
 			cp = sh_mactrim(arg->argval,(flags&NV_NOREF)?-3:-1);
@@ -355,7 +355,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					array |= (tp->com.comset->argflag&ARG_MESSAGE)?NV_IARRAY:NV_ARRAY;
 				if(prefix && tp->com.comset && *cp=='[')
 				{
-					/* within-value: isolate prefix for subscript resolution (Direction 3)
+					/* within-value: isolate prefix for subscript resolution (prefix isolation)
 					 * note: nv_open can longjmp; prefix stays cleared (same as before) */
 					struct sh_prefix_guard pfg;
 					sh_prefix_enter(&pfg);
@@ -614,7 +614,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					nr.table = sh.last_table;
 					L_ARGNOD->nvflag = NV_REF|NV_NOFREE;
 					L_ARGNOD->nvfun = 0;
-					/* Direction 8: register guard so sh_exit restores on longjmp */
+					/* Longjmp safety: register guard so sh_exit restores on longjmp */
 					sh.argnod_guard.nvalue = node.nvalue;
 					sh.argnod_guard.nvflag = node.nvflag;
 					sh.argnod_guard.nvfun = node.nvfun;
@@ -1582,7 +1582,7 @@ skip:
 			nv_putval(np, cp, NV_RDONLY);
 		else
 		{
-			/* within-value: isolate prefix for assignment (Direction 3) */
+			/* within-value: isolate prefix for assignment (prefix isolation) */
 			char *sub=0;
 			struct sh_prefix_guard pfg;
 			Namval_t *mp;
@@ -2879,7 +2879,7 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 	Namarr_t *ap = 0;
 	int oldsize,oldatts,trans;
 	Namfun_t *fp= (newatts&NV_NODISC)?np->nvfun:0;
-	/* defensive save: preserves prefix across attribute change, does not clear (Direction 3) */
+	/* defensive save: preserves prefix across attribute change, does not clear (prefix isolation) */
 	char *prefix = sh.prefix;
 	newatts &= ~NV_NODISC;
 
@@ -3184,7 +3184,7 @@ int nv_rename(Namval_t *np, int flags)
 	arraynr = cp[strlen(cp)-1] == ']';
 	if(nv_isarray(np) && !(mp=nv_opensub(np)))
 		index=nv_aindex(np);
-	/* within-value: isolate prefix for compound ref resolution (Direction 3)
+	/* within-value: isolate prefix for compound ref resolution (prefix isolation)
 	 * note: nv_open can longjmp; prefix stays cleared (same as before) */
 	{
 		struct sh_prefix_guard pfg;

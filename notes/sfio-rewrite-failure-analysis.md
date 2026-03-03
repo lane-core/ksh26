@@ -2,7 +2,7 @@
 
 ## What happened
 
-Direction 12 attempted to replace sfio with modern I/O primitives. Three
+The sfio retirement effort attempted to replace sfio with modern I/O primitives. Three
 successive approaches were tried, each failing for deeper reasons than
 the last:
 
@@ -91,8 +91,8 @@ sftmp, sfseek, sfsetfd, and sfpkrd.
 
 ### RC4: The libcmd/libast boundary
 
-Progress was clean through Directions 1-11 (polarity frames, C23 types,
-build system). The trouble started at Direction 12 when the work crossed
+Progress was clean through the foundations and early modernization work (polarity frames, C23 types,
+build system). The trouble started with sfio retirement when the work crossed
 from ksh's own code into the libast dependency boundary. libast's sfio
 is not just used by ksh — it's used by libast itself (error reporting,
 stk allocator's internal representation, CDT, etc.). Replacing sfio

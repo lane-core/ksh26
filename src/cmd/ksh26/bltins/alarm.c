@@ -173,7 +173,7 @@ void	sh_timetraps(void)
 					sh_offstate(SH_INTERACTIVE);
 					sh_offstate(SH_TTYWAIT);
 					sh.st.trap[SH_DEBUGTRAP] = NULL;
-					/* indirect: sh_fun has its own polarity frame (Direction 4) */
+					/* indirect: sh_fun has its own polarity frame (polarity boundary) */
 					sh_pushcontext(&checkpoint,SH_JMPTRAP);
 					jmpval = sigsetjmp(checkpoint.buff,0);
 					if(!jmpval)

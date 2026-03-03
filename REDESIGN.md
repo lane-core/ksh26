@@ -40,18 +40,19 @@ feature vision.
 
 ## Roadmap
 
-Directions 1–9 (below) established the engineering foundations: polarity
-frames, prefix guards, scope unification, longjmp safety.
+The foundations section (nine items below) established the engineering
+base: polarity frames, prefix guards, scope unification, longjmp safety.
 
-Directions 10, 11, and 15 are done. Remaining directions clear the path
-for features:
-- **10**: C23 types — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
-- **11**: Library reduction — strip dead libraries and thin survivors (**done**)
-- **12**: sfio reimplementation — clean-room rewrite, polarity-structured (architecture documented)
-- **13**: Platform targeting — declare what we support, delete the rest
-- **14**: Security hardening — audit the reduced codebase
-- **15**: Build system — just + samu, retire MAM (**done**)
-- **16**: Unicode — utf8proc integration for correct grapheme handling
+The modernization section covers the remaining work. Done so far:
+- **C23 type enforcement** — typed enums, constexpr, static_assert, [[noreturn]], nullptr (**done**)
+- **Library reduction** — strip dead libraries and thin survivors (**done**)
+- **Platform targeting** — declare what we support, delete the rest (**done**)
+- **Security hardening** — audit the reduced codebase (**done**)
+- **Build system** — just + samu, retire MAM (**done**)
+
+Remaining:
+- **sfio reimplementation** — clean-room rewrite, polarity-structured (architecture documented)
+- **Unicode via utf8proc** — grapheme-correct terminal handling
 
 After that: interactive features (completions, autosuggestions, editor
 hooks) on a codebase that's small enough to audit and typed enough to
@@ -113,7 +114,7 @@ These functions previously did ad-hoc save/restore of some combination of
 | Function | File | What changed |
 |----------|------|--------------|
 | `sh_debug()` | xec.c | Was: manual `savprefix` + `*savst` + inline trap slot preservation. Now: lightweight polarity frame (`sh_polarity_lite_enter`/`leave`). Trap dup for use-after-free protection retained separately. |
-| `sh_trap()` | fault.c | Was: conditional polarity frame (`use_polframe = !sh.indebug` guard). Now: unconditional full polarity frame after `var_tree` was added to frame (Direction 1 resolution). |
+| `sh_trap()` | fault.c | Was: conditional polarity frame (`use_polframe = !sh.indebug` guard). Now: unconditional full polarity frame after `var_tree` was added to frame (context frames resolution). |
 | `sh_fun()` | xec.c | Was: saved only `sh.prefix`. Now: full polarity frame (saves `sh.st` too). Documented behavioral change in `notes/divergences/001-sh-fun-st-save.md`. |
 | `sh_getenv()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
 | `putenv()` | name.c | Was: ad-hoc `savns`/`savpr`. Now: polarity frame. |
@@ -122,13 +123,13 @@ These functions previously did ad-hoc save/restore of some combination of
 ### Callers that don't need polarity frames
 
 Not every save/restore site is a polarity boundary. The remaining sites
-are handled by their own Directions:
+are handled by their own sections:
 
-**Within-value prefix management** (Direction 3) — now converted to
-`sh_prefix_enter`/`sh_prefix_leave`. See [Direction 3](#direction-3-within-value-prefix-isolation).
+**Within-value prefix management** — now converted to
+`sh_prefix_enter`/`sh_prefix_leave`. See [Prefix isolation](#within-value-prefix-isolation).
 
-**Scope management** (Direction 4) — annotated with their classification.
-See [Direction 4](#direction-4-polarity-frames-at-continuation-boundaries).
+**Scope management** — annotated with their classification.
+See [Polarity frames at continuation boundaries](#polarity-frames-at-continuation-boundaries).
 
 
 ## sh_exec polarity taxonomy
@@ -158,10 +159,10 @@ classification. Index with `tretyp & COMMSK`.
 |------|------|----------------|
 | `trap - DEBUG` self-removal | basic.sh:1139 | Handler removes its own trap; must persist after `sh_polarity_leave` restores `sh.st` |
 | Namespace + DEBUG trap | basic.sh:1149 | Namespace variable set while DEBUG trap active inside namespace block; verifies namespace context survives polarity boundary |
-| ERR trap during compound assignment | basic.sh:1159 | `sh.prefix` must not leak into ERR trap handler (Direction 4) |
-| Trap sets new trap in handler | basic.sh:1172 | `trapdontexec` must survive polarity frame restore (Direction 4) |
-| Compound assignment + macro expansion | basic.sh:1183 | Prefix guard preserves context across `sh_mactrim` (Direction 3) |
-| Nested compound-associative assignment | basic.sh:1191 | Prefix guard handles nested subscript resolution (Direction 3) |
+| ERR trap during compound assignment | basic.sh:1159 | `sh.prefix` must not leak into ERR trap handler (polarity boundary) |
+| Trap sets new trap in handler | basic.sh:1172 | `trapdontexec` must survive polarity frame restore (polarity boundary) |
+| Compound assignment + macro expansion | basic.sh:1183 | Prefix guard preserves context across `sh_mactrim` (prefix isolation) |
+| Nested compound-associative assignment | basic.sh:1191 | Prefix guard handles nested subscript resolution (prefix isolation) |
 
 
 ## Error conventions (⊕/⅋ duality)
@@ -237,12 +238,12 @@ situation is documented in `notes/divergences/`:
 | 002 | `002-debug-trap-self-unset.md` | Trap preservation in frame API vs dev's inline fix |
 
 
-## Direction status
+## Foundations
 
-Progress against the six refactoring directions from
+Progress against the refactoring directions from
 [SPEC.md §Concrete directions](SPEC.md#concrete-directions):
 
-### Direction 1: Context frames instead of global mutation
+### Context frames instead of global mutation
 
 **Status: done**
 
@@ -292,14 +293,14 @@ Trap slot and `trapdontexec` preservation handled uniformly by
   which pair correctly at each call site. The polarity frame would add
   redundant save/restore without fixing any real desync.
 
-### Direction 2: Classify sh_exec cases by polarity
+### sh_exec polarity classification
 
 **Status: done**
 
 All 16 case labels annotated. Block comment with taxonomy added. No further
 code changes planned unless the taxonomy needs revision.
 
-### Direction 3: Within-value prefix isolation
+### Within-value prefix isolation
 
 **Status: done**
 
@@ -344,7 +345,7 @@ guard doesn't make this worse: if nv_open longjmps, the unwinding lands at
 a computation-mode checkpt that manages its own state. The prefix stays
 cleared across the longjmp, same as the original inline code.
 
-### Direction 4: Polarity frames at continuation boundaries
+### Polarity frames at continuation boundaries
 
 **Status: done**
 
@@ -370,7 +371,7 @@ The polarity frame was initially conditional (`use_polframe =
 from sh_debug. The issue: `sh.var_tree` and `sh.st` encode the same
 scope in two places, and a polarity frame that saved only `sh.st`
 would desynchronize them on the inner restore. Once `sh.var_tree` was
-added to the polarity frame (Direction 1 resolution), double-framing
+added to the polarity frame (context frames resolution), double-framing
 became safe and the conditional was removed. The frame is now
 unconditional.
 
@@ -421,7 +422,7 @@ frame directly.
 I/O setup, loop optimization, or child process management within computation
 mode.
 
-### Direction 5: Name the dual error conventions
+### Error convention duality
 
 **Status: done**
 
@@ -431,7 +432,7 @@ above. Inline annotations added to fault.h (longjmp mode block comment),
 fault.c (`sh_chktrap`, `sh_trap`, `sh_exit`), xec.c (errexit suppression,
 `skipexitset`, central dispatch), and cflow.c (`b_return`).
 
-### Direction 6: Stack allocator boundaries
+### Stack allocator boundaries
 
 **Status: done**
 
@@ -474,11 +475,11 @@ This is intentional: loop body allocations persist for the optimizer. Not
 a leak — the optimizer manages its own stk lifetime.
 
 
-### Direction 7: Safe optimizations
+### Safe optimizations
 
 **Status: done**
 
-The polarity boundary framework (Directions 1–6) makes three optimizations
+The polarity boundary framework (context frames through allocator boundaries) makes three optimizations
 provably safe that would have been risky in the ad-hoc codebase. Each
 eliminates redundant work on hot paths without changing observable behavior.
 
@@ -567,10 +568,10 @@ bookkeeping for safe reuse.
 | `sh_debug` | stkfreeze/stkset | **sh_polarity_lite** | (none) | Lite frame; sh_trap provides full sh.st protection |
 | `sh_fun` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
 | `sh_trap` | stkfreeze/stkset | sh_polarity_enter/leave | sh_pushcontext | All three layers |
-| `nv_setlist` | (none) | (none) | **sh_exit guard** | Direction 8: L_ARGNOD longjmp safety |
+| `nv_setlist` | (none) | (none) | **sh_exit guard** | Longjmp safety: L_ARGNOD guard |
 
 
-### Direction 8: Compound assignment longjmp safety
+### Compound assignment longjmp safety
 
 **Status: done (v2 — sh_exit guard)**
 
@@ -613,9 +614,9 @@ Implementation:
 **Files:** `shell.h` (Shell_t), `name.c` (nv_setlist), `fault.c` (sh_exit)
 
 
-### Direction 9: Scope representation unification
+### Scope representation unification
 
-**Status: done (phase 2)**
+**Status: done (second pass)**
 
 `sh.var_tree` and `sh.st.own_tree` encode the same concept: the current
 scope dictionary. Only `sh_setscope` updates both atomically. Three sites
@@ -636,13 +637,13 @@ and the interpreter's understanding of "where am I" (`sh.st.own_tree`).
 When these diverge, operations that consult `own_tree` (e.g., scope
 level detection in `update_sh_level`) see stale identity.
 
-**Phase 1** added `sh.st.own_tree = <new value>` immediately after each
+**First pass** added `sh.st.own_tree = <new value>` immediately after each
 identity-changing `sh.var_tree` assignment. Sites that temporarily
 navigate the viewpath chain (NV_GLOBAL lookups, nv_clone switches,
 namespace manipulation) are *not* synced — they don't change scope
 identity.
 
-**Phase 2** introduced `sh_scope_set()` (defs.h), a static inline
+**Second pass** introduced `sh_scope_set()` (defs.h), a static inline
 function that atomically updates both fields:
 
 ```c
@@ -653,7 +654,7 @@ static inline void sh_scope_set(Dt_t *tree)
 }
 ```
 
-The three phase 1 sync sites now call `sh_scope_set()` instead of
+The three first-pass sync sites now call `sh_scope_set()` instead of
 writing two separate assignments. This makes the invariant
 self-enforcing: new scope-changing code uses the setter rather than
 remembering to update both fields manually. The one-time initialization
@@ -664,7 +665,9 @@ use the setter — it runs before the scope stack exists.
 `sh_unscope`), `xec.c` (`sh_funscope`).
 
 
-### Direction 10: C23 type enforcement
+## Modernization
+
+### C23 type enforcement
 
 **Status: done**
 
@@ -677,7 +680,7 @@ for pointer contexts.
 **Files:** Throughout. See commit history for the full changeset.
 
 
-### Direction 11: Library reduction
+### Library reduction
 
 **Status: done**
 
@@ -727,7 +730,7 @@ checking, locale awareness, error catalogs) and are actively linked.
 deleted directories, `cdtlib.h`.
 
 
-### Direction 12: sfio reimplementation
+### sfio reimplementation
 
 **Status: architecture documented, implementation not started**
 
@@ -881,11 +884,11 @@ Phase 8: Remove sfio from build
 
 Phase 9: Post-sfio cleanup
          - Typed error handling (Result_t, notes/FUTURE.md)
-         - Direction 16 — utf8proc integration
+         - Unicode — utf8proc integration
 ```
 
 
-### Direction 13: Platform targeting
+### Platform targeting
 
 **Status: done**
 
@@ -903,10 +906,10 @@ Cleaned iffe feature probes for dead platforms:
   branches)
 - Platform tiers documented in README
 
-cc.* compiler profiles were already eliminated (Direction 11).
+cc.* compiler profiles were already eliminated (library reduction).
 
 
-### Direction 14: Security hardening
+### Security hardening
 
 **Status: done**
 
@@ -925,7 +928,7 @@ Two targeted fixes plus documentation:
    (22 occurrences, all pre-sized).
 
 
-### Direction 15: Build system
+### Build system
 
 **Status: done**
 
@@ -944,7 +947,7 @@ in `doc/`. The `just doc` recipe processes `doc/*.scd` into
 troff) is deferred to a dedicated session.
 
 
-### Direction 16: Unicode via utf8proc
+### Unicode via utf8proc
 
 **Status: planned**
 
@@ -957,7 +960,7 @@ reduction and sfio abstraction.
    highest value, fixes emoji and CJK cursor positioning
 3. Convert remaining call sites (pattern matching, `chresc()`)
 
-utf8proc build dep infrastructure is in place (Direction 15).
+utf8proc build dep infrastructure is in place (build system).
 
 
 ## References

@@ -5,7 +5,7 @@ cat{
 	 * ast_stdio.h — minimal stub
 	 *
 	 * The sfio interception layer that previously remapped all stdio
-	 * symbols to _ast_* variants has been retired (Direction 12 Step 4).
+	 * symbols to _ast_* variants has been retired (sfio retirement).
 	 * This header is kept for build compatibility but defines nothing.
 	 * Real stdio comes from <stdio.h> via the system header.
 	 */

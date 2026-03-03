@@ -2,7 +2,7 @@
 
 ## Context
 
-Direction 12 Phase 5 brought the stdio backend from 0/115 to 36/115 tests
+The sfio stdio backend brought the stdio backend from 0/115 to 36/115 tests
 passing. The sfreserve buffer model (LOCKR vs non-LOCKR polarity), sfswap
 SFIO_STATIC semantics, and all sf* function stubs are implemented. The sfio
 build remains at 115/115 (zero regressions).

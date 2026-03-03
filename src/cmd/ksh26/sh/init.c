@@ -1344,7 +1344,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.shname = sh_strdup(sh.st.dolv[0]);
 	error_info.id = sh_strdup(sh.st.dolv[0]); /* error_info.id is $0 */
 	sh.jmpbuffer = &sh.checkbase;
-	/* computation-only: initial shell checkpoint (Direction 4) */
+	/* computation-only: initial shell checkpoint (polarity boundary) */
 	sh_pushcontext(&sh.checkbase,SH_JMPSCRIPT);
 	sh.st.self = &sh.global;
 	sh.topscope = (Shscope_t*)sh.st.self;
