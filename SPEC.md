@@ -36,7 +36,7 @@ The shell has not two but **three** syntactic categories:
   script). A pipeline `cmd1 | cmd2` is a cut where cmd1's stdout is the
   producer and cmd2's stdin is the consumer.
 
-This three-sorted structure is exactly the λμμ̃-calculus [5, 7], where:
+This three-sorted structure is exactly the λμμ̃-calculus (with connectives) [5, 7], where:
 - **Terms** produce values (producers)
 - **Coterms** consume values (consumers/contexts)
 - **Statements** connect a term to a coterm via a *cut* ⟨t | e⟩
@@ -60,7 +60,7 @@ ad-hoc, one bug at a time.
 
 ## Theoretical framework
 
-Seven papers provide the formal scaffolding, each contributing a different angle
+Nine papers provide the formal scaffolding, each contributing a different angle
 on the same underlying structure. They're not prescriptive — we're not
 implementing a type checker — but they give us vocabulary for structures that
 already exist in the codebase.
@@ -140,6 +140,7 @@ patterns, the same failure modes, the same fix disciplines.
 | Contexts (pipe reader, redirect target, assignment LHS, trap handler) | Coterms / consumers | fault.h (checkpt), shell.h (sh.st.trap[]) |
 | Commands (simple, pipeline, compound) | Statements / cuts ⟨t \| e⟩ | `sh_exec()` in xec.c — switch on Shnode_t type |
 | Shnode_t union (shnodes.h) | AST for all three sorts | Tagged by `tretyp & COMMSK` |
+| Shell command execution | Oblique map P → N [9] | `sh_exec()` dispatching on Shnode_t |
 
 The AST embeds this three-way distinction. `TCOM` (simple command) is a
 statement: it holds both `comarg` (producer — the arguments) and `comnamp` (the
@@ -155,7 +156,7 @@ determine where produced values flow.
 |---|---|---|---|
 | `$(cmd)` command substitution | Force then return (↓→↑) | computation → value | macro.c (comsubst handling) |
 | `<(cmd)` process substitution | Thunk (↓N) | computation → storable value | io.c (process sub as fd path) |
-| `eval "$string"` | Force (↑) | value → computation | xec.c, b_eval() |
+| `eval "$string"` | Force (elim ↓) | value → computation | xec.c, b_eval() |
 | `x=val; rest` (assignment then continue) | μ̃-binding (let) | bind value, continue | name.c, nv_setlist() |
 | Function call / return | μ-abstraction / return | capture continuation, compute | xec.c TCOM handler |
 
@@ -186,7 +187,8 @@ same because they are dual.
 ### The ⊕ / ⅋ error-handling duality
 
 ksh93 supports two conventions for error handling, and they are dual in the
-sense of linear logic [7]:
+sense of linear logic (⊕/⅋ originate there; the error-handling interpretation
+is from [7]):
 
 | ⊕ (caller inspects result) | ⅋ (callee invokes continuation) |
 |---|---|
@@ -293,15 +295,20 @@ values — not arbitrary computations — may substitute into variable abstracti
 This is exactly the restriction that shell variables hold word-level data, not
 suspended commands. When the restriction is violated (via eval, traps, or name
 resolution side effects), the critical pair forms and non-confluence appears as
-a bug.
+a bug. Curien and Munch-Maccagnoni [8] show that **focalization** eliminates
+the critical pair: in the focused calculus, there is only one way to reduce
+⟨μα.c₁|μ̃x.c₂⟩. The polarity frame API (`sh_polarity_enter`/`sh_polarity_leave`)
+is the C implementation of this resolution — it forces a deterministic reduction
+order at every boundary crossing.
 
 ### Non-associativity made concrete: the sh.prefix bugs
 
 The duploid framework [2] provides the categorical perspective on the same
 phenomenon: composition of value-mode and computation-mode operations is
 **non-associative**. Three of four associativity equations hold; the one that
-fails is (CBV-then-CBN): `(h ∘ g) ∘ f ≠ h ∘ (g ∘ f)` when the intermediate
-type changes polarity. The two bracketings evaluate `f` and `h` in different
+fails is the (+,−) equation: `(h ○ g) • f ≠ h ○ (g • f)` where • composes
+through a positive (value) intermediary and ○ through a negative (computation)
+intermediary [2, 3]. The two bracketings evaluate `f` and `h` in different
 orders — exactly the non-determinism in the critical pair.
 
 **Bug 001** (`bugs/001-typeset-compound-assoc-expansion.ksh`): `typeset -i`
@@ -350,6 +357,98 @@ every time someone forgets to add it, you get a new bug.
 The same pattern applies to the full scoped state (`sh.st`) in `sh_debug()`
 and `sh_trap()` (via polarity frames), and to the continuation stack
 everywhere via `sh_pushcontext` / `sh_popcontext` (fault.h).
+
+### Monadic and comonadic patterns in C
+
+The duploid [2, 9] integrates two familiar compositional styles: Kleisli
+(monadic/CBV — thread values through effectful steps) and co-Kleisli
+(comonadic/CBN — extract from and extend contexts). Both appear as concrete C
+idioms in ksh93. Commands themselves are "oblique maps" P → N [9, Table 1]:
+they take values and produce computations. Formal definitions stay in the
+references; this section shows what the patterns look like in C.
+
+#### The monadic side: value composition (macro.c)
+
+Word expansion composes like Kleisli maps. Each stage — tilde → parameter →
+command sub → arithmetic → field split → glob — takes a partial value, produces
+an expanded value with possible side effects, and passes the result forward.
+The `Mac_t` struct (macro.c:81) is the monadic state threaded through the
+pipeline: `sh_macexpand()` → `copyto()` → `varsub()` → `comsubst()`.
+
+Pattern in C:
+
+```c
+/* Monadic bind: thread result, short-circuit on error */
+result = stage1(input);
+if (error) return;          /* ⊕ error: early return */
+result = stage2(result);
+if (error) return;
+/* ... */
+```
+
+Associativity holds within this pipeline: the stages compose freely because
+they all operate on the same polarity (positive/value). Reordering *within*
+the expansion pipeline is safe; what breaks associativity is interleaving
+expansion with computation (e.g., command substitution mid-expansion, which
+requires a shift).
+
+#### The comonadic side: context management (xec.c, fault.h)
+
+Command execution operates comonadically on contexts. The interpreter carries
+a rich evaluation context (`sh.prefix`, `sh.st`, `sh.var_tree`, `sh.jmplist`)
+and operations extract from, extend, and restore it.
+
+Pattern in C:
+
+```c
+/* Comonadic extract/extend/restore */
+frame.field = sh.field;     /* extract: observe the current context */
+sh.field = new_value;       /* extend: modify for nested computation */
+result = compute();         /* operate in extended context */
+sh.field = frame.field;     /* restore: return to outer context */
+```
+
+This is exactly what `sh_polarity_lite_enter`/`sh_polarity_lite_leave`
+(xec.c:533–551) and `sh_pushcontext`/`sh_popcontext` (fault.h:110–123) do.
+The polarity frame API consolidates ad-hoc instances of this pattern.
+
+Associativity also holds within the comonadic side: nested context frames
+compose correctly (push A, push B, pop B, pop A). What breaks associativity
+is when a value-mode operation intrudes into the context management — the
+(+,−) failure.
+
+#### Oblique maps: where the two sides meet
+
+A shell command is an oblique map P → N [9]: it receives values (arguments,
+redirections — positive/monadic data) and enters computation mode (executes,
+produces side effects, yields an exit status — negative/comonadic context).
+
+The cut ⟨t | e⟩ is `sh_exec(t, flags)`: the AST node `t` (producer) meets the
+execution context (consumer). The `sh_exec` switch is literally a case analysis
+on the cut structure.
+
+#### Design guidelines
+
+| You are... | Pattern | C idiom | Example |
+|---|---|---|---|
+| Threading values through stages | Monadic (Kleisli) | Return result, early-return on error | macro.c expansion pipeline |
+| Managing execution context | Comonadic (co-Kleisli) | Save/compute/restore frame | `sh_polarity_lite`, `sh_pushcontext` |
+| Crossing value↔computation | Shift | API call at boundary | `sh_polarity_enter`/`sh_polarity_leave` |
+| Dispatching on AST node type | Cut (⟨t\|e⟩) | Switch on `tretyp` | `sh_exec()` |
+| Handling errors via exit status | ⊕ (data) | Check `$?`, return code | `if(exitval) return` |
+| Handling errors via trap | ⅋ (codata) | Continuation jump | `siglongjmp` to `checkpt` |
+
+#### When to use which
+
+- **Adding a new expansion feature?** → Monadic. Add a stage that takes and
+  returns values. Thread through `Mac_t`. Use early return for errors.
+- **Adding a new execution context?** → Comonadic. Save/restore via polarity
+  frame. Never leave mutable global state modified across a boundary crossing.
+- **Adding a new builtin?** → Oblique map. It receives arguments (values),
+  does computation, returns exit status.
+- **The test**: if your change only touches values/words (no context mutation),
+  it's monadic. If it saves/restores global state, it's comonadic. If it does
+  both, you're at a polarity boundary and need a shift (polarity frame).
 
 ### The taxonomy of boundary violations
 
@@ -550,9 +649,23 @@ pace the codebase allows.
 
 6. Philip Wadler. "Call-by-Value is Dual to Call-by-Name, Reloaded."
    Invited talk, *Rewriting Techniques and Applications*, 2005. Revised 2008.
-   Local: `wadler-cbv-dual-cbn-reloaded.pdf` (untracked)
+   Local: `notes/wadler-reloaded.pdf`
 
 7. David Binder, Marco Tzschentke, Marius Müller, and Klaus Ostermann.
    "Grokking the Sequent Calculus (Functional Pearl)."
    *Proceedings of the ACM on Programming Languages* (ICFP), 2024.
    Source: `~/gist/grokking-the-sequent-calculus.gist.txt`
+
+8. Pierre-Louis Curien and Guillaume Munch-Maccagnoni. "The duality of
+   computation under focus." *IFIP TCS*, 2010.
+   Local: `notes/duality-of-computation.tex`
+   Key contribution: shows focalization eliminates the critical pair (§3:
+   "Note that we now have only one way to reduce ⟨μα.c₁|μ̃x.c₂⟩ (no more
+   critical pair)"). Formal basis for polarity frames.
+
+9. Guillaume Munch-Maccagnoni. "Models of a Non-Associative Composition."
+   FoSSaCS, 2014. Shortened Chapter II of the PhD thesis [3].
+   Local: `notes/Models of a Non-Associative Composition.pdf`
+   Key contribution: clearest self-contained definition of pre-duploids and
+   duploids. Table 1 maps abstract structure to PL concepts (thunk, Kleisli,
+   co-Kleisli, oblique maps).
