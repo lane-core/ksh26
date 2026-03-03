@@ -7,6 +7,8 @@
 #
 # Usage: just build | just test | just clean | just install
 #        just build-stdio | just test-stdio | just clean-stdio
+#        just build-debug | just build-asan
+#        just test-summary | just test-compare
 #
 # Override: CC=clang just build
 #          CC="ccache cc" just build    (compiler caching)
@@ -14,6 +16,10 @@
 HOSTTYPE := env("HOSTTYPE", `uname -s | tr 'A-Z' 'a-z' | tr -d '\n'; printf '.'; uname -m | sed 's/aarch64/arm64/;s/i.86/i386/' | tr -d '\n'; printf -- '-'; getconf LONG_BIT 2>/dev/null || echo 64`)
 BUILDDIR := "build" / HOSTTYPE
 STDIODIR := "build" / (HOSTTYPE + "-stdio")
+DEBUGDIR := "build" / (HOSTTYPE + "-debug")
+ASANDIR  := "build" / (HOSTTYPE + "-asan")
+STDIO_DEBUGDIR := "build" / (HOSTTYPE + "-stdio-debug")
+STDIO_ASANDIR  := "build" / (HOSTTYPE + "-stdio-asan")
 SAMU := BUILDDIR / "bin" / "samu"
 
 # Build ksh26 (default recipe)
@@ -130,3 +136,167 @@ test-stdio: build-stdio
 # Remove stdio build artifacts
 clean-stdio:
     rm -rf {{STDIODIR}}
+
+# ── Debug build (-O0 -g) ─────────────────────────────────────────
+
+# Build with debug flags: no optimization, full debug info
+build-debug: bootstrap
+    @test -f {{DEBUGDIR}}/build.ninja \
+        -a {{DEBUGDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh --debug
+    {{SAMU}} -C {{DEBUGDIR}}
+
+test-debug: build-debug
+    {{SAMU}} -k 0 -C {{DEBUGDIR}} test
+
+clean-debug:
+    rm -rf {{DEBUGDIR}}
+
+# ── ASAN build (AddressSanitizer + UBSan) ────────────────────────
+
+# Build with sanitizers: catches use-after-free, buffer overflow, UB
+build-asan: bootstrap
+    @test -f {{ASANDIR}}/build.ninja \
+        -a {{ASANDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh --asan
+    {{SAMU}} -C {{ASANDIR}}
+
+test-asan: build-asan
+    {{SAMU}} -k 0 -C {{ASANDIR}} test
+
+clean-asan:
+    rm -rf {{ASANDIR}}
+
+# ── Combined variants (stdio + debug/asan) ───────────────────────
+
+build-stdio-debug: bootstrap
+    @test -f {{STDIO_DEBUGDIR}}/build.ninja \
+        -a {{STDIO_DEBUGDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh --stdio --debug
+    {{SAMU}} -C {{STDIO_DEBUGDIR}}
+
+test-stdio-debug: build-stdio-debug
+    {{SAMU}} -k 0 -C {{STDIO_DEBUGDIR}} test
+
+build-stdio-asan: bootstrap
+    @test -f {{STDIO_ASANDIR}}/build.ninja \
+        -a {{STDIO_ASANDIR}}/build.ninja -nt configure.sh \
+        || sh configure.sh --stdio --asan
+    {{SAMU}} -C {{STDIO_ASANDIR}}
+
+test-stdio-asan: build-stdio-asan
+    {{SAMU}} -k 0 -C {{STDIO_ASANDIR}} test
+
+# ── Test summaries ───────────────────────────────────────────────
+
+# Show categorized test results (pass/segv/abrt/fail counts)
+[no-exit-message]
+test-summary dir=BUILDDIR: (_run-summary dir)
+
+[no-exit-message]
+test-stdio-summary: (_run-summary STDIODIR)
+
+[no-exit-message]
+test-debug-summary: (_run-summary DEBUGDIR)
+
+[no-exit-message]
+test-asan-summary: (_run-summary ASANDIR)
+
+[no-exit-message]
+test-stdio-asan-summary: (_run-summary STDIO_ASANDIR)
+
+# Internal: run tests then print summary for a given build dir
+[private]
+_run-summary dir: bootstrap
+    #!/bin/sh
+    set -e
+    d="{{dir}}"
+    samu="{{SAMU}}"
+    summary="$d/test/summary.log"
+    rm -f "$summary"
+    "$samu" -k 0 -C "$d" test 2>/dev/null || true
+    if [ ! -f "$summary" ]; then
+        printf '%s\n' "No summary found at $summary"
+        exit 1
+    fi
+    # Sort: PASS first, then failures grouped by type
+    sort -k1,1 "$summary" | awk '
+        { print }
+        /^PASS/  { pass++ }
+        /^SEGV/  { segv++ }
+        /^ABRT/  { abrt++ }
+        /^FAIL/  { fail++ }
+        /^TIME/  { time++ }
+        /^KILL/  { kill++ }
+        END {
+            printf "---\n"
+            printf "%d pass", pass+0
+            if (segv) printf ", %d segfault", segv
+            if (abrt) printf ", %d abort", abrt
+            if (fail) printf ", %d fail", fail
+            if (time) printf ", %d timeout", time
+            if (kill) printf ", %d killed", kill
+            printf "\n"
+        }
+    '
+
+# ── Comparative test report ──────────────────────────────────────
+
+# Side-by-side sfio vs stdio test results
+[no-exit-message]
+test-compare: bootstrap
+    #!/bin/sh
+    set -e
+    sfio="{{BUILDDIR}}"
+    stdio="{{STDIODIR}}"
+    samu="{{SAMU}}"
+
+    # Run both test suites, collecting summaries
+    for d in "$sfio" "$stdio"; do
+        rm -f "$d/test/summary.log"
+    done
+
+    printf '%s\n' "Running sfio tests..."
+    "$samu" -k 0 -C "$sfio" test 2>/dev/null || true
+    printf '%s\n' "Running stdio tests..."
+    "$samu" -k 0 -C "$stdio" test 2>/dev/null || true
+
+    sfio_sum="$sfio/test/summary.log"
+    stdio_sum="$stdio/test/summary.log"
+
+    if [ ! -f "$sfio_sum" ] || [ ! -f "$stdio_sum" ]; then
+        printf '%s\n' "Missing summary file(s). Run just build && just build-stdio first." >&2
+        exit 1
+    fi
+
+    # Join on test name, show side by side
+    awk '
+        BEGIN { printf "%-30s  %-6s  %-6s\n", "TEST", "sfio", "stdio"; printf "%-30s  %-6s  %-6s\n", "----", "----", "-----" }
+        FILENAME == ARGV[1] { sfio[$2] = $1; next }
+        FILENAME == ARGV[2] { stdio[$2] = $1 }
+        END {
+            # Collect all test names
+            for (t in sfio) tests[t] = 1
+            for (t in stdio) tests[t] = 1
+            n = asorti(tests, sorted)
+            sp = 0; ss = 0; sv = 0; sa = 0; sf = 0
+            for (i = 1; i <= n; i++) {
+                t = sorted[i]
+                s1 = (t in sfio) ? sfio[t] : "---"
+                s2 = (t in stdio) ? stdio[t] : "---"
+                # Only show lines where results differ or stdio fails
+                if (s1 != s2) printf "%-30s  %-6s  %-6s\n", t, s1, s2
+                if (s1 == "PASS") sp++
+                if (s2 == "PASS") ss++
+                else if (s2 == "SEGV") sv++
+                else if (s2 == "ABRT") sa++
+                else sf++
+            }
+            printf "---\n"
+            printf "sfio: %d pass | stdio: %d pass", sp, ss
+            if (sv) printf ", %d segv", sv
+            if (sa) printf ", %d abrt", sa
+            if (sf) printf ", %d fail", sf
+            printf "\n"
+        }
+    ' "$sfio_sum" "$stdio_sum"

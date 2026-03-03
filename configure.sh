@@ -6,17 +6,20 @@
 # This script replaces the MAM (Make Abstract Machine) build infrastructure
 # with a single-pass configure step that emits a ninja build file.
 #
-# Usage: sh configure.sh [--force] [--stdio]
+# Usage: sh configure.sh [--force] [--stdio] [--debug] [--asan]
 #   Probes the compiler, runs iffe feature tests, and writes
-#   build/$HOSTTYPE/build.ninja (or build/$HOSTTYPE-stdio/build.ninja)
+#   build/$HOSTTYPE[-suffix]/build.ninja
 #
 # With --force, all probes rerun unconditionally (ignoring cache).
 # Without it, probes are skipped when their output is fresher than
 # their input — typically cutting reconfigure from minutes to seconds.
 #
 # With --stdio, configures the KSH_IO_SFIO=0 (stdio backend) build.
-# Uses build/$HOSTTYPE-stdio/ as the build directory. Feature probes
-# are shared from the sfio build via symlinks.
+# With --debug, uses -O0 -g for reliable single-step debugging.
+# With --asan, enables AddressSanitizer + UBSan.
+#
+# Flags compose: --stdio --asan → build/$HOSTTYPE-stdio-asan/
+# Feature probes are shared from the base build via symlinks.
 
 set -o nounset -o errexit
 
@@ -24,10 +27,14 @@ set -o nounset -o errexit
 
 FORCE=false
 STDIO=false
+DEBUG=false
+ASAN=false
 for _arg in "$@"; do
 	case $_arg in
 	--force) FORCE=true ;;
 	--stdio) STDIO=true ;;
+	--debug) DEBUG=true ;;
+	--asan)  ASAN=true ;;
 	esac
 done
 
@@ -59,11 +66,11 @@ case ${HOSTTYPE:-} in
 *.*-*)	;;
 *)	HOSTTYPE=$(detect_hosttype) ;;
 esac
-if $STDIO; then
-	BUILDDIR=build/${HOSTTYPE}-stdio
-else
-	BUILDDIR=build/$HOSTTYPE
-fi
+_suffix=""
+$STDIO && _suffix="${_suffix}-stdio"
+$DEBUG && _suffix="${_suffix}-debug"
+$ASAN  && _suffix="${_suffix}-asan"
+BUILDDIR=build/${HOSTTYPE}${_suffix}
 OBJDIR=$BUILDDIR/obj
 INCDIR=$BUILDDIR/include/ast
 LIBDIR=$BUILDDIR/lib
@@ -145,7 +152,19 @@ printf '%s\n' "configure: AR=${mam_cc_AR:-ar}"
 
 # ── Compiler flags ────────────────────────────────────────────────────
 
-CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} ${mam_cc_NOSTRICTALIASING:-} ${CFLAGS:-}"
+# Debug info (-g) is always included: zero runtime cost, enables
+# useful backtraces. --debug overrides optimization to -O0 for
+# reliable single-stepping. --asan adds sanitizer instrumentation.
+_optimize="${mam_cc_OPTIMIZE:-}"
+LDFLAGS=""
+if $DEBUG; then
+	_optimize="-O0"
+fi
+if $ASAN; then
+	_optimize="${_optimize:+$_optimize }-fsanitize=address,undefined -fno-omit-frame-pointer"
+	LDFLAGS="-fsanitize=address,undefined"
+fi
+CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_DEBUG:-} $_optimize ${mam_cc_NOSTRICTALIASING:-} ${CFLAGS:-}"
 if $STDIO; then
 	CFLAGS="$CFLAGS -DKSH_IO_SFIO=0"
 fi
@@ -1177,7 +1196,7 @@ rule ar
   description = AR \$out
 
 rule link
-  command = $cc $CFLAGS \$ldflags -o \$out \$in \$libs
+  command = $cc $CFLAGS $LDFLAGS \$ldflags -o \$out \$in \$libs
   description = LINK \$out
 
 NINJA
@@ -1502,15 +1521,37 @@ else
 	"$SHELL" "$test_file" >"$log" 2>&1 || rc=$?
 fi
 
+# ── Classify and record ───────────────────────────────────────
+summary="${BUILDDIR}/test/summary.log"
+desc="${test_name}.${mode}"
+
 if [ "$rc" -eq 0 ]; then
+	printf '%s\n' "PASS $desc" >> "$summary"
 	touch "$stamp"
 	rm -f "$log"
 	exit 0
-else
-	cat "$log" >&2
-	rm -f "$stamp"
-	exit "$rc"
 fi
+
+# Classify failure by exit code
+case $rc in
+124)  status="TIME" detail="timeout" ;;
+139)  status="SEGV" detail="signal 11" ;;
+134)  status="ABRT" detail="signal 6" ;;
+137)  status="KILL" detail="signal 9" ;;
+*)    # Count err_exit failures from the log
+      nerr=$(grep -c '^\[' "$log" 2>/dev/null) || nerr=0
+      if [ "$nerr" -gt 0 ]; then
+          status="FAIL" detail="exit $rc, $nerr errors"
+      else
+          status="FAIL" detail="exit $rc"
+      fi
+      ;;
+esac
+
+printf '%s\n' "$status $desc ($detail)" >> "$summary"
+cat "$log" >&2
+rm -f "$stamp"
+exit "$rc"
 RUNNER
 	chmod +x "$runner"
 }
