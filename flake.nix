@@ -98,6 +98,7 @@
           pkgs.scdoc
           pkgs.pkg-config
           pkgs.ccache
+          pkgs.dash
         ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
           pkgs.lldb
         ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [

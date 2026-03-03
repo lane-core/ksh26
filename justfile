@@ -167,7 +167,7 @@ clean-stdio:
 # ── Debug build (-O0 -g) ─────────────────────────────────────────
 
 # Build with debug flags: no optimization, full debug info
-build-debug: bootstrap
+build-debug: _nix-warn bootstrap
     @test -f {{DEBUGDIR}}/build.ninja \
         -a {{DEBUGDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh --debug
@@ -182,7 +182,7 @@ clean-debug:
 # ── ASAN build (AddressSanitizer + UBSan) ────────────────────────
 
 # Build with sanitizers: catches use-after-free, buffer overflow, UB
-build-asan: bootstrap
+build-asan: _nix-warn bootstrap
     @test -f {{ASANDIR}}/build.ninja \
         -a {{ASANDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh --asan
@@ -196,7 +196,7 @@ clean-asan:
 
 # ── Combined variants (stdio + debug/asan) ───────────────────────
 
-build-stdio-debug: bootstrap
+build-stdio-debug: _nix-warn bootstrap
     @test -f {{STDIO_DEBUGDIR}}/build.ninja \
         -a {{STDIO_DEBUGDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh --stdio --debug
@@ -205,7 +205,7 @@ build-stdio-debug: bootstrap
 test-stdio-debug: build-stdio-debug
     {{SAMU}} -k 0 -C {{STDIO_DEBUGDIR}} test
 
-build-stdio-asan: bootstrap
+build-stdio-asan: _nix-warn bootstrap
     @test -f {{STDIO_ASANDIR}}/build.ninja \
         -a {{STDIO_ASANDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh --stdio --asan
@@ -233,12 +233,25 @@ test-asan-summary: (_run-summary ASANDIR)
 test-stdio-asan-summary: (_run-summary STDIO_ASANDIR)
 
 # Internal: run tests then print summary for a given build dir
+# Reconfigures if run-test.sh is stale (older than configure.sh).
 [private]
 _run-summary dir: bootstrap
     #!/bin/sh
     set -e
     d="{{dir}}"
     samu="{{SAMU}}"
+    # Ensure runner exists and is up to date
+    if [ ! -f "$d/run-test.sh" ] || [ configure.sh -nt "$d/run-test.sh" ]; then
+        printf '%s\n' "Reconfiguring $d (run-test.sh stale)..." >&2
+        case "$d" in
+        *-stdio-asan*) sh configure.sh --stdio --asan ;;
+        *-stdio-debug*) sh configure.sh --stdio --debug ;;
+        *-stdio*) sh configure.sh --stdio ;;
+        *-asan*)  sh configure.sh --asan ;;
+        *-debug*) sh configure.sh --debug ;;
+        *)        sh configure.sh ;;
+        esac
+    fi
     summary="$d/test/summary.log"
     rm -f "$summary"
     "$samu" -k 0 -C "$d" test 2>/dev/null || true

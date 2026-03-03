@@ -1462,7 +1462,12 @@ generate_test_runner()
 	local runner=$outdir/run-test.sh
 
 	# Write header with configure-time paths, then quoted heredoc body
-	printf '%s\n' '#!/bin/sh' > "$runner"
+	# Use dash for the test runner — it's a known-good POSIX shell
+	# that doesn't depend on the ksh we're actively developing.
+	# Falls back to /bin/sh if dash isn't on PATH.
+	local runner_sh
+	runner_sh=$(command -v dash 2>/dev/null || echo /bin/sh)
+	printf '%s\n' "#!$runner_sh" > "$runner"
 	printf '%s\n' "PACKAGEROOT='$PACKAGEROOT_ABS'" >> "$runner"
 	printf '%s\n' "BUILDDIR='$BUILDDIR_ABS'" >> "$runner"
 
@@ -1512,9 +1517,11 @@ mkdir -p "$(dirname "$log")"
 cd "$tmp" || exit 1
 
 rc=0
-# Per-test timeout prevents hangs (e.g. interactive/tty tests).
-# GNU timeout available via coreutils on nixpkgs, Homebrew, most Linux.
-# Falls back to no timeout if unavailable.
+# Per-test timeout (60s). GNU timeout (from coreutils) handles
+# process groups and signal semantics correctly — ksh catches
+# SIGTERM internally, so naive kill-based approaches misclassify
+# timeouts. The nix devshell guarantees coreutils; non-nix users
+# get _nix-warn and a no-timeout fallback.
 if command -v timeout >/dev/null 2>&1; then
 	timeout 60 "$SHELL" "$test_file" >"$log" 2>&1 || rc=$?
 else
