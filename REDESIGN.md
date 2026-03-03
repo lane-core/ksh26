@@ -931,7 +931,7 @@ Two targeted fixes plus documentation:
 
 Replaced the MAM (Make Abstract Machine) build infrastructure with a
 three-layer system: just (porcelain) → configure.sh (probes + generates
-build.ninja) → samu (vendored ninja). Full test suite (111 tests) passes.
+build.ninja) → samu (vendored ninja). Full test suite (115 tests) passes.
 
 Build dependencies (utf8proc, scdoc) are detected at configure time:
 system versions preferred, with git-clone fallback into `build/deps/`.

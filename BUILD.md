@@ -25,7 +25,7 @@ invocation, giving us a zero-dependency bootstrap.
 
 ```
 ksh26-build/
-├── justfile                        # porcelain (~47 lines)
+├── justfile                        # porcelain (~480 lines)
 ├── configure.sh                   # probes + generates build.ninja (~1600 lines)
 ├── BUILD.md                        # this file
 ├── src/
