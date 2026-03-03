@@ -7,7 +7,6 @@
 #
 # Usage: just build | just test | just clean
 #        just errors | just failures | just log
-#        just build-stdio | just test-stdio
 #        just check | just check-asan | just check-all
 #
 # Override: CC=clang just build
@@ -15,11 +14,8 @@
 
 HOSTTYPE := env("HOSTTYPE", `uname -s | tr 'A-Z' 'a-z' | tr -d '\n'; printf '.'; uname -m | sed 's/aarch64/arm64/;s/i.86/i386/' | tr -d '\n'; printf -- '-'; getconf LONG_BIT 2>/dev/null || echo 64`)
 BUILDDIR := "build" / HOSTTYPE
-STDIODIR := "build" / (HOSTTYPE + "-stdio")
 DEBUGDIR := "build" / (HOSTTYPE + "-debug")
 ASANDIR  := "build" / (HOSTTYPE + "-asan")
-STDIO_DEBUGDIR := "build" / (HOSTTYPE + "-stdio-debug")
-STDIO_ASANDIR  := "build" / (HOSTTYPE + "-stdio-asan")
 SAMU := BUILDDIR / "bin" / "samu"
 _IN_NIX := env("IN_NIX_SHELL", "")
 
@@ -54,20 +50,11 @@ _build dir flags="": bootstrap
 # Build ksh26 (default recipe)
 build: _nix-warn (_build BUILDDIR)
 
-# Build ksh26 with stdio backend
-build-stdio: _nix-warn (_build STDIODIR "--stdio")
-
 # Build with debug flags: no optimization, full debug info
 build-debug: _nix-warn (_build DEBUGDIR "--debug")
 
 # Build with sanitizers: catches use-after-free, buffer overflow, UB
 build-asan: _nix-warn (_build ASANDIR "--asan")
-
-# Build stdio + debug
-build-stdio-debug: _nix-warn (_build STDIO_DEBUGDIR "--stdio --debug")
-
-# Build stdio + sanitizers
-build-stdio-asan: _nix-warn (_build STDIO_ASANDIR "--stdio --asan")
 
 # (Re)run feature detection and generate build.ninja
 # Probes are cached — only stale probes rerun (~5s when nothing changed)
@@ -134,20 +121,11 @@ test: build (_test BUILDDIR)
 test-one name locale="C": build
     {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
 
-# Run tests against the stdio build
-test-stdio: build-stdio (_test STDIODIR)
-
 # Run tests against the debug build
 test-debug: build-debug (_test DEBUGDIR)
 
 # Run tests against the asan build
 test-asan: build-asan (_test ASANDIR)
-
-# Run tests against stdio + debug
-test-stdio-debug: build-stdio-debug (_test STDIO_DEBUGDIR)
-
-# Run tests against stdio + asan
-test-stdio-asan: build-stdio-asan (_test STDIO_ASANDIR)
 
 # Run tests sequentially via legacy shtests harness
 test-serial: build
@@ -158,10 +136,6 @@ test-serial: build
     SHELL={{BUILDDIR}}/bin/ksh \
     KSH={{BUILDDIR}}/bin/ksh \
     bin/shtests
-
-# Run I/O benchmarks comparing sfio vs stdio backends
-bench: build build-stdio
-    ksh bench/io-bench.ksh {{BUILDDIR}}/bin/ksh {{STDIODIR}}/bin/ksh
 
 # Pass arbitrary args to samu
 samu *args: bootstrap
@@ -311,10 +285,6 @@ clean stage="all":
     *)    printf 'unknown stage: %s\nstages: test obj lib bin log all\n' "{{stage}}" >&2; exit 1 ;;
     esac
 
-# Remove stdio build artifacts
-clean-stdio:
-    rm -rf {{STDIODIR}}
-
 # Remove debug build artifacts
 clean-debug:
     rm -rf {{DEBUGDIR}}
@@ -343,10 +313,6 @@ check:
 check-asan:
     nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
 
-# Run stdio checks in nix sandbox
-check-stdio:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".stdio --print-build-logs
-
 # Run all CI checks
 check-all:
     nix flake check --print-build-logs
@@ -360,16 +326,10 @@ check-all:
 test-summary dir=BUILDDIR: (_run-summary dir)
 
 [no-exit-message]
-test-stdio-summary: (_run-summary STDIODIR)
-
-[no-exit-message]
 test-debug-summary: (_run-summary DEBUGDIR)
 
 [no-exit-message]
 test-asan-summary: (_run-summary ASANDIR)
-
-[no-exit-message]
-test-stdio-asan-summary: (_run-summary STDIO_ASANDIR)
 
 # Internal: run tests then print summary for a given build dir
 # Reconfigures if run-test.sh is stale (older than configure.sh).
@@ -383,9 +343,6 @@ _run-summary dir: bootstrap
     if [ ! -f "$d/run-test.sh" ] || [ configure.sh -nt "$d/run-test.sh" ]; then
         printf '%s\n' "Reconfiguring $d (run-test.sh stale)..." >&2
         case "$d" in
-        *-stdio-asan*) sh configure.sh --stdio --asan ;;
-        *-stdio-debug*) sh configure.sh --stdio --debug ;;
-        *-stdio*) sh configure.sh --stdio ;;
         *-asan*)  sh configure.sh --asan ;;
         *-debug*) sh configure.sh --debug ;;
         *)        sh configure.sh ;;
@@ -419,63 +376,3 @@ _run-summary dir: bootstrap
         }
     '
 
-# ── Comparative test report ──────────────────────────────────────
-
-# Side-by-side sfio vs stdio test results
-[no-exit-message]
-test-compare: bootstrap
-    #!/bin/sh
-    set -e
-    sfio="{{BUILDDIR}}"
-    stdio="{{STDIODIR}}"
-    samu="{{SAMU}}"
-
-    # Run both test suites, collecting summaries
-    for d in "$sfio" "$stdio"; do
-        rm -f "$d/test/summary.log"
-    done
-
-    printf '%s\n' "Running sfio tests..."
-    "$samu" -k 0 -C "$sfio" test 2>/dev/null || true
-    printf '%s\n' "Running stdio tests..."
-    "$samu" -k 0 -C "$stdio" test 2>/dev/null || true
-
-    sfio_sum="$sfio/test/summary.log"
-    stdio_sum="$stdio/test/summary.log"
-
-    if [ ! -f "$sfio_sum" ] || [ ! -f "$stdio_sum" ]; then
-        printf '%s\n' "Missing summary file(s). Run just build && just build-stdio first." >&2
-        exit 1
-    fi
-
-    # Join on test name, show side by side
-    awk '
-        BEGIN { printf "%-30s  %-6s  %-6s\n", "TEST", "sfio", "stdio"; printf "%-30s  %-6s  %-6s\n", "----", "----", "-----" }
-        FILENAME == ARGV[1] { sfio[$2] = $1; next }
-        FILENAME == ARGV[2] { stdio[$2] = $1 }
-        END {
-            # Collect all test names
-            for (t in sfio) tests[t] = 1
-            for (t in stdio) tests[t] = 1
-            n = asorti(tests, sorted)
-            sp = 0; ss = 0; sv = 0; sa = 0; sf = 0
-            for (i = 1; i <= n; i++) {
-                t = sorted[i]
-                s1 = (t in sfio) ? sfio[t] : "---"
-                s2 = (t in stdio) ? stdio[t] : "---"
-                # Only show lines where results differ or stdio fails
-                if (s1 != s2) printf "%-30s  %-6s  %-6s\n", t, s1, s2
-                if (s1 == "PASS") sp++
-                if (s2 == "PASS") ss++
-                else if (s2 == "SEGV") sv++
-                else if (s2 == "ABRT") sa++
-                else sf++
-            }
-            printf "---\n"
-            printf "sfio: %d pass | stdio: %d pass", sp, ss
-            if (sv) printf ", %d segv", sv
-            if (sa) printf ", %d abrt", sa
-            if (sf) printf ", %d fail", sf
-            printf "\n"
-        }
-    ' "$sfio_sum" "$stdio_sum"

@@ -6,7 +6,7 @@
 # This script replaces the MAM (Make Abstract Machine) build infrastructure
 # with a single-pass configure step that emits a ninja build file.
 #
-# Usage: sh configure.sh [--force] [--stdio] [--debug] [--asan]
+# Usage: sh configure.sh [--force] [--debug] [--asan]
 #   Probes the compiler, runs iffe feature tests, and writes
 #   build/$HOSTTYPE[-suffix]/build.ninja
 #
@@ -14,11 +14,10 @@
 # Without it, probes are skipped when their output is fresher than
 # their input — typically cutting reconfigure from minutes to seconds.
 #
-# With --stdio, configures the KSH_IO_SFIO=0 (stdio backend) build.
 # With --debug, uses -O0 -g for reliable single-step debugging.
 # With --asan, enables AddressSanitizer + UBSan.
 #
-# Flags compose: --stdio --asan → build/$HOSTTYPE-stdio-asan/
+# Flags compose: --debug --asan → build/$HOSTTYPE-debug-asan/
 # Feature probes are shared from the base build via symlinks.
 
 set -o nounset -o errexit
@@ -26,13 +25,11 @@ set -o nounset -o errexit
 # ── Options ───────────────────────────────────────────────────────────
 
 FORCE=false
-STDIO=false
 DEBUG=false
 ASAN=false
 for _arg in "$@"; do
 	case $_arg in
 	--force) FORCE=true ;;
-	--stdio) STDIO=true ;;
 	--debug) DEBUG=true ;;
 	--asan)  ASAN=true ;;
 	esac
@@ -67,7 +64,6 @@ case ${HOSTTYPE:-} in
 *)	HOSTTYPE=$(detect_hosttype) ;;
 esac
 _suffix=""
-$STDIO && _suffix="${_suffix}-stdio"
 $DEBUG && _suffix="${_suffix}-debug"
 $ASAN  && _suffix="${_suffix}-asan"
 BUILDDIR=build/${HOSTTYPE}${_suffix}
@@ -165,9 +161,6 @@ if $ASAN; then
 	LDFLAGS="-fsanitize=address,undefined"
 fi
 CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_DEBUG:-} $_optimize ${mam_cc_NOSTRICTALIASING:-} ${CFLAGS:-}"
-if $STDIO; then
-	CFLAGS="$CFLAGS -DKSH_IO_SFIO=0"
-fi
 AR="${mam_cc_AR:-ar}"
 AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
 
@@ -1672,178 +1665,6 @@ wait
 generate_git_h
 generate_shopt_h
 generate_cmd_headers
-
-# Phase 2.5: For stdio builds, install sfio shim headers in include/std/
-# so that ksh26 and libcmd find them BEFORE the real sfio.h in include/ast/.
-# libast's include path does NOT include include/std/, so it still gets
-# the real sfio.h — it needs it because libast IS the sfio implementation.
-if $STDIO; then
-	printf '%s\n' "configure: installing sfio compatibility shims ..."
-	SHIMDIR=$BUILDDIR/include/std
-
-	cat > "$SHIMDIR/sfio.h" <<'SFIO_SHIM'
-/*
- * sfio.h — compatibility shim for KSH_IO_SFIO=0 builds.
- *
- * Under the stdio backend, all sfio functionality is provided by
- * sh_io.h (macros + sh_io_stdio.c). This header provides backward
- * compatibility typedefs so that code including <sfio.h> directly
- * (e.g. via ast.h) gets the correct types.
- */
-#ifndef _SFIO_H
-#define _SFIO_H		1
-
-#include <sh_io.h>
-#include <sfio_s.h>
-
-/* backward compatibility typedefs */
-typedef sh_stream_t	Sfio_t;
-typedef sh_disc_t	Sfdisc_t;
-typedef off_t		Sfoff_t;
-
-typedef sh_read_f	Sfread_f;
-typedef sh_write_f	Sfwrite_f;
-typedef sh_seek_f	Sfseek_f;
-typedef sh_except_f	Sfexcept_f;
-
-typedef sh_fmt_t	Sffmt_t;
-typedef sh_fmtext_f	Sffmtext_f;
-typedef sh_fmtevent_f	Sffmtevent_f;
-
-/* numeric types — match sfio.h definitions */
-#define Sflong_t	intmax_t
-#define Sfulong_t	uintmax_t
-#define Sfdouble_t	_ast_fltmax_t
-
-/* reload function type */
-typedef sh_fmtreload_f	Sffmtreload_f;
-
-/* version and format flags */
-#define SFIO_VERSION	20240303L
-#define SFFMT_SSHORT	000000010
-#define SFFMT_TFLAG	000000020
-#define SFFMT_ZFLAG	000000040
-#define SFFMT_LEFT	000000100
-#define SFFMT_SIGN	000000200
-#define SFFMT_BLANK	000000400
-#define SFFMT_ZERO	000001000
-#define SFFMT_ALTER	000002000
-#define SFFMT_THOUSAND	000004000
-#define SFFMT_SKIP	000010000
-#define SFFMT_SHORT	000020000
-#define SFFMT_LONG	000040000
-#define SFFMT_LLONG	000100000
-#define SFFMT_LDOUBLE	000200000
-#define SFFMT_VALUE	000400000
-#define SFFMT_ARGPOS	001000000
-#define SFFMT_IFLAG	002000000
-#define SFFMT_JFLAG	004000000
-#define SFFMT_CENTER	010000000
-#define SFFMT_CHOP	020000000
-#define SFFMT_SET	037777770
-#define sfinit(fe)	((fe)->version = SFIO_VERSION)
-
-/* sfio flag names → SH_IO names */
-#define SFIO_READ	SH_IO_READ
-#define SFIO_WRITE	SH_IO_WRITE
-#define SFIO_STRING	SH_IO_STRING
-#define SFIO_APPENDWR	SH_IO_APPENDWR
-#define SFIO_MALLOC	SH_IO_MALLOC
-#define SFIO_LINE	SH_IO_LINE
-#define SFIO_SHARE	SH_IO_SHARE
-#define SFIO_EOF	SH_IO_EOF
-#define SFIO_ERROR	SH_IO_ERROR
-#define SFIO_STATIC	SH_IO_STATIC
-#define SFIO_IOCHECK	SH_IO_IOCHECK
-#define SFIO_PUBLIC	SH_IO_PUBLIC
-#define SFIO_WHOLE	SH_IO_WHOLE
-#define SFIO_IOINTR	SH_IO_IOINTR
-#define SFIO_WCWIDTH	SH_IO_WCWIDTH
-#define SFIO_BUFSIZE	SH_IO_BUFSIZE
-#define SFIO_CLOSING	SH_IO_CLOSING
-#define SFIO_DPUSH	SH_IO_DPUSH
-#define SFIO_DPOP	SH_IO_DPOP
-#define SFIO_DBUFFER	SH_IO_DBUFFER
-#define SFIO_SYNC	SH_IO_SYNC
-#define SFIO_PURGE	SH_IO_PURGE
-#define SFIO_FINAL	SH_IO_FINAL
-#define SFIO_READY	SH_IO_READY
-#define SFIO_NEW	SH_IO_NEW
-#define SFIO_SETFD	SH_IO_SETFD
-#define SFIO_LOCKR	SH_IO_LOCKR
-#define SFIO_LASTR	SH_IO_LASTR
-#define SFIO_POPSTACK	SH_IO_POPSTACK
-#define SFIO_POPDISC	SH_IO_POPDISC
-#define SFIO_BUFCONST	0400000	/* unused — compat only */
-#define SFIO_FLAGS	0177177
-#define SFIO_SETS	0177163
-#define SFIO_RDWR	(SFIO_READ|SFIO_WRITE)
-#define SFIO_RDSTR	(SFIO_READ|SFIO_STRING)
-#define SFIO_WRSTR	(SFIO_WRITE|SFIO_STRING)
-
-/* sfio event codes */
-#define SFIO_SEEK	3
-#define SFIO_DPOLL	7
-#define SFIO_LOCKED	13
-#define SFIO_ATEXIT	14
-#define SFIO_EVENT	100
-#define SFIO_UNBOUND	(-1)
-
-/* sfio coding macros (used by tdump/trestore for binary serialization) */
-#define SFIO_SBITS	6
-#define SFIO_UBITS	7
-#define SFIO_BBITS	8
-#define SFIO_SIGN	(1 << SFIO_SBITS)
-#define SFIO_MORE	(1 << SFIO_UBITS)
-#define SFIO_BYTE	(1 << SFIO_BBITS)
-#define SFIO_U1		SFIO_MORE
-#define SFIO_U2		(SFIO_U1*SFIO_U1)
-#define SFIO_U3		(SFIO_U2*SFIO_U1)
-#define SFIO_U4		(SFIO_U3*SFIO_U1)
-
-/* SFNEW macro (used for static stream init, e.g. sfextern.c) */
-#define SFNEW(buf,size,fd,flags,disc)	{ NULL, (fd), (flags), 0, NULL, NULL, 0, NULL, 0, NULL, NULL }
-
-/* sfio struct globals — alias to our wrappers */
-#define _Sfstdin	_sh_stdin
-#define _Sfstdout	_sh_stdout
-#define _Sfstderr	_sh_stderr
-
-#endif /* _SFIO_H */
-SFIO_SHIM
-
-	# sfio_t.h and sfio_s.h are included by the real sfio.h;
-	# our shim doesn't need them, so provide empty guards
-	cat > "$SHIMDIR/sfio_t.h" <<'SFIO_T_SHIM'
-/* sfio_t.h — empty shim for KSH_IO_SFIO=0 builds */
-#ifndef _sfio_t_h
-#define _sfio_t_h	1
-#include "sfio.h"
-/* SFIO_INIT, SFIO_DCDOWN provided via sfio.h shim */
-#define SFIO_INIT	0000004
-#define SFIO_DCDOWN	00010000
-#endif
-SFIO_T_SHIM
-
-	cat > "$SHIMDIR/sfio_s.h" <<'SFIO_S_SHIM'
-/* sfio_s.h — compatibility shim for KSH_IO_SFIO=0 builds */
-#ifndef _sfio_s_h
-#define _sfio_s_h	1
-/* underscore-prefixed field aliases (sfio convention) */
-#define _data	data
-#endif
-SFIO_S_SHIM
-
-	# sfdisc.h — provides sfkeyprintf declaration
-	cat > "$SHIMDIR/sfdisc.h" <<'SFDISC_SHIM'
-/* sfdisc.h — compatibility shim for KSH_IO_SFIO=0 builds */
-#ifndef _sfdisc_shim_h
-#define _sfdisc_shim_h	1
-#include "sfio.h"
-/* sfkeyprintf is declared in sh_io.h for the stdio backend */
-#endif
-SFDISC_SHIM
-fi
 
 # Phase 3: Emit build.ninja
 emit_ninja

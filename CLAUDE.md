@@ -59,18 +59,10 @@ nothing changed.
 | `just debug NAME [LOCALE]` | Run a test under lldb/gdb |
 | `just check` | Build + test in nix sandbox (CI parity) |
 | `just check-asan` | Asan check in nix sandbox |
-| `just check-stdio` | Stdio check in nix sandbox |
 | `just check-all` | All nix checks (`nix flake check`) |
 | `just configure` | (Re)run feature detection |
 | `just reconfigure` | Force all probes to rerun |
 | `just compile-commands` | Generate `compile_commands.json` for clangd/LSP |
-| `just build-stdio` | Build with stdio backend (`KSH_IO_SFIO=0`) |
-| `just test-stdio` | Test the stdio build |
-| `just build-stdio-debug` | stdio with `-O0` for debugger stepping |
-| `just build-stdio-asan` | stdio + AddressSanitizer + UBSan |
-| `just test-stdio-summary` | Categorized stdio results (PASS/SEGV/ABRT/FAIL) |
-| `just test-stdio-asan-summary` | Same, for stdio-asan build |
-| `just test-compare` | Side-by-side sfio vs stdio results |
 
 ### Adding tests
 

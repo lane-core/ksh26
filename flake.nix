@@ -185,47 +185,6 @@
             installPhase = "touch $out";
           });
 
-          # stdio backend check — lower threshold, ratchets up as tests are fixed
-          stdio = ksh26.overrideAttrs (old: {
-            name = "ksh26-stdio-tests";
-
-            buildPhase = ''
-              runHook preBuild
-
-              mkdir -p build/$HOSTTYPE/bin
-              $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
-
-              # Build the sfio backend first (stdio shares its feature probes)
-              sh configure.sh
-              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
-
-              # Build the stdio backend
-              sh configure.sh --stdio
-              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-stdio
-
-              runHook postBuild
-            '';
-
-            doCheck = true;
-            checkPhase = ''
-              sed -i '/^build test: phony/s| test/sigchld\.[^ ]*\.stamp||g' \
-                build/$HOSTTYPE-stdio/build.ninja
-
-              stamp_count=$(grep '^build test: phony' build/$HOSTTYPE-stdio/build.ninja \
-                | tr ' ' '\n' | grep -c '\.stamp$' || true)
-              if (( stamp_count < 30 )); then
-                echo "FAIL: expected >=30 test stamps, found $stamp_count" >&2
-                exit 1
-              fi
-
-              # Allow failures — stdio is a work in progress.
-              # The threshold above guards against regressions.
-              ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-stdio test || true
-            '';
-
-            installPhase = "touch $out";
-          });
-
           # asan check — AddressSanitizer + UBSan in nix sandbox
           asan = ksh26.overrideAttrs (old: {
             name = "ksh26-asan-tests";
