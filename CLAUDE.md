@@ -16,57 +16,74 @@ a reference point for divergence documentation, not as a merge source.
 
 ## Building and testing
 
-**All build and test commands MUST run inside `nix develop`.** The flake provides
-the complete toolchain (compiler, linker, pkg-config, utf8proc, libiconv). Do not
-use host tools. The justfile warns if you're outside a nix shell; treat this as
-an error.
+Two paths: **validation** (nix-backed, content-addressed) and **iteration**
+(local samu, devshell-only).
 
 ```sh
-# ── Standard workflow (one-shot commands) ────────────────────────
-nix develop -c just build          # build ksh26
-nix develop -c just test           # parallel test suite (117 tests)
-nix develop -c just test-one basic # run a single test
+# ── Validation (works anywhere, no nix develop needed) ───────────
+just build                         # build ksh26 via nix (content-addressed)
+just test                          # full test suite via nix
+just build-debug                   # build with debug flags
+just build-asan                    # build with sanitizers
+just test-asan                     # test with sanitizers
+
+# ── Iteration (requires nix develop) ─────────────────────────────
+nix develop -c just test-one basic # run a single test (local samu)
+nix develop -c just debug basic    # interactive debugger
 nix develop -c just configure      # (re)run feature detection
-nix develop -c just reconfigure    # force all probes to rerun
 
 # ── Interactive session ──────────────────────────────────────────
 nix develop .#agent                # enter agent shell (auto-configures)
-just build                         # then run recipes directly
-just test
-
-# ── Validation before committing ─────────────────────────────────
-just check                         # build + full test suite in nix sandbox
-                                   # (same derivation CI runs — does not
-                                   # require being inside nix develop)
+just test-one basic                # iteration recipes directly
+just debug basic                   # debugger directly
 ```
+
+Validation recipes call `nix build` internally — any source change triggers
+a full rebuild, no changes means ~2-5s cache hit. No stale builds possible.
+Iteration recipes use timestamp-based samu caching for sub-second rebuilds.
 
 ### Build system
 
-Three layers: `just` (porcelain) → `configure.sh` (probes + generates
-`build.ninja`) → `samu` (vendored ninja, executes `build.ninja`). Output goes to
-`build/$HOSTTYPE/`. Feature probes are cached — reconfigure takes ~5s when
-nothing changed.
+Four layers: `just` (porcelain) → `nix build` (validation) or `samu`
+(iteration) → `configure.sh` (probes + generates `build.ninja`) → `samu`
+(vendored ninja, executes `build.ninja`). Validation output goes to `result/`;
+iteration output goes to `build/$HOSTTYPE/`.
 
 ### Recipes
 
+**Validation** (nix-backed, no devshell needed):
+
 | Recipe | Purpose |
 |--------|---------|
-| `just build` | Build ksh26 (default) |
-| `just test` | Run all 117 tests in parallel (with summary) |
+| `just build` | Build ksh26 (content-addressed via nix) |
+| `just test` | Run all regression tests (content-addressed via nix) |
+| `just build-debug` | Build with debug flags |
+| `just build-asan` | Build with sanitizers |
+| `just test-asan` | Run tests with sanitizers |
+| `just check` | Same as `just test` (alias for CI familiarity) |
+| `just check-asan` | Same as `just test-asan` |
+| `just check-all` | All nix checks (`nix flake check`) |
+
+**Iteration** (local samu, requires devshell):
+
+| Recipe | Purpose |
+|--------|---------|
 | `just test-one NAME [LOCALE]` | Run a single test (`C` or `C.UTF-8`) |
-| `just errors [DIR]` | Show build errors from log (no re-build) |
-| `just warnings [DIR]` | Show build warnings from log |
-| `just failures [DIR]` | Show failed tests with individual logs |
-| `just log [build\|test] [NAME]` | Show build/test logs |
 | `just test-repeat NAME [N] [LOCALE]` | Run a test N times for flakiness |
 | `just debug NAME [LOCALE]` | Run a test under lldb/gdb |
-| `just check` | Build + test in nix sandbox (CI parity) |
-| `just check-asan` | Asan check in nix sandbox |
-| `just check-all` | All nix checks (`nix flake check`) |
 | `just configure` | (Re)run feature detection |
 | `just reconfigure` | Force all probes to rerun |
 | `just compile-commands` | Generate `compile_commands.json` for clangd/LSP |
 | `just test-iffe` | Run iffe regression tests (18 test groups) |
+
+**Diagnostics** (work with iteration build logs):
+
+| Recipe | Purpose |
+|--------|---------|
+| `just errors [DIR]` | Show build errors from log (no re-build) |
+| `just warnings [DIR]` | Show build warnings from log |
+| `just failures [DIR]` | Show failed tests with individual logs |
+| `just log [build\|test] [NAME]` | Show build/test logs |
 
 ### Adding tests
 
@@ -110,28 +127,25 @@ build.ninja generation bugs.
 
 ## Agent build/test workflow
 
-Named recipes exist for every common operation. Use them.
+`just build` and `just test` are nix-backed — they work anywhere (no `nix
+develop` wrapper needed) and are content-addressed (no stale builds possible).
+Use them for all validation. Use iteration recipes (`test-one`, `debug`) inside
+`nix develop` for fast edit-test cycles.
 
-| Need | Recipe | NOT this |
-|------|--------|----------|
-| Build | `just build` | — |
-| See build errors | `just errors` | `just build 2>&1 \| grep error` |
-| See build warnings | `just warnings` | `just build 2>&1 \| grep warning` |
-| Full build log | `just log build` | re-running the build |
-| Test | `just test` | — |
-| See test failures | `just failures` | `just test 2>&1 \| grep FAIL` |
-| Specific test log | `just log test NAME` | `cat build/.../test/NAME...` |
-| CI validation | `just check` | — |
-| Sanitizer check | `just check-asan` | ad-hoc asan invocations |
-| All CI checks | `just check-all` | — |
-| Flaky test? | `just test-repeat NAME` | loop in shell |
-| Debug a test | `just debug NAME` | manual lldb/gdb setup |
+| Need | Recipe | Notes |
+|------|--------|-------|
+| Build | `just build` | Nix-backed, produces `result/bin/` |
+| Test | `just test` | Nix-backed, full suite with summary |
+| Single test | `just test-one NAME` | Devshell, local samu |
+| Debug a test | `just debug NAME` | Devshell, local samu + lldb/gdb |
+| Sanitizer check | `just test-asan` | Nix-backed |
+| All CI checks | `just check-all` | Nix-backed |
+| Flaky test? | `just test-repeat NAME` | Devshell, local samu |
 | Iffe tests | `just test-iffe` | — |
 
-Build output is logged to `build/$HOSTTYPE/log/build.log`. Test output is logged
-to `build/$HOSTTYPE/log/test.log`. Per-test failure logs are in
-`build/$HOSTTYPE/test/*.stamp.log`. The `just test` summary includes regression
-detection against the previous run.
+Iteration build logs go to `build/$HOSTTYPE/log/`. Diagnostics recipes
+(`just errors`, `just warnings`, `just failures`, `just log`) work with
+iteration build output.
 
 ### Noticed issues → TODO.md
 
@@ -181,8 +195,9 @@ in a human team, use the agent. When in doubt, use the agent.
    A wrong approach that passes tests is worse than a right approach with
    a failing test.
 
-5. **Build and test**: `just check` must pass. New warnings must be
-   acknowledged or fixed. Test count must not regress.
+5. **Build and test**: `just test` must pass (nix-backed, content-addressed
+   — equivalent to `just check`). New warnings must be acknowledged or
+   fixed. Test count must not regress.
 
 ### Verdict format
 
