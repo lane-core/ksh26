@@ -54,6 +54,13 @@ See `notes/posix8-deprecations.md` for the full audit.
 - [x] **Mount chain (mnt.c → fmtfs.c; fts_local() from fts.c)** — removed in
   dead code audit along with 34 other dead .c files, 4 headers, 7 man pages.
 
+## Build system quality
+
+- [ ] **Lint configure.sh** (medium priority)
+  configure.sh has grown organically and hasn't had a systematic lint pass.
+  ShellCheck with appropriate directives, dead code detection, and
+  consistency review of probe patterns.
+
 ## Code quality tooling
 
 - [ ] **Add shellcheck to treefmt** (low priority)
