@@ -76,7 +76,7 @@ struct Nambfun
 	Namfun_t fun;
 	int num;
 	const char **bnames;
-	Namval_t *bltins[1];
+	Namval_t *bltins[];
 };
 
 /* This is an array template header */
