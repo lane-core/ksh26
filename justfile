@@ -85,12 +85,13 @@ _test dir:
     # Summary
     if [[ -f "$summary" && -s "$summary" ]]; then
         printf '\n'
-        sort "$summary" | grep '^not ok' || true
+        sort "$summary" | grep '^not ok' | sed 's/^not ok - /  ✗ /; s/ # /: /' || true
         total=$(wc -l < "$summary" | tr -d ' ')
         pass=$(grep -c '^ok' "$summary" || true)
         skip=$(grep -c '# SKIP' "$summary" || true)
         if (( skip > 0 )); then
             printf -- '---\n%d/%d pass, %d skipped (%ds)\n' "$pass" "$total" "$skip" "$elapsed"
+            grep '# SKIP' "$summary" | sed 's/^ok - /  /; s/ # SKIP /: /' | sort
         else
             printf -- '---\n%d/%d pass (%ds)\n' "$pass" "$total" "$elapsed"
         fi
@@ -99,19 +100,21 @@ _test dir:
         if [[ -f "$prev" && -s "$prev" ]]; then
             regressed=$(awk '
                 FILENAME==ARGV[1] && /^ok / { split($0,a," - "); prev[a[2]]=1 }
-                FILENAME==ARGV[2] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); cur[a[2]]=1 }
-                END { for (t in cur) if (t in prev) n++; print n+0 }
+                FILENAME==ARGV[2] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); if (a[2] in prev) print a[2] }
             ' "$prev" "$summary")
             improved=$(awk '
                 FILENAME==ARGV[1] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); prev[a[2]]=1 }
-                FILENAME==ARGV[2] && /^ok / { split($0,a," - "); cur[a[2]]=1 }
-                END { for (t in cur) if (t in prev) n++; print n+0 }
+                FILENAME==ARGV[2] && /^ok / { split($0,a," - "); if (a[2] in prev) print a[2] }
             ' "$prev" "$summary")
-            if (( regressed > 0 || improved > 0 )); then
+            nr=$(printf '%s' "$regressed" | grep -c . || true)
+            ni=$(printf '%s' "$improved" | grep -c . || true)
+            if (( nr > 0 || ni > 0 )); then
                 printf 'vs previous:'
-                (( regressed > 0 )) && printf ' %d regressed' "$regressed"
-                (( improved > 0 )) && printf ' %d improved' "$improved"
+                (( nr > 0 )) && printf ' %d regressed' "$nr"
+                (( ni > 0 )) && printf ' %d improved' "$ni"
                 printf '\n'
+                [[ -n "$regressed" ]] && printf '%s\n' "$regressed" | sed 's/^/  ✗ /'
+                [[ -n "$improved" ]] && printf '%s\n' "$improved" | sed 's/^/  ✓ /'
             fi
         fi
     else
