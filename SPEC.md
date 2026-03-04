@@ -672,10 +672,11 @@ construction:
 
 **Step 1 — Runtime depth tracking.** Add a `frame_depth` counter to `Shell_t`.
 Increment on `sh_polarity_enter`, decrement on `sh_polarity_leave`. Assert
-proper nesting in debug builds. This catches frame mismatches (enter without
-leave, double leave) automatically without changing any handler logic. Cost:
-one integer, two assertions. Immediate value: turns silent corruption into
-caught violations.
+proper nesting unconditionally (two integer comparisons per boundary
+crossing — negligible cost on a non-hot path). This catches frame mismatches
+(enter without leave, double leave) automatically without changing any handler
+logic. Cost: one integer, four assertions. Immediate value: turns silent
+corruption into caught violations.
 
 **Step 2 — Activate the polarity table.** `sh_exec()` queries
 `sh_node_polarity[]` at dispatch time and auto-pushes a lite frame for

@@ -570,6 +570,34 @@ bookkeeping for safe reuse.
 | `nv_setlist` | (none) | (none) | **sh_exit guard** | Longjmp safety: L_ARGNOD guard |
 
 
+### Runtime depth tracking (SPEC.md Step 1)
+
+**Status: done**
+
+`int16_t frame_depth` in `Shell_t` (shell.h). Incremented in
+`sh_polarity_enter` and `sh_polarity_lite_enter`, decremented in
+`sh_polarity_leave` and `sh_polarity_lite_leave`. Asserted non-negative
+on enter, positive on leave — unconditionally (not gated on NDEBUG).
+Zero-initialized in `sh_new_context` reset path (init.c).
+
+No MAXDEPTH check: polarity nesting is structural (not user-controlled
+recursion), so mismatches are caught by assertions before stack exhaustion.
+
+
+### macro.c Degree 2→3 promotion
+
+**Status: done**
+
+`subcopy()` and `copyto()` S_BRACT case promoted from field-by-field
+save/restore (Degree 2) to full `Mac_t` struct save/restore (Degree 3),
+matching the established pattern in `sh_mactrim`, `sh_macexpand`,
+`sh_machere`, `mac_substitute`, and `comsubst`.
+
+Caveat in `subcopy()`: `mp->dotdot` must survive the restore (the caller
+reads it immediately after return), so it's captured before the struct
+copy and written back after.
+
+
 ### Compound assignment longjmp safety
 
 **Status: done (v2 — sh_exit guard)**

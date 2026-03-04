@@ -722,8 +722,8 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 			if(mp->arith || (((mp->assign&1) || endch==RBRACT) &&
 				!(mp->quote || mp->lit)))
 			{
-				int offset=0,oldpat = mp->pattern;
-				int oldarith = mp->arith, oldsub=mp->subcopy;
+				Mac_t savemac = *mp;
+				int offset=0;
 				stkwrite(stkp,first,++c);
 				if(mp->assign&1)
 				{
@@ -740,9 +740,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 				mp->arith = 0;
 				mp->subcopy = 0;
 				copyto(mp,RBRACT,0);
-				mp->subcopy = oldsub;
-				mp->arith = oldarith;
-				mp->pattern = oldpat;
+				*mp = savemac;
 				stkputc(stkp,RBRACT);
 				if(offset)
 				{
@@ -1073,23 +1071,18 @@ static char *prefix(char *id)
  */
 static int subcopy(Mac_t *mp, int flag)
 {
-	int split = mp->split;
-	int xpattern = mp->pattern;
+	Mac_t savemac = *mp;
 	int loc = stktell(sh.stk);
-	int xarith = mp->arith;
-	int arrayok = mp->arrayok;
 	mp->split = 0;
 	mp->arith = 0;
-	mp->pattern = flag?4:0;
-	mp->arrayok=1;
+	mp->pattern = flag ? 4 : 0;
+	mp->arrayok = 1;
 	mp->subcopy++;
 	mp->dotdot = 0;
-	copyto(mp,RBRACT,0);
-	mp->subcopy = 0;
-	mp->pattern = xpattern;
-	mp->split = split;
-	mp->arith = xarith;
-	mp->arrayok = arrayok;
+	copyto(mp, RBRACT, 0);
+	int dotdot = mp->dotdot;
+	*mp = savemac;
+	mp->dotdot = dotdot;
 	return loc;
 }
 

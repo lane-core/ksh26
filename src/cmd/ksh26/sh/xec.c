@@ -27,6 +27,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 #include	"sh_io.h"
+#include	<assert.h>
 #include	<fcin.h>
 #include	"variables.h"
 #include	"path.h"
@@ -500,6 +501,8 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
  */
 void sh_polarity_enter(struct sh_polarity *frame)
 {
+	assert(sh.frame_depth >= 0);
+	sh.frame_depth++;
 	frame->prefix = sh.prefix;
 	frame->namespace = sh.namespace;
 	frame->st = sh.st;
@@ -510,6 +513,8 @@ void sh_polarity_enter(struct sh_polarity *frame)
 
 void sh_polarity_leave(struct sh_polarity *frame)
 {
+	assert(sh.frame_depth > 0);
+	sh.frame_depth--;
 	char *traps[SH_DEBUGTRAP+1];
 	char trapdontexec;
 	int i;
@@ -532,6 +537,8 @@ void sh_polarity_leave(struct sh_polarity *frame)
  */
 static void sh_polarity_lite_enter(struct sh_polarity_lite *frame)
 {
+	assert(sh.frame_depth >= 0);
+	sh.frame_depth++;
 	frame->prefix = sh.prefix;
 	frame->namespace = sh.namespace;
 	frame->var_tree = sh.var_tree;
@@ -541,6 +548,8 @@ static void sh_polarity_lite_enter(struct sh_polarity_lite *frame)
 
 static void sh_polarity_lite_leave(struct sh_polarity_lite *frame)
 {
+	assert(sh.frame_depth > 0);
+	sh.frame_depth--;
 	/* Trap state (trap[], trapdontexec) is NOT restored here.
 	 * sh_trap's inner full polarity frame (sh_polarity_leave)
 	 * already handles the save/restore/preserve-mutations dance.

@@ -5,34 +5,36 @@ why it matters and rough severity.
 
 ## Build system
 
-(none currently)
+- [ ] **Consider replacing iffe.sh** (low priority, post-sfio)
+  4,322-line AT&T feature prober. 54 probes use `hdr`, `lib`, `mem`, `typ`,
+  `tst`, `output{}`, `cat{}` primitives. ~70% are trivial (`hdr`/`lib`/`mem`/`typ`),
+  replaceable with ~100 lines of shell helpers. The `output{}` blocks (~15-20
+  probes) are the hard part. A custom ~300-line harness in configure.sh could
+  cover everything, but risk is rediscovering edge cases iffe already handles.
+  Alternatives considered: autoguess (preprocessor-only, can't do runtime probes),
+  autosetup (Tcl — foreign language), acr (autoconf-but-smaller).
 
 ## Polarity infrastructure
 
-- [ ] **frame_depth counter** (low priority, SPEC.md Step 1)
-  Add a `frame_depth` integer to `Shell_t`. Increment on
-  `sh_polarity_enter`, decrement on `sh_polarity_leave`. Assert
-  proper nesting in debug builds. Catches frame mismatches (enter
-  without leave, double leave) automatically. Cost: one integer,
-  two assertions.
+- [x] **frame_depth counter** (SPEC.md Step 1)
+  `int16_t frame_depth` in `Shell_t`, asserted in all four polarity
+  frame functions.
 
-- [ ] **macro.c Degree 2→3 promotion** (low priority, future cleanup)
-  `subcopy` (5 fields) and `copyto` S_BRACT case (3 fields) use
-  field-by-field save/restore instead of full `Mac_t` struct save.
-  Promoting to full-struct save (~5 lines per site) makes the
-  discipline uniform across all recursive expansion paths. Not
-  urgent — current code is correct.
+- [x] **macro.c Degree 2→3 promotion**
+  `subcopy` and `copyto` S_BRACT case now use full `Mac_t` struct
+  save/restore, matching the established pattern in all other
+  recursive expansion paths.
 
 ## POSIX Issue 8 compliance
 
 - [x] `setitimer` → `timer_settime` fallback chain (timers.c)
 - [x] `isascii` → inline `IS_ASCII` macro (macro.c)
 - [x] `gettimeofday` → `clock_gettime` preferred path (timers.c)
-- [ ] `gettimeofday` (libast `tvgettime.c`) — already has
+- [x] `gettimeofday` (libast `tvgettime.c`) — already has
   `clock_gettime` → `gettimeofday` → `time()` fallback chain. No action needed.
-- [ ] `utime`/`utimes` (libast `tvtouch.c`) — already has
+- [x] `utime`/`utimes` (libast `tvtouch.c`) — already has
   `utimensat` → `utimes` → `utime` fallback chain. No action needed.
-- [ ] `ioctl` (libast/libcmd) — terminal control. Will never actually
+- [x] `ioctl` (libast/libcmd) — terminal control. Will never actually
   be removed by any real OS. Not actionable.
 
 See `notes/posix8-deprecations.md` for the full audit.
