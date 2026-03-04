@@ -1389,7 +1389,7 @@ NINJA
 
 		# C locale test
 		cat >> "$ninja" <<NINJA
-build test/${name}.C.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps
+build test/${name}.C.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps run-test.sh test-env.sh
   mode = C
   desc = $name (C)
   wrapper = $test_wrapper
@@ -1401,7 +1401,7 @@ NINJA
 		*" $name "*) ;;
 		*)
 			cat >> "$ninja" <<NINJA
-build test/${name}.C.UTF-8.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps
+build test/${name}.C.UTF-8.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps run-test.sh test-env.sh
   mode = C.UTF-8
   desc = $name (C.UTF-8)
   wrapper = $test_wrapper
@@ -1694,5 +1694,26 @@ generate_test_runner
 
 # Ensure test stamp dir exists
 mkdir -p "$BUILDDIR/test"
+
+# Phase 5: Write configure manifest
+# Lists all inputs that should trigger a reconfigure when changed.
+# The justfile compares this against the current state to detect
+# when build.ninja is stale (new source files, changed features, etc.)
+{
+	# configure.sh itself
+	printf '%s\n' "configure.sh"
+	# Feature input files
+	find src/lib/libast/features src/lib/libcmd/features \
+		src/cmd/ksh26/features src/cmd/builtin/features \
+		-type f 2>/dev/null | sort
+	# Source file list (additions/deletions invalidate build.ninja)
+	collect_libast_sources | sort
+	collect_libcmd_sources | sort
+	collect_ksh26_sources | sort
+	# Test files (additions/deletions change test stamp count)
+	find tests/shell -name '*.sh' 2>/dev/null | sort
+	# SHOPT config (affects test-env.sh)
+	printf '%s\n' "src/cmd/ksh26/SHOPT.sh"
+} > "$BUILDDIR/.configure_manifest"
 
 printf '%s\n' "configure: done"

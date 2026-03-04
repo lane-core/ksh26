@@ -27,9 +27,8 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          default = pkgs.stdenv.mkDerivation {
+
+          ksh26 = pkgs.stdenv.mkDerivation {
             pname = "ksh26";
             version = "0.1.0-alpha";
 
@@ -92,6 +91,58 @@
               platforms = platforms.unix;
               mainProgram = "ksh";
             };
+          };
+        in
+        {
+          default = ksh26;
+
+          # Used by `just build` — same derivation, explicit target name
+          build = ksh26;
+
+          build-debug = ksh26.overrideAttrs {
+            pname = "ksh26-debug";
+
+            buildPhase = ''
+              runHook preBuild
+              mkdir -p build/$HOSTTYPE/bin
+              $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
+              sh configure.sh --debug
+              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-debug
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              install -Dm755 build/$HOSTTYPE-debug/bin/ksh "$out/bin/ksh"
+              install -Dm755 build/$HOSTTYPE-debug/bin/shcomp "$out/bin/shcomp"
+              install -Dm755 build/$HOSTTYPE-debug/bin/pty "$out/bin/pty"
+              runHook postInstall
+            '';
+          };
+
+          build-asan = ksh26.overrideAttrs {
+            pname = "ksh26-asan";
+
+            buildPhase = ''
+              runHook preBuild
+              mkdir -p build/$HOSTTYPE/bin
+              $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
+              # Base build first (asan shares feature probes via symlinks)
+              sh configure.sh
+              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
+              # Asan variant
+              sh configure.sh --asan
+              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-asan
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              install -Dm755 build/$HOSTTYPE-asan/bin/ksh "$out/bin/ksh"
+              install -Dm755 build/$HOSTTYPE-asan/bin/shcomp "$out/bin/shcomp"
+              install -Dm755 build/$HOSTTYPE-asan/bin/pty "$out/bin/pty"
+              runHook postInstall
+            '';
           };
         }
       );
@@ -168,10 +219,9 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          ksh26 = self.packages.${system}.default;
         in
         {
-          default = ksh26.overrideAttrs (old: {
+          default = self.packages.${system}.build.overrideAttrs (old: {
             name = "ksh26-tests";
 
             nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
@@ -187,6 +237,18 @@
               fi
 
               ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE test
+
+              # Print summary
+              summary="build/$HOSTTYPE/test/summary.log"
+              if [ -f "$summary" ]; then
+                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
+                total=$(wc -l < "$summary" | tr -d ' ')
+                pass=$(grep -c '^ok' "$summary" || true)
+                skip=$(grep -c '# SKIP' "$summary" || true)
+                printf -- '---\n%d/%d pass' "$pass" "$total"
+                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
+                printf '\n'
+              fi
             '';
 
             # Don't install — this is just for running tests
@@ -196,27 +258,10 @@
           formatting = treefmtEval.${system}.config.build.check self;
 
           # asan check — AddressSanitizer + UBSan in nix sandbox
-          asan = ksh26.overrideAttrs (old: {
+          asan = self.packages.${system}.build-asan.overrideAttrs (old: {
             name = "ksh26-asan-tests";
 
             nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
-
-            buildPhase = ''
-              runHook preBuild
-
-              mkdir -p build/$HOSTTYPE/bin
-              $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
-
-              # Base build first (asan shares feature probes via symlinks)
-              sh configure.sh
-              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
-
-              # Asan variant
-              sh configure.sh --asan
-              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-asan
-
-              runHook postBuild
-            '';
 
             doCheck = true;
             checkPhase = ''
@@ -229,6 +274,18 @@
 
               export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
               ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-asan test
+
+              # Print summary
+              summary="build/$HOSTTYPE-asan/test/summary.log"
+              if [ -f "$summary" ]; then
+                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
+                total=$(wc -l < "$summary" | tr -d ' ')
+                pass=$(grep -c '^ok' "$summary" || true)
+                skip=$(grep -c '# SKIP' "$summary" || true)
+                printf -- '---\n%d/%d pass' "$pass" "$total"
+                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
+                printf '\n'
+              fi
             '';
 
             installPhase = "touch $out";

@@ -1,31 +1,63 @@
 # ksh26 build system porcelain
 #
-# Three layers:
-#   just       — user-facing recipes (this file)
-#   configure  — ksh script that probes platform + emits build.ninja
-#   samu       — vendored ninja implementation, executes build.ninja
+# Two paths:
+#   Validation — nix-backed, content-addressed (just build, just test)
+#   Iteration  — local samu, devshell-only (just test-one, just debug)
+#
+# Validation recipes call nix directly — no `nix develop` wrapper needed.
+# Iteration recipes require the devshell toolchain.
 #
 # Usage: just build | just test | just clean
 #        just errors | just failures | just log
 #        just check | just check-asan | just check-all
 #
-# Override: CC=clang just build
-#          CC="ccache cc" just build    (compiler caching)
+# Override (iteration only): CC=clang just _dev-build
 
 HOSTTYPE := env("HOSTTYPE", `uname -s | tr 'A-Z' 'a-z' | tr -d '\n'; printf '.'; uname -m | sed 's/aarch64/arm64/;s/i.86/i386/' | tr -d '\n'; printf -- '-'; getconf LONG_BIT 2>/dev/null || echo 64`)
 BUILDDIR := "build" / HOSTTYPE
-DEBUGDIR := "build" / (HOSTTYPE + "-debug")
-ASANDIR  := "build" / (HOSTTYPE + "-asan")
 SAMU := BUILDDIR / "bin" / "samu"
-_IN_NIX := env("IN_NIX_SHELL", "")
 
-# Warn if building outside nix devshell (soft gate — continues anyway)
-[private]
-_nix-warn:
-    @if [ -z "{{_IN_NIX}}" ] && command -v nix >/dev/null 2>&1; then \
-        printf '\033[33mwarning:\033[0m not in nix devshell — build may use host toolchain\n' >&2; \
-        printf '  run: nix develop -c just <recipe>\n' >&2; \
-    fi
+# ── Validation (nix-backed, content-addressed) ───────────────
+# Any source change → derivation hash changes → nix rebuilds.
+# No changes → ~2-5s cache hit. No stale builds possible.
+
+# Build ksh26 (content-addressed — any source change triggers rebuild)
+build:
+    nix build .#build --print-build-logs
+
+# Run all regression tests (content-addressed)
+test:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
+
+# Build with debug flags
+build-debug:
+    nix build .#build-debug --print-build-logs
+
+# Build with sanitizers
+build-asan:
+    nix build .#build-asan --print-build-logs
+
+# Run tests with sanitizers
+test-asan:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
+
+# ── CI checks (nix sandbox) ─────────────────────────────────
+
+# Run the same checks CI runs (build + full test suite in nix sandbox)
+check:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
+
+# Run asan checks in nix sandbox
+check-asan:
+    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
+
+# Run all CI checks
+check-all:
+    nix flake check --print-build-logs
+
+# ── Iteration (local samu, devshell-only) ─────────────────────
+# These use timestamp-based caching for speed. Not for validation —
+# use `just build` / `just test` for that.
 
 # Bootstrap just the build tool
 bootstrap:
@@ -33,117 +65,72 @@ bootstrap:
     @test -x {{SAMU}} \
         || cc -o {{SAMU}} src/cmd/INIT/samu/*.c
 
-# ── Build ────────────────────────────────────────────────────────
-
-# Internal: build with logging and auto-reconfigure
+# Private: local build for interactive recipes
 [private]
-_build dir flags="": bootstrap
+_dev-build: bootstrap
     #!/usr/bin/env bash
     set -euo pipefail
-    dir="{{dir}}"
+    dir="{{BUILDDIR}}"
     if [[ ! -f "$dir/build.ninja" || configure.sh -nt "$dir/build.ninja" ]]; then
-        sh configure.sh {{flags}}
+        sh configure.sh
     fi
     mkdir -p "$dir/log"
     {{SAMU}} -C "$dir" 2>&1 | tee "$dir/log/build.log"
 
-# Build ksh26 (default recipe)
-build: _nix-warn (_build BUILDDIR)
-
-# Build with debug flags: no optimization, full debug info
-build-debug: _nix-warn (_build DEBUGDIR "--debug")
-
-# Build with sanitizers: catches use-after-free, buffer overflow, UB
-build-asan: _nix-warn (_build ASANDIR "--asan")
-
 # (Re)run feature detection and generate build.ninja
-# Probes are cached — only stale probes rerun (~5s when nothing changed)
-configure: _nix-warn bootstrap
+configure: bootstrap
     sh configure.sh
 
 # Force all probes to rerun (ignores cache)
-reconfigure: _nix-warn bootstrap
+reconfigure: bootstrap
     sh configure.sh --force
 
-# ── Test ─────────────────────────────────────────────────────────
-
-# Internal: run tests with logging, summary, and regression detection
-[private]
-_test dir:
-    #!/usr/bin/env bash
-    set -uo pipefail
-    dir="{{dir}}"
-    mkdir -p "$dir/log" "$dir/test"
-    summary="$dir/test/summary.log"
-    # Save previous for regression detection
-    [[ -f "$summary" ]] && cp "$summary" "${summary%.log}.prev" || true
-    rm -f "$summary"
-    t=$SECONDS
-    rc=0
-    {{SAMU}} -k 0 -C "$dir" test 2>&1 | tee "$dir/log/test.log" || rc=$?
-    elapsed=$(( SECONDS - t ))
-    # Summary
-    if [[ -f "$summary" && -s "$summary" ]]; then
-        printf '\n'
-        sort "$summary" | grep '^not ok' | sed 's/^not ok - /  ✗ /; s/ # /: /' || true
-        total=$(wc -l < "$summary" | tr -d ' ')
-        pass=$(grep -c '^ok' "$summary" || true)
-        skip=$(grep -c '# SKIP' "$summary" || true)
-        if (( skip > 0 )); then
-            printf -- '---\n%d/%d pass, %d skipped (%ds)\n' "$pass" "$total" "$skip" "$elapsed"
-            grep '# SKIP' "$summary" | sed 's/^ok - /  /; s/ # SKIP /: /' | sort
-        else
-            printf -- '---\n%d/%d pass (%ds)\n' "$pass" "$total" "$elapsed"
-        fi
-        # Regression detection (only counts tests that ran both times)
-        prev="${summary%.log}.prev"
-        if [[ -f "$prev" && -s "$prev" ]]; then
-            regressed=$(awk '
-                FILENAME==ARGV[1] && /^ok / { split($0,a," - "); prev[a[2]]=1 }
-                FILENAME==ARGV[2] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); if (a[2] in prev) print a[2] }
-            ' "$prev" "$summary")
-            improved=$(awk '
-                FILENAME==ARGV[1] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); prev[a[2]]=1 }
-                FILENAME==ARGV[2] && /^ok / { split($0,a," - "); if (a[2] in prev) print a[2] }
-            ' "$prev" "$summary")
-            nr=$(printf '%s' "$regressed" | grep -c . || true)
-            ni=$(printf '%s' "$improved" | grep -c . || true)
-            if (( nr > 0 || ni > 0 )); then
-                printf 'vs previous:'
-                (( nr > 0 )) && printf ' %d regressed' "$nr"
-                (( ni > 0 )) && printf ' %d improved' "$ni"
-                printf '\n'
-                [[ -n "$regressed" ]] && printf '%s\n' "$regressed" | sed 's/^/  ✗ /'
-                [[ -n "$improved" ]] && printf '%s\n' "$improved" | sed 's/^/  ✓ /'
-            fi
-        fi
-    else
-        printf '\n---\n0 tests ran — stamps current, use: just clean test && just test\n'
-    fi
-    exit $rc
-
-# Run all regression tests in parallel
-test: build (_test BUILDDIR)
-
 # Run a single test: just test-one basic
-test-one name locale="C": build
+test-one name locale="C": _dev-build
     {{SAMU}} -C {{BUILDDIR}} test/{{name}}.{{locale}}.stamp
 
-# Run tests against the debug build
-test-debug: build-debug (_test DEBUGDIR)
+# Run a test N times to detect flakiness
+test-repeat name n="10" locale="C": _dev-build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    pass=0 fail=0
+    for i in $(seq 1 {{n}}); do
+        rm -f "{{BUILDDIR}}/test/{{name}}.{{locale}}.stamp"
+        if {{SAMU}} -C "{{BUILDDIR}}" "test/{{name}}.{{locale}}.stamp" >/dev/null 2>&1; then
+            ((pass++))
+        else
+            ((fail++))
+        fi
+    done
+    printf '%s.%s: %d/%d pass' "{{name}}" "{{locale}}" "$pass" "{{n}}"
+    (( fail > 0 )) && printf ' (FLAKY)\n' && exit 1 || printf ' (STABLE)\n'
 
-# Run tests against the asan build
-test-asan: build-asan (_test ASANDIR)
+# Run a test under the debugger
+debug name locale="C": _dev-build
+    #!/bin/sh
+    export SHELL="{{BUILDDIR}}/bin/ksh"
+    export SHCOMP="{{BUILDDIR}}/bin/shcomp"
+    export SHTESTS_COMMON="$PWD/tests/shell/_common"
+    export ENV=/./dev/null
+    . "{{BUILDDIR}}/test-env.sh"
+    case "{{locale}}" in
+    C)       unset LANG LC_ALL 2>/dev/null ;;
+    C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
+    esac
+    case "$(uname -s)" in
+    Darwin) lldb -- "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
+    *)      gdb --args "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
+    esac
 
 # Run iffe regression tests
-test-iffe: _nix-warn
+test-iffe:
     sh tests/infra/iffe.sh
 
 # Pass arbitrary args to samu
 samu *args: bootstrap
     {{SAMU}} -C {{BUILDDIR}} {{args}}
 
-# ── Diagnostics ──────────────────────────────────────────────────
+# ── Diagnostics ──────────────────────────────────────────────
 
 # Show errors from last build
 errors dir=BUILDDIR:
@@ -198,42 +185,7 @@ log what="all" name="":
         fi ;;
     esac
 
-# ── Investigation ────────────────────────────────────────────────
-
-# Run a test N times to detect flakiness
-test-repeat name n="10" locale="C": build
-    #!/usr/bin/env bash
-    set -uo pipefail
-    pass=0 fail=0
-    for i in $(seq 1 {{n}}); do
-        rm -f "{{BUILDDIR}}/test/{{name}}.{{locale}}.stamp"
-        if {{SAMU}} -C "{{BUILDDIR}}" "test/{{name}}.{{locale}}.stamp" >/dev/null 2>&1; then
-            ((pass++))
-        else
-            ((fail++))
-        fi
-    done
-    printf '%s.%s: %d/%d pass' "{{name}}" "{{locale}}" "$pass" "{{n}}"
-    (( fail > 0 )) && printf ' (FLAKY)\n' && exit 1 || printf ' (STABLE)\n'
-
-# Run a test under the debugger
-debug name locale="C": build
-    #!/bin/sh
-    export SHELL="{{BUILDDIR}}/bin/ksh"
-    export SHCOMP="{{BUILDDIR}}/bin/shcomp"
-    export SHTESTS_COMMON="$PWD/tests/shell/_common"
-    export ENV=/./dev/null
-    . "{{BUILDDIR}}/test-env.sh"
-    case "{{locale}}" in
-    C)       unset LANG LC_ALL 2>/dev/null ;;
-    C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
-    esac
-    case "$(uname -s)" in
-    Darwin) lldb -- "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
-    *)      gdb --args "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
-    esac
-
-# ── Code tools ───────────────────────────────────────────────────
+# ── Code tools ───────────────────────────────────────────────
 
 # Build man pages from scdoc sources (no C build dependency)
 doc:
@@ -271,7 +223,7 @@ compile-commands: bootstrap
     @{{SAMU}} -C {{BUILDDIR}} -t compdb cc > compile_commands.json
     @printf '%s\n' "wrote compile_commands.json ($(grep -c '"file"' compile_commands.json) entries)"
 
-# ── Clean ────────────────────────────────────────────────────────
+# ── Clean ────────────────────────────────────────────────────
 
 # Remove build artifacts: just clean [stage]
 # Stages: test, obj, lib, bin, log, all (default: all)
@@ -289,94 +241,18 @@ clean stage="all":
 
 # Remove debug build artifacts
 clean-debug:
-    rm -rf {{DEBUGDIR}}
+    rm -rf build/{{HOSTTYPE}}-debug
 
 # Remove asan build artifacts
 clean-asan:
-    rm -rf {{ASANDIR}}
+    rm -rf build/{{HOSTTYPE}}-asan
 
 # Remove all build artifacts (every host)
 cleanall:
     rm -rf build
 
-# Install ksh and shcomp
+# Install ksh and shcomp (from nix build output)
 install prefix="/usr/local": build
     install -d {{prefix}}/bin
-    install -m 755 {{BUILDDIR}}/bin/ksh {{prefix}}/bin/ksh
-    install -m 755 {{BUILDDIR}}/bin/shcomp {{prefix}}/bin/shcomp
-
-# ── CI checks (nix sandbox) ─────────────────────────────────────
-
-# Run the same checks CI runs (build + full test suite in nix sandbox)
-check:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
-
-# Run asan checks in nix sandbox
-check-asan:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
-
-# Run all CI checks
-check-all:
-    nix flake check --print-build-logs
-
-# ── Test summaries (quiet mode) ──────────────────────────────────
-# These run tests silently and print categorized results.
-# Different from `just test` which shows inline output + summary.
-
-# Show categorized test results (pass/segv/abrt/fail counts)
-[no-exit-message]
-test-summary dir=BUILDDIR: (_run-summary dir)
-
-[no-exit-message]
-test-debug-summary: (_run-summary DEBUGDIR)
-
-[no-exit-message]
-test-asan-summary: (_run-summary ASANDIR)
-
-# Internal: run tests then print summary for a given build dir
-# Reconfigures if run-test.sh is stale (older than configure.sh).
-[private]
-_run-summary dir: bootstrap
-    #!/bin/sh
-    set -e
-    d="{{dir}}"
-    samu="{{SAMU}}"
-    # Ensure runner exists and is up to date
-    if [ ! -f "$d/run-test.sh" ] || [ configure.sh -nt "$d/run-test.sh" ]; then
-        printf '%s\n' "Reconfiguring $d (run-test.sh stale)..." >&2
-        case "$d" in
-        *-asan*)  sh configure.sh --asan ;;
-        *-debug*) sh configure.sh --debug ;;
-        *)        sh configure.sh ;;
-        esac
-    fi
-    summary="$d/test/summary.log"
-    rm -f "$summary"
-    "$samu" -k 0 -C "$d" test 2>/dev/null || true
-    if [ ! -f "$summary" ]; then
-        printf '%s\n' "No summary found at $summary"
-        exit 1
-    fi
-    # Sort: ok first, then not-ok grouped by type
-    sort "$summary" | awk '
-        { print }
-        /^ok /           { pass++ }
-        /# SKIP/         { skip++ }
-        /^not ok.*SEGV/  { segv++ }
-        /^not ok.*ABRT/  { abrt++ }
-        /^not ok.*timeout/ { time++ }
-        /^not ok.*KILL/  { kill++ }
-        /^not ok/ && !/SEGV|ABRT|timeout|KILL/ { fail++ }
-        END {
-            printf "---\n"
-            printf "%d pass", pass+0
-            if (skip) printf " (%d skipped)", skip
-            if (segv) printf ", %d segfault", segv
-            if (abrt) printf ", %d abort", abrt
-            if (fail) printf ", %d fail", fail
-            if (time) printf ", %d timeout", time
-            if (kill) printf ", %d killed", kill
-            printf "\n"
-        }
-    '
-
+    install -m 755 result/bin/ksh {{prefix}}/bin/ksh
+    install -m 755 result/bin/shcomp {{prefix}}/bin/shcomp
