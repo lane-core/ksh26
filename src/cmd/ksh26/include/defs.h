@@ -166,11 +166,11 @@ extern Namval_t *sh_fsearch(const char *, int);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
-extern void *sh_malloc(size_t size);
-extern void *sh_realloc(void *ptr, size_t size);
-extern void *sh_calloc(size_t nmemb, size_t size);
-extern char *sh_strdup(const char *s);
-extern void *sh_memdup(const void *s, size_t n);
+[[nodiscard]] extern void *sh_malloc(size_t size);
+[[nodiscard]] extern void *sh_realloc(void *ptr, size_t size);
+[[nodiscard]] extern void *sh_calloc(size_t nmemb, size_t size);
+[[nodiscard]] extern char *sh_strdup(const char *s);
+[[nodiscard]] extern void *sh_memdup(const void *s, size_t n);
 extern char *sh_getcwd(void);
 #define new_of(type, x) ((type *)sh_malloc((unsigned)sizeof(type) + (x)))
 #define sh_newof(p, t, n, x) ((p) ? (t *)sh_realloc((char *)(p), sizeof(t) * (n) + (x)) : (t *)sh_calloc(1, sizeof(t) * (n) + (x)))
