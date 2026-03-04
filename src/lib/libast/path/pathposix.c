@@ -30,47 +30,6 @@
 
 #include <ast.h>
 
-#if __CYGWIN__
-
-extern void	cygwin_conv_to_posix_path(const char*, char*);
-
-size_t
-pathposix(const char* path, char* buf, size_t siz)
-{
-	size_t		n;
-
-	if (!buf || siz < PATH_MAX)
-	{
-		char	tmp[PATH_MAX];
-
-		cygwin_conv_to_posix_path(path, tmp);
-		if ((n = strlen(tmp)) < siz && buf)
-			memcpy(buf, tmp, n + 1);
-		return n;
-	}
-	cygwin_conv_to_posix_path(path, buf);
-	return strlen(buf);
-}
-
-#elif __INTERIX
-
-#include <interix/interix.h>
-
-size_t
-pathposix(const char* path, char *buf, size_t siz)
-{
-	static const char	pfx[] = "/dev/fs";
-
-	*buf = 0;
-	if (!strncasecmp(path, pfx, sizeof(pfx) - 1))
-		strlcpy(buf, path, siz);
-	else
-		winpath2unix(path, PATH_NONSTRICT, buf, siz);
-	return strlen(buf);
-}
-
-#else
-
 size_t
 pathposix(const char* path, char* buf, size_t siz)
 {
@@ -80,5 +39,3 @@ pathposix(const char* path, char* buf, size_t siz)
 		memcpy(buf, path, n + 1);
 	return n;
 }
-
-#endif

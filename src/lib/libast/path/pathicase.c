@@ -65,8 +65,8 @@ pathicase(const char *path)
 #   endif /* _linux_casefold */
 	ast_close(fd);
 	return r < 0 ? (errno != ENOTTY ? -1 : 0) : 1;
-#elif _WINIX || __APPLE__
-	/* Windows or Mac without pathconf probe: assume case insensitive */
+#elif __APPLE__
+	/* Mac without pathconf probe: assume case insensitive */
 	return 1;
 #else
 	/* Not implemented */

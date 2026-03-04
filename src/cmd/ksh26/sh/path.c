@@ -895,29 +895,7 @@ static int canexecute(char *path, int isfun)
 			goto err;
 	}
 	else if(stat(path,&statb) < 0)
-	{
-#if _WINIX
-		/* check for .exe or .bat suffix */
-		char *cp;
-		if(errno==ENOENT && (!(cp=strrchr(path,'.')) || strlen(cp)>4 || strchr(cp,'/')))
-		{
-			int offset = stktell(sh.stk)-1;
-			stkseek(sh.stk,offset);
-			stkputs(sh.stk,".bat",0);
-			path = stkptr(sh.stk,PATH_OFFSET);
-			if(stat(path,&statb) < 0)
-			{
-				if(errno!=ENOENT)
-					goto err;
-				memcpy(stkptr(sh.stk,offset),".sh",4);
-				if(stat(path,&statb) < 0)
-					goto err;
-			}
-		}
-		else
-#endif /* _WINIX */
 		goto err;
-	}
 	errno = EPERM;
 	if(S_ISDIR(statb.st_mode))
 		errno = EISDIR;
@@ -1172,28 +1150,6 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		path = sp;
 	}
 #endif /* SHELLMAGIC */
-#if __CYGWIN__
-	/*
-	 * On Cygwin, execve(2) happily executes shell scripts without a #! path with bash (which violates POSIX).
-	 * However, ksh relies on execve(2) executing binaries or #! only, as it uses an ENOEXEC failure to decide
-	 * whether to fork and execute a #!-less shell script with a reinitialized copy of itself via exscript() below.
-	 * So, simulate that failure if the file is not a Windows executable or a script with a #! path.
-	 */
-	if((n = sh_open(opath,O_RDONLY,0)) >= 0)
-	{
-		uint16_t mz;
-		r = !(read(n,&mz,2)==2 && (mz==0x5A4D || mz==0x2123));  /* "MZ" or "#!" */
-		sh_close(n);
-	}
-	else
-		r = 0;
-	if(r)
-	{
-		pid = -1;
-		errno = ENOEXEC;
-	}
-	else
-#endif
 	if(spawn)
 		pid = _spawnveg(opath, &argv[0], envp, spawn>>1);
 	else

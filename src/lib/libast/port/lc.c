@@ -22,7 +22,6 @@
  */
 
 #include "lclib.h"
-#include "lclang.h"
 #include "FEATURE/locale"
 
 #include <ctype.h>
@@ -377,25 +376,6 @@ lccanon(Lc_t* lc, unsigned long flags, char* buf, size_t siz)
 {
 	if ((flags & LC_local) && (!lc->language || !(lc->language->flags & (LC_debug|LC_default))))
 	{
-#if _WINIX
-		char	lang[64];
-		char	code[64];
-		char	ctry[64];
-
-		if (lc->index &&
-		    GetLocaleInfo(lc->index, LOCALE_SENGLANGUAGE, lang, sizeof(lang)) &&
-		    GetLocaleInfo(lc->index, LOCALE_SENGCOUNTRY, ctry, sizeof(ctry)))
-		{
-		    	if (!GetLocaleInfo(lc->index, LOCALE_IDEFAULTANSICODEPAGE, code, sizeof(code)))
-				code[0] = 0;
-			if (!lc->charset || !lc->charset->ms)
-				return snprintf(buf, siz, "%s_%s", lang, ctry);
-			else if (streq(lc->charset->ms, code))
-				return snprintf(buf, siz, "%s_%s.%s", lang, ctry, code);
-			else
-				return snprintf(buf, siz, "%s_%s.%s,%s", lang, ctry, code, lc->charset->ms);
-		}
-#endif
 		buf[0] = '-';
 		buf[1] = 0;
 		return 0;
@@ -786,17 +766,6 @@ lcmake(const char* name)
 	lc->attributes = al;
 	for (i = 0; i < elementsof(lc->info); i++)
 		lc->info[i].lc = lc;
-#if _WINIX
-	n = SUBLANG_DEFAULT;
-	if (tp)
-		for (i = 0; i < elementsof(tp->languages); i++)
-			if (lp == tp->languages[i])
-			{
-				n = tp->indices[i];
-				break;
-			}
-	lc->index = MAKELCID(MAKELANGID(lp->index, n), SORT_DEFAULT);
-#endif
 	lc->next = lcs;
 	lcs = lc;
 	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
@@ -859,17 +828,6 @@ lcscan(Lc_t* lc)
 		}
 	}
 	ls->lc.attributes = ls->list.attribute ? &ls->list : NULL;
-#if _WINIX
-	if (!ls->lc.language || !ls->lc.language->index)
-		ls->lc.index = 0;
-	else
-	{
-		if ((!ls->list.attribute || !(ls->lc.index = ls->list.attribute->index)) &&
-		    (!ls->lc.territory || !(ls->lc.index = ls->lc.territory->indices[ls->language])))
-			ls->lc.index = SUBLANG_DEFAULT;
-		ls->lc.index = MAKELCID(MAKELANGID(ls->lc.language->index, ls->lc.index), SORT_DEFAULT);
-	}
-#endif
 	canonical(ls->lc.language, ls->lc.territory, ls->lc.charset, ls->lc.attributes, 0, ls->buf, sizeof(ls->buf));
 	return (Lc_t*)ls;
 }

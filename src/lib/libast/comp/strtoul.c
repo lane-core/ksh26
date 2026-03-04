@@ -20,13 +20,9 @@
  * strtoul() implementation
  */
 
-#if ! __CYGWIN__ /* 1.3.* static link conflict -- no iffe for this yet */
-
 #define S2I_function	strtoul
 #define S2I_number	long
 #define S2I_unumber	unsigned long
 #define S2I_unsigned	1
 
 #include "strtoi.h"
-
-#endif

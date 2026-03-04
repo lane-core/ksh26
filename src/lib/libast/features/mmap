@@ -254,13 +254,6 @@ tst	note{ mmap is fast enough to be worth using }end output{
 
 cat{
 
-	/* some systems get it wrong but escape concise detection */
-	#ifndef _NO_MMAP
-	#if __CYGWIN__
-	#define _NO_MMAP	1
-	#endif
-	#endif
-
 	#if _NO_MMAP
 	#undef	_lib_mmap
 	#undef	_mmap_anon

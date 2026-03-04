@@ -181,10 +181,6 @@ int _sftype(const char* mode, int* oflagsp, int* fflagsp)
 	default :
 		if(!(oflags&O_CREAT) )
 			oflags &= ~O_EXCL;
-#if _WIN32 && !_WINIX
-		if(!(oflags&(O_BINARY|O_TEXT)))
-			oflags |= O_BINARY;
-#endif
 		if((sflags&SFIO_RDWR) == SFIO_RDWR)
 			oflags = (oflags&~O_ACCMODE)|O_RDWR;
 		if(oflagsp)

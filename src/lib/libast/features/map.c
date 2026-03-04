@@ -100,12 +100,10 @@ main(void)
 	 */
 
 #if _std_strtol
-#if !__CYGWIN__
 	printf("#undef	strtol\n");
 	printf("#define strtol		_ast_strtol\n");
 	printf("#undef	strtoul\n");
 	printf("#define strtoul		_ast_strtoul\n");
-#endif
 	printf("#undef	strtoll\n");
 	printf("#define strtoll		_ast_strtoll\n");
 	printf("#undef	strtoull\n");
@@ -119,7 +117,6 @@ main(void)
 	printf("#undef	strtold\n");
 	printf("#define strtold		_ast_strtold\n");
 #endif
-#if !__CYGWIN__
 #if _npt_strtol || _std_strtol
 #if _npt_strtol && !_std_strtol
 	printf("#ifndef _ISOC99_SOURCE\n");
@@ -136,7 +133,6 @@ main(void)
 	printf("extern unsigned long	strtoul(const char*, char**, int);\n");
 #if _npt_strtoul && !_std_strtol
 	printf("#endif\n");
-#endif
 #endif
 #endif
 #if _npt_strtod || _std_strtod

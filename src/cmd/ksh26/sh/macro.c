@@ -49,10 +49,6 @@
 #include	"national.h"
 #include	"streval.h"
 
-#if _WINIX
-    static int Skip;
-#endif /* _WINIX */
-
 #define IS_ASCII(c)	((unsigned)(c) <= 0x7f)
 
 static int	_c_;
@@ -859,13 +855,6 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 					stkwrite(stkp,first,c);
 				first = fcseek(c);
 				tilde_expand2(tilde);
-#if _WINIX
-				if(Skip)
-				{
-					first = cp = fcseek(Skip);
-					Skip = 0;
-				}
-#endif /* _WINIX */
 				tilde = -1;
 				c=0;
 			}
@@ -2862,40 +2851,10 @@ static char *sh_tilde(const char *string)
 			cp = nv_getval(sh_scoped(OLDPWDNOD));
 		return cp;
 	}
-#if _WINIX
-	if((c = fcgetc())=='/')
-	{
-		char	*str;
-		int	n=0,offset=stktell(sh.stk);
-		stkputs(sh.stk,string,-1);
-		do
-		{
-			stkputc(sh.stk,c);
-			n++;
-		}
-		while ((c = fcgetc()) && c!='/');
-		stkputc(sh.stk,0);
-		if(c)
-			fcseek(-1);
-		str = stkseek(sh.stk,offset);
-		Skip = n;
-		if(logins_tree && (np=nv_search(str,logins_tree,0)))
-			return nv_getval(np);
-		if(pw = getpwnam(str))
-		{
-			string = str;
-			goto skip;
-		}
-		Skip = 0;
-	}
-#endif /* _WINIX */
 	if(logins_tree && (np=nv_search(string,logins_tree,0)))
 		return nv_getval(np);
 	if(!pw && !(pw = getpwnam(string)))
 		return NULL;
-#if _WINIX
-skip:
-#endif /* _WINIX */
 	if(!logins_tree)
 		logins_tree = dtopen(&_Nvdisc,Dtbag);
 	if(np=nv_search(string,logins_tree,NV_ADD))

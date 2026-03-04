@@ -174,9 +174,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	 * Do $CDPATH processing, except if the path is absolute or the first component is '.' or '..'
 	 */
 	if(dir[0] != '/'
-#if _WINIX
-	&& dir[1] != ':'  /* on Windows, an initial drive letter plus ':' denotes an absolute path */
-#endif /* _WINIX */
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
@@ -206,13 +203,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	{
 		dp = cdpath?cdpath->name:"";
 		cdpath = path_nextcomp(cdpath,dir,0);
-#if _WINIX
-		if(*stkptr(sh.stk,PATH_OFFSET+1)==':' && isalpha(*stkptr(sh.stk,PATH_OFFSET)))
-		{
-			*stkptr(sh.stk,PATH_OFFSET+1) = *stkptr(sh.stk,PATH_OFFSET);
-			*stkptr(sh.stk,PATH_OFFSET)='/';
-		}
-#endif /* _WINIX */
 		if(*stkptr(sh.stk,PATH_OFFSET)!='/')
 		{
 			char *last = stkfreeze(sh.stk,1);

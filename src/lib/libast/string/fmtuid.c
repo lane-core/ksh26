@@ -65,13 +65,7 @@ fmtuid(int uid)
 	else if (ip = (Id_t*)dtmatch(dict, &uid))
 		return ip->name;
 	if (pw = getpwuid(uid))
-	{
 		name = pw->pw_name;
-#if _WINIX
-		if (streq(name, "Administrator"))
-			name = "root";
-#endif
-	}
 	else if (uid == 0)
 		name = "root";
 	else

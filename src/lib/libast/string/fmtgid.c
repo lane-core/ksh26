@@ -65,13 +65,7 @@ fmtgid(int gid)
 	else if (ip = (Id_t*)dtmatch(dict, &gid))
 		return ip->name;
 	if (gr = getgrgid(gid))
-	{
 		name = gr->gr_name;
-#if _WINIX
-		if (streq(name, "Administrators"))
-			name = "sys";
-#endif
-	}
 	else if (gid == 0)
 		name = "sys";
 	else

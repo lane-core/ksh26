@@ -411,7 +411,7 @@ extern size_t		utf32toutf8(char*, uint32_t);
 #if _lib_posix_close
 /* This function is quite new, but it's ultimately the best option if available */
 #define ast_close(fd)	posix_close(fd, 0)
-#elif defined(__linux__) || defined(__FreeBSD__) || _WINIX
+#elif defined(__linux__) || defined(__FreeBSD__)
 /* Never try again after EINTR */
 #define ast_close(fd)	do {						\
 				int _cerr = errno;			\

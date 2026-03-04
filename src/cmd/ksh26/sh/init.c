@@ -401,7 +401,6 @@ static void put_restricted(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 	if(np==FPATHNOD	|| (fpath_scoped=(strcmp(name,FPATHNOD->nvname)==0)))
 		sh.pathlist = path_unsetfpath();
 	nv_putv(np, val, flags, fp);
-	sh.universe = 0;
 	if(sh.pathlist)
 	{
 		val = np->nvalue;
@@ -1121,21 +1120,9 @@ static const Namdisc_t LC_disc = {  sizeof(Namfun_t), put_lang };
  */
 static int newconf(const char *name, const char *path, const char *value)
 {
-	char *arg;
 	NOT_USED(path);
 	if(!name)
 		setenviron(value);
-	else if(strcmp(name,"UNIVERSE")==0 && strcmp(astconf(name,0,0),value))
-	{
-		sh.universe = 0;
-		/* set directory in new universe */
-		if(*(arg = path_pwd())=='/')
-			chdir(arg);
-		/* clear out old tracked alias */
-		stkseek(sh.stk,0);
-		stkputs(sh.stk,nv_getval(PATHNOD),0);
-		nv_putval(PATHNOD,stkseek(sh.stk,0),NV_RDONLY);
-	}
 	return 1;
 }
 
@@ -1182,11 +1169,7 @@ int sh_type(const char *path)
 		}
 		break;
 	}
-#if _WINIX
-	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && (!*(s+2) || *(s+2) == '.'))
-#else
 	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && !*(s+2))
-#endif
 		t |= SH_TYPE_POSIX;
 	if (*s++ == 's' && (*s == 'h' || *s == 'u'))
 	{
@@ -1194,10 +1177,6 @@ int sh_type(const char *path)
 		t |= SH_TYPE_SH;
 		if ((t & SH_TYPE_KSH) && *s == '9' && *(s+1) == '3')
 			s += 2;
-#if _WINIX
-		if (*s == '.' && *(s+1) == 'e' && *(s+2) == 'x' && *(s+3) == 'e')
-			s += 4;
-#endif
 		if (!isalnum(*s))
 			return t;
 	}
@@ -1300,28 +1279,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 		{
 			sh.st.dolc--;
 			sh.st.dolv++;
-#if _WINIX
-			{
-				char*	name;
-				name = sh.st.dolv[0];
-				if(name[1]==':' && (name[2]=='/' || name[2]=='\\'))
-				{
-					char*	p;
-					size_t	n;
-					if((n = pathposix(name, NULL, 0)) > 0)
-					{
-						p = (char*)sh_malloc(++n);
-						pathposix(name, p, n);
-						name = p;
-					}
-					else
-					{
-						name[1] = name[0];
-						name[0] = name[2] = '/';
-					}
-				}
-			}
-#endif /* _WINIX */
 		}
 	}
 	/* set[ug]id scripts require the -p flag */

@@ -73,20 +73,8 @@ struid(const char* name)
 	else
 	{
 		id = strtol(name, &e, 0);
-#if _WINIX
-		if (!*e)
-		{
-			if (!getpwuid(id))
-				id = -1;
-		}
-		else if (streq(name, "root") && (pw = getpwnam("Administrator")))
-			id = pw->pw_uid;
-		else
-			id = -1;
-#else
 		if (*e || !getpwuid(id))
 			id = -1;
-#endif
 	}
 	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{
