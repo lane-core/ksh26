@@ -85,21 +85,26 @@ _test dir:
     # Summary
     if [[ -f "$summary" && -s "$summary" ]]; then
         printf '\n'
-        sort "$summary" | grep -v '^PASS' || true
+        sort "$summary" | grep '^not ok' || true
         total=$(wc -l < "$summary" | tr -d ' ')
-        pass=$(grep -c '^PASS' "$summary" || true)
-        printf -- '---\n%d/%d pass (%ds)\n' "$pass" "$total" "$elapsed"
+        pass=$(grep -c '^ok' "$summary" || true)
+        skip=$(grep -c '# SKIP' "$summary" || true)
+        if (( skip > 0 )); then
+            printf -- '---\n%d/%d pass, %d skipped (%ds)\n' "$pass" "$total" "$skip" "$elapsed"
+        else
+            printf -- '---\n%d/%d pass (%ds)\n' "$pass" "$total" "$elapsed"
+        fi
         # Regression detection (only counts tests that ran both times)
         prev="${summary%.log}.prev"
         if [[ -f "$prev" && -s "$prev" ]]; then
             regressed=$(awk '
-                FILENAME==ARGV[1] && /^PASS/ { prev[$2]=1 }
-                FILENAME==ARGV[2] && !/^PASS/ { cur[$2]=1 }
+                FILENAME==ARGV[1] && /^ok / { split($0,a," - "); prev[a[2]]=1 }
+                FILENAME==ARGV[2] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); cur[a[2]]=1 }
                 END { for (t in cur) if (t in prev) n++; print n+0 }
             ' "$prev" "$summary")
             improved=$(awk '
-                FILENAME==ARGV[1] && !/^PASS/ { prev[$2]=1 }
-                FILENAME==ARGV[2] && /^PASS/ { cur[$2]=1 }
+                FILENAME==ARGV[1] && /^not ok/ { split($0,a," - "); sub(/ #.*/, "", a[2]); prev[a[2]]=1 }
+                FILENAME==ARGV[2] && /^ok / { split($0,a," - "); cur[a[2]]=1 }
                 END { for (t in cur) if (t in prev) n++; print n+0 }
             ' "$prev" "$summary")
             if (( regressed > 0 || improved > 0 )); then
@@ -131,16 +136,6 @@ test-asan: build-asan (_test ASANDIR)
 test-iffe: _nix-warn
     sh tests/infra/iffe.sh
 
-# Run tests sequentially via legacy shtests harness
-test-serial: build
-    HOSTTYPE={{HOSTTYPE}} \
-    PACKAGEROOT="$PWD" \
-    INSTALLROOT="$PWD/{{BUILDDIR}}" \
-    LD_LIBRARY_PATH="" \
-    SHELL={{BUILDDIR}}/bin/ksh \
-    KSH={{BUILDDIR}}/bin/ksh \
-    bin/shtests
-
 # Pass arbitrary args to samu
 samu *args: bootstrap
     {{SAMU}} -C {{BUILDDIR}} {{args}}
@@ -168,7 +163,7 @@ failures dir=BUILDDIR:
     if [ ! -f "$summary" ]; then
         echo "No test summary. Run: just test"; exit 1
     fi
-    non_pass=$(grep -v '^PASS' "$summary" || true)
+    non_pass=$(grep '^not ok' "$summary" || true)
     if [ -n "$non_pass" ]; then
         printf '%s\n' "$non_pass" | sort
     else
@@ -359,18 +354,20 @@ _run-summary dir: bootstrap
         printf '%s\n' "No summary found at $summary"
         exit 1
     fi
-    # Sort: PASS first, then failures grouped by type
-    sort -k1,1 "$summary" | awk '
+    # Sort: ok first, then not-ok grouped by type
+    sort "$summary" | awk '
         { print }
-        /^PASS/  { pass++ }
-        /^SEGV/  { segv++ }
-        /^ABRT/  { abrt++ }
-        /^FAIL/  { fail++ }
-        /^TIME/  { time++ }
-        /^KILL/  { kill++ }
+        /^ok /           { pass++ }
+        /# SKIP/         { skip++ }
+        /^not ok.*SEGV/  { segv++ }
+        /^not ok.*ABRT/  { abrt++ }
+        /^not ok.*timeout/ { time++ }
+        /^not ok.*KILL/  { kill++ }
+        /^not ok/ && !/SEGV|ABRT|timeout|KILL/ { fail++ }
         END {
             printf "---\n"
             printf "%d pass", pass+0
+            if (skip) printf " (%d skipped)", skip
             if (segv) printf ", %d segfault", segv
             if (abrt) printf ", %d abort", abrt
             if (fail) printf ", %d fail", fail

@@ -159,75 +159,27 @@ The options have the following defaults and meanings:
     VSH          on  Compile with vi command line editing.  The original vi
                      line editor code was provided by Pat Sullivan at CB.
 
-#### BUILDING KSH 93U+M ####
+#### BUILDING KSH26 ####
 
-To build ksh (as well as libcmd and libast libraries on which ksh depends),
-cd to the top directory and run:
+To build ksh26 (as well as libcmd and libast libraries on which it depends),
+enter the nix devshell and run:
 
-	bin/package make
+	nix develop -c just build
 
-The compiled binaries are stored in the arch directory, in a subdirectory
-that corresponds to your architecture. The command 'bin/package host type'
-outputs the name of this subdirectory.
+The compiled binaries are stored in build/$HOSTTYPE/bin/.
 
-If you have trouble or want to tune the binaries, you may pass additional
-compiler and linker flags. It is usually best to export these as environment
-variables before running bin/package as they could change the name of the
-build subdirectory of the arch directory, so exporting them is a convenient
-way to keep them consistent between build and test commands. Note that this
-system uses CCFLAGS instead of the usual CFLAGS. An example that makes
-Solaris Studio cc produce a 64-bit binary:
+The build also generates shcomp, a program that will precompile a script.
+ksh is able to recognize files in this format and process them as scripts.
+You can use shcomp to send out scripts when you don't want to give away
+the original script source.
 
-	export CCFLAGS="-m64 -O" LDFLAGS="-m64"
-	bin/package make
-
-Alternatively you can append these to the command, and they will only be
-used for that command. You can also specify an alternative shell in which to
-run the build scripts this way. For example:
-
-	bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" \
-		LDFLAGS="-L/opt/local/lib"
-
-Note: Do not add compiler flags that cause the compiler to emit terminal
-escape codes, such as -fdiagnostics-color=always; this will cause the build
-to fail as the probing code greps compiler diagnostics.
-
-If you are certain that you don't need support for UTF-8 and other multibyte
-character locales and really want to save some memory and CPU cycles, add
-'-DAST_NOMULTIBYTE' to CCFLAGS to compile out all multibyte character
-handling in ksh and supporting libraries. Not recommended for most users.
-
-To install, use: bin/package install DESTINATION_DIRECTORY [ COMMAND ... ]
-
-Any command from the arch directory can be installed. If no COMMAND is
-specified, ksh and shcomp are assumed.
-
-The DESTINATION_DIRECTORY is created if it does not exist. Commands are
-installed in its bin subdirectory and each command's manual page, if
-available, is installed in share/man.
-
-Destination directories with whitespace or shell pattern characters in their
-pathnames are not yet supported.
-
-For more information, run:
-
-	bin/package help
-
-Many other commands in this repo self-document via the --help, --man and
---html options; those that do have no separate manual page.
-
-The build should also generate shcomp, a program that will precompile
-a script.  ksh93 is able to recognize files in this format and process
-them as scripts.  You can use shcomp to send out scripts when you
-don't want to give away the original script source.
-
-#### TESTING KSH ####
+#### TESTING KSH26 ####
 
 The tests subdirectory contains a number of regression tests for ksh.
-To run all these tests with the shell you just built, run the command
-	bin/shtests
-For help and more options, type
-	bin/shtests --man
+To run all tests in parallel:
+	just test
+To run a single test:
+	just test-one basic
 
 #### OTHER DOCUMENTATION ####
 

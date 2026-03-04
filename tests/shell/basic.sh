@@ -713,7 +713,7 @@ check_profiling_or_asan() {
 if ! check_profiling_or_asan
 then	if	[[ ! $(uname -s) =~ ^SunOS$ ]] &&
 		getPsOutput "$$" &&
-		[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
+		[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how the test harness invokes this script
 	then	expect='./atest 1 2'
 		echo 'sleep 10; exit 0' >atest
 		chmod 755 atest

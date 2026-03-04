@@ -306,7 +306,7 @@ T '5th tuesday in march 2016'		'2016-03-29'
 # The following tests for times relative to the current time require GNU 'date' to compare our results to.
 if	! gd=$(	set -o noglob
 		IFS=:
-		search=$PATH:$userPATH:   # userPATH is the user's original path (saved in tests/shtests)
+		search=$PATH:$userPATH:   # userPATH is the user's original path (exported by run-test.sh)
 		for p in $search
 		do	[[ -z $p ]] && p=.
 			for c in gnudate gdate date

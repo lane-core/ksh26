@@ -1,50 +1,11 @@
-# Project-specific files
+# Build output (modern: build/, legacy: arch/)
 arch
 build
-tgz
-lcl
-.DS_Store
 
-# Flat make libs, binaries, etc
+# Build artifacts
 *.a
 *.o
-*.req
-FEATURE/
-/bin/.paths
-/bin/crossexec
-/bin/iffe
-/bin/ksh
-/bin/mamake
-/bin/mktest
-/bin/ok/
-/bin/proto
-/bin/pty
-/bin/regress
-/bin/shcomp
-/fun/
-/include/
-/lib/
-/src/cmd/INIT/crossexec
-/src/cmd/INIT/iffe
-/src/cmd/INIT/mamake
-/src/cmd/INIT/mktest
-/src/cmd/INIT/mprobe
-/src/cmd/INIT/package
-/src/cmd/INIT/probe
-/src/cmd/INIT/probe.sh
-/src/cmd/INIT/regress
-/src/cmd/builtin/pty
-/src/cmd/ksh26/ksh
-/src/cmd/ksh26/shcomp
-/src/lib/libast/*.h
-/src/lib/libast/astmath.exe
-/src/lib/libast/conf
-/src/lib/libast/conftab.c
-/src/lib/libast/lcgen
-/src/lib/libast/lctab.c
-/src/lib/libast/t.c
-/src/lib/libcmd/cmdext.h
-/src/lib/libcmd/cmdlist.h
+.DS_Store
 
 # Git worktrees (machine-local)
 /dev/

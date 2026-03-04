@@ -86,7 +86,7 @@ ksh26/
         │   ├── build.log          # full build output
         │   └── test.log           # full test output
         ├── test/
-        │   ├── summary.log        # PASS/FAIL per test
+        │   ├── summary.log        # TAP: ok/not ok per test
         │   ├── summary.prev       # previous run (for regression detection)
         │   └── *.stamp.log        # per-test failure logs
 ```
@@ -234,7 +234,7 @@ Generates two files that let ninja run tests in parallel:
   - Locale setup (C or C.UTF-8)
   - Memory limits (ulimit on Linux, RSS polling on Darwin)
   - 60-second timeout via GNU `timeout`
-  - Exit code classification (PASS/FAIL/SEGV/ABRT/TIME/KILL)
+  - Exit code classification (TAP: ok/not ok with detail)
   - Per-test log files (kept only on failure)
   - Summary file for the just porcelain to aggregate
 
@@ -268,15 +268,15 @@ The justfile `test` recipe builds, runs all tests via samu, then prints
 a summary with regression detection:
 
 ```
-FAIL sigchld.C (exit 1, 2 errors)
+not ok - sigchld.C # 2 errors
 ---
-114/115 pass (12s)
+116/117 pass (12s)
 vs previous: 1 regressed
 ```
 
 Regression detection compares the current `summary.log` against
 `summary.prev` (saved automatically). It reports tests that changed from
-PASS to non-PASS (regressed) or vice versa (improved).
+ok to not-ok (regressed) or vice versa (improved).
 
 ### Diagnostic recipes
 
@@ -362,7 +362,6 @@ platform probing. The rest (Mamfiles, mamake, mamprobe, bin/package) is retired.
 | Tool | Role |
 |------|------|
 | `iffe.sh` | "If feature exists" — 98 KB battle-tested feature prober. Compiles small test programs to detect platform capabilities. Regression tests in `tests/infra/iffe.sh`. |
-| `bin/shtests` | Test harness for serial test runs (`just test-serial`). |
 
 ## Adding or removing a library
 

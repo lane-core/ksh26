@@ -27,16 +27,22 @@ function err_exit
 alias err_exit='err_exit $LINENO'  # inaccurate err_exit name kept for historical integrity :)
 alias warning='_message "$LINENO" "warning:"'
 
+function skip_all
+{
+	print -r "$*" > "$tmp/.skip_reason"
+	exit 0
+}
+
 Command=${0##*/}
 integer Errors=0
 
 if	[[ -o xtrace ]]
-then	# PS4 is set and exported in shtests
+then	# PS4 may be set by the test harness
 	typeset -F SECONDS  # show fractional seconds in xtrace output
 fi
 
 if	! [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]]
-then	print -r "$Command: \$tmp not set; run this from shtests. Aborting." >&2
+then	print -r "$Command: \$tmp not set; run this via the test harness (just test). Aborting." >&2
 	exit 1
 fi
 

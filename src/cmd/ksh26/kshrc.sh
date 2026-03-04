@@ -14,7 +14,7 @@
 #                                                                      #
 ########################################################################
 
-# A nice default .kshrc for 'bin/package use'
+# A nice default .kshrc
 # Feel free to adapt and use as your own ~/.kshrc
 
 # Enable ** patterns
@@ -191,7 +191,7 @@ function PS2.get
 		"${.rc.fmt[reset]}"
 }
 
-# Stuff for when this is run from 'bin/package use'.
+# Stuff for when INSTALLROOT is set (e.g. development builds).
 if	[[ -v INSTALLROOT ]]
 then
 	# keeping ENV pointed here can cause breakage when other shells run,

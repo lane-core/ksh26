@@ -19,7 +19,7 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-tmpPS4='+ [temp_PS4|L$LINENO|e$?] '  # used to avoid interference to ${.sh.match} from $PS4 set by shtests
+tmpPS4='+ [temp_PS4|L$LINENO|e$?] '  # used to avoid interference to ${.sh.match} from $PS4 set by the test harness
 
 integer j=4
 base=/home/dgk/foo//bar

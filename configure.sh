@@ -1459,6 +1459,7 @@ export SHTESTS_COMMON="${PACKAGEROOT}/tests/shell/_common"
 export SHELL="${BUILDDIR}/bin/ksh"
 export SHCOMP="${BUILDDIR}/bin/shcomp"
 
+export userPATH=$PATH
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
 PATH="${BUILDDIR}/bin:$PATH"
 export PATH
@@ -1533,29 +1534,32 @@ summary="${BUILDDIR}/test/summary.log"
 desc="${test_name}.${mode}"
 
 if [ "$rc" -eq 0 ]; then
-	printf '%s\n' "PASS $desc" >> "$summary"
+	if [ -f "$tmp/.skip_reason" ]; then
+		reason=$(cat "$tmp/.skip_reason")
+		printf 'ok - %s # SKIP %s\n' "$desc" "$reason" >> "$summary"
+	else
+		printf 'ok - %s\n' "$desc" >> "$summary"
+	fi
 	touch "$stamp"
 	rm -f "$log"
 	exit 0
 fi
 
-# Classify failure by exit code
 case $rc in
-124)  status="TIME" detail="timeout" ;;
-139)  status="SEGV" detail="signal 11" ;;
-134)  status="ABRT" detail="signal 6" ;;
-137)  status="KILL" detail="signal 9" ;;
-*)    # Count err_exit failures from the log
-      nerr=$(grep -c '^\[' "$log" 2>/dev/null) || nerr=0
+124)  detail="timeout" ;;
+139)  detail="SEGV signal 11" ;;
+134)  detail="ABRT signal 6" ;;
+137)  detail="KILL signal 9" ;;
+*)    nerr=$(grep -c 'FAIL:' "$log" 2>/dev/null) || nerr=0
       if [ "$nerr" -gt 0 ]; then
-          status="FAIL" detail="exit $rc, $nerr errors"
+          detail="$nerr errors"
       else
-          status="FAIL" detail="exit $rc"
+          detail="exit $rc"
       fi
       ;;
 esac
 
-printf '%s\n' "$status $desc ($detail)" >> "$summary"
+printf 'not ok - %s # %s\n' "$desc" "$detail" >> "$summary"
 cat "$log" >&2
 rm -f "$stamp"
 exit "$rc"
@@ -1639,9 +1643,5 @@ generate_test_runner
 
 # Ensure test stamp dir exists
 mkdir -p "$BUILDDIR/test"
-
-# Install shopt.h where bin/shtests expects it (legacy compat)
-mkdir -p "$BUILDDIR/src/cmd/ksh26"
-cp -f "$BUILDDIR/ksh26_work/shopt.h" "$BUILDDIR/src/cmd/ksh26/shopt.h"
 
 printf '%s\n' "configure: done"

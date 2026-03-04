@@ -31,15 +31,12 @@ Directory layout:
 
 	The directory tests contains a number of regression tests.
 	In most cases, when a bug gets fixed, a test is added to
-	one of these files.  The ksh regression tests can be run by
-	invoking the shtests script in the top-level bin directory;
-	see 'bin/shtests --man' for documentation about the options.
-	They are also run with default options via 'bin/package tests'
-	as part of a complete test suite run that also includes tests
-	for the build system itself.
+	one of these files.  The ksh regression tests can be run via
+	'just test' (parallel) or 'just test-one NAME' (single test).
+	See the top-level CLAUDE.md or justfile for full documentation.
 
-	The top level directory contains the mamake Mamfile, the ksh93
-	manual page (sh.1) and the nval.3 and shell.3 documentation files.
+	The top level directory contains the ksh93 manual page (sh.1)
+	and the nval.3 and shell.3 documentation files.
 	The file COMPATIBILITY is a list of all known incompatibilities
 	with previous AT&T releases.
 
