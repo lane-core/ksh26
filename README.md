@@ -18,7 +18,11 @@ Or without nix: C23 compiler (GCC 14+ / Clang 18+), `just`, POSIX shell.
 
 ## Platforms
 
-Linux (glibc, musl), macOS, FreeBSD, NetBSD, OpenBSD.
+- Linux (glibc, musl) — x86_64, aarch64
+- macOS/Darwin — x86_64, aarch64
+- FreeBSD, NetBSD, OpenBSD
+- illumos/Solaris
+- Haiku
 
 ## What changed
 
