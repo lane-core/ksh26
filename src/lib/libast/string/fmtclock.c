@@ -25,32 +25,32 @@
 #include <ast.h>
 #include <tm.h>
 
-char*
+char *
 fmtclock(Sfulong_t t)
 {
-	int		u;
-	char*		buf;
-	int		z;
+	int u;
+	char *buf;
+	int z;
 
-	static unsigned long	clk_tck;
+	static unsigned long clk_tck;
 
-	if (!clk_tck)
+	if(!clk_tck)
 	{
 #ifdef CLOCKS_PER_SEC
 		clk_tck = CLOCKS_PER_SEC;
 #else
-		if (!(clk_tck = astconf_ulong(CONF_CLK_TCK)))
+		if(!(clk_tck = astconf_ulong(CONF_CLK_TCK)))
 			clk_tck = 60;
 #endif /* CLOCKS_PER_SEC */
 	}
-	if (t == 0)
+	if(t == 0)
 		return "0";
-	if (t == ((Sfulong_t)~0))
+	if(t == ((Sfulong_t)~0))
 		return "%";
 	t = (t * 1000000) / clk_tck;
-	if (t < 1000)
+	if(t < 1000)
 		u = 'u';
-	else if ((t /= 1000) < 1000)
+	else if((t /= 1000) < 1000)
 		u = 'm';
 	else
 		return fmtelapsed(t / 10, 100);

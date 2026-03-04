@@ -24,24 +24,24 @@
  * user name -> UID
  */
 
-#define getpwnam	______getpwnam
-#define getpwuid	______getpwuid
+#define getpwnam ______getpwnam
+#define getpwuid ______getpwuid
 
 #include <ast.h>
 #include <cdt.h>
 #include <pwd.h>
 
-#undef	getpwnam
-#undef	getpwuid
+#undef getpwnam
+#undef getpwuid
 
-extern struct passwd*	getpwnam(const char*);
-extern struct passwd*	getpwuid(uid_t);
+extern struct passwd *getpwnam(const char *);
+extern struct passwd *getpwuid(uid_t);
 
 typedef struct Id_s
 {
-	Dtlink_t	link;
-	int		id;
-	char		name[1];
+	Dtlink_t link;
+	int id;
+	char name[1];
 } Id_t;
 
 /*
@@ -50,33 +50,32 @@ typedef struct Id_s
  * -2 on subsequent errors for a given name
  */
 
-int
-struid(const char* name)
+int struid(const char *name)
 {
-	Id_t*		ip;
-	struct passwd*	pw;
-	int		id;
-	char*		e;
+	Id_t *ip;
+	struct passwd *pw;
+	int id;
+	char *e;
 
-	static Dt_t*	dict;
-	static Dtdisc_t	disc;
+	static Dt_t *dict;
+	static Dtdisc_t disc;
 
-	if (!dict)
+	if(!dict)
 	{
 		disc.key = offsetof(Id_t, name);
 		dict = dtopen(&disc, Dtset);
 	}
-	else if (ip = (Id_t*)dtmatch(dict, name))
+	else if(ip = (Id_t *)dtmatch(dict, name))
 		return ip->id;
-	if (pw = getpwnam(name))
+	if(pw = getpwnam(name))
 		id = pw->pw_uid;
 	else
 	{
 		id = strtol(name, &e, 0);
-		if (*e || !getpwuid(id))
+		if(*e || !getpwuid(id))
 			id = -1;
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if(dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{
 		strcpy(ip->name, name);
 		ip->id = id >= 0 ? id : -2;

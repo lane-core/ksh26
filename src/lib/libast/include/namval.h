@@ -28,8 +28,8 @@
 
 typedef struct
 {
-	char*		name;
-	int		value;
+	char *name;
+	int value;
 #ifdef _NAMVAL_PRIVATE_
 	_NAMVAL_PRIVATE_
 #endif

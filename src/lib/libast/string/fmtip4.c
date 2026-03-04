@@ -24,16 +24,16 @@
  * and optional prefix bits (if 0 <= bits <= 32)
  */
 
-char*
+char *
 fmtip4(uint32_t addr, int bits)
 {
-	char*	buf;
-	int	z;
-	int	i;
+	char *buf;
+	int z;
+	int i;
 
 	buf = fmtbuf(z = 20);
-	i = snprintf(buf, z, "%d.%d.%d.%d", (addr>>24)&0xff, (addr>>16)&0xff, (addr>>8)&0xff, (addr)&0xff);
-	if (bits >= 0 && bits <= 32)
+	i = snprintf(buf, z, "%d.%d.%d.%d", (addr >> 24) & 0xff, (addr >> 16) & 0xff, (addr >> 8) & 0xff, (addr) & 0xff);
+	if(bits >= 0 && bits <= 32)
 		snprintf(buf + i, z - i, "/%d", bits);
 	return buf;
 }

@@ -24,25 +24,23 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: tty (AT&T Research) 2008-03-13 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?tty - write the name of the terminal to standard output]"
-"[+DESCRIPTION?\btty\b writes the name of the terminal that is connected "
-	"to standard input onto standard output.  If the standard input is not "
-	"a terminal, \"\bnot a tty\b\" will be written to standard output.]"
-"[l:line-number?Write the synchronous line number of the terminal on a "
-	"separate line following the terminal name line. If the standard "
-	"input is not a synchronous  terminal then "
-	"\"\bnot on an active synchronous line\b\" is written.]"
-"[s:silent|quiet?Disable the terminal name line. Use \b[[ -t 0 ]]]]\b instead.]"
-"[+EXIT STATUS?]{"
-	"[+0?Standard input is a tty.]"
-	"[+1?Standard input is not a tty.]"
-	"[+2?Invalid arguments.]"
-	"[+3?A an error occurred.]"
-"}"
-;
-
+    "[-?\n@(#)$Id: tty (AT&T Research) 2008-03-13 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?tty - write the name of the terminal to standard output]"
+    "[+DESCRIPTION?\btty\b writes the name of the terminal that is connected "
+    "to standard input onto standard output.  If the standard input is not "
+    "a terminal, \"\bnot a tty\b\" will be written to standard output.]"
+    "[l:line-number?Write the synchronous line number of the terminal on a "
+    "separate line following the terminal name line. If the standard "
+    "input is not a synchronous  terminal then "
+    "\"\bnot on an active synchronous line\b\" is written.]"
+    "[s:silent|quiet?Disable the terminal name line. Use \b[[ -t 0 ]]]]\b instead.]"
+    "[+EXIT STATUS?]{"
+    "[+0?Standard input is a tty.]"
+    "[+1?Standard input is not a tty.]"
+    "[+2?Invalid arguments.]"
+    "[+3?A an error occurred.]"
+    "}";
 
 #include <cmd.h>
 
@@ -50,34 +48,33 @@ static const char usage[] =
 #include <sys/stermio.h>
 #endif
 
-int
-b_tty(int argc, char** argv, Shbltin_t* context)
+int b_tty(int argc, char **argv, Shbltin_t *context)
 {
-	int	sflag = 0;
-	int	lflag = 0;
-	char*	tty;
+	int sflag = 0;
+	int lflag = 0;
+	char *tty;
 #if _mac_STWLINE
-	int	n;
+	int n;
 #endif
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'l':
-			lflag++;
-			continue;
-		case 's':
-			sflag++;
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'l':
+				lflag++;
+				continue;
+			case 's':
+				sflag++;
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
@@ -86,17 +83,17 @@ b_tty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if(!(tty=ttyname(0)))
+	if(!(tty = ttyname(0)))
 	{
 		tty = ERROR_translate(0, 0, 0, "not a tty");
 		error_info.errors++;
 	}
 	if(!sflag)
-		sfputr(sfstdout,tty,'\n');
+		sfputr(sfstdout, tty, '\n');
 	if(lflag)
 	{
 #if _mac_STWLINE
-		if ((n = ioctl(0, STWLINE, 0)) >= 0)
+		if((n = ioctl(0, STWLINE, 0)) >= 0)
 			error(ERROR_OUTPUT, 1, "synchronous line %d", n);
 		else
 #endif

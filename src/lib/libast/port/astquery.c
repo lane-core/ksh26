@@ -36,38 +36,37 @@
 #include <ast.h>
 #include <error.h>
 
-int
-astquery(int quit, const char* format, ...)
+int astquery(int quit, const char *format, ...)
 {
-	va_list		ap;
-	int		n;
-	int		c;
-	int		r;
-	FILE*		ip;
-	FILE*		op;
+	va_list ap;
+	int n;
+	int c;
+	int r;
+	FILE *ip;
+	FILE *op;
 
-	static FILE*	rfp;
-	static FILE*	wfp;
+	static FILE *rfp;
+	static FILE *wfp;
 
 	r = 0;
 	va_start(ap, format);
-	if (!format)
+	if(!format)
 		goto done;
 	r = -1;
-	if (!rfp)
+	if(!rfp)
 	{
 		c = errno;
-		if (isatty(fileno(stdin)))
+		if(isatty(fileno(stdin)))
 			rfp = stdin;
-		else if (!(rfp = fopen("/dev/tty", "r")))
+		else if(!(rfp = fopen("/dev/tty", "r")))
 			goto done;
-		if (isatty(fileno(stderr)))
+		if(isatty(fileno(stderr)))
 			wfp = stderr;
-		else if (!(wfp = fopen("/dev/tty", "w")))
+		else if(!(wfp = fopen("/dev/tty", "w")))
 			goto done;
 		errno = c;
 	}
-	if (quit & ERROR_PROMPT)
+	if(quit & ERROR_PROMPT)
 	{
 		quit &= ~ERROR_PROMPT;
 		ip = rfp;
@@ -81,31 +80,31 @@ astquery(int quit, const char* format, ...)
 	fflush(stdout);
 	vfprintf(op, format, ap);
 	fflush(op);
-	for (n = c = fgetc(ip);; c = fgetc(ip))
-		switch (c)
+	for(n = c = fgetc(ip);; c = fgetc(ip))
+		switch(c)
 		{
-		case EOF:
-			n = c;
-			/* FALLTHROUGH */
-		case '\n':
-			switch (n)
-			{
 			case EOF:
-			case 'q':
-			case 'Q':
-				if (quit >= 0)
-					exit(quit);
-				goto done;
-			case '1':
-			case 'y':
-			case 'Y':
-			case '+':
-				r = 0;
-				goto done;
-			}
-			return 1;
+				n = c;
+				/* FALLTHROUGH */
+			case '\n':
+				switch(n)
+				{
+					case EOF:
+					case 'q':
+					case 'Q':
+						if(quit >= 0)
+							exit(quit);
+						goto done;
+					case '1':
+					case 'y':
+					case 'Y':
+					case '+':
+						r = 0;
+						goto done;
+				}
+				return 1;
 		}
- done:
+done:
 	va_end(ap);
 	return r;
 }

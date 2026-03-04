@@ -16,17 +16,17 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*
  * _sfopen() wrapper to allow user sfopen() intercept
  */
 
-extern Sfio_t*		_sfopen(Sfio_t*, const char*, const char*);
+extern Sfio_t *_sfopen(Sfio_t *, const char *, const char *);
 
-Sfio_t* sfopen(Sfio_t*		f,		/* old stream structure */
-	       const char*	file,		/* file/string to be opened */
-	       const char*	mode)		/* mode of the stream */
+Sfio_t *sfopen(Sfio_t *f,        /* old stream structure */
+               const char *file, /* file/string to be opened */
+               const char *mode) /* mode of the stream */
 {
 	return _sfopen(f, file, mode);
 }

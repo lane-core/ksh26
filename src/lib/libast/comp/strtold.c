@@ -21,25 +21,25 @@
  * strtold() implementation
  */
 
-#define S2F_function	strtold
-#define S2F_type	2
+#define S2F_function strtold
+#define S2F_type 2
 
 /*
  * AST strtold() => strtod() when double == long double
  */
 
-#define _AST_STD_H	1
+#define _AST_STD_H 1
 
 #include <ast_common.h>
 
 #if _ast_fltmax_double
-#define strtold		______strtold
+#define strtold ______strtold
 #endif
 
 #include <ast_lib.h>
 
 #if __ANDROID_API__
-#define _STDLIB_H	1
+#define _STDLIB_H 1
 #endif
 
 #include <ast_sys.h>
@@ -49,10 +49,10 @@
 #endif
 
 #if _ast_fltmax_double
-#undef	strtold
+#undef strtold
 #endif
 
-#undef	_AST_STD_H
+#undef _AST_STD_H
 
 #include <ast.h>
 

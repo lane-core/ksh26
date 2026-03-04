@@ -32,8 +32,8 @@
 
 #if _str_st_fstype
 
-char*
-fmtfs(struct stat* st)
+char *
+fmtfs(struct stat *st)
 {
 	return st->st_fstype;
 }
@@ -44,42 +44,43 @@ fmtfs(struct stat* st)
 
 typedef struct Id_s
 {
-	Dtlink_t	link;
-	dev_t		id;
-	char		name[1];
+	Dtlink_t link;
+	dev_t id;
+	char name[1];
 } Id_t;
 
-char*
-fmtfs(struct stat* st)
+char *
+fmtfs(struct stat *st)
 {
-	Id_t*		ip;
-	void*		mp;
-	Mnt_t*		mnt;
-	char*		s;
-	struct stat		rt;
-	char*			buf;
+	Id_t *ip;
+	void *mp;
+	Mnt_t *mnt;
+	char *s;
+	struct stat rt;
+	char *buf;
 
-	static Dt_t*		dict;
-	static Dtdisc_t		disc;
+	static Dt_t *dict;
+	static Dtdisc_t disc;
 
-	if (!dict)
+	if(!dict)
 	{
 		disc.key = offsetof(Id_t, id);
 		disc.size = sizeof(dev_t);
 		dict = dtopen(&disc, Dtset);
 	}
-	else if (ip = (Id_t*)dtmatch(dict, &st->st_dev))
+	else if(ip = (Id_t *)dtmatch(dict, &st->st_dev))
 		return ip->name;
 	s = FS_default;
-	if (mp = mntopen(NULL, "r"))
+	if(mp = mntopen(NULL, "r"))
 	{
-		while ((mnt = mntread(mp)) && (stat(mnt->dir, &rt) || rt.st_dev != st->st_dev));
-		if (mnt && mnt->type)
+		while((mnt = mntread(mp)) && (stat(mnt->dir, &rt) || rt.st_dev != st->st_dev))
+			;
+		if(mnt && mnt->type)
 			s = mnt->type;
 	}
-	if (!dict || !(ip = newof(0, Id_t, 1, strlen(s))))
+	if(!dict || !(ip = newof(0, Id_t, 1, strlen(s))))
 	{
-		if (!mp)
+		if(!mp)
 			return s;
 		buf = fmtbuf(strlen(s) + 1);
 		strcpy(buf, s);
@@ -87,7 +88,7 @@ fmtfs(struct stat* st)
 		return buf;
 	}
 	strcpy(ip->name, s);
-	if (mp)
+	if(mp)
 		mntclose(mp);
 	dtinsert(dict, ip);
 	return ip->name;

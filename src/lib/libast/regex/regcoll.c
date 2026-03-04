@@ -35,28 +35,27 @@
  *		or collating element (*wc == 0) in buf
  */
 
-int
-regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
+int regcollate(const char *s, char **e, char *buf, size_t size, wchar_t *wc)
 {
-	int			c;
-	char*			b;
-	char*			x;
-	const char*		t;
-	int			r;
-	int			term;
-	wchar_t			w;
+	int c;
+	char *b;
+	char *x;
+	const char *t;
+	int r;
+	int term;
+	wchar_t w;
 
-	if (size < 2 || (term = *s) != '.' && term != '=' || !*++s || *s == term && *(s + 1) == ']')
+	if(size < 2 || (term = *s) != '.' && term != '=' || !*++s || *s == term && *(s + 1) == ']')
 		goto nope;
 	t = s;
 	w = mbchar(s);
-	if ((r = (s - t)) > 1)
+	if((r = (s - t)) > 1)
 	{
-		if (*s++ != term || *s++ != ']')
+		if(*s++ != term || *s++ != ']')
 			goto oops;
 		goto done;
 	}
-	if (*s == term && *(s + 1) == ']')
+	if(*s == term && *(s + 1) == ']')
 	{
 		s += 2;
 		goto done;
@@ -64,57 +63,57 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 	b = buf;
 	x = buf + size - 2;
 	s = t;
-	for (;;)
+	for(;;)
 	{
-		if (!(c = *s++))
+		if(!(c = *s++))
 			goto oops;
-		if (c == term)
+		if(c == term)
 		{
-			if (!(c = *s++))
+			if(!(c = *s++))
 				goto oops;
-			if (c != term)
+			if(c != term)
 			{
-				if (c != ']')
+				if(c != ']')
 					goto oops;
 				break;
 			}
 		}
-		if (b < x)
+		if(b < x)
 			*b++ = c;
 	}
 	r = s - t - 2;
 	w = 0;
-	if (b >= x)
+	if(b >= x)
 		goto done;
 	*b = 0;
 	if(!ast.locale.transform)
 		goto nope;
 	{
-		char	tmp[256];
-		int	i;
-		for (i = 0; i < r && i < sizeof(tmp) - 1; i++)
+		char tmp[256];
+		int i;
+		for(i = 0; i < r && i < sizeof(tmp) - 1; i++)
 			tmp[i] = '0';
 		tmp[i] = 0;
-		if (ast.locale.transform(NULL, buf, 0) >= ast.locale.transform(NULL, tmp, 0))
+		if(ast.locale.transform(NULL, buf, 0) >= ast.locale.transform(NULL, tmp, 0))
 			goto nope;
 	}
-	t = (const char*)buf;
- done:
-	if (r <= size && (char*)t != buf)
+	t = (const char *)buf;
+done:
+	if(r <= size && (char *)t != buf)
 	{
 		memcpy(buf, t, r);
-		if (r < size)
+		if(r < size)
 			buf[r] = 0;
 	}
-	if (wc)
+	if(wc)
 		*wc = w;
-	if (e)
-		*e = (char*)s;
+	if(e)
+		*e = (char *)s;
 	return r;
- oops:
- 	s--;
- nope:
-	if (e)
-		*e = (char*)s;
+oops:
+	s--;
+nope:
+	if(e)
+		*e = (char *)s;
 	return -1;
 }

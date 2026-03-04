@@ -34,8 +34,8 @@
  * NOTE: two's complement binary integral representation assumed
  */
 
-#define getpagesize	______getpagesize
-#define getdtablesize	______getdtablesize
+#define getpagesize ______getpagesize
+#define getdtablesize ______getdtablesize
 
 /*
  * we'd like as many symbols as possible defined
@@ -51,20 +51,20 @@
 #include "FEATURE/lib"
 
 #ifdef __sun
-#define _timespec	timespec
+#define _timespec timespec
 #endif
 
 #include <sys/types.h>
 
-#undef	_SGIAPI
-#define _SGIAPI		1
+#undef _SGIAPI
+#define _SGIAPI 1
 
 #if _hdr_limits
 #include <limits.h>
 #endif
 
-#undef	_SGIAPI
-#define _SGIAPI		0
+#undef _SGIAPI
+#define _SGIAPI 0
 
 #include "FEATURE/common"
 
@@ -72,20 +72,20 @@
 
 #include "FEATURE/param"
 
-#undef	getpagesize
-#undef	getdtablesize
+#undef getpagesize
+#undef getdtablesize
 
 int main(void)
 {
-	char			c;
-	unsigned char		uc;
-	unsigned short		us;
-	unsigned int		ui;
-	unsigned long		ul;
-	unsigned long		val;
+	char c;
+	unsigned char uc;
+	unsigned short us;
+	unsigned int ui;
+	unsigned long ul;
+	unsigned long val;
 #if _typ_uint64_t
-	uint64_t		ull;
-	uint64_t		vll;
+	uint64_t ull;
+	uint64_t vll;
 #endif
 
 	/*
@@ -97,7 +97,8 @@ int main(void)
 	uc = 0;
 	uc = ~uc;
 	val = 1;
-	while (uc >>= 1) val++;
+	while(uc >>= 1)
+		val++;
 	printf("#define CHAR_BIT	%lu\n", val);
 #endif
 #ifndef MB_LEN_MAX
@@ -135,7 +136,7 @@ int main(void)
 	printf("#define SCHAR_MAX	%lu\n", val);
 #endif
 
-	if (c < 0)
+	if(c < 0)
 	{
 #ifndef CHAR_MIN
 		printf("#define CHAR_MIN	SCHAR_MIN\n");
@@ -171,7 +172,7 @@ int main(void)
 	printf("#define SHRT_MAX	%lu\n", val);
 #endif
 
-	if (ui == us)
+	if(ui == us)
 	{
 #ifndef UINT_MAX
 		printf("#define UINT_MAX	USHRT_MAX\n");
@@ -194,8 +195,10 @@ int main(void)
 
 #ifndef INT_MIN
 		val = (unsigned int)(ui >> 1) + 1;
-		if (ui == ul) printf("#define INT_MIN		(-%lu-1)\n", val - 1);
-		else printf("#define INT_MIN		(-%lu)\n", val);
+		if(ui == ul)
+			printf("#define INT_MIN		(-%lu-1)\n", val - 1);
+		else
+			printf("#define INT_MIN		(-%lu)\n", val);
 #endif
 
 #ifndef INT_MAX
@@ -204,7 +207,7 @@ int main(void)
 #endif
 	}
 
-	if (ul == ui)
+	if(ul == ui)
 	{
 #ifndef ULONG_MAX
 		printf("#define ULONG_MAX	UINT_MAX\n");
@@ -237,7 +240,7 @@ int main(void)
 	}
 
 #if _typ_uint64_t && !_ast_intmax_long
-	if (ull == ul)
+	if(ull == ul)
 	{
 #ifndef ULLONG_MAX
 		printf("#define ULLONG_MAX	ULONG_MAX\n");

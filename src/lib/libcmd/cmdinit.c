@@ -22,33 +22,32 @@
 #include <cmd.h>
 #include <shcmd.h>
 
-int
-_cmd_init(int argc, char** argv, Shbltin_t* context, const char* catalog, int flags)
+int _cmd_init(int argc, char **argv, Shbltin_t *context, const char *catalog, int flags)
 {
-	char*	cp;
+	char *cp;
 
-	if (argc <= 0)
+	if(argc <= 0)
 		return -1;
-	if (context)
+	if(context)
 	{
-		if (flags & ERROR_CALLBACK)
+		if(flags & ERROR_CALLBACK)
 		{
 			flags &= ~ERROR_CALLBACK;
 			flags |= ERROR_NOTIFY;
 		}
-		else if (flags & ERROR_NOTIFY)
+		else if(flags & ERROR_NOTIFY)
 		{
 			context->notify = 1;
 			flags &= ~ERROR_NOTIFY;
 		}
 		error_info.flags |= flags;
 	}
-	if (cp = strrchr(argv[0], '/'))
+	if(cp = strrchr(argv[0], '/'))
 		cp++;
 	else
 		cp = argv[0];
 	error_info.id = cp;
-	if (!error_info.catalog)
+	if(!error_info.catalog)
 		error_info.catalog = catalog;
 	opt_info.index = 0;
 	return 0;

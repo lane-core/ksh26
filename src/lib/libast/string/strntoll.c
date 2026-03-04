@@ -20,9 +20,9 @@
  * strntoll() implementation
  */
 
-#define S2I_function	strntoll
-#define S2I_number	intmax_t
-#define S2I_unumber	uintmax_t
-#define S2I_size	1
+#define S2I_function strntoll
+#define S2I_number intmax_t
+#define S2I_unumber uintmax_t
+#define S2I_size 1
 
 #include "strtoi.h"

@@ -24,8 +24,7 @@
 #include <ast.h>
 #include <ftwalk.h>
 
-int
-ftwflags(void)
+int ftwflags(void)
 {
 	return fts_flags();
 }

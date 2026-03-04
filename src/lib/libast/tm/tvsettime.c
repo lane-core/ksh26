@@ -23,13 +23,12 @@
 
 #include "FEATURE/tvlib"
 
-int
-tvsettime(const Tv_t* tv)
+int tvsettime(const Tv_t *tv)
 {
 
 #if _lib_clock_settime && defined(CLOCK_REALTIME)
 
-	struct timespec			s;
+	struct timespec s;
 
 	s.tv_sec = tv->tv_sec;
 	s.tv_nsec = tv->tv_nsec;
@@ -39,7 +38,7 @@ tvsettime(const Tv_t* tv)
 
 #if defined(tmsettimeofday)
 
-	struct timeval			v;
+	struct timeval v;
 
 	v.tv_sec = tv->tv_sec;
 	v.tv_usec = tv->tv_nsec / 1000;
@@ -49,7 +48,7 @@ tvsettime(const Tv_t* tv)
 
 #if _lib_stime
 
-	static time_t			s;
+	static time_t s;
 
 	s = tv->tv_sec + (tv->tv_nsec != 0);
 	return stime(s);
@@ -64,5 +63,4 @@ tvsettime(const Tv_t* tv)
 #endif
 
 #endif
-
 }

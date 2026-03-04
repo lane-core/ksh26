@@ -31,84 +31,84 @@
 #include <ast_wbuf.h>
 #include <cdt.h>
 
-#define OPT_append		0x001
-#define OPT_cache		0x002
-#define OPT_functions		0x004
-#define OPT_ignore		0x008
-#define OPT_long		0x010
-#define OPT_minus		0x020
-#define OPT_module		0x040
-#define OPT_numeric		0x080
-#define OPT_old			0x100
-#define OPT_plus		0x200
+#define OPT_append 0x001
+#define OPT_cache 0x002
+#define OPT_functions 0x004
+#define OPT_ignore 0x008
+#define OPT_long 0x010
+#define OPT_minus 0x020
+#define OPT_module 0x040
+#define OPT_numeric 0x080
+#define OPT_old 0x100
+#define OPT_plus 0x200
 
-#define OPT_cache_flag		0x001
-#define OPT_cache_invert	0x002
-#define OPT_cache_numeric	0x004
-#define OPT_cache_optional	0x008
-#define OPT_cache_string	0x010
+#define OPT_cache_flag 0x001
+#define OPT_cache_invert 0x002
+#define OPT_cache_numeric 0x004
+#define OPT_cache_optional 0x008
+#define OPT_cache_string 0x010
 
-#define OPT_CACHE		128
-#define OPT_FLAGS		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+#define OPT_CACHE 128
+#define OPT_FLAGS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 struct Optdisc_s;
 
 typedef struct Optpass_s
 {
-	char*			opts;
-	char*			oopts;
-	char*			id;
-	char*			catalog;
-	char*			release;
-	char			section[4];
-	unsigned char		version;
-	unsigned char		prefix;
-	unsigned short		flags;
+	char *opts;
+	char *oopts;
+	char *id;
+	char *catalog;
+	char *release;
+	char section[4];
+	unsigned char version;
+	unsigned char prefix;
+	unsigned short flags;
 } Optpass_t;
 
 typedef struct Optcache_s
 {
-	struct Optcache_s*	next;
-	Optpass_t		pass;
-	int			caching;
-	unsigned char		flags[sizeof(OPT_FLAGS)];
-	char			equiv[sizeof(OPT_FLAGS)];	/* short option equivalents */
+	struct Optcache_s *next;
+	Optpass_t pass;
+	int caching;
+	unsigned char flags[sizeof(OPT_FLAGS)];
+	char equiv[sizeof(OPT_FLAGS)]; /* short option equivalents */
 } Optcache_t;
 
 typedef struct Optstate_s
 {
-	ast_wbuf_t	mp;		/* opt_info.msg writer		*/
-	ast_wbuf_t	vp;		/* translation writer		*/
-	ast_wbuf_t	xp;		/* translation writer		*/
-	ast_wbuf_t	cp;		/* compatibility writer		*/
-	Optpass_t	pass[8];	/* optjoin() list		*/
-	char*		argv[2];	/* initial argv copy		*/
-	char*		strv[3];	/* optstr() argv		*/
-	char*		str;		/* optstr() string		*/
-	ast_wbuf_t	strp;		/* optstr() writer		*/
-	int		force;		/* force this style		*/
-	int		pindex;		/* prev index for backup	*/
-	int		poffset;	/* prev offset for backup	*/
-	int		npass;		/* # optjoin() passes		*/
-	int		join;		/* optjoin() pass #		*/
-	int		plus;		/* + ok				*/
-	int		style;		/* default opthelp() style	*/
-	int		width;		/* format line width		*/
-	int		flags;		/* display flags		*/
-	int		emphasis;	/* ANSI term emphasis ok	*/
-	int		localized;	/* locale initialized		*/
-	Dtdisc_t	msgdisc;	/* msgdict discipline		*/
-	Dt_t*		msgdict;	/* default ast.id catalog msgs	*/
-	Optcache_t*	cache;		/* OPT_cache cache		*/
-	char**		conformance;	/* conformance ID vector	*/
+	ast_wbuf_t mp;      /* opt_info.msg writer		*/
+	ast_wbuf_t vp;      /* translation writer		*/
+	ast_wbuf_t xp;      /* translation writer		*/
+	ast_wbuf_t cp;      /* compatibility writer		*/
+	Optpass_t pass[8];  /* optjoin() list		*/
+	char *argv[2];      /* initial argv copy		*/
+	char *strv[3];      /* optstr() argv		*/
+	char *str;          /* optstr() string		*/
+	ast_wbuf_t strp;    /* optstr() writer		*/
+	int force;          /* force this style		*/
+	int pindex;         /* prev index for backup	*/
+	int poffset;        /* prev offset for backup	*/
+	int npass;          /* # optjoin() passes		*/
+	int join;           /* optjoin() pass #		*/
+	int plus;           /* + ok				*/
+	int style;          /* default opthelp() style	*/
+	int width;          /* format line width		*/
+	int flags;          /* display flags		*/
+	int emphasis;       /* ANSI term emphasis ok	*/
+	int localized;      /* locale initialized		*/
+	Dtdisc_t msgdisc;   /* msgdict discipline		*/
+	Dt_t *msgdict;      /* default ast.id catalog msgs	*/
+	Optcache_t *cache;  /* OPT_cache cache		*/
+	char **conformance; /* conformance ID vector	*/
 } Optstate_t;
 
-#define _OPT_PRIVATE_ \
-	char            pad[2*sizeof(void*)]; \
-	Optstate_t*	state;
+#define _OPT_PRIVATE_                 \
+	char pad[2 * sizeof(void *)]; \
+	Optstate_t *state;
 
 #include <error.h>
 
-extern Optstate_t*	optstate(Opt_t*);
+extern Optstate_t *optstate(Opt_t *);
 
 #endif

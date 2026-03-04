@@ -31,7 +31,7 @@
  */
 
 time_t
-tmscan(const char* s, char** e, const char* format, char** f, time_t* clock, long flags)
+tmscan(const char *s, char **e, const char *format, char **f, time_t *clock, long flags)
 {
 	return tmxsec(tmxscan(s, e, format, f, tmxclock(clock), flags));
 }

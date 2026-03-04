@@ -23,19 +23,19 @@
 
 #include "reglib.h"
 
-regstat_t*
-regstat(const regex_t* p)
+regstat_t *
+regstat(const regex_t *p)
 {
-	Rex_t*	e;
+	Rex_t *e;
 
 	p->env->stats.re_flags = p->env->flags;
 	p->env->stats.re_info = 0;
 	e = p->env->rex;
-	if (e && e->type == REX_BEG)
+	if(e && e->type == REX_BEG)
 		e = e->next;
-	if (e && e->type == REX_STRING)
+	if(e && e->type == REX_STRING)
 		e = e->next;
-	if (!e || e->type == REX_END && !e->next)
+	if(!e || e->type == REX_END && !e->next)
 		p->env->stats.re_info |= REG_LITERAL;
 	return &p->env->stats;
 }

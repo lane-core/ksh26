@@ -24,31 +24,30 @@
 #include "FEATURE/common"
 #include "FEATURE/float"
 
-int
-main(void)
+int main(void)
 {
-	int		i;
+	int i;
 #if _ast_fltmax_double
-	char*		fs = "";
-	char*		ds = "";
-	char*		ls = "";
+	char *fs = "";
+	char *ds = "";
+	char *ls = "";
 #else
-	char*		fs = "F";
-	char*		ds = "";
-	char*		ls = "L";
+	char *fs = "F";
+	char *ds = "";
+	char *ls = "L";
 #endif
 
 	printf("\nstatic const float sf_flt_pow10[] =\n{\n");
-	for (i = 0; i <= FLT_MAX_10_EXP; i++)
+	for(i = 0; i <= FLT_MAX_10_EXP; i++)
 		printf("\t1E%d%s,\n", i, fs);
 	printf("};\n");
 	printf("\nstatic const double sf_dbl_pow10[] =\n{\n");
-	for (i = 0; i <= DBL_MAX_10_EXP; i++)
+	for(i = 0; i <= DBL_MAX_10_EXP; i++)
 		printf("\t1E%d%s,\n", i, ds);
 	printf("};\n");
 #if !_ast_fltmax_double
 	printf("\nstatic const _ast_fltmax_t sf_ldbl_pow10[] =\n{\n");
-	for (i = 0; i <= LDBL_MAX_10_EXP; i++)
+	for(i = 0; i <= LDBL_MAX_10_EXP; i++)
 		printf("\t1E%d%s,\n", i, ls);
 	printf("};\n");
 #endif

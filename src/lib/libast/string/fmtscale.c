@@ -27,38 +27,38 @@
 #include <ast.h>
 #include <lclib.h>
 
-char*
+char *
 fmtscale(Sfulong_t n, int k)
 {
-	Sfulong_t		m;
-	int			r;
-	int			z;
-	const char*		u;
-	char			suf[3];
-	char*			s;
-	char*			buf;
-	Lc_numeric_t*		p = (Lc_numeric_t*)LCINFO(AST_LC_NUMERIC)->data;
+	Sfulong_t m;
+	int r;
+	int z;
+	const char *u;
+	char suf[3];
+	char *s;
+	char *buf;
+	Lc_numeric_t *p = (Lc_numeric_t *)LCINFO(AST_LC_NUMERIC)->data;
 
-	static const char	scale[] = "bkMGTPE";
+	static const char scale[] = "bkMGTPE";
 
 	u = scale;
-	if (n < 1000)
+	if(n < 1000)
 		r = 0;
 	else
 	{
 		m = 0;
-		while (n >= k && *(u + 1))
+		while(n >= k && *(u + 1))
 		{
 			m = n;
 			n /= k;
 			u++;
 		}
-		if ((r = (10 * (m % k) + (k / 2)) / k) > 9)
+		if((r = (10 * (m % k) + (k / 2)) / k) > 9)
 		{
 			r = 0;
 			n++;
 		}
-		if (k == 1024 && n >= 1000)
+		if(k == 1024 && n >= 1000)
 		{
 			n = 1;
 			r = 0;
@@ -67,9 +67,9 @@ fmtscale(Sfulong_t n, int k)
 	}
 	buf = fmtbuf(z = 8);
 	s = suf;
-	if (u > scale)
+	if(u > scale)
 	{
-		if (k == 1024)
+		if(k == 1024)
 		{
 			*s++ = *u == 'k' ? 'K' : *u;
 			*s++ = 'i';
@@ -78,11 +78,11 @@ fmtscale(Sfulong_t n, int k)
 			*s++ = *u;
 	}
 	*s = 0;
-	if (n > 0 && n < 10)
+	if(n > 0 && n < 10)
 		snprintf(buf, z, "%ju%c%d%s", (uintmax_t)n, p->decimal >= 0 ? p->decimal : '.', r, suf);
 	else
 	{
-		if (r >= 5)
+		if(r >= 5)
 			n++;
 		snprintf(buf, z, "%ju%s", (uintmax_t)n, suf);
 	}

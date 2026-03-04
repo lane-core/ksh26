@@ -36,46 +36,46 @@
  * char in s, otherwise 0 is returned
  */
 
-int
-tmword(const char* s, char** e, const char* t, char** suf, int n)
+int tmword(const char *s, char **e, const char *t, char **suf, int n)
 {
-	int		c;
-	const char*	b;
+	int c;
+	const char *b;
 
-	if (*s && *t)
+	if(*s && *t)
 	{
 		b = s;
-		while (c = *s++)
+		while(c = *s++)
 		{
-			if (c != '.')
+			if(c != '.')
 			{
-				if (!isalpha(c) || c != *t && (islower(c) ? toupper(c) : tolower(c)) != *t)
+				if(!isalpha(c) || c != *t && (islower(c) ? toupper(c) : tolower(c)) != *t)
 					break;
 				t++;
 			}
 		}
 		s--;
-		if (!isalpha(c))
+		if(!isalpha(c))
 		{
-			if (c == '_')
+			if(c == '_')
 				s++;
-			if (e)
-				*e = (char*)s;
+			if(e)
+				*e = (char *)s;
 			return s > b;
 		}
-		if (!*t && s > (b + 1))
+		if(!*t && s > (b + 1))
 		{
 			b = s;
-			while (n-- && (t = *suf++))
+			while(n-- && (t = *suf++))
 			{
 				s = b;
-				while (isalpha(c = *s++) && (c == *t || (islower(c) ? toupper(c) : tolower(c)) == *t)) t++;
-				if (!*t && !isalpha(c))
+				while(isalpha(c = *s++) && (c == *t || (islower(c) ? toupper(c) : tolower(c)) == *t))
+					t++;
+				if(!*t && !isalpha(c))
 				{
-					if (c != '_')
+					if(c != '_')
 						s--;
-					if (e)
-						*e = (char*)s;
+					if(e)
+						*e = (char *)s;
 					return 1;
 				}
 			}

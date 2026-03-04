@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfputc
 
-int sfputc(Sfio_t* f, int c)
+int sfputc(Sfio_t *f, int c)
 {
-	return __sf_putc(f,c);
+	return __sf_putc(f, c);
 }

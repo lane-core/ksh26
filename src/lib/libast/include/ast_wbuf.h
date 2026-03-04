@@ -38,31 +38,31 @@
 
 typedef struct ast_wbuf_s
 {
-	char	*buf;	/* accumulated output (owned by open_memstream) */
-	size_t	len;	/* length after last flush */
-	FILE	*fp;	/* backing stream */
+	char *buf;  /* accumulated output (owned by open_memstream) */
+	size_t len; /* length after last flush */
+	FILE *fp;   /* backing stream */
 } ast_wbuf_t;
 
 /* stack/static initializer — enables lazy open via (w.fp != NULL) check */
-#define AST_WBUF_INIT	{ NULL, 0, NULL }
+#define AST_WBUF_INIT {NULL, 0, NULL}
 
 /* lifecycle */
-int	ast_wbuf_open(ast_wbuf_t*);		/* unit: create write context */
-char	*ast_wbuf_use(ast_wbuf_t*);		/* extract: flush, rewind, return buf */
-char	*ast_wbuf_detach(ast_wbuf_t*);		/* extract + close: caller must free */
-void	ast_wbuf_close(ast_wbuf_t*);		/* finalize: fclose + free buf */
+int ast_wbuf_open(ast_wbuf_t *);     /* unit: create write context */
+char *ast_wbuf_use(ast_wbuf_t *);    /* extract: flush, rewind, return buf */
+char *ast_wbuf_detach(ast_wbuf_t *); /* extract + close: caller must free */
+void ast_wbuf_close(ast_wbuf_t *);   /* finalize: fclose + free buf */
 
 /* tell operations (append to accumulated output) */
-int	ast_wbuf_printf(ast_wbuf_t*, const char*, ...);
-int	ast_wbuf_putc(ast_wbuf_t*, int);
-int	ast_wbuf_puts(ast_wbuf_t*, const char*);
-size_t	ast_wbuf_write(ast_wbuf_t*, const void*, size_t);
+int ast_wbuf_printf(ast_wbuf_t *, const char *, ...);
+int ast_wbuf_putc(ast_wbuf_t *, int);
+int ast_wbuf_puts(ast_wbuf_t *, const char *);
+size_t ast_wbuf_write(ast_wbuf_t *, const void *, size_t);
 
 /* listen operations (query without side effects) */
-size_t	ast_wbuf_tell(ast_wbuf_t*);		/* current write position */
-char	*ast_wbuf_base(ast_wbuf_t*);		/* base pointer (flushes first) */
+size_t ast_wbuf_tell(ast_wbuf_t *); /* current write position */
+char *ast_wbuf_base(ast_wbuf_t *);  /* base pointer (flushes first) */
 
 /* censor operations (reshape accumulated output) */
-int	ast_wbuf_seek(ast_wbuf_t*, long, int);
+int ast_wbuf_seek(ast_wbuf_t *, long, int);
 
 #endif /* _AST_WBUF_H */

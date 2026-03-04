@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfgetc
 
-int sfgetc(Sfio_t* f)
+int sfgetc(Sfio_t *f)
 {
 	return __sf_getc(f);
 }

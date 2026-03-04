@@ -16,7 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Construct a string with the given format and data.
 **	These functions allocate space as necessary to store the string.
@@ -25,60 +25,62 @@
 **	Written by Kiem-Phong Vo.
 */
 
-char* sfvprints(const char* form, va_list args)
+char *sfvprints(const char *form, va_list args)
 {
-	int		rv;
-	Sfnotify_f	notify = _Sfnotify;
-	static Sfio_t*	f;
+	int rv;
+	Sfnotify_f notify = _Sfnotify;
+	static Sfio_t *f;
 
 	if(!f) /* make a string stream to write into */
-	{	_Sfnotify = 0;
-		f = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND, -1,SFIO_WRITE|SFIO_STRING);
+	{
+		_Sfnotify = 0;
+		f = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, -1, SFIO_WRITE | SFIO_STRING);
 		_Sfnotify = notify;
 		if(!f)
 			return NULL;
 	}
 
-	sfseek(f,0,SEEK_SET);
-	rv = sfvprintf(f,form,args);
+	sfseek(f, 0, SEEK_SET);
+	rv = sfvprintf(f, form, args);
 
-	if(rv < 0 || sfputc(f,'\0') < 0)
+	if(rv < 0 || sfputc(f, '\0') < 0)
 		return NULL;
 
 	_Sfi = (f->next - f->data) - 1;
-	return (char*)f->data;
+	return (char *)f->data;
 }
 
-char* sfprints(const char* form, ...)
+char *sfprints(const char *form, ...)
 {
-	char*	s;
-	va_list	args;
-	va_start(args,form);
+	char *s;
+	va_list args;
+	va_start(args, form);
 	s = sfvprints(form, args);
 	va_end(args);
 	return s;
 }
 
-ssize_t sfvaprints(char** sp, const char* form, va_list args)
+ssize_t sfvaprints(char **sp, const char *form, va_list args)
 {
-	char	*s;
-	ssize_t	n;
+	char *s;
+	ssize_t n;
 
-	if(!sp || !(s = sfvprints(form,args)) )
+	if(!sp || !(s = sfvprints(form, args)))
 		return -1;
 	else
-	{	if(!(*sp = (char*)malloc(n = strlen(s)+1)) )
+	{
+		if(!(*sp = (char *)malloc(n = strlen(s) + 1)))
 			return -1;
 		memcpy(*sp, s, n);
-		return n-1;
+		return n - 1;
 	}
 }
 
-ssize_t sfaprints(char** sp, const char* form, ...)
+ssize_t sfaprints(char **sp, const char *form, ...)
 {
-	ssize_t	n;
-	va_list	args;
-	va_start(args,form);
+	ssize_t n;
+	va_list args;
+	va_start(args, form);
 	n = sfvaprints(sp, form, args);
 	va_end(args);
 	return n;

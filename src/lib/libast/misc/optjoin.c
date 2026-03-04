@@ -40,49 +40,48 @@
 
 #include <optlib.h>
 
-typedef int (*Optpass_f)(char**, int);
+typedef int (*Optpass_f)(char **, int);
 
-int
-optjoin(char** argv, ...)
+int optjoin(char **argv, ...)
 {
-	va_list		ap;
-	Optpass_f	fun;
-	Optpass_f	rep;
-	Optpass_f	err;
-	Optstate_t*	state;
-	int		r;
-	int		more;
-	int		user;
-	int		last_index;
-	int		last_offset;
-	int		err_index = 0;
-	int		err_offset = 0;
+	va_list ap;
+	Optpass_f fun;
+	Optpass_f rep;
+	Optpass_f err;
+	Optstate_t *state;
+	int r;
+	int more;
+	int user;
+	int last_index;
+	int last_offset;
+	int err_index = 0;
+	int err_offset = 0;
 
 	state = optstate(&opt_info);
 	err = rep = 0;
 	r = -1;
-	while (r < 0)
+	while(r < 0)
 	{
 		va_start(ap, argv);
 		state->join = 0;
-		while (fun = va_arg(ap, Optpass_f))
+		while(fun = va_arg(ap, Optpass_f))
 		{
 			last_index = opt_info.index;
 			last_offset = opt_info.offset;
 			state->join++;
 			user = (*fun)(argv, 0);
 			more = argv[opt_info.index] != 0;
-			if (!opt_info.again)
+			if(!opt_info.again)
 			{
-				if (!more)
+				if(!more)
 				{
 					state->join = 0;
 					r = 0;
 					break;
 				}
-				if (!user)
+				if(!user)
 				{
-					if (*argv[opt_info.index] != '+')
+					if(*argv[opt_info.index] != '+')
 					{
 						state->join = 0;
 						r = 1;
@@ -93,9 +92,9 @@ optjoin(char** argv, ...)
 				else
 					err = 0;
 			}
-			if (opt_info.again)
+			if(opt_info.again)
 			{
-				if (opt_info.again > 0 && (!err || err_index < opt_info.index || err_index == opt_info.index && err_offset < opt_info.offset))
+				if(opt_info.again > 0 && (!err || err_index < opt_info.index || err_index == opt_info.index && err_offset < opt_info.offset))
 				{
 					err = fun;
 					err_index = opt_info.index;
@@ -105,11 +104,11 @@ optjoin(char** argv, ...)
 				opt_info.index = state->pindex ? state->pindex : 1;
 				opt_info.offset = state->poffset;
 			}
-			if (!rep || opt_info.index != last_index || opt_info.offset != last_offset)
+			if(!rep || opt_info.index != last_index || opt_info.offset != last_offset)
 				rep = fun;
-			else if (fun == rep)
+			else if(fun == rep)
 			{
-				if (!err)
+				if(!err)
 				{
 					state->join = 0;
 					r = 1;

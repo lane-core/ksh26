@@ -18,19 +18,19 @@
 ***********************************************************************/
 
 #ifndef _INTERCEPTS_H
-#define _INTERCEPTS_H	1
+#define _INTERCEPTS_H 1
 
 #include <ast.h>
 #include <shcmd.h>
 
 typedef struct Intercepts_s
 {
-	char*		(*intercept_getenv)(const char*);
-	char*		(*intercept_setenviron)(const char*);
+	char *(*intercept_getenv)(const char *);
+	char *(*intercept_setenviron)(const char *);
 } Intercepts_t;
 
-#define intercepts	_ast_intercepts
+#define intercepts _ast_intercepts
 
-extern Intercepts_t	intercepts;
+extern Intercepts_t intercepts;
 
 #endif

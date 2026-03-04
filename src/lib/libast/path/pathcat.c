@@ -23,59 +23,59 @@
  * single dir support for pathaccess()
  */
 
-#define _AST_API_H	1
+#define _AST_API_H 1
 
 #include <ast.h>
 
-char*
-pathcat(char* path, const char* dirs, int sep, const char* a, const char* b)
+char *
+pathcat(char *path, const char *dirs, int sep, const char *a, const char *b)
 {
 	return pathcat_20100601(dirs, sep, a, b, path, PATH_MAX);
 }
 
-#undef	_AST_API
+#undef _AST_API
 
 #include <ast_api.h>
 
-char*
-pathcat_20100601(const char* dirs, int sep, const char* a, const char* b, char* path, size_t size)
+char *
+pathcat_20100601(const char *dirs, int sep, const char *a, const char *b, char *path, size_t size)
 {
-	char*	s;
-	char*	e;
+	char *s;
+	char *e;
 
 	s = path;
 	e = path + size;
-	while (*dirs && *dirs != sep)
+	while(*dirs && *dirs != sep)
 	{
-		if (s >= e)
+		if(s >= e)
 			return NULL;
 		*s++ = *dirs++;
 	}
-	if (s != path)
+	if(s != path)
 	{
-		if (s >= e)
+		if(s >= e)
 			return NULL;
 		*s++ = '/';
 	}
-	if (a)
+	if(a)
 	{
-		while (*s = *a++)
-			if (++s >= e)
+		while(*s = *a++)
+			if(++s >= e)
 				return NULL;
-		if (b)
+		if(b)
 		{
-			if (s >= e)
+			if(s >= e)
 				return NULL;
 			*s++ = '/';
 		}
 	}
-	else if (!b)
+	else if(!b)
 		b = ".";
-	if (b)
+	if(b)
 		do
 		{
-			if (s >= e)
+			if(s >= e)
 				return NULL;
-		} while (*s++ = *b++);
-	return *dirs ? (char*)++dirs : 0;
+		} while(*s++ = *b++);
+	return *dirs ? (char *)++dirs : 0;
 }

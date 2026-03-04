@@ -27,41 +27,40 @@
 #include <error.h>
 #include <ls.h>
 
-#define directory(p,s)	(stat((p),(s))>=0&&S_ISDIR((s)->st_mode))
-#define regular(p,s)	(stat((p),(s))>=0&&(S_ISREG((s)->st_mode)||streq(p,"/dev/null")))
+#define directory(p, s) (stat((p), (s)) >= 0 && S_ISDIR((s)->st_mode))
+#define regular(p, s) (stat((p), (s)) >= 0 && (S_ISREG((s)->st_mode) || streq(p, "/dev/null")))
 
-typedef struct Dir_s			/* directory list element	*/
+typedef struct Dir_s /* directory list element	*/
 {
-	struct Dir_s*	next;		/* next in list			*/
-	char		dir[1];		/* directory path		*/
+	struct Dir_s *next; /* next in list			*/
+	char dir[1];        /* directory path		*/
 } Dir_t;
 
-static struct				/* directory list state		*/
+static struct /* directory list state		*/
 {
-	Dir_t*		head;		/* directory list head		*/
-	Dir_t*		tail;		/* directory list tail		*/
+	Dir_t *head; /* directory list head		*/
+	Dir_t *tail; /* directory list tail		*/
 } state;
 
 /*
  * append dir to pathfind() include list
  */
 
-int
-pathinclude(const char* dir)
+int pathinclude(const char *dir)
 {
-	Dir_t*		dp;
-	struct stat	st;
+	Dir_t *dp;
+	struct stat st;
 
-	if (dir && *dir && !streq(dir, ".") && directory(dir, &st))
+	if(dir && *dir && !streq(dir, ".") && directory(dir, &st))
 	{
-		for (dp = state.head; dp; dp = dp->next)
-			if (streq(dir, dp->dir))
+		for(dp = state.head; dp; dp = dp->next)
+			if(streq(dir, dp->dir))
 				return 0;
-		if (!(dp = oldof(0, Dir_t, 1, strlen(dir))))
+		if(!(dp = oldof(0, Dir_t, 1, strlen(dir))))
 			return -1;
 		strcpy(dp->dir, dir);
 		dp->next = 0;
-		if (state.tail)
+		if(state.tail)
 			state.tail = state.tail->next = dp;
 		else
 			state.head = state.tail = dp;
@@ -77,15 +76,15 @@ pathinclude(const char* dir)
  * any *: prefix in lib is ignored (discipline library dictionary support)
  */
 
-char*
-pathfind(const char* name, const char* lib, const char* type, char* buf, size_t size)
+char *
+pathfind(const char *name, const char *lib, const char *type, char *buf, size_t size)
 {
-	Dir_t*		dp;
-	char*		s;
-	char		tmp[PATH_MAX];
-	struct stat	st;
+	Dir_t *dp;
+	char *s;
+	char tmp[PATH_MAX];
+	struct stat st;
 
-	if (((s = strrchr(name, '/')) || (s = (char*)name)) && strchr(s, '.'))
+	if(((s = strrchr(name, '/')) || (s = (char *)name)) && strchr(s, '.'))
 		type = 0;
 
 	/*
@@ -93,18 +92,18 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	 * this handles . and absolute paths
 	 */
 
-	if (regular(name, &st))
+	if(regular(name, &st))
 	{
 		strncopy(buf, name, size);
 		return buf;
 	}
-	if (type)
+	if(type)
 	{
 		snprintf(buf, size, "%s.%s", name, type);
-		if (regular(buf, &st))
+		if(regular(buf, &st))
 			return buf;
 	}
-	if (*name == '/')
+	if(*name == '/')
 		return NULL;
 
 	/*
@@ -112,15 +111,15 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	 * on the assumption that error_info.file is properly stacked
 	 */
 
-	if (error_info.file && (s = strrchr(error_info.file, '/')))
+	if(error_info.file && (s = strrchr(error_info.file, '/')))
 	{
 		snprintf(buf, size, "%-.*s%s", s - error_info.file + 1, error_info.file, name);
-		if (regular(buf, &st))
+		if(regular(buf, &st))
 			return buf;
-		if (type)
+		if(type)
 		{
 			snprintf(buf, size, "%-.*s%s%.s", s - error_info.file + 1, error_info.file, name, type);
-			if (regular(buf, &st))
+			if(regular(buf, &st))
 				return buf;
 		}
 	}
@@ -129,15 +128,15 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	 * check the include dir list
 	 */
 
-	for (dp = state.head; dp; dp = dp->next)
+	for(dp = state.head; dp; dp = dp->next)
 	{
 		snprintf(tmp, sizeof(tmp), "%s/%s", dp->dir, name);
-		if (pathpath(tmp, "", PATH_REGULAR, buf, size))
+		if(pathpath(tmp, "", PATH_REGULAR, buf, size))
 			return buf;
-		if (type)
+		if(type)
 		{
 			snprintf(tmp, sizeof(tmp), "%s/%s.%s", dp->dir, name, type);
-			if (pathpath(tmp, "", PATH_REGULAR, buf, size))
+			if(pathpath(tmp, "", PATH_REGULAR, buf, size))
 				return buf;
 		}
 	}
@@ -146,17 +145,17 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 	 * finally a lib related search on PATH
 	 */
 
-	if (lib)
+	if(lib)
 	{
-		if (s = strrchr((char*)lib, ':'))
-			lib = (const char*)s + 1;
+		if(s = strrchr((char *)lib, ':'))
+			lib = (const char *)s + 1;
 		snprintf(tmp, sizeof(tmp), "lib/%s/%s", lib, name);
-		if (pathpath(tmp, "", PATH_REGULAR, buf, size))
+		if(pathpath(tmp, "", PATH_REGULAR, buf, size))
 			return buf;
-		if (type)
+		if(type)
 		{
 			snprintf(tmp, sizeof(tmp), "lib/%s/%s.%s", lib, name, type);
-			if (pathpath(tmp, "", PATH_REGULAR, buf, size))
+			if(pathpath(tmp, "", PATH_REGULAR, buf, size))
 				return buf;
 		}
 	}

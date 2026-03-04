@@ -24,93 +24,91 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: mkdir (AT&T Research) 2010-04-08 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?mkdir - make directories]"
-"[+DESCRIPTION?\bmkdir\b creates one or more directories.  By "
-	"default, the mode of created directories is \ba=rwx\b minus the "
-	"bits set in the \bumask\b(1).]"
-"[m:mode]:[mode?Set the mode of created directories to \amode\a.  "
-	"\amode\a is symbolic or octal mode as in \bchmod\b(1).  Relative "
-	"modes assume an initial mode of \ba=rwx\b.]"
-"[p:parents?Create any missing intermediate pathname components. For "
+    "[-?\n@(#)$Id: mkdir (AT&T Research) 2010-04-08 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?mkdir - make directories]"
+    "[+DESCRIPTION?\bmkdir\b creates one or more directories.  By "
+    "default, the mode of created directories is \ba=rwx\b minus the "
+    "bits set in the \bumask\b(1).]"
+    "[m:mode]:[mode?Set the mode of created directories to \amode\a.  "
+    "\amode\a is symbolic or octal mode as in \bchmod\b(1).  Relative "
+    "modes assume an initial mode of \ba=rwx\b.]"
+    "[p:parents?Create any missing intermediate pathname components. For "
     "each dir operand that does not name an existing directory, effects "
     "equivalent to those caused by the following command shall occur: "
     "\bmkdir -p -m $(umask -S),u+wx $(dirname dir) && mkdir [-m mode]] "
     "dir\b where the \b-m\b mode option represents that option supplied to "
     "the original invocation of \bmkdir\b, if any. Each dir operand that "
     "names an existing directory shall be ignored without error.]"
-"[v:verbose?Print a message on the standard error for each created "
+    "[v:verbose?Print a message on the standard error for each created "
     "directory.]"
-"\n"
-"\ndirectory ...\n"
-"\n"
-"[+EXIT STATUS?]{"
-	"[+0?All directories created successfully, or the \b-p\b option "
-	"was specified and all the specified directories now exist.]"
-	"[+>0?An error occurred.]"
-"}"
-"[+SEE ALSO?\bchmod\b(1), \brmdir\b(1), \bumask\b(1)]"
-;
+    "\n"
+    "\ndirectory ...\n"
+    "\n"
+    "[+EXIT STATUS?]{"
+    "[+0?All directories created successfully, or the \b-p\b option "
+    "was specified and all the specified directories now exist.]"
+    "[+>0?An error occurred.]"
+    "}"
+    "[+SEE ALSO?\bchmod\b(1), \brmdir\b(1), \bumask\b(1)]";
 
 #include <cmd.h>
 #include <ls.h>
 
-#define DIRMODE	(S_IRWXU|S_IRWXG|S_IRWXO)
+#define DIRMODE (S_IRWXU | S_IRWXG | S_IRWXO)
 
-int
-b_mkdir(int argc, char** argv, Shbltin_t* context)
+int b_mkdir(int argc, char **argv, Shbltin_t *context)
 {
-	char*		path;
-	int		n;
-	mode_t		mode = DIRMODE;
-	mode_t		mask = 0;
-	int		mflag = 0;
-	int		pflag = 0;
-	int		vflag = 0;
-	int		made;
-	char*		part;
-	mode_t		dmode = 0;
-	struct stat	st;
+	char *path;
+	int n;
+	mode_t mode = DIRMODE;
+	mode_t mask = 0;
+	int mflag = 0;
+	int pflag = 0;
+	int vflag = 0;
+	int made;
+	char *part;
+	mode_t dmode = 0;
+	struct stat st;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'm':
-			mflag = 1;
-			mode = strperm(opt_info.arg, &part, mode);
-			if (*part)
-				error(ERROR_exit(0), "%s: invalid mode", opt_info.arg);
-			continue;
-		case 'p':
-			pflag = 1;
-			continue;
-		case 'v':
-			vflag = 1;
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'm':
+				mflag = 1;
+				mode = strperm(opt_info.arg, &part, mode);
+				if(*part)
+					error(ERROR_exit(0), "%s: invalid mode", opt_info.arg);
+				continue;
+			case 'p':
+				pflag = 1;
+				continue;
+			case 'v':
+				vflag = 1;
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || !*argv)
+	if(error_info.errors || !*argv)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
 	mask = umask(0);
-	if (mflag || pflag)
+	if(mflag || pflag)
 	{
 		dmode = DIRMODE & ~mask;
-		if (!mflag)
+		if(!mflag)
 			mode = dmode;
 		dmode |= S_IWUSR | S_IXUSR;
 	}
@@ -120,20 +118,20 @@ b_mkdir(int argc, char** argv, Shbltin_t* context)
 		umask(mask);
 		mask = 0;
 	}
-	while (path = *argv++)
+	while(path = *argv++)
 	{
-		if (!mkdir(path, mode))
+		if(!mkdir(path, mode))
 		{
-			if (vflag)
+			if(vflag)
 				error(0, "%s: directory created", path);
 			made = 1;
 		}
-		else if (!pflag || !(errno == ENOENT || errno == EEXIST || errno == ENOTDIR))
+		else if(!pflag || !(errno == ENOENT || errno == EEXIST || errno == ENOTDIR))
 		{
 			error(ERROR_system(0), "%s:", path);
 			continue;
 		}
-		else if (errno == EEXIST)
+		else if(errno == EEXIST)
 			continue;
 		else
 		{
@@ -144,47 +142,48 @@ b_mkdir(int argc, char** argv, Shbltin_t* context)
 
 			made = 0;
 			n = strlen(path);
-			while (n > 0 && path[--n] == '/');
+			while(n > 0 && path[--n] == '/')
+				;
 			path[n + 1] = 0;
-			for (part = path, n = *part; n;)
+			for(part = path, n = *part; n;)
 			{
 				/* skip over slashes */
-				while (*part == '/')
+				while(*part == '/')
 					part++;
 				/* skip to next component */
-				while ((n = *part) && n != '/')
+				while((n = *part) && n != '/')
 					part++;
 				*part = 0;
-				if (mkdir(path, n ? dmode : mode) < 0 && errno != EEXIST && access(path, F_OK) < 0)
+				if(mkdir(path, n ? dmode : mode) < 0 && errno != EEXIST && access(path, F_OK) < 0)
 				{
 					error(ERROR_system(0), "%s: cannot create intermediate directory", path);
 					*part = n;
 					break;
 				}
-				if (vflag)
+				if(vflag)
 					error(0, "%s: directory created", path);
-				if (!(*part = n))
+				if(!(*part = n))
 				{
 					made = 1;
 					break;
 				}
 			}
 		}
-		if (made && (mode & (S_ISVTX|S_ISUID|S_ISGID)))
+		if(made && (mode & (S_ISVTX | S_ISUID | S_ISGID)))
 		{
-			if (stat(path, &st))
+			if(stat(path, &st))
 			{
 				error(ERROR_system(0), "%s: cannot stat", path);
 				break;
 			}
-			if ((st.st_mode & (S_ISVTX|S_ISUID|S_ISGID)) != (mode & (S_ISVTX|S_ISUID|S_ISGID)) && chmod(path, mode))
+			if((st.st_mode & (S_ISVTX | S_ISUID | S_ISGID)) != (mode & (S_ISVTX | S_ISUID | S_ISGID)) && chmod(path, mode))
 			{
-				error(ERROR_system(0), "%s: cannot change mode from %s to %s", path, fmtperm(st.st_mode & (S_ISVTX|S_ISUID|S_ISGID)), fmtperm(mode));
+				error(ERROR_system(0), "%s: cannot change mode from %s to %s", path, fmtperm(st.st_mode & (S_ISVTX | S_ISUID | S_ISGID)), fmtperm(mode));
 				break;
 			}
 		}
 	}
-	if (mask)
+	if(mask)
 		umask(mask);
 	return error_info.errors != 0;
 }

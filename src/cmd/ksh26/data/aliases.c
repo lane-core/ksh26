@@ -15,17 +15,16 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"shopt.h"
-#include	"defs.h"
-#include	<signal.h>
+#include "shopt.h"
+#include "defs.h"
+#include <signal.h>
 
 /*
  * Table of built-in aliases for interactive shells.
  */
 
 const struct shtable2 shtab_aliases[] =
-{
-	"history",	NV_NOFREE,		"hist -l",
-	"r",		NV_NOFREE,		"hist -s",
-	"",		0,			NULL
-};
+    {
+        "history", NV_NOFREE, "hist -l",
+        "r", NV_NOFREE, "hist -s",
+        "", 0, NULL};

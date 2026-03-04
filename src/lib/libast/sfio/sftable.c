@@ -18,286 +18,327 @@
 *                      Phi <phi.debian@gmail.com>                      *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
-#include	"FEATURE/float"
+#include "sfhdr.h"
+#include "FEATURE/float"
 
 /*	Dealing with $ argument addressing stuffs.
 **
 **	Written by Kiem-Phong Vo.
 */
 
-static char* sffmtint(const char* str, int* v)
+static char *sffmtint(const char *str, int *v)
 {
 	for(*v = 0; isdigit(*str); ++str)
 		*v = *v * 10 + (*str - '0');
 	*v -= 1;
-	return (char*)str;
+	return (char *)str;
 }
 
 /* type>0: scanf, type==0: printf, type==-1: internal */
-static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,int type)
+static Fmtpos_t *sffmtpos(Sfio_t *f, const char *form, va_list args, Sffmt_t *ft, int type)
 {
-	int		base, fmt, flags, dot, width, precis;
-	ssize_t		n_str, size = 0;
-	char		*t_str, *sp;
-	int		v, n, skip, dollar, decimal, thousand;
-	Sffmt_t		savft;
-	Fmtpos_t*	fp;	/* position array of arguments	*/
-	int		argp, maxp, need[FP_INDEX];
-	int		nargs;	/* the argv[] index of the last seen sequential % format (% or *) */
-	int		xargs;	/* highest (max) argv[] index see in an indexed format (%x$ *x$)  */
-	int		nextarg = 0;
+	int base, fmt, flags, dot, width, precis;
+	ssize_t n_str, size = 0;
+	char *t_str, *sp;
+	int v, n, skip, dollar, decimal, thousand;
+	Sffmt_t savft;
+	Fmtpos_t *fp; /* position array of arguments	*/
+	int argp, maxp, need[FP_INDEX];
+	int nargs; /* the argv[] index of the last seen sequential % format (% or *) */
+	int xargs; /* highest (max) argv[] index see in an indexed format (%x$ *x$)  */
+	int nextarg = 0;
 	SFMBDCL(fmbs)
 
 	if(type < 0)
 		fp = NULL;
-	else if(!(fp = sffmtpos(f,form,args,ft,-1)) )
+	else if(!(fp = sffmtpos(f, form, args, ft, -1)))
 		return NULL;
 
 	dollar = decimal = thousand = 0;
 	nargs = xargs = -1;
 	SFMBCLR(&fmbs);
-	while((n = *form) )
-	{	if(n != '%') /* collect the non-pattern chars */
-		{	sp = (char*)form;
+	while((n = *form))
+	{
+		if(n != '%') /* collect the non-pattern chars */
+		{
+			sp = (char *)form;
 			for(;;)
-			{	form += SFMBLEN(form, &fmbs);
+			{
+				form += SFMBLEN(form, &fmbs);
 				if(*form == 0 || *form == '%')
 					break;
 			}
 			continue;
 		}
-		else	form += 1;
+		else
+			form += 1;
 		if(*form == 0)
 			break;
 		else if(*form == '%')
-		{	form += 1;
+		{
+			form += 1;
 			continue;
 		}
 
 		if(*form == '*' && type > 0) /* skip in scanning */
-		{	skip = 1;
+		{
+			skip = 1;
 			form += 1;
 			argp = -1;
 		}
 		else /* get the position of this argument */
-		{	skip = 0;
-			sp = sffmtint(form,&argp);
+		{
+			skip = 0;
+			sp = sffmtint(form, &argp);
 			if(*sp == '$')
-			{	dollar = 1;
-				form = sp+1;
+			{
+				dollar = 1;
+				form = sp + 1;
 				if(argp > xargs)
 					xargs = argp;
 			}
 		}
 
 		flags = dot = 0;
-		t_str = NULL; n_str = 0;
+		t_str = NULL;
+		n_str = 0;
 		size = width = precis = base = -1;
 		for(n = 0; n < FP_INDEX; ++n)
 			need[n] = -1;
 
-	loop_flags:	/* LOOP FOR \0, %, FLAGS, WIDTH, PRECISION, BASE, TYPE */
-		switch((fmt = *form++) )
+	loop_flags: /* LOOP FOR \0, %, FLAGS, WIDTH, PRECISION, BASE, TYPE */
+		switch((fmt = *form++))
 		{
-		case LEFTP : /* get the type enclosed in balanced parens */
-			t_str = (char*)form;
-			for(v = 1;;)
-			{	switch(*form++)
+			case LEFTP: /* get the type enclosed in balanced parens */
+				t_str = (char *)form;
+				for(v = 1;;)
 				{
-				case 0 :	/* not balanceable, retract */
-					form = t_str;
-					t_str = NULL;
-					n_str = 0;
-					goto loop_flags;
-				case LEFTP :	/* increasing nested level */
-					v += 1;
-					continue;
-				case RIGHTP :	/* decreasing nested level */
-					if((v -= 1) != 0)
-						continue;
-					n_str = form-t_str;
-					if(*t_str == '*')
-					{	t_str = sffmtint(t_str+1,&n);
-						if(*t_str == '$')
-						{	dollar = 1;
-							if(n > xargs)
-								xargs = n;
-						}
-						if(n < 0)
-							n = ++nargs;
-						if(fp && fp[n].ft.fmt == 0)
-						{	fp[n].ft.fmt = LEFTP;
-							fp[n].ft.form = (char*)form;
-						}
-						need[FP_STR] = n;
+					switch(*form++)
+					{
+						case 0: /* not balanceable, retract */
+							form = t_str;
+							t_str = NULL;
+							n_str = 0;
+							goto loop_flags;
+						case LEFTP: /* increasing nested level */
+							v += 1;
+							continue;
+						case RIGHTP: /* decreasing nested level */
+							if((v -= 1) != 0)
+								continue;
+							n_str = form - t_str;
+							if(*t_str == '*')
+							{
+								t_str = sffmtint(t_str + 1, &n);
+								if(*t_str == '$')
+								{
+									dollar = 1;
+									if(n > xargs)
+										xargs = n;
+								}
+								if(n < 0)
+									n = ++nargs;
+								if(fp && fp[n].ft.fmt == 0)
+								{
+									fp[n].ft.fmt = LEFTP;
+									fp[n].ft.form = (char *)form;
+								}
+								need[FP_STR] = n;
+							}
+							goto loop_flags;
 					}
-					goto loop_flags;
 				}
-			}
 
-		case '-' :
-			flags |= SFFMT_LEFT;
-			flags &= ~SFFMT_ZERO;
-			goto loop_flags;
-		case '0' :
-			if(!(flags&SFFMT_LEFT) )
-				flags |= SFFMT_ZERO;
-			goto loop_flags;
-		case ' ' :
-			if(!(flags&SFFMT_SIGN) )
-				flags |= SFFMT_BLANK;
-			goto loop_flags;
-		case '+' :
-			flags |= SFFMT_SIGN;
-			flags &= ~SFFMT_BLANK;
-			goto loop_flags;
-		case '#' :
-			flags |= SFFMT_ALTER;
-			goto loop_flags;
-		case QUOTE:
-			SFSETLOCALE(&decimal,&thousand);
-			if(thousand > 0)
-				flags |= SFFMT_THOUSAND;
-			goto loop_flags;
-
-		case '.' :
-			if((dot += 1) == 2)
-				base = 0; /* for %s,%c */
-			if(isdigit(*form))
-			{	fmt = *form++;
-				goto dot_size;
-			}
-			else if(*form != '*')
+			case '-':
+				flags |= SFFMT_LEFT;
+				flags &= ~SFFMT_ZERO;
 				goto loop_flags;
-			else	form += 1;
-			/* FALLTHROUGH */
+			case '0':
+				if(!(flags & SFFMT_LEFT))
+					flags |= SFFMT_ZERO;
+				goto loop_flags;
+			case ' ':
+				if(!(flags & SFFMT_SIGN))
+					flags |= SFFMT_BLANK;
+				goto loop_flags;
+			case '+':
+				flags |= SFFMT_SIGN;
+				flags &= ~SFFMT_BLANK;
+				goto loop_flags;
+			case '#':
+				flags |= SFFMT_ALTER;
+				goto loop_flags;
+			case QUOTE:
+				SFSETLOCALE(&decimal, &thousand);
+				if(thousand > 0)
+					flags |= SFFMT_THOUSAND;
+				goto loop_flags;
 
-		case '*' :
-			form = sffmtint(form,&n);
-			if(*form == '$' )
-			{	dollar = 1;
-				form += 1;
-				if(n > xargs)
-					xargs = n;
-			}
-			if(n < 0)
-				n = ++nargs;
-			if(fp && fp[n].ft.fmt == 0)
-			{	fp[n].ft.fmt = '.';
-				fp[n].ft.size = dot;
-				fp[n].ft.form = (char*)form;
-			}
-			if(dot <= 2)
-				need[dot] = n;
-			goto loop_flags;
+			case '.':
+				if((dot += 1) == 2)
+					base = 0; /* for %s,%c */
+				if(isdigit(*form))
+				{
+					fmt = *form++;
+					goto dot_size;
+				}
+				else if(*form != '*')
+					goto loop_flags;
+				else
+					form += 1;
+				/* FALLTHROUGH */
 
-		case '1' : case '2' : case '3' :
-		case '4' : case '5' : case '6' :
-		case '7' : case '8' : case '9' :
-		dot_size :
-			for(v = fmt - '0', fmt = *form; isdigit(fmt); fmt = *++form)
-				v = v*10 + (fmt - '0');
-			if(dot == 0)
-				width = v;
-			else if(dot == 1)
-				precis = v;
-			else if(dot == 2)
-				base = v;
-			goto loop_flags;
-
-		case 'I' : /* object length */
-			size = -1; flags = (flags & ~SFFMT_TYPES) | SFFMT_IFLAG;
-			if(isdigit(*form) )
-			{	for(size = 0, n = *form; isdigit(n); n = *++form)
-					size = size*10 + (n - '0');
-			}
-			else if(*form == '*')
-			{	form = sffmtint(form+1,&n);
-				if(*form == '$' )
-				{	dollar = 1;
+			case '*':
+				form = sffmtint(form, &n);
+				if(*form == '$')
+				{
+					dollar = 1;
 					form += 1;
 					if(n > xargs)
-						xargs=n;
+						xargs = n;
 				}
 				if(n < 0)
 					n = ++nargs;
 				if(fp && fp[n].ft.fmt == 0)
-				{	fp[n].ft.fmt = 'I';
-					fp[n].ft.size = sizeof(int);
-					fp[n].ft.form = (char*)form;
+				{
+					fp[n].ft.fmt = '.';
+					fp[n].ft.size = dot;
+					fp[n].ft.form = (char *)form;
 				}
-				need[FP_SIZE] = n;
-			}
-			goto loop_flags;
+				if(dot <= 2)
+					need[dot] = n;
+				goto loop_flags;
 
-		case 'l' :
-			size = -1; flags &= ~SFFMT_TYPES;
-			if(*form == 'l')
-			{	form += 1;
-				flags |= SFFMT_LLONG;
-			}
-			else	flags |= SFFMT_LONG;
-			goto loop_flags;
-		case 'h' :
-			size = -1; flags &= ~SFFMT_TYPES;
-			if(*form == 'h')
-			{	form += 1;
-				flags |= SFFMT_SSHORT;
-			}
-			else	flags |= SFFMT_SHORT;
-			goto loop_flags;
-		case 'L' :
-			size = -1; flags = (flags & ~SFFMT_TYPES) | SFFMT_LDOUBLE;
-			goto loop_flags;
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			dot_size:
+				for(v = fmt - '0', fmt = *form; isdigit(fmt); fmt = *++form)
+					v = v * 10 + (fmt - '0');
+				if(dot == 0)
+					width = v;
+				else if(dot == 1)
+					precis = v;
+				else if(dot == 2)
+					base = v;
+				goto loop_flags;
+
+			case 'I': /* object length */
+				size = -1;
+				flags = (flags & ~SFFMT_TYPES) | SFFMT_IFLAG;
+				if(isdigit(*form))
+				{
+					for(size = 0, n = *form; isdigit(n); n = *++form)
+						size = size * 10 + (n - '0');
+				}
+				else if(*form == '*')
+				{
+					form = sffmtint(form + 1, &n);
+					if(*form == '$')
+					{
+						dollar = 1;
+						form += 1;
+						if(n > xargs)
+							xargs = n;
+					}
+					if(n < 0)
+						n = ++nargs;
+					if(fp && fp[n].ft.fmt == 0)
+					{
+						fp[n].ft.fmt = 'I';
+						fp[n].ft.size = sizeof(int);
+						fp[n].ft.form = (char *)form;
+					}
+					need[FP_SIZE] = n;
+				}
+				goto loop_flags;
+
+			case 'l':
+				size = -1;
+				flags &= ~SFFMT_TYPES;
+				if(*form == 'l')
+				{
+					form += 1;
+					flags |= SFFMT_LLONG;
+				}
+				else
+					flags |= SFFMT_LONG;
+				goto loop_flags;
+			case 'h':
+				size = -1;
+				flags &= ~SFFMT_TYPES;
+				if(*form == 'h')
+				{
+					form += 1;
+					flags |= SFFMT_SSHORT;
+				}
+				else
+					flags |= SFFMT_SHORT;
+				goto loop_flags;
+			case 'L':
+				size = -1;
+				flags = (flags & ~SFFMT_TYPES) | SFFMT_LDOUBLE;
+				goto loop_flags;
 		}
 
 		/* set object size for scalars */
 		if(flags & SFFMT_TYPES)
-		{	if((_Sftype[fmt]&(SFFMT_INT|SFFMT_UINT)) || fmt == 'n')
-			{	if(flags&SFFMT_LONG)
+		{
+			if((_Sftype[fmt] & (SFFMT_INT | SFFMT_UINT)) || fmt == 'n')
+			{
+				if(flags & SFFMT_LONG)
 					size = sizeof(long);
-				else if(flags&SFFMT_SHORT)
+				else if(flags & SFFMT_SHORT)
 					size = sizeof(short);
-				else if(flags&SFFMT_SSHORT)
+				else if(flags & SFFMT_SSHORT)
 					size = sizeof(char);
-				else if(flags&SFFMT_TFLAG)
+				else if(flags & SFFMT_TFLAG)
 					size = sizeof(ptrdiff_t);
-				else if(flags&SFFMT_ZFLAG)
+				else if(flags & SFFMT_ZFLAG)
 					size = sizeof(size_t);
-				else if(flags&SFFMT_LLONG)
+				else if(flags & SFFMT_LLONG)
 					size = sizeof(long long);
-				else if(flags&SFFMT_JFLAG)
+				else if(flags & SFFMT_JFLAG)
 					size = sizeof(Sflong_t);
-				else if(flags&SFFMT_IFLAG)
-				{	if(size <= 0 ||
-					   size == sizeof(Sflong_t)*CHAR_BIT )
+				else if(flags & SFFMT_IFLAG)
+				{
+					if(size <= 0 ||
+					   size == sizeof(Sflong_t) * CHAR_BIT)
 						size = sizeof(Sflong_t);
 				}
 				else if(size < 0)
 					size = sizeof(int);
 			}
-			else if(_Sftype[fmt]&SFFMT_FLOAT)
-			{	if(flags&(SFFMT_LONG|SFFMT_LLONG))
+			else if(_Sftype[fmt] & SFFMT_FLOAT)
+			{
+				if(flags & (SFFMT_LONG | SFFMT_LLONG))
 					size = sizeof(double);
-				else if(flags&SFFMT_LDOUBLE)
+				else if(flags & SFFMT_LDOUBLE)
 					size = sizeof(Sfdouble_t);
-				else if(flags&SFFMT_IFLAG)
-				{	if(size <= 0)
+				else if(flags & SFFMT_IFLAG)
+				{
+					if(size <= 0)
 						size = sizeof(Sfdouble_t);
 				}
 				else if(size < 0)
 					size = sizeof(float);
 			}
-			else if(_Sftype[fmt]&SFFMT_CHAR)
+			else if(_Sftype[fmt] & SFFMT_CHAR)
 			{
 #if _has_multibyte
-				if((flags&SFFMT_LONG) || fmt == 'C')
-				{	size = sizeof(wchar_t) > sizeof(int) ?
-						sizeof(wchar_t) : sizeof(int);
-				} else
+				if((flags & SFFMT_LONG) || fmt == 'C')
+				{
+					size = sizeof(wchar_t) > sizeof(int) ? sizeof(wchar_t) : sizeof(int);
+				}
+				else
 #endif
-				if(size < 0)
+				    if(size < 0)
 					size = sizeof(int);
 			}
 		}
@@ -312,7 +353,8 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 			return NULL;
 
 		if(fp && fp[argp].ft.fmt == 0)
-		{	fp[argp].ft.form = (char*)form;
+		{
+			fp[argp].ft.form = (char *)form;
 			fp[argp].ft.fmt = fp[argp].fmt = fmt;
 			fp[argp].ft.size = size;
 			fp[argp].ft.flags = flags;
@@ -328,7 +370,8 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 
 	maxp = nargs > xargs ? nargs : xargs;
 	if(!fp) /* constructing position array only */
-	{	if(!dollar || !(fp = (Fmtpos_t*)malloc((maxp+1)*sizeof(Fmtpos_t))) )
+	{
+		if(!dollar || !(fp = (Fmtpos_t *)malloc((maxp + 1) * sizeof(Fmtpos_t))))
 			return NULL;
 		for(n = 0; n <= maxp; ++n)
 			fp[n].ft.fmt = 0;
@@ -337,13 +380,16 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 
 	/* get value for positions */
 	if(ft)
-	{	if(ft->reloadf)
+	{
+		if(ft->reloadf)
 			nextarg = (*ft->reloadf)(0, 0, NULL, ft);
 		memcpy(&savft, ft, sizeof(*ft));
 	}
 	for(n = 0; n <= maxp; ++n)
-	{	if(fp[n].ft.fmt == 0) /* gap: pretend it's a 'c' pattern */
-		{	fp[n].ft.fmt = 'c';
+	{
+		if(fp[n].ft.fmt == 0) /* gap: pretend it's a 'c' pattern */
+		{
+			fp[n].ft.fmt = 'c';
 			fp[n].ft.width = 0;
 			fp[n].ft.precis = 0;
 			fp[n].ft.base = 0;
@@ -356,7 +402,8 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 		}
 
 		if(ft && ft->extf)
-		{	fp[n].ft.version = ft->version;
+		{
+			fp[n].ft.version = ft->version;
 			fp[n].ft.extf = ft->extf;
 			fp[n].ft.eventf = ft->eventf;
 			fp[n].ft.reloadf = ft->reloadf;
@@ -371,143 +418,166 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 			if((v = fp[n].need[FP_SIZE]) >= 0 && v < n)
 				fp[n].ft.size = fp[v].argv.i;
 
-			memcpy(ft,&fp[n].ft,sizeof(Sffmt_t));
-			va_copy(ft->args,args);
+			memcpy(ft, &fp[n].ft, sizeof(Sffmt_t));
+			va_copy(ft->args, args);
 			ft->flags |= SFFMT_ARGPOS;
 			v = (*ft->extf)(f, &fp[n].argv, ft);
-			va_copy(args,ft->args);
-			memcpy(&fp[n].ft,ft,sizeof(Sffmt_t));
+			va_copy(args, ft->args);
+			memcpy(&fp[n].ft, ft, sizeof(Sffmt_t));
 			if(v < 0)
-			{	memcpy(ft,&savft,sizeof(Sffmt_t));
+			{
+				memcpy(ft, &savft, sizeof(Sffmt_t));
 				ft = NULL;
 			}
 
-			if(!(fp[n].ft.flags&SFFMT_VALUE) )
+			if(!(fp[n].ft.flags & SFFMT_VALUE))
 				goto arg_list;
-			else if(_Sftype[fp[n].ft.fmt]&(SFFMT_INT|SFFMT_UINT) )
-			{	if(fp[n].ft.size == sizeof(short))
-				{	if(_Sftype[fp[n].ft.fmt]&SFFMT_INT)
+			else if(_Sftype[fp[n].ft.fmt] & (SFFMT_INT | SFFMT_UINT))
+			{
+				if(fp[n].ft.size == sizeof(short))
+				{
+					if(_Sftype[fp[n].ft.fmt] & SFFMT_INT)
 						fp[n].argv.i = fp[n].argv.h;
-					else	fp[n].argv.i = fp[n].argv.uh;
+					else
+						fp[n].argv.i = fp[n].argv.uh;
 				}
 				else if(fp[n].ft.size == sizeof(char))
-				{	if(_Sftype[fp[n].ft.fmt]&SFFMT_INT)
+				{
+					if(_Sftype[fp[n].ft.fmt] & SFFMT_INT)
 						fp[n].argv.i = fp[n].argv.c;
-					else	fp[n].argv.i = fp[n].argv.uc;
+					else
+						fp[n].argv.i = fp[n].argv.uc;
 				}
 			}
-			else if(_Sftype[fp[n].ft.fmt]&SFFMT_FLOAT )
-			{	if(fp[n].ft.size == sizeof(float) )
+			else if(_Sftype[fp[n].ft.fmt] & SFFMT_FLOAT)
+			{
+				if(fp[n].ft.size == sizeof(float))
 					fp[n].argv.d = fp[n].argv.f;
 			}
 		}
 		else
-		{ arg_list:
+		{
+		arg_list:
 			if(fp[n].ft.fmt == LEFTP)
-			{	fp[n].argv.s = va_arg(args, char*);
+			{
+				fp[n].argv.s = va_arg(args, char *);
 				fp[n].ft.size = strlen(fp[n].argv.s);
 			}
 			else if(fp[n].ft.fmt == '.' || fp[n].ft.fmt == 'I')
 				fp[n].argv.i = va_arg(args, int);
 			else if(fp[n].ft.fmt == '!')
-			{	if(ft)
-					memcpy(ft,&savft,sizeof(Sffmt_t));
-				fp[n].argv.ft = ft = va_arg(args, Sffmt_t*);
+			{
+				if(ft)
+					memcpy(ft, &savft, sizeof(Sffmt_t));
+				fp[n].argv.ft = ft = va_arg(args, Sffmt_t *);
 				if(ft->form)
 					ft = NULL;
 				if(ft)
-					memcpy(&savft,ft,sizeof(Sffmt_t));
+					memcpy(&savft, ft, sizeof(Sffmt_t));
 			}
 			else if(type > 0) /* from sfvscanf */
-				fp[n].argv.vp = va_arg(args, void*);
-			else switch(_Sftype[fp[n].ft.fmt])
-			{ case SFFMT_INT:
-			  case SFFMT_UINT:
+				fp[n].argv.vp = va_arg(args, void *);
+			else
+				switch(_Sftype[fp[n].ft.fmt])
+				{
+					case SFFMT_INT:
+					case SFFMT_UINT:
 #if !_ast_intmax_long
-				if(size == sizeof(Sflong_t) )
-					fp[n].argv.ll = va_arg(args, Sflong_t);
-				else
+						if(size == sizeof(Sflong_t))
+							fp[n].argv.ll = va_arg(args, Sflong_t);
+						else
 #endif
-				if(size == sizeof(long) )
-					fp[n].argv.l = va_arg(args, long);
-				else	fp[n].argv.i = va_arg(args, int);
-				break;
-			  case SFFMT_FLOAT:
+						    if(size == sizeof(long))
+							fp[n].argv.l = va_arg(args, long);
+						else
+							fp[n].argv.i = va_arg(args, int);
+						break;
+					case SFFMT_FLOAT:
 #if !_ast_fltmax_double
-				if(size == sizeof(Sfdouble_t) )
-					fp[n].argv.ld = va_arg(args,Sfdouble_t);
-				else
+						if(size == sizeof(Sfdouble_t))
+							fp[n].argv.ld = va_arg(args, Sfdouble_t);
+						else
 #endif
-					fp[n].argv.d  = va_arg(args,double);
-				break;
-	 		  case SFFMT_POINTER:
-					fp[n].argv.vp = va_arg(args,void*);
-				break;
-			  case SFFMT_CHAR:
-				if(fp[n].ft.base >= 0)
-					fp[n].argv.s = va_arg(args,char*);
+							fp[n].argv.d = va_arg(args, double);
+						break;
+					case SFFMT_POINTER:
+						fp[n].argv.vp = va_arg(args, void *);
+						break;
+					case SFFMT_CHAR:
+						if(fp[n].ft.base >= 0)
+							fp[n].argv.s = va_arg(args, char *);
 #if _has_multibyte
-				else if((fp[n].ft.flags & SFFMT_LONG) ||
-					fp[n].ft.fmt == 'C' )
-				{	if(sizeof(wchar_t) <= sizeof(int) )
-					     fp[n].argv.wc = (wchar_t)va_arg(args,int);
-					else fp[n].argv.wc = va_arg(args,wchar_t);
-				}
+						else if((fp[n].ft.flags & SFFMT_LONG) ||
+						        fp[n].ft.fmt == 'C')
+						{
+							if(sizeof(wchar_t) <= sizeof(int))
+								fp[n].argv.wc = (wchar_t)va_arg(args, int);
+							else
+								fp[n].argv.wc = va_arg(args, wchar_t);
+						}
 #endif
-					/* observe promotion rule */
-				else	fp[n].argv.i = va_arg(args,int);
-				break;
-			  default: /* unknown pattern */
-				break;
-			}
+						/* observe promotion rule */
+						else
+							fp[n].argv.i = va_arg(args, int);
+						break;
+					default: /* unknown pattern */
+						break;
+				}
 		}
 	}
 
 	if(ft)
-	{	if(ft->reloadf)
+	{
+		if(ft->reloadf)
 			(*ft->reloadf)(nextarg, 0, NULL, ft);
-		memcpy(ft,&savft,sizeof(Sffmt_t));
+		memcpy(ft, &savft, sizeof(Sffmt_t));
 	}
 	return fp;
 }
 
 /* function to initialize conversion tables */
 static int sfcvinit(void)
-{	int		d, l;
+{
+	int d, l;
 
 	for(d = 0; d <= SFIO_MAXCHAR; ++d)
-	{	_Sfcv36[d] = SFIO_RADIX;
+	{
+		_Sfcv36[d] = SFIO_RADIX;
 		_Sfcv64[d] = SFIO_RADIX;
 	}
 
 	/* [0-9] */
 	for(d = 0; d < 10; ++d)
-	{	_Sfcv36[(uchar)_Sfdigits[d]] = d;
+	{
+		_Sfcv36[(uchar)_Sfdigits[d]] = d;
 		_Sfcv64[(uchar)_Sfdigits[d]] = d;
 	}
 
 	/* [a-z] */
 	for(; d < 36; ++d)
-	{	_Sfcv36[(uchar)_Sfdigits[d]] = d;
+	{
+		_Sfcv36[(uchar)_Sfdigits[d]] = d;
 		_Sfcv64[(uchar)_Sfdigits[d]] = d;
 	}
 
 	/* [A-Z] */
 	for(l = 10; d < 62; ++l, ++d)
-	{	_Sfcv36[(uchar)_Sfdigits[d]] = l;
+	{
+		_Sfcv36[(uchar)_Sfdigits[d]] = l;
 		_Sfcv64[(uchar)_Sfdigits[d]] = d;
 	}
 
 	/* remaining digits */
 	for(; d < SFIO_RADIX; ++d)
-	{	_Sfcv36[(uchar)_Sfdigits[d]] = d;
+	{
+		_Sfcv36[(uchar)_Sfdigits[d]] = d;
 		_Sfcv64[(uchar)_Sfdigits[d]] = d;
 	}
 
 	_Sftype['d'] = _Sftype['i'] = SFFMT_INT;
 	_Sftype['u'] = _Sftype['o'] = _Sftype['x'] = _Sftype['X'] = SFFMT_UINT;
 	_Sftype['e'] = _Sftype['E'] = _Sftype['a'] = _Sftype['A'] =
-	_Sftype['g'] = _Sftype['G'] = _Sftype['f'] = SFFMT_FLOAT;
+	    _Sftype['g'] = _Sftype['G'] = _Sftype['f'] = SFFMT_FLOAT;
 	_Sftype['s'] = _Sftype['n'] = _Sftype['p'] = _Sftype['!'] = SFFMT_POINTER;
 	_Sftype['c'] = SFFMT_CHAR;
 	_Sftype['['] = SFFMT_CLASS;
@@ -520,4 +590,4 @@ static int sfcvinit(void)
 }
 
 /* table for floating point and integer conversions */
-#include	"FEATURE/sfinit"
+#include "FEATURE/sfinit"

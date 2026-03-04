@@ -24,8 +24,7 @@
 
 #include <cmd.h>
 
-int
-b_ln(int argc, char** argv, Shbltin_t* context)
+int b_ln(int argc, char **argv, Shbltin_t *context)
 {
 	return b_cp(argc, argv, context);
 }

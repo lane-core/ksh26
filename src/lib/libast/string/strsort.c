@@ -29,23 +29,23 @@
 
 #include <ast.h>
 
-void
-strsort(char** argv, int n, int(*fn)(const char*, const char*))
+void strsort(char **argv, int n, int (*fn)(const char *, const char *))
 {
-	int 	i;
-	int 	j;
-	int 	m;
-	char**	ap;
-	char*		s;
-	int 		k;
+	int i;
+	int j;
+	int m;
+	char **ap;
+	char *s;
+	int k;
 
-	for (j = 1; j <= n; j *= 2);
-	for (m = 2 * j - 1; m /= 2;)
-		for (j = 0, k = n - m; j < k; j++)
-			for (i = j; i >= 0; i -= m)
+	for(j = 1; j <= n; j *= 2)
+		;
+	for(m = 2 * j - 1; m /= 2;)
+		for(j = 0, k = n - m; j < k; j++)
+			for(i = j; i >= 0; i -= m)
 			{
 				ap = &argv[i];
-				if ((*fn)(ap[m], ap[0]) >= 0) break;
+				if((*fn)(ap[m], ap[0]) >= 0) break;
 				s = ap[m];
 				ap[m] = ap[0];
 				ap[0] = s;

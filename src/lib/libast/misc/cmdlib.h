@@ -21,32 +21,32 @@
  */
 
 #ifndef _CMDLIB_H
-#define _CMDLIB_H	1
+#define _CMDLIB_H 1
 
-#define _CMDARG_PRIVATE_ \
-	struct \
-	{ \
-	size_t		args;		/* total args			*/ \
-	size_t		commands;	/* total commands		*/ \
-	}		total; \
-	Error_f		errorf;		/* optional error callback	*/ \
-	Cmdrun_f	runf;		/* exec function		*/ \
-	int		argcount;	/* current arg count		*/ \
-	int		argmax;		/* max # args			*/ \
-	int		echo;		/* just an echo			*/ \
-	int		flags;		/* CMD_* flags			*/ \
-	int		insertlen;	/* strlen(insert)		*/ \
-	int		offset;		/* post arg offset		*/ \
-	Cmddisc_t*	disc;		/* discipline			*/ \
-	char**		argv;		/* exec argv			*/ \
-	char**		firstarg;	/* first argv file arg		*/ \
-	char**		insertarg;	/* argv before insert		*/ \
-	char**		postarg;	/* start of post arg list	*/ \
-	char**		nextarg;	/* next argv file arg		*/ \
-	char*		nextstr;	/* next string ends before here	*/ \
-	char*		laststr;	/* last string ends before here	*/ \
-	char*		insert;		/* replace with current arg	*/ \
-	char		buf[1];		/* argv and arg buffer		*/
+#define _CMDARG_PRIVATE_                                     \
+	struct                                               \
+	{                                                    \
+		size_t args;     /* total args			*/          \
+		size_t commands; /* total commands		*/       \
+	} total;                                             \
+	Error_f errorf;   /* optional error callback	*/      \
+	Cmdrun_f runf;    /* exec function		*/               \
+	int argcount;     /* current arg count		*/           \
+	int argmax;       /* max # args			*/                 \
+	int echo;         /* just an echo			*/               \
+	int flags;        /* CMD_* flags			*/                \
+	int insertlen;    /* strlen(insert)		*/              \
+	int offset;       /* post arg offset		*/             \
+	Cmddisc_t *disc;  /* discipline			*/                 \
+	char **argv;      /* exec argv			*/                  \
+	char **firstarg;  /* first argv file arg		*/         \
+	char **insertarg; /* argv before insert		*/          \
+	char **postarg;   /* start of post arg list	*/       \
+	char **nextarg;   /* next argv file arg		*/          \
+	char *nextstr;    /* next string ends before here	*/ \
+	char *laststr;    /* last string ends before here	*/ \
+	char *insert;     /* replace with current arg	*/     \
+	char buf[1];      /* argv and arg buffer		*/
 
 #include <cmdarg.h>
 

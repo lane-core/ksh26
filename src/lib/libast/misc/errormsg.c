@@ -25,10 +25,9 @@
 
 #include <error.h>
 
-int
-errormsg(const char* dictionary, int level, ...)
+int errormsg(const char *dictionary, int level, ...)
 {
-	va_list	ap;
+	va_list ap;
 
 	va_start(ap, level);
 	errorv(dictionary, level, ap);

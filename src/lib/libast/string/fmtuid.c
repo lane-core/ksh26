@@ -24,56 +24,56 @@
  * UID number -> user name
  */
 
-#define getpwuid	______getpwuid
+#define getpwuid ______getpwuid
 
 #include <ast.h>
 #include <cdt.h>
 #include <pwd.h>
 
-#undef	getpwuid
+#undef getpwuid
 
-extern struct passwd*	getpwuid(uid_t);
+extern struct passwd *getpwuid(uid_t);
 
 typedef struct Id_s
 {
-	Dtlink_t	link;
-	int		id;
-	char		name[1];
+	Dtlink_t link;
+	int id;
+	char name[1];
 } Id_t;
 
 /*
  * return user name for given UID number
  */
 
-char*
+char *
 fmtuid(int uid)
 {
-	Id_t*		ip;
-	char*		name;
-	struct passwd*	pw;
-	int		z;
+	Id_t *ip;
+	char *name;
+	struct passwd *pw;
+	int z;
 
-	static Dt_t*		dict;
-	static Dtdisc_t		disc;
+	static Dt_t *dict;
+	static Dtdisc_t disc;
 
-	if (!dict)
+	if(!dict)
 	{
 		disc.key = offsetof(Id_t, id);
 		disc.size = sizeof(int);
 		dict = dtopen(&disc, Dtset);
 	}
-	else if (ip = (Id_t*)dtmatch(dict, &uid))
+	else if(ip = (Id_t *)dtmatch(dict, &uid))
 		return ip->name;
-	if (pw = getpwuid(uid))
+	if(pw = getpwuid(uid))
 		name = pw->pw_name;
-	else if (uid == 0)
+	else if(uid == 0)
 		name = "root";
 	else
 	{
 		name = fmtbuf(z = sizeof(uid) * 3 + 1);
 		snprintf(name, z, "%jd", (intmax_t)uid);
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if(dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{
 		ip->id = uid;
 		strcpy(ip->name, name);

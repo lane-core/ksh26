@@ -31,20 +31,20 @@
 #include <sys/sysmacros.h>
 #endif
 
-char*
-fmtdev(struct stat* st)
+char *
+fmtdev(struct stat *st)
 {
-	char*		buf;
-	unsigned long	mm;
-	unsigned int	ma;
-	unsigned int	mi;
-	int		z;
+	char *buf;
+	unsigned long mm;
+	unsigned int ma;
+	unsigned int mi;
+	int z;
 
 	mm = (S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode)) ? idevice(st) : st->st_dev;
 	ma = major(mm);
 	mi = minor(mm);
 	buf = fmtbuf(z = 17);
-	if (ma == '#' && isalnum(mi))
+	if(ma == '#' && isalnum(mi))
 	{
 		/*
 		 * Plan? Nein!

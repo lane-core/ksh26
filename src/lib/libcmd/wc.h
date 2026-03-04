@@ -27,29 +27,29 @@
 
 #include <ast.h>
 
-#define WC_LINES	0x01
-#define WC_WORDS	0x02
-#define WC_CHARS	0x04
-#define WC_MBYTE	0x08
-#define WC_LONGEST	0x10
-#define WC_QUIET	0x20
-#define WC_NOUTF8	0x40
+#define WC_LINES 0x01
+#define WC_WORDS 0x02
+#define WC_CHARS 0x04
+#define WC_MBYTE 0x08
+#define WC_LONGEST 0x10
+#define WC_QUIET 0x20
+#define WC_NOUTF8 0x40
 
 typedef struct
 {
-	char	type[1<<CHAR_BIT];
+	char type[1 << CHAR_BIT];
 	Sfoff_t words;
 	Sfoff_t lines;
 	Sfoff_t chars;
 	Sfoff_t longest;
-	int	mode;
-	int	mb;
+	int mode;
+	int mb;
 } Wc_t;
 
-#define wc_count	_cmd_wccount
-#define wc_init		_cmd_wcinit
+#define wc_count _cmd_wccount
+#define wc_init _cmd_wcinit
 
-extern Wc_t*		wc_init(int);
-extern int		wc_count(Wc_t*, Sfio_t*, const char*);
+extern Wc_t *wc_init(int);
+extern int wc_count(Wc_t *, Sfio_t *, const char *);
 
 #endif /* _WC_H */

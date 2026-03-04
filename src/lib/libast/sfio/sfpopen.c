@@ -17,51 +17,52 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Create a coprocess.
 **	Written by Kiem-Phong Vo.
 */
 
-#include	<proc.h>
+#include <proc.h>
 
-Sfio_t*	sfpopen(Sfio_t*		f,
-		const char*	command,	/* command to execute */
-		const char*	mode)		/* mode of the stream */
+Sfio_t *sfpopen(Sfio_t *f,
+                const char *command, /* command to execute */
+                const char *mode)    /* mode of the stream */
 {
-	Proc_t*		proc;
-	int		sflags;
-	long		flags;
-	int		pflags;
-	char*		av[4];
+	Proc_t *proc;
+	int sflags;
+	long flags;
+	int pflags;
+	char *av[4];
 
-	if (!command || !command[0] || !mode)
+	if(!command || !command[0] || !mode)
 		return NULL;
 	sflags = _sftype(mode, NULL, NULL);
 
-	if(f == (Sfio_t*)(-1))
-	{	/* stdio compatibility mode */
+	if(f == (Sfio_t *)(-1))
+	{ /* stdio compatibility mode */
 		f = NULL;
 		pflags = 1;
 	}
-	else	pflags = 0;
+	else
+		pflags = 0;
 
 	flags = 0;
-	if (sflags & SFIO_READ)
+	if(sflags & SFIO_READ)
 		flags |= PROC_READ;
-	if (sflags & SFIO_WRITE)
+	if(sflags & SFIO_WRITE)
 		flags |= PROC_WRITE;
 	av[0] = "sh";
 	av[1] = "-c";
-	av[2] = (char*)command;
+	av[2] = (char *)command;
 	av[3] = 0;
-	if (!(proc = procopen(0, av, 0, 0, flags)))
+	if(!(proc = procopen(0, av, 0, 0, flags)))
 		return NULL;
-	if (!(f = sfnew(f, NULL, (size_t)SFIO_UNBOUND,
-	       		(sflags&SFIO_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SFIO_RDWR)?0:SFIO_READ))) ||
-	    _sfpopen(f, (sflags&SFIO_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
+	if(!(f = sfnew(f, NULL, (size_t)SFIO_UNBOUND,
+	               (sflags & SFIO_READ) ? proc->rfd : proc->wfd, sflags | ((sflags & SFIO_RDWR) ? 0 : SFIO_READ))) ||
+	   _sfpopen(f, (sflags & SFIO_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
 	{
-		if (f) sfclose(f);
+		if(f) sfclose(f);
 		procclose(proc);
 		return NULL;
 	}

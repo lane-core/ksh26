@@ -34,14 +34,15 @@
 Time_t
 tmxleap(Time_t t)
 {
-	Tm_leap_t*	lp;
-	uint32_t		sec;
+	Tm_leap_t *lp;
+	uint32_t sec;
 
 	tmset(tm_info.zone, time(NULL), 0);
-	if (tm_info.flags & TM_ADJUST)
+	if(tm_info.flags & TM_ADJUST)
 	{
 		sec = tmxsec(t);
-		for (lp = &tm_data.leap[0]; sec < (lp->time - lp->total); lp++);
+		for(lp = &tm_data.leap[0]; sec < (lp->time - lp->total); lp++)
+			;
 		t = tmxsns(sec + lp->total, tmxnsec(t));
 	}
 	return t;

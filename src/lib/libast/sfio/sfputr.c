@@ -16,69 +16,75 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Put out a null-terminated string
 **
 **	Written by Kiem-Phong Vo.
 */
-ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
-	       const char*	s,	/* string to write	*/
-	       int		rc)	/* record separator 	*/
+ssize_t sfputr(Sfio_t *f,     /* write to this stream	*/
+               const char *s, /* string to write	*/
+               int rc)        /* record separator 	*/
 {
-	ssize_t		p, n, w, sn;
-	uchar		*ps;
-	char		*ss;
+	ssize_t p, n, w, sn;
+	uchar *ps;
+	char *ss;
 
-	if(!f || (f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0))
+	if(!f || (f->mode != SFIO_WRITE && _sfmode(f, SFIO_WRITE, 0) < 0))
 		return -1;
 
-	SFLOCK(f,0);
+	SFLOCK(f, 0);
 
-	f->val = sn = -1; ss = (char*)s;
-	for(w = 0; (*s || rc >= 0); )
-	{	/* need to communicate string size to exception handler */
-		if((f->flags&SFIO_STRING) && f->next >= f->endb )
-		{	sn = sn < 0 ? strlen(s) : (sn - (s-ss));
-			ss = (char*)s; /* save current checkpoint */
+	f->val = sn = -1;
+	ss = (char *)s;
+	for(w = 0; (*s || rc >= 0);)
+	{ /* need to communicate string size to exception handler */
+		if((f->flags & SFIO_STRING) && f->next >= f->endb)
+		{
+			sn = sn < 0 ? strlen(s) : (sn - (s - ss));
+			ss = (char *)s;                  /* save current checkpoint */
 			f->val = sn + (rc >= 0 ? 1 : 0); /* space requirement */
-			f->bits |= SFIO_PUTR; /* tell sfflsbuf to use f->val */
+			f->bits |= SFIO_PUTR;            /* tell sfflsbuf to use f->val */
 		}
 
-		SFWPEEK(f,ps,p);
+		SFWPEEK(f, ps, p);
 		f->bits &= ~SFIO_PUTR; /* remove any trace of this */
 
-		if(p < 0 ) /* something not right about buffering */
+		if(p < 0) /* something not right about buffering */
 			break;
 
-		if(p == 0 || (f->flags&SFIO_WHOLE) )
-		{	n = sn < 0 ? strlen(s) : sn - (s-ss);
-			if(p >= (n + (rc < 0 ? 0 : 1)) )
-			{	/* buffer can hold everything */
+		if(p == 0 || (f->flags & SFIO_WHOLE))
+		{
+			n = sn < 0 ? strlen(s) : sn - (s - ss);
+			if(p >= (n + (rc < 0 ? 0 : 1)))
+			{ /* buffer can hold everything */
 				if(n > 0)
-				{	memcpy(ps, s, n);
+				{
+					memcpy(ps, s, n);
 					ps += n;
 					w += n;
 				}
 				if(rc >= 0)
-				{	*ps++ = rc;
+				{
+					*ps++ = rc;
 					w += 1;
 				}
 				f->next = ps;
 			}
 			else
-			{	/* create a reserve buffer to hold data */
-				Sfrsrv_t*	rsrv;
+			{ /* create a reserve buffer to hold data */
+				Sfrsrv_t *rsrv;
 
 				p = n + (rc >= 0 ? 1 : 0);
-				if(!(rsrv = _sfrsrv(f, p)) )
+				if(!(rsrv = _sfrsrv(f, p)))
 					n = 0;
 				else
-				{	if(n > 0)
+				{
+					if(n > 0)
 						memcpy(rsrv->data, s, n);
 					if(rc >= 0)
 						rsrv->data[n] = rc;
-					if((n = SFWRITE(f,rsrv->data,p)) < 0 )
+					if((n = SFWRITE(f, rsrv->data, p)) < 0)
 						n = 0;
 				}
 
@@ -88,7 +94,8 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 		}
 
 		if(*s == 0)
-		{	*ps++ = rc;
+		{
+			*ps++ = rc;
 			f->next = ps;
 			w += 1;
 			break;
@@ -108,17 +115,18 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	}
 
 	/* sync unseekable shared streams */
-	if(f->extent < 0 && (f->flags&SFIO_SHARE) )
-		(void)SFFLSBUF(f,-1);
+	if(f->extent < 0 && (f->flags & SFIO_SHARE))
+		(void)SFFLSBUF(f, -1);
 
 	/* check for line buffering */
-	else if((f->flags&SFIO_LINE) && !(f->flags&SFIO_STRING) && (n = f->next-f->data) > 0)
-	{	if(n > w)
+	else if((f->flags & SFIO_LINE) && !(f->flags & SFIO_STRING) && (n = f->next - f->data) > 0)
+	{
+		if(n > w)
 			n = w;
 		f->next -= n;
-		(void)SFWRITE(f,f->next,n);
+		(void)SFWRITE(f, f->next, n);
 	}
 
-	SFOPEN(f,0);
+	SFOPEN(f, 0);
 	return w;
 }

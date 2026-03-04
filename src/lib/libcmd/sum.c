@@ -24,8 +24,7 @@
 
 #include <cmd.h>
 
-int
-b_sum(int argc, char** argv, Shbltin_t* context)
+int b_sum(int argc, char **argv, Shbltin_t *context)
 {
 	return b_cksum(argc, argv, context);
 }

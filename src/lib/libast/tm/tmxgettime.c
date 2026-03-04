@@ -33,7 +33,7 @@
 Time_t
 tmxgettime(void)
 {
-	Tv_t	tv;
+	Tv_t tv;
 
 	tvgettime(&tv);
 	return tmxsns(tv.tv_sec, tv.tv_nsec);

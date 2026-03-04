@@ -18,13 +18,13 @@
 ***********************************************************************/
 
 #ifndef _IP6_H
-#define _IP6_H		1
+#define _IP6_H 1
 
-#define IP6ADDR		16
-#define IP6BITS		IP6ADDR
-#define IP6PREFIX	(IP6ADDR+1)
+#define IP6ADDR 16
+#define IP6BITS IP6ADDR
+#define IP6PREFIX (IP6ADDR + 1)
 
-extern char*	fmtip6(const unsigned char*, int);
-extern int	strtoip6(const char*, char**, unsigned char*, unsigned char*);
+extern char *fmtip6(const unsigned char *, int);
+extern int strtoip6(const char *, char **, unsigned char *, unsigned char *);
 
 #endif

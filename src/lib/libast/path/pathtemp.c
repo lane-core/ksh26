@@ -72,12 +72,12 @@
 #include <tm.h>
 #include <error.h>
 
-#define ATTEMPT		10
+#define ATTEMPT 10
 
-#define TMP_ENV		"TMPDIR"
-#define TMP_PATH_ENV	"TMPPATH"
-#define TMP1		"/tmp"
-#define TMP2		"/var/tmp"
+#define TMP_ENV "TMPDIR"
+#define TMP_PATH_ENV "TMPPATH"
+#define TMP1 "/tmp"
+#define TMP2 "/var/tmp"
 
 static inline int xaccess(const char *path, int mode)
 {
@@ -85,10 +85,10 @@ static inline int xaccess(const char *path, int mode)
 	struct statvfs vfs;
 	int ret;
 
-	if (!pgsz)
+	if(!pgsz)
 		pgsz = astconf_ulong(CONF_PAGESIZE);
 
-	if (!path || !*path)
+	if(!path || !*path)
 	{
 		errno = EFAULT;
 		goto err;
@@ -96,12 +96,12 @@ static inline int xaccess(const char *path, int mode)
 
 	do
 		ret = statvfs(path, &vfs);
-	while (ret < 0 && errno == EINTR);
+	while(ret < 0 && errno == EINTR);
 
-	if (ret < 0)
+	if(ret < 0)
 		goto err;
 
-	if (vfs.f_frsize*vfs.f_bavail < pgsz)
+	if(vfs.f_frsize * vfs.f_bavail < pgsz)
 	{
 		errno = ENOSPC;
 		goto err;
@@ -112,180 +112,181 @@ err:
 	return -1;
 }
 
-#define VALID(d)	(*(d)&&!xaccess(d,W_OK|X_OK))
+#define VALID(d) (*(d) && !xaccess(d, W_OK | X_OK))
 
 static struct
 {
-	mode_t		mode;
-	char**		vec;
-	char**		dir;
-	uint32_t	key;
-	uint32_t	rng;
-	pid_t		pid;
-	int		manual;
-	int		seed;
-	char*		pfx;
-	char*		tmpdir;
-	char*		tmppath;
-} tmp = { S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH };
+	mode_t mode;
+	char **vec;
+	char **dir;
+	uint32_t key;
+	uint32_t rng;
+	pid_t pid;
+	int manual;
+	int seed;
+	char *pfx;
+	char *tmpdir;
+	char *tmppath;
+} tmp = {S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH};
 
-char*
-pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
+char *
+pathtemp(char *buf, size_t len, const char *dir, const char *pfx, int *fdp)
 {
-	char*		d;
-	char*		b;
-	char*		s;
-	char*		x;
-	uint32_t	key;
-	int		m;
-	int		n;
-	int		l;
-	int		r;
-	int		z;
-	int		attempt;
-	Tv_t		tv;
-	char		keybuf[20];
+	char *d;
+	char *b;
+	char *s;
+	char *x;
+	uint32_t key;
+	int m;
+	int n;
+	int l;
+	int r;
+	int z;
+	int attempt;
+	Tv_t tv;
+	char keybuf[20];
 
-	if (pfx && *pfx == '/')
+	if(pfx && *pfx == '/')
 	{
 		pfx++;
-		if (streq(pfx, "cycle"))
+		if(streq(pfx, "cycle"))
 		{
-			if (!dir)
+			if(!dir)
 			{
 				tmp.manual = 1;
-				if (tmp.dir && !*tmp.dir++)
+				if(tmp.dir && !*tmp.dir++)
 					tmp.dir = tmp.vec;
 			}
 			else
 				tmp.manual = streq(dir, "manual");
-			return (char*)pfx;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, "prefix"))
+		else if(streq(pfx, "prefix"))
 		{
-			if (tmp.pfx)
+			if(tmp.pfx)
 				free(tmp.pfx);
 			tmp.pfx = dir ? strdup(dir) : NULL;
-			return (char*)pfx;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, "private"))
+		else if(streq(pfx, "private"))
 		{
-			tmp.mode = S_IRUSR|S_IWUSR;
-			return (char*)pfx;
+			tmp.mode = S_IRUSR | S_IWUSR;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, "public"))
+		else if(streq(pfx, "public"))
 		{
-			tmp.mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
-			return (char*)pfx;
+			tmp.mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, "seed"))
+		else if(streq(pfx, "seed"))
 		{
-			tmp.key = (tmp.seed = (tmp.rng = dir ? (uint32_t)strtoul(dir, NULL, 0) : (uint32_t)1) != 0)? (uint32_t)0x63c63cd9L : 0;
-			return (char*)pfx;
+			tmp.key = (tmp.seed = (tmp.rng = dir ? (uint32_t)strtoul(dir, NULL, 0) : (uint32_t)1) != 0) ? (uint32_t)0x63c63cd9L : 0;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, TMP_ENV))
+		else if(streq(pfx, TMP_ENV))
 		{
-			if (tmp.vec)
+			if(tmp.vec)
 			{
 				free(tmp.vec);
 				tmp.vec = 0;
 			}
-			if (tmp.tmpdir)
+			if(tmp.tmpdir)
 				free(tmp.tmpdir);
 			tmp.tmpdir = dir ? strdup(dir) : NULL;
-			return (char*)pfx;
+			return (char *)pfx;
 		}
-		else if (streq(pfx, TMP_PATH_ENV))
+		else if(streq(pfx, TMP_PATH_ENV))
 		{
-			if (tmp.vec)
+			if(tmp.vec)
 			{
 				free(tmp.vec);
 				tmp.vec = 0;
 			}
-			if (tmp.tmppath)
+			if(tmp.tmppath)
 				free(tmp.tmppath);
 			tmp.tmppath = dir ? strdup(dir) : NULL;
-			return (char*)pfx;
+			return (char *)pfx;
 		}
 		return NULL;
 	}
-	if (tmp.seed)
+	if(tmp.seed)
 		tv.tv_nsec = 0;
 	else
 		tvgettime(&tv);
-	if (!(d = (char*)dir) || (*d && xaccess(d, W_OK|X_OK)))
+	if(!(d = (char *)dir) || (*d && xaccess(d, W_OK | X_OK)))
 	{
-		if (!tmp.vec)
+		if(!tmp.vec)
 		{
-			if ((x = tmp.tmppath) || (x = getenv(TMP_PATH_ENV)))
+			if((x = tmp.tmppath) || (x = getenv(TMP_PATH_ENV)))
 			{
 				n = 2;
 				s = x;
-				while (s = strchr(s, ':'))
+				while(s = strchr(s, ':'))
 				{
 					s++;
 					n++;
 				}
-				if (!(tmp.vec = newof(0, char*, n, strlen(x) + 1)))
+				if(!(tmp.vec = newof(0, char *, n, strlen(x) + 1)))
 					return NULL;
 				tmp.dir = tmp.vec;
-				x = strcpy((char*)(tmp.dir + n), x);
+				x = strcpy((char *)(tmp.dir + n), x);
 				*tmp.dir++ = x;
-				while (x = strchr(x, ':'))
+				while(x = strchr(x, ':'))
 				{
 					*x++ = 0;
-					if (!VALID(*(tmp.dir - 1)))
+					if(!VALID(*(tmp.dir - 1)))
 						tmp.dir--;
 					*tmp.dir++ = x;
 				}
-				if (!VALID(*(tmp.dir - 1)))
+				if(!VALID(*(tmp.dir - 1)))
 					tmp.dir--;
 				*tmp.dir = 0;
 			}
 			else
 			{
-				if (((d = tmp.tmpdir) || (d = getenv(TMP_ENV))) && !VALID(d))
+				if(((d = tmp.tmpdir) || (d = getenv(TMP_ENV))) && !VALID(d))
 					d = 0;
-				if (!(tmp.vec = newof(0, char*, 2, d ? (strlen(d) + 1) : 0)))
+				if(!(tmp.vec = newof(0, char *, 2, d ? (strlen(d) + 1) : 0)))
 					return NULL;
-				if (d)
-					*tmp.vec = strcpy((char*)(tmp.vec + 2), d);
+				if(d)
+					*tmp.vec = strcpy((char *)(tmp.vec + 2), d);
 			}
 			tmp.dir = tmp.vec;
 		}
-		if (!(d = *tmp.dir++))
+		if(!(d = *tmp.dir++))
 		{
 			tmp.dir = tmp.vec;
 			d = *tmp.dir++;
 		}
-		if (!d && (!*(d = astconf("TMP", NULL, NULL)) || xaccess(d, W_OK|X_OK)) && xaccess(d = TMP1, W_OK|X_OK) && xaccess(d = TMP2, W_OK|X_OK))
+		if(!d && (!*(d = astconf("TMP", NULL, NULL)) || xaccess(d, W_OK | X_OK)) && xaccess(d = TMP1, W_OK | X_OK) && xaccess(d = TMP2, W_OK | X_OK))
 			return NULL;
 	}
-	if (!len)
+	if(!len)
 		len = PATH_MAX;
 	len--;
-	if (!(b = buf) && !(b = newof(0, char, len, 1)))
+	if(!(b = buf) && !(b = newof(0, char, len, 1)))
 		return NULL;
 	z = 0;
-	if (!pfx && !(pfx = tmp.pfx))
+	if(!pfx && !(pfx = tmp.pfx))
 		pfx = "ast";
 	m = strlen(pfx);
-	if (buf && dir && (buf == (char*)dir && (buf + strlen(buf) + 1) == (char*)pfx || buf == (char*)pfx && !*dir) && !strcmp((char*)pfx + m + 1, "XXXXX"))
+	if(buf && dir && (buf == (char *)dir && (buf + strlen(buf) + 1) == (char *)pfx || buf == (char *)pfx && !*dir) && !strcmp((char *)pfx + m + 1, "XXXXX"))
 	{
-		d = (char*)dir;
+		d = (char *)dir;
 		len = m += strlen(d) + 8;
 		l = 3;
 		r = 3;
 	}
-	else if (*pfx && pfx[m - 1] == 'X')
+	else if(*pfx && pfx[m - 1] == 'X')
 	{
-		for (l = m; l && pfx[l - 1] == 'X'; l--);
+		for(l = m; l && pfx[l - 1] == 'X'; l--)
+			;
 		r = m - l;
 		m = l;
 		l = r / 2;
 		r -= l;
 	}
-	else if (strchr(pfx, '.'))
+	else if(strchr(pfx, '.'))
 	{
 		m = 5;
 		l = 3;
@@ -300,28 +301,28 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 	}
 	x = b + len;
 	s = b;
-	if (d)
+	if(d)
 	{
-		while (s < x && (n = *d++))
+		while(s < x && (n = *d++))
 			*s++ = n;
-		if (s < x && s > b && *(s - 1) != '/')
+		if(s < x && s > b && *(s - 1) != '/')
 			*s++ = '/';
 	}
-	if ((x - s) > m)
+	if((x - s) > m)
 		x = s + m;
-	while (s < x && (n = *pfx++))
+	while(s < x && (n = *pfx++))
 	{
-		if (n == '/' || n == '\\' || n == z)
+		if(n == '/' || n == '\\' || n == z)
 			n = '_';
 		*s++ = n;
 	}
 	*s = 0;
 	len -= (s - b);
-	for (attempt = 0; attempt < ATTEMPT; attempt++)
+	for(attempt = 0; attempt < ATTEMPT; attempt++)
 	{
-		if (!tmp.rng || !tmp.seed && (attempt || tmp.pid != getpid()))
+		if(!tmp.rng || !tmp.seed && (attempt || tmp.pid != getpid()))
 		{
-			int	r;
+			int r;
 
 			/*
 			 * get a quasi-random coefficient
@@ -329,7 +330,7 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 
 			tmp.pid = getpid();
 			tmp.rng = (uint32_t)tmp.pid * ((uint32_t)time(NULL) ^ (((uint32_t)integralof(&attempt)) >> 3) ^ (((uint32_t)integralof(tmp.dir)) >> 3));
-			if (!tmp.key)
+			if(!tmp.key)
 				tmp.key = (tmp.rng >> 16) | ((tmp.rng & 0xffff) << 16);
 			tmp.rng ^= tmp.key;
 
@@ -337,7 +338,7 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 			 * Knuth vol.2, page.16, Thm.A
 			 */
 
-			if ((r = (tmp.rng - 1) & 03))
+			if((r = (tmp.rng - 1) & 03))
 				tmp.rng += 4 - r;
 		}
 
@@ -346,23 +347,23 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 		 */
 
 		key = tmp.rng * tmp.key + tv.tv_nsec;
-		if (!tmp.seed)
+		if(!tmp.seed)
 			tvgettime(&tv);
 		tmp.key = tmp.rng * key + tv.tv_nsec;
 		snprintf(keybuf, sizeof(keybuf), "%08x%08x", (unsigned)key, (unsigned)tmp.key);
 		snprintf(s, len, "%-.*s%s%-.*s", l, keybuf, z ? "." : "", r, keybuf + sizeof(keybuf) / 2);
-		if (fdp)
+		if(fdp)
 		{
-			if ((n = open(b, O_CREAT|O_RDWR|O_EXCL|O_TEMPORARY, tmp.mode)) >= 0)
+			if((n = open(b, O_CREAT | O_RDWR | O_EXCL | O_TEMPORARY, tmp.mode)) >= 0)
 			{
 				*fdp = n;
 				return b;
 			}
 		}
-		else if (access(b, F_OK))
+		else if(access(b, F_OK))
 			return b;
 	}
-	if (!buf)
+	if(!buf)
 		free(b);
 	return NULL;
 }

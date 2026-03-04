@@ -23,43 +23,43 @@
  *
  */
 
-#include	"sh_io.h"
+#include "sh_io.h"
 
 typedef struct _fcin
 {
-	sh_stream_t		*_fcfile;	/* input file pointer */
-	unsigned char	*fcbuff;	/* pointer to input buffer */
-	unsigned char	*fclast;	/* pointer to end of input buffer */
-	unsigned char	*fcptr;		/* pointer to next input char */
-	unsigned char	fcchar;		/* saved character */
-	short		fclen;		/* last multibyte char len */
-	void (*fcfun)(sh_stream_t*,const char*,int,void*);	/* advance function */
-	void		*context;	/* context pointer */
-	int		fcleft;		/* for multibyte boundary */
+	sh_stream_t *_fcfile;                                    /* input file pointer */
+	unsigned char *fcbuff;                                   /* pointer to input buffer */
+	unsigned char *fclast;                                   /* pointer to end of input buffer */
+	unsigned char *fcptr;                                    /* pointer to next input char */
+	unsigned char fcchar;                                    /* saved character */
+	short fclen;                                             /* last multibyte char len */
+	void (*fcfun)(sh_stream_t *, const char *, int, void *); /* advance function */
+	void *context;                                           /* context pointer */
+	int fcleft;                                              /* for multibyte boundary */
 } Fcin_t;
 
 #if SHOPT_MULTIBYTE
-#   define fcmbget(x)	(mbwide()?_fcmbget(x):fcget())
-    extern int		_fcmbget(short*);
+#define fcmbget(x) (mbwide() ? _fcmbget(x) : fcget())
+extern int _fcmbget(short *);
 #else
-#   define fcmbget(x)	(fcget())
+#define fcmbget(x) (fcget())
 #endif
-#define fcfile()	(_Fcin._fcfile)
-#define fcgetc()	(*_Fcin.fcptr++ ? (int)_Fcin.fcptr[-1] : fcfill())
-#define fcget()		((int)(*_Fcin.fcptr++))
-#define fcpeek(n)	((int)_Fcin.fcptr[n])
-#define fcseek(n)	((char*)(_Fcin.fcptr+=(n)))
-#define fcfirst()	((char*)_Fcin.fcbuff)
-#define fclast()	((char*)_Fcin.fclast)
-#define fcleft()	(_Fcin.fclast-_Fcin.fcptr)
-#define fcsopen(s)	(_Fcin._fcfile=NULL,_Fcin.fclen=1,_Fcin.fcbuff=_Fcin.fcptr=(unsigned char*)(s))
-#define fcsave(x)	(*(x) = _Fcin)
-#define fcrestore(x)	(_Fcin = *(x))
-extern int		fcfill(void);
-extern int		fcfopen(sh_stream_t*);
-extern int		fcclose(void);
-void			fcnotify(void(*)(sh_stream_t*,const char*,int,void*),void*);
+#define fcfile() (_Fcin._fcfile)
+#define fcgetc() (*_Fcin.fcptr++ ? (int)_Fcin.fcptr[-1] : fcfill())
+#define fcget() ((int)(*_Fcin.fcptr++))
+#define fcpeek(n) ((int)_Fcin.fcptr[n])
+#define fcseek(n) ((char *)(_Fcin.fcptr += (n)))
+#define fcfirst() ((char *)_Fcin.fcbuff)
+#define fclast() ((char *)_Fcin.fclast)
+#define fcleft() (_Fcin.fclast - _Fcin.fcptr)
+#define fcsopen(s) (_Fcin._fcfile = NULL, _Fcin.fclen = 1, _Fcin.fcbuff = _Fcin.fcptr = (unsigned char *)(s))
+#define fcsave(x) (*(x) = _Fcin)
+#define fcrestore(x) (_Fcin = *(x))
+extern int fcfill(void);
+extern int fcfopen(sh_stream_t *);
+extern int fcclose(void);
+void fcnotify(void (*)(sh_stream_t *, const char *, int, void *), void *);
 
-extern Fcin_t		_Fcin;		/* used by macros */
+extern Fcin_t _Fcin; /* used by macros */
 
 #endif /* fcgetc */

@@ -31,88 +31,90 @@
  * _ always placed at the top
  */
 
-#define INCREMENT	16		/* environ increment		*/
+#define INCREMENT 16 /* environ increment		*/
 
-char*
-setenviron(const char* akey)
+char *
+setenviron(const char *akey)
 {
-#undef	setenviron
-	static char**	envv;		/* recorded environ		*/
-	static char**	next;		/* next free slot		*/
-	static char**	last;		/* last free slot (0)		*/
-	static char	ok[] = "";	/* delete/optimization ok return*/
+#undef setenviron
+	static char **envv;    /* recorded environ		*/
+	static char **next;    /* next free slot		*/
+	static char **last;    /* last free slot (0)		*/
+	static char ok[] = ""; /* delete/optimization ok return*/
 
-	char*		key = (char*)akey;
-	char**		v = environ;
-	char**		p = envv;
-	char*		s;
-	char*		t;
-	int		n;
+	char *key = (char *)akey;
+	char **v = environ;
+	char **p = envv;
+	char *s;
+	char *t;
+	int n;
 
 	ast.env_serial++;
-	if (intercepts.intercept_setenviron)
+	if(intercepts.intercept_setenviron)
 		return (*intercepts.intercept_setenviron)(akey);
-	if (p && !v)
+	if(p && !v)
 	{
 		environ = next = p;
 		*++next = 0;
 	}
-	else if (p != v || !v)
+	else if(p != v || !v)
 	{
-		if (v)
+		if(v)
 		{
-			while (*v++);
+			while(*v++)
+				;
 			n = v - environ + INCREMENT;
 			v = environ;
 		}
 		else
 			n = INCREMENT;
-		if (!p || (last - p + 1) < n)
+		if(!p || (last - p + 1) < n)
 		{
-			if (!(p = newof(p, char*, n, 0)))
+			if(!(p = newof(p, char *, n, 0)))
 				return NULL;
 			last = p + n - 1;
 		}
 		envv = environ = p;
-		if (v && v[0] && v[0][0] == '_' && v[0][1] == '=')
+		if(v && v[0] && v[0][0] == '_' && v[0][1] == '=')
 			*p++ = *v++;
 		else
 			*p++ = "_=";
-		if (!v)
+		if(!v)
 			*p = 0;
 		else
-			while (*p = *v++)
-				if (p[0][0] == '_' && p[0][1] == '=')
+			while(*p = *v++)
+				if(p[0][0] == '_' && p[0][1] == '=')
 					envv[0] = *p;
 				else
 					p++;
 		next = p;
 		p = envv;
 	}
-	else if (next == last)
+	else if(next == last)
 	{
 		n = last - v + INCREMENT + 1;
-		if (!(p = newof(p, char*, n, 0)))
+		if(!(p = newof(p, char *, n, 0)))
 			return NULL;
 		last = p + n - 1;
 		next = last - INCREMENT;
 		envv = environ = p;
 	}
-	if (!key)
+	if(!key)
 		return ok;
-	for (; s = *p; p++)
+	for(; s = *p; p++)
 	{
 		t = key;
 		do
 		{
-			if (!*t || *t == '=')
+			if(!*t || *t == '=')
 			{
-				if (*s == '=')
+				if(*s == '=')
 				{
-					if (!*t)
+					if(!*t)
 					{
 						v = p++;
-						while (*v++ = *p++);
+						while(*v++ = *p++)
+							;
 						next--;
 						return ok;
 					}
@@ -121,9 +123,9 @@ setenviron(const char* akey)
 				}
 				break;
 			}
-		} while (*t++ == *s++);
+		} while(*t++ == *s++);
 	}
-	if (!(s = strchr(key, '=')))
+	if(!(s = strchr(key, '=')))
 		return ok;
 	p = next;
 	*++next = 0;

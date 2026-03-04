@@ -22,8 +22,8 @@
 
 #include <ast.h>
 
-#define S2F_function	strntold
-#define S2F_type	2
-#define S2F_size	1
+#define S2F_function strntold
+#define S2F_type 2
+#define S2F_size 1
 
 #include "sfstrtof.h"

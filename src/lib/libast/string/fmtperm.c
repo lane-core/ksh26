@@ -26,11 +26,11 @@
 #include <ast.h>
 #include <ls.h>
 
-char*
+char *
 fmtperm(int perm)
 {
-	char*	s;
-	char*		buf;
+	char *s;
+	char *buf;
 
 	s = buf = fmtbuf(32);
 
@@ -40,17 +40,17 @@ fmtperm(int perm)
 
 	*s++ = 'u';
 	*s++ = '=';
-	if (perm & S_ISVTX)
+	if(perm & S_ISVTX)
 		*s++ = 't';
-	if (perm & S_ISUID)
+	if(perm & S_ISUID)
 		*s++ = 's';
-	if (perm & S_IRUSR)
+	if(perm & S_IRUSR)
 		*s++ = 'r';
-	if (perm & S_IWUSR)
+	if(perm & S_IWUSR)
 		*s++ = 'w';
-	if (perm & S_IXUSR)
+	if(perm & S_IXUSR)
 		*s++ = 'x';
-	if ((perm & (S_ISGID|S_IXGRP)) == S_ISGID)
+	if((perm & (S_ISGID | S_IXGRP)) == S_ISGID)
 		*s++ = 'l';
 
 	/*
@@ -60,13 +60,13 @@ fmtperm(int perm)
 	*s++ = ',';
 	*s++ = 'g';
 	*s++ = '=';
-	if ((perm & (S_ISGID|S_IXGRP)) == (S_ISGID|S_IXGRP))
+	if((perm & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
 		*s++ = 's';
-	if (perm & S_IRGRP)
+	if(perm & S_IRGRP)
 		*s++ = 'r';
-	if (perm & S_IWGRP)
+	if(perm & S_IWGRP)
 		*s++ = 'w';
-	if (perm & S_IXGRP)
+	if(perm & S_IXGRP)
 		*s++ = 'x';
 
 	/*
@@ -76,11 +76,11 @@ fmtperm(int perm)
 	*s++ = ',';
 	*s++ = 'o';
 	*s++ = '=';
-	if (perm & S_IROTH)
+	if(perm & S_IROTH)
 		*s++ = 'r';
-	if (perm & S_IWOTH)
+	if(perm & S_IWOTH)
 		*s++ = 'w';
-	if (perm & S_IXOTH)
+	if(perm & S_IXOTH)
 		*s++ = 'x';
 	*s = 0;
 	return buf;

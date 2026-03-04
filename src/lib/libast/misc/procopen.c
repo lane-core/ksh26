@@ -37,10 +37,10 @@
  * not quite ready for _use_spawnveg
  */
 
-#undef	_use_spawnveg
+#undef _use_spawnveg
 
 #ifndef DEBUG_PROC
-#define DEBUG_PROC	1
+#define DEBUG_PROC 1
 #endif /* DEBUG_PROC */
 
 #if _lib_socketpair
@@ -48,41 +48,40 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #else
-#undef	_lib_socketpair
+#undef _lib_socketpair
 #endif /* _sys_socket */
 #endif /* _lib_socketpair */
 
-Proc_t			proc_default = { -1 };
+Proc_t proc_default = {-1};
 
 #if DEBUG_PROC
 
 #include <namval.h>
 
-#define PROC_ENV_OPTIONS	"PROC_OPTIONS"
+#define PROC_ENV_OPTIONS "PROC_OPTIONS"
 
-#define PROC_OPT_ENVIRONMENT	(1<<0)
-#define PROC_OPT_EXEC		(1<<1)
-#define PROC_OPT_TRACE		(1<<2)
-#define PROC_OPT_VERBOSE	(1<<3)
+#define PROC_OPT_ENVIRONMENT (1 << 0)
+#define PROC_OPT_EXEC (1 << 1)
+#define PROC_OPT_TRACE (1 << 2)
+#define PROC_OPT_VERBOSE (1 << 3)
 
-static const Namval_t		options[] =
-{
-	"debug",	PROC_OPT_VERBOSE,
-	"environment",	PROC_OPT_ENVIRONMENT,
-	"exec",		PROC_OPT_EXEC,
-	"trace",	PROC_OPT_TRACE,
-	"verbose",	PROC_OPT_VERBOSE,
-	0,		0
-};
+static const Namval_t options[] =
+    {
+        "debug", PROC_OPT_VERBOSE,
+        "environment", PROC_OPT_ENVIRONMENT,
+        "exec", PROC_OPT_EXEC,
+        "trace", PROC_OPT_TRACE,
+        "verbose", PROC_OPT_VERBOSE,
+        0, 0};
 
 static int
-ast_setenv(const char* name, const char* value, int overwrite)
+ast_setenv(const char *name, const char *value, int overwrite)
 {
-	char*	s;
+	char *s;
 
-	if (overwrite || !getenv(name))
+	if(overwrite || !getenv(name))
 	{
-		if (!(s = sfprints("%s=%s", name, value)) || !(s = strdup(s)))
+		if(!(s = sfprints("%s=%s", name, value)) || !(s = strdup(s)))
 			return -1;
 		return setenviron(s) ? 0 : -1;
 	}
@@ -94,15 +93,15 @@ ast_setenv(const char* name, const char* value, int overwrite)
  */
 
 static int
-setopt(void* a, const void* p, int n, const char* v)
+setopt(void *a, const void *p, int n, const char *v)
 {
 	NoP(v);
-	if (p)
+	if(p)
 	{
-		if (n)
-			*((int*)a) |= ((Namval_t*)p)->value;
+		if(n)
+			*((int *)a) |= ((Namval_t *)p)->value;
 		else
-			*((int*)a) &= ~((Namval_t*)p)->value;
+			*((int *)a) &= ~((Namval_t *)p)->value;
 	}
 	return 0;
 }
@@ -113,28 +112,28 @@ setopt(void* a, const void* p, int n, const char* v)
 
 typedef struct Fd_s
 {
-	short		fd;
-	short		flag;
+	short fd;
+	short flag;
 } Fd_t;
 
 typedef struct Mod_s
 {
-	struct Mod_s*	next;
-	short		op;
-	short		save;
+	struct Mod_s *next;
+	short op;
+	short save;
 
 	union
 	{
 
-	struct
-	{
-	Fd_t		parent;
-	Fd_t		child;
-	}		fd;
+		struct
+		{
+			Fd_t parent;
+			Fd_t child;
+		} fd;
 
-	Handler_t	handler;
+		Handler_t handler;
 
-	}		arg;
+	} arg;
 
 } Modify_t;
 
@@ -156,150 +155,150 @@ ignoresig(int sig)
  */
 
 static int
-modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
+modify(Proc_t *proc, int forked, int op, long arg1, long arg2)
 {
-	if (forked)
+	if(forked)
 	{
-		int	i;
+		int i;
 #ifndef TIOCSCTTY
-		char*	s;
+		char *s;
 #endif /* !TIOCSCTTY */
 
-		switch (op)
+		switch(op)
 		{
-		case PROC_fd_dup:
-		case PROC_fd_dup|PROC_FD_PARENT:
-		case PROC_fd_dup|PROC_FD_CHILD:
-		case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-			if (arg1 != arg2)
-			{
-				if (arg2 != PROC_ARG_NULL)
+			case PROC_fd_dup:
+			case PROC_fd_dup | PROC_FD_PARENT:
+			case PROC_fd_dup | PROC_FD_CHILD:
+			case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+				if(arg1 != arg2)
 				{
-					ast_close(arg2);
-					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
-						return -1;
+					if(arg2 != PROC_ARG_NULL)
+					{
+						ast_close(arg2);
+						if(fcntl(arg1, F_DUPFD, arg2) != arg2)
+							return -1;
+					}
+					if(op & PROC_FD_CHILD)
+						ast_close(arg1);
 				}
-				if (op & PROC_FD_CHILD)
-					ast_close(arg1);
-			}
-			break;
-		case PROC_fd_ctty:
-			setsid();
-			for (i = 0; i <= 2; i++)
-				if (arg1 != i)
-					ast_close(i);
-			arg2 = -1;
-#ifdef TIOCSCTTY
-			if (ioctl(arg1, TIOCSCTTY, NULL) < 0)
-				return -1;
-#else
-			if (!(s = ttyname(arg1)))
-				return -1;
-			if ((arg2 = open(s, O_RDWR)) < 0)
-				return -1;
-#endif /* TIOCSCTTY */
-			for (i = 0; i <= 2; i++)
-				if (arg1 != i && arg2 != i && fcntl(arg1, F_DUPFD, i) != i)
-					return -1;
-			if (arg1 > 2)
-				ast_close(arg1);
-			if (arg2 > 2)
-				ast_close(arg2);
-			break;
-		case PROC_sig_dfl:
-			signal(arg1, SIG_DFL);
-			break;
-		case PROC_sig_ign:
-			signal(arg1, SIG_IGN);
-			break;
-		case PROC_sys_pgrp:
-			if (arg1 < 0)
+				break;
+			case PROC_fd_ctty:
 				setsid();
-			else if (arg1 > 0)
-			{
-				if (arg1 == 1)
-					arg1 = 0;
-				if (setpgid(0, arg1) < 0 && arg1 && errno == EPERM)
-					setpgid(0, 0);
-			}
-			break;
-		case PROC_sys_umask:
-			umask(arg1);
-			break;
-		default:
-			return -1;
+				for(i = 0; i <= 2; i++)
+					if(arg1 != i)
+						ast_close(i);
+				arg2 = -1;
+#ifdef TIOCSCTTY
+				if(ioctl(arg1, TIOCSCTTY, NULL) < 0)
+					return -1;
+#else
+				if(!(s = ttyname(arg1)))
+					return -1;
+				if((arg2 = open(s, O_RDWR)) < 0)
+					return -1;
+#endif /* TIOCSCTTY */
+				for(i = 0; i <= 2; i++)
+					if(arg1 != i && arg2 != i && fcntl(arg1, F_DUPFD, i) != i)
+						return -1;
+				if(arg1 > 2)
+					ast_close(arg1);
+				if(arg2 > 2)
+					ast_close(arg2);
+				break;
+			case PROC_sig_dfl:
+				signal(arg1, SIG_DFL);
+				break;
+			case PROC_sig_ign:
+				signal(arg1, SIG_IGN);
+				break;
+			case PROC_sys_pgrp:
+				if(arg1 < 0)
+					setsid();
+				else if(arg1 > 0)
+				{
+					if(arg1 == 1)
+						arg1 = 0;
+					if(setpgid(0, arg1) < 0 && arg1 && errno == EPERM)
+						setpgid(0, 0);
+				}
+				break;
+			case PROC_sys_umask:
+				umask(arg1);
+				break;
+			default:
+				return -1;
 		}
 	}
 #if _use_spawnveg
 	else
 	{
-		Modify_t*	m;
+		Modify_t *m;
 
-		if (!(m = newof(NULL, Modify_t, 1, 0)))
+		if(!(m = newof(NULL, Modify_t, 1, 0)))
 			return -1;
 		m->next = proc->mods;
 		proc->mods = m;
-		switch (m->op = op)
+		switch(m->op = op)
 		{
-		case PROC_fd_dup:
-		case PROC_fd_dup|PROC_FD_PARENT:
-		case PROC_fd_dup|PROC_FD_CHILD:
-		case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-			m->arg.fd.parent.fd = (short)arg1;
-			m->arg.fd.parent.flag = fcntl(arg1, F_GETFD, 0);
-			if ((m->arg.fd.child.fd = (short)arg2) != arg1)
-			{
-				if (arg2 != PROC_ARG_NULL)
+			case PROC_fd_dup:
+			case PROC_fd_dup | PROC_FD_PARENT:
+			case PROC_fd_dup | PROC_FD_CHILD:
+			case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+				m->arg.fd.parent.fd = (short)arg1;
+				m->arg.fd.parent.flag = fcntl(arg1, F_GETFD, 0);
+				if((m->arg.fd.child.fd = (short)arg2) != arg1)
 				{
-					m->arg.fd.child.flag = fcntl(arg2, F_GETFD, 0);
-					if ((m->save = fcntl(arg2, F_dupfd_cloexec, 3)) < 0)
+					if(arg2 != PROC_ARG_NULL)
 					{
-						m->op = 0;
-						return -1;
-					}
+						m->arg.fd.child.flag = fcntl(arg2, F_GETFD, 0);
+						if((m->save = fcntl(arg2, F_dupfd_cloexec, 3)) < 0)
+						{
+							m->op = 0;
+							return -1;
+						}
 #if F_dupfd_cloexec == F_DUPFD
-					fcntl(m->save, F_SETFD, FD_CLOEXEC);
+						fcntl(m->save, F_SETFD, FD_CLOEXEC);
 #endif /* F_dupfd_cloexec == F_DUPFD */
-					ast_close(arg2);
-					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
-						return -1;
-					if (op & PROC_FD_CHILD)
-						ast_close(arg1);
-				}
-				else if (op & PROC_FD_CHILD)
-				{
-					if (m->arg.fd.parent.flag)
+						ast_close(arg2);
+						if(fcntl(arg1, F_DUPFD, arg2) != arg2)
+							return -1;
+						if(op & PROC_FD_CHILD)
+							ast_close(arg1);
+					}
+					else if(op & PROC_FD_CHILD)
+					{
+						if(m->arg.fd.parent.flag)
+							break;
+						fcntl(arg1, F_SETFD, FD_CLOEXEC);
+					}
+					else if(!m->arg.fd.parent.flag)
 						break;
-					fcntl(arg1, F_SETFD, FD_CLOEXEC);
+					else
+						fcntl(arg1, F_SETFD, 0);
+					return 0;
 				}
-				else if (!m->arg.fd.parent.flag)
+				break;
+			case PROC_sig_dfl:
+				if((m->arg.handler = signal(arg1, SIG_DFL)) == SIG_DFL)
 					break;
-				else
-					fcntl(arg1, F_SETFD, 0);
+				m->save = (short)arg1;
 				return 0;
-			}
-			break;
-		case PROC_sig_dfl:
-			if ((m->arg.handler = signal(arg1, SIG_DFL)) == SIG_DFL)
+			case PROC_sig_ign:
+				if((m->arg.handler = signal(arg1, SIG_IGN)) == SIG_IGN)
+					break;
+				m->save = (short)arg1;
+				return 0;
+			case PROC_sys_pgrp:
+				proc->pgrp = arg1;
 				break;
-			m->save = (short)arg1;
-			return 0;
-		case PROC_sig_ign:
-			if ((m->arg.handler = signal(arg1, SIG_IGN)) == SIG_IGN)
-				break;
-			m->save = (short)arg1;
-			return 0;
-		case PROC_sys_pgrp:
-			proc->pgrp = arg1;
-			break;
-		case PROC_sys_umask:
-			if ((m->save = (short)umask(arg1)) == arg1)
-				break;
-			return 0;
-		default:
-			proc->mods = m->next;
-			free(m);
-			return -1;
+			case PROC_sys_umask:
+				if((m->save = (short)umask(arg1)) == arg1)
+					break;
+				return 0;
+			default:
+				proc->mods = m->next;
+				free(m);
+				return -1;
 		}
 		proc->mods = m->next;
 		free(m);
@@ -317,53 +316,53 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
  */
 
 static void
-restore(Proc_t* proc)
+restore(Proc_t *proc)
 {
-	Modify_t*	m;
-	Modify_t*	p;
-	int		oerrno;
+	Modify_t *m;
+	Modify_t *p;
+	int oerrno;
 
 	NoP(proc);
 	oerrno = errno;
 	m = proc->mods;
 	proc->mods = 0;
-	while (m)
+	while(m)
 	{
-		switch (m->op)
+		switch(m->op)
 		{
-		case PROC_fd_dup:
-		case PROC_fd_dup|PROC_FD_PARENT:
-		case PROC_fd_dup|PROC_FD_CHILD:
-		case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-			if (m->op & PROC_FD_PARENT)
-				ast_close(m->arg.fd.parent.fd);
-			if (m->arg.fd.child.fd != m->arg.fd.parent.fd && m->arg.fd.child.fd != PROC_ARG_NULL)
-			{
-				if (!(m->op & PROC_FD_PARENT))
+			case PROC_fd_dup:
+			case PROC_fd_dup | PROC_FD_PARENT:
+			case PROC_fd_dup | PROC_FD_CHILD:
+			case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+				if(m->op & PROC_FD_PARENT)
+					ast_close(m->arg.fd.parent.fd);
+				if(m->arg.fd.child.fd != m->arg.fd.parent.fd && m->arg.fd.child.fd != PROC_ARG_NULL)
 				{
-					if (m->op & PROC_FD_CHILD)
+					if(!(m->op & PROC_FD_PARENT))
 					{
-						ast_close(m->arg.fd.parent.fd);
-						fcntl(m->arg.fd.child.fd, F_DUPFD, m->arg.fd.parent.fd);
+						if(m->op & PROC_FD_CHILD)
+						{
+							ast_close(m->arg.fd.parent.fd);
+							fcntl(m->arg.fd.child.fd, F_DUPFD, m->arg.fd.parent.fd);
+						}
+						fcntl(m->arg.fd.parent.fd, F_SETFD, m->arg.fd.parent.flag);
 					}
-					fcntl(m->arg.fd.parent.fd, F_SETFD, m->arg.fd.parent.flag);
+					ast_close(m->arg.fd.child.fd);
+					fcntl(m->save, F_DUPFD, m->arg.fd.child.fd);
+					ast_close(m->save);
+					if(m->arg.fd.child.flag)
+						fcntl(m->arg.fd.child.fd, F_SETFD, FD_CLOEXEC);
 				}
-				ast_close(m->arg.fd.child.fd);
-				fcntl(m->save, F_DUPFD, m->arg.fd.child.fd);
-				ast_close(m->save);
-				if (m->arg.fd.child.flag)
-					fcntl(m->arg.fd.child.fd, F_SETFD, FD_CLOEXEC);
-			}
-			else if ((m->op & (PROC_FD_PARENT|PROC_FD_CHILD)) == PROC_FD_CHILD)
-				fcntl(m->arg.fd.parent.fd, F_SETFD, 0);
-			break;
-		case PROC_sig_dfl:
-		case PROC_sig_ign:
-			signal(m->save, m->arg.handler);
-			break;
-		case PROC_sys_umask:
-			umask(m->save);
-			break;
+				else if((m->op & (PROC_FD_PARENT | PROC_FD_CHILD)) == PROC_FD_CHILD)
+					fcntl(m->arg.fd.parent.fd, F_SETFD, 0);
+				break;
+			case PROC_sig_dfl:
+			case PROC_sig_ign:
+				signal(m->save, m->arg.handler);
+				break;
+			case PROC_sys_umask:
+				umask(m->save);
+				break;
 		}
 		p = m;
 		m = m->next;
@@ -389,33 +388,33 @@ restore(Proc_t* proc)
  * modv is the child modification vector of PROC_*() ops
  */
 
-Proc_t*
-procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
+Proc_t *
+procopen(const char *cmd, char **argv, char **envv, int64_t *modv, int flags)
 {
-	Proc_t*		proc = 0;
-	int		procfd = -1;
-	char**		p;
-	char**		v;
-	int		i;
-	int		forked = 0;
-	int		signalled = 0;
-	int64_t		n;
-	char		path[PATH_MAX];
-	char		env[PATH_MAX + 2];
-	int		pio[2];
-	int		pop[2];
+	Proc_t *proc = 0;
+	int procfd = -1;
+	char **p;
+	char **v;
+	int i;
+	int forked = 0;
+	int signalled = 0;
+	int64_t n;
+	char path[PATH_MAX];
+	char env[PATH_MAX + 2];
+	int pio[2];
+	int pop[2];
 #if !_pipe_rw && !_lib_socketpair
-	int		poi[2];
+	int poi[2];
 #endif /* !_pipe_rw && !_lib_socketpair */
-	sigset_t	mask;
+	sigset_t mask;
 #if _use_spawnveg
-	int		newenv = 0;
+	int newenv = 0;
 #endif /* _use_spawnveg */
 #if DEBUG_PROC
-	int		debug = PROC_OPT_EXEC;
+	int debug = PROC_OPT_EXEC;
 #endif /* DEBUG_PROC */
 
-	if (!argv && (flags & (PROC_ORPHAN|PROC_OVERLAY)))
+	if(!argv && (flags & (PROC_ORPHAN | PROC_OVERLAY)))
 	{
 		errno = ENOEXEC;
 		return NULL;
@@ -425,23 +424,23 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 #if !_pipe_rw && !_lib_socketpair
 	poi[0] = poi[1] = -1;
 #endif /* !_pipe_rw && !_lib_socketpair */
-	if (cmd && (!*cmd || !pathpath(cmd, NULL, PATH_REGULAR|PATH_EXECUTE, path, sizeof(path))))
+	if(cmd && (!*cmd || !pathpath(cmd, NULL, PATH_REGULAR | PATH_EXECUTE, path, sizeof(path))))
 		goto bad;
-	switch (flags & (PROC_READ|PROC_WRITE))
+	switch(flags & (PROC_READ | PROC_WRITE))
 	{
-	case PROC_READ:
-		procfd = 1;
-		break;
-	case PROC_WRITE:
-		procfd = 0;
-		break;
-	case PROC_READ|PROC_WRITE:
-		procfd = 2;
-		break;
+		case PROC_READ:
+			procfd = 1;
+			break;
+		case PROC_WRITE:
+			procfd = 0;
+			break;
+		case PROC_READ | PROC_WRITE:
+			procfd = 2;
+			break;
 	}
-	if (proc_default.pid == -1)
+	if(proc_default.pid == -1)
 		proc = &proc_default;
-	else if (!(proc = newof(0, Proc_t, 1, 0)))
+	else if(!(proc = newof(0, Proc_t, 1, 0)))
 		goto bad;
 	proc->pid = -1;
 	proc->pgrp = 0;
@@ -451,48 +450,48 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 	/* flush all streams before fork — must include sfio (ksh I/O) */
 	sfsync(NULL);
 	fflush(NULL);
-	if (environ && envv != (char**)environ && (envv || (flags & PROC_PARANOID) || argv && (environ[0][0] != '_' || environ[0][1] != '=')))
+	if(environ && envv != (char **)environ && (envv || (flags & PROC_PARANOID) || argv && (environ[0][0] != '_' || environ[0][1] != '=')))
 	{
-		if (!setenviron(NULL))
+		if(!setenviron(NULL))
 			goto bad;
 #if _use_spawnveg
-		if (!(flags & PROC_ORPHAN))
+		if(!(flags & PROC_ORPHAN))
 			newenv = 1;
 #endif /* _use_spawnveg */
 	}
-	if (procfd >= 0)
+	if(procfd >= 0)
 	{
 #if _pipe_rw
-		if (pipe(pio))
+		if(pipe(pio))
 			goto bad;
 #else
-		if (procfd > 1)
+		if(procfd > 1)
 		{
 #if _lib_socketpair
-			if (socketpair(AF_UNIX, SOCK_STREAM, 0, pio))
+			if(socketpair(AF_UNIX, SOCK_STREAM, 0, pio))
 				goto bad;
 #else
-			if (pipe(pio) || pipe(poi))
+			if(pipe(pio) || pipe(poi))
 				goto bad;
 #endif /* _lib_socketpair */
 		}
-		else if (pipe(pio))
+		else if(pipe(pio))
 			goto bad;
 #endif /* _pipe_rw */
 	}
-	if (flags & PROC_OVERLAY)
+	if(flags & PROC_OVERLAY)
 	{
 		proc->pid = 0;
 		forked = 1;
 	}
 #if _use_spawnveg
-	else if (argv && !(flags & PROC_ORPHAN))
+	else if(argv && !(flags & PROC_ORPHAN))
 		proc->pid = 0;
 #endif /* _use_spawnveg */
 	else
 	{
-		if (!(flags & PROC_FOREGROUND))
-			sigcritical(SIG_REG_EXEC|SIG_REG_PROC);
+		if(!(flags & PROC_FOREGROUND))
+			sigcritical(SIG_REG_EXEC | SIG_REG_PROC);
 		else
 		{
 			signalled = 1;
@@ -502,56 +501,56 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			sigaddset(&mask, SIGCHLD);
 			sigprocmask(SIG_BLOCK, &mask, &proc->mask);
 		}
-		if ((flags & PROC_ORPHAN) && pipe(pop))
+		if((flags & PROC_ORPHAN) && pipe(pop))
 			goto bad;
 		proc->pid = fork();
-		if (!(flags & PROC_FOREGROUND))
+		if(!(flags & PROC_FOREGROUND))
 			sigcritical(0);
-		else if (!proc->pid)
+		else if(!proc->pid)
 		{
-			if (proc->sigint != SIG_IGN)
+			if(proc->sigint != SIG_IGN)
 			{
 				proc->sigint = SIG_DFL;
 				signal(SIGINT, proc->sigint);
 			}
-			if (proc->sigquit != SIG_IGN)
+			if(proc->sigquit != SIG_IGN)
 			{
 				proc->sigquit = SIG_DFL;
 				signal(SIGQUIT, proc->sigquit);
 			}
 			sigprocmask(SIG_SETMASK, &proc->mask, NULL);
 		}
-		else if (proc->pid == -1)
+		else if(proc->pid == -1)
 			goto bad;
 		forked = 1;
 	}
-	if (!proc->pid)
+	if(!proc->pid)
 	{
 #if _use_spawnveg
-		char**		oenviron = 0;
-		char*		oenviron0 = 0;
+		char **oenviron = 0;
+		char *oenviron0 = 0;
 
 		v = 0;
 #endif /* _use_spawnveg */
-		if (flags & PROC_ORPHAN)
+		if(flags & PROC_ORPHAN)
 		{
-			if (!(proc->pid = fork()))
+			if(!(proc->pid = fork()))
 			{
 				ast_close(pop[0]);
 				ast_close(pop[1]);
 			}
 			else
 			{
-				if (proc->pid > 0)
+				if(proc->pid > 0)
 					write(pop[1], &proc->pid, sizeof(proc->pid));
 				_exit(EXIT_NOEXEC);
 			}
 		}
 #if DEBUG_PROC
 		stropt(getenv(PROC_ENV_OPTIONS), options, sizeof(*options), setopt, &debug);
-		if (debug & PROC_OPT_TRACE)
+		if(debug & PROC_OPT_TRACE)
 		{
-			if (!fork())
+			if(!fork())
 			{
 				snprintf(path, sizeof(path), "%d", getppid());
 				execlp("trace", "trace", "-p", path, NULL);
@@ -560,7 +559,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			sleep(2);
 		}
 #endif /* DEBUG_PROC */
-		if (flags & PROC_DAEMON)
+		if(flags & PROC_DAEMON)
 		{
 			modify(proc, forked, PROC_sig_ign, SIGHUP, 0);
 			modify(proc, forked, PROC_sig_dfl, SIGTERM, 0);
@@ -568,180 +567,183 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			modify(proc, forked, PROC_sig_ign, SIGTTIN, 0);
 			modify(proc, forked, PROC_sig_ign, SIGTTOU, 0);
 		}
-		if (flags & (PROC_BACKGROUND|PROC_DAEMON))
+		if(flags & (PROC_BACKGROUND | PROC_DAEMON))
 		{
 			modify(proc, forked, PROC_sig_ign, SIGINT, 0);
 			modify(proc, forked, PROC_sig_ign, SIGQUIT, 0);
 		}
-		if (flags & (PROC_DAEMON|PROC_SESSION))
+		if(flags & (PROC_DAEMON | PROC_SESSION))
 			modify(proc, forked, PROC_sys_pgrp, -1, 0);
-		if (forked || (flags & PROC_OVERLAY))
+		if(forked || (flags & PROC_OVERLAY))
 		{
-			if ((flags & PROC_PRIVILEGED) && !geteuid())
+			if((flags & PROC_PRIVILEGED) && !geteuid())
 			{
 				setuid(geteuid());
 				setgid(getegid());
 			}
-			if (flags & (PROC_PARANOID|PROC_GID))
+			if(flags & (PROC_PARANOID | PROC_GID))
 				setgid(getgid());
-			if (flags & (PROC_PARANOID|PROC_UID))
+			if(flags & (PROC_PARANOID | PROC_UID))
 				setuid(getuid());
 		}
-		if (procfd > 1)
+		if(procfd > 1)
 		{
-			if (modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, pio[0], PROC_ARG_NULL))
+			if(modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, pio[0], PROC_ARG_NULL))
 				goto cleanup;
-			if (modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, pio[1], 1))
+			if(modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, pio[1], 1))
 				goto cleanup;
 #if _pipe_rw || _lib_socketpair
-			if (modify(proc, forked, PROC_fd_dup, 1, 0))
+			if(modify(proc, forked, PROC_fd_dup, 1, 0))
 				goto cleanup;
 #else
-			if (modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, poi[0], 0))
+			if(modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, poi[0], 0))
 				goto cleanup;
-			if (poi[1] != 0 && modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, poi[1], PROC_ARG_NULL))
+			if(poi[1] != 0 && modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, poi[1], PROC_ARG_NULL))
 				goto cleanup;
 #endif /* _pipe_rw || _lib_socketpair */
 		}
-		else if (procfd >= 0)
+		else if(procfd >= 0)
 		{
-			if (modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, pio[!!procfd], !!procfd))
+			if(modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, pio[!!procfd], !!procfd))
 				goto cleanup;
-			if (pio[!procfd] != !!procfd && modify(proc, forked, PROC_fd_dup|PROC_FD_CHILD, pio[!procfd], PROC_ARG_NULL))
+			if(pio[!procfd] != !!procfd && modify(proc, forked, PROC_fd_dup | PROC_FD_CHILD, pio[!procfd], PROC_ARG_NULL))
 				goto cleanup;
 		}
-		if (modv)
-			for (i = 0; n = modv[i]; i++)
-				switch (PROC_OP(n))
+		if(modv)
+			for(i = 0; n = modv[i]; i++)
+				switch(PROC_OP(n))
 				{
-				case PROC_fd_dup:
-				case PROC_fd_dup|PROC_FD_PARENT:
-				case PROC_fd_dup|PROC_FD_CHILD:
-				case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-					if (modify(proc, forked, PROC_OP(n), PROC_ARG(n, 1), PROC_ARG(n, 2)))
-						goto cleanup;
-					break;
-				default:
-					if (modify(proc, forked, PROC_OP(n), PROC_ARG(n, 1), 0))
-						goto cleanup;
-					break;
+					case PROC_fd_dup:
+					case PROC_fd_dup | PROC_FD_PARENT:
+					case PROC_fd_dup | PROC_FD_CHILD:
+					case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+						if(modify(proc, forked, PROC_OP(n), PROC_ARG(n, 1), PROC_ARG(n, 2)))
+							goto cleanup;
+						break;
+					default:
+						if(modify(proc, forked, PROC_OP(n), PROC_ARG(n, 1), 0))
+							goto cleanup;
+						break;
 				}
-		if (forked && (flags & PROC_ENVCLEAR))
+		if(forked && (flags & PROC_ENVCLEAR))
 			environ = 0;
 #if _use_spawnveg
-		else if (newenv)
+		else if(newenv)
 		{
 			p = environ;
-			while (*p++);
-			if (!(oenviron = (char**)memdup(environ, (p - environ) * sizeof(char*))))
+			while(*p++)
+				;
+			if(!(oenviron = (char **)memdup(environ, (p - environ) * sizeof(char *))))
 				goto cleanup;
 		}
 #endif /* _use_spawnveg */
-		if (argv && envv != (char**)environ)
+		if(argv && envv != (char **)environ)
 		{
 #if _use_spawnveg
-			if (!newenv && environ[0][0] == '_' && environ[0][1] == '=')
+			if(!newenv && environ[0][0] == '_' && environ[0][1] == '=')
 				oenviron0 = environ[0];
 #endif /* _use_spawnveg */
 			env[0] = '_';
 			env[1] = '=';
 			env[2] = 0;
-			if (!setenviron(env))
+			if(!setenviron(env))
 				goto cleanup;
 		}
-		if ((flags & PROC_PARANOID) && ast_setenv("PATH", astconf("PATH", NULL, NULL), 1))
+		if((flags & PROC_PARANOID) && ast_setenv("PATH", astconf("PATH", NULL, NULL), 1))
 			goto cleanup;
-		if ((p = envv) && p != (char**)environ)
-			while (*p)
-				if (!setenviron(*p++))
+		if((p = envv) && p != (char **)environ)
+			while(*p)
+				if(!setenviron(*p++))
 					goto cleanup;
 		p = argv;
-		if (forked && !p)
+		if(forked && !p)
 			return proc;
 #if DEBUG_PROC
-		if (!(debug & PROC_OPT_EXEC) || (debug & PROC_OPT_VERBOSE))
+		if(!(debug & PROC_OPT_EXEC) || (debug & PROC_OPT_VERBOSE))
 		{
-			if ((debug & PROC_OPT_ENVIRONMENT) && (p = environ))
-				while (*p)
+			if((debug & PROC_OPT_ENVIRONMENT) && (p = environ))
+				while(*p)
 					fprintf(stderr, "%s\n", *p++);
 			fprintf(stderr, "+ %s", cmd ? path : "sh");
-			if ((p = argv) && *p)
-				while (*++p)
+			if((p = argv) && *p)
+				while(*++p)
 					fprintf(stderr, " %s", *p);
 			fprintf(stderr, "\n");
 			fflush(stderr);
-			if (!(debug & PROC_OPT_EXEC))
+			if(!(debug & PROC_OPT_EXEC))
 				_exit(0);
 			p = argv;
 		}
 #endif /* DEBUG_PROC */
-		if (cmd)
+		if(cmd)
 		{
 			strcpy(env + 2, path);
-			if (forked || (flags & PROC_OVERLAY))
+			if(forked || (flags & PROC_OVERLAY))
 				execve(path, p, environ);
 #if _use_spawnveg
-			else if ((proc->pid = spawnveg(path, p, environ, proc->pgrp, -1)) != -1)
+			else if((proc->pid = spawnveg(path, p, environ, proc->pgrp, -1)) != -1)
 				goto cleanup;
 #endif /* _use_spawnveg */
-			if (errno != ENOEXEC)
+			if(errno != ENOEXEC)
 				goto cleanup;
 
 			/*
 			 * try cmd as a shell script
 			 */
 
-			if (!(flags & PROC_ARGMOD))
+			if(!(flags & PROC_ARGMOD))
 			{
-				while (*p++);
-				if (!(v = newof(0, char*, p - argv + 2, 0)))
+				while(*p++)
+					;
+				if(!(v = newof(0, char *, p - argv + 2, 0)))
 					goto cleanup;
 				p = v + 2;
-				if (*argv)
+				if(*argv)
 					argv++;
-				while (*p++ = *argv++);
+				while(*p++ = *argv++)
+					;
 				p = v + 1;
 			}
 			*p = path;
 			*--p = "sh";
 		}
 		strcpy(env + 2, astconf("SH", NULL, NULL));
-		if (forked || (flags & PROC_OVERLAY))
+		if(forked || (flags & PROC_OVERLAY))
 			execve(env + 2, p, environ);
 #if _use_spawnveg
 		else
 			proc->pid = spawnveg(env + 2, p, environ, proc->pgrp, -1);
 #endif /* _use_spawnveg */
 	cleanup:
-		if (forked)
+		if(forked)
 		{
-			if (!(flags & PROC_OVERLAY))
+			if(!(flags & PROC_OVERLAY))
 				_exit(errno == ENOENT ? EXIT_NOTFOUND : EXIT_NOEXEC);
 			goto bad;
 		}
 #if _use_spawnveg
-		if (v)
+		if(v)
 			free(v);
-		if (p = oenviron)
+		if(p = oenviron)
 		{
 			environ = 0;
-			while (*p)
-				if (!setenviron(*p++))
+			while(*p)
+				if(!setenviron(*p++))
 					goto bad;
 			free(oenviron);
 		}
-		else if (oenviron0)
+		else if(oenviron0)
 			environ[0] = oenviron0;
 		restore(proc);
-		if (flags & PROC_OVERLAY)
+		if(flags & PROC_OVERLAY)
 			exit(0);
 #endif /* _use_spawnveg */
 	}
-	if (proc->pid != -1)
+	if(proc->pid != -1)
 	{
-		if (!forked)
+		if(!forked)
 		{
-			if (flags & PROC_FOREGROUND)
+			if(flags & PROC_FOREGROUND)
 			{
 				signalled = 1;
 				proc->sigint = signal(SIGINT, SIG_IGN);
@@ -751,103 +753,104 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 				sigprocmask(SIG_BLOCK, &mask, &proc->mask);
 			}
 		}
-		else if (modv)
-			for (i = 0; n = modv[i]; i++)
-				switch (PROC_OP(n))
+		else if(modv)
+			for(i = 0; n = modv[i]; i++)
+				switch(PROC_OP(n))
 				{
-				case PROC_fd_dup|PROC_FD_PARENT:
-				case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-					ast_close(PROC_ARG(n, 1));
-					break;
-				case PROC_sys_pgrp:
-					if (proc->pgrp < 0)
-						proc->pgrp = proc->pid;
-					else if (proc->pgrp > 0)
-					{
-						if (proc->pgrp == 1)
+					case PROC_fd_dup | PROC_FD_PARENT:
+					case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+						ast_close(PROC_ARG(n, 1));
+						break;
+					case PROC_sys_pgrp:
+						if(proc->pgrp < 0)
 							proc->pgrp = proc->pid;
-						if (setpgid(proc->pid, proc->pgrp) < 0 && proc->pid != proc->pgrp && errno == EPERM)
-							setpgid(proc->pid, proc->pid);
-					}
-					break;
+						else if(proc->pgrp > 0)
+						{
+							if(proc->pgrp == 1)
+								proc->pgrp = proc->pid;
+							if(setpgid(proc->pid, proc->pgrp) < 0 && proc->pid != proc->pgrp && errno == EPERM)
+								setpgid(proc->pid, proc->pid);
+						}
+						break;
 				}
-		if (procfd >= 0)
+		if(procfd >= 0)
 		{
-			if ((flags & (PROC_WRITE|PROC_IGNORE)) == (PROC_WRITE|PROC_IGNORE))
+			if((flags & (PROC_WRITE | PROC_IGNORE)) == (PROC_WRITE | PROC_IGNORE))
 			{
-				Handler_t	handler;
+				Handler_t handler;
 
-				if ((handler = signal(SIGPIPE, ignoresig)) != SIG_DFL && handler != ignoresig)
+				if((handler = signal(SIGPIPE, ignoresig)) != SIG_DFL && handler != ignoresig)
 					signal(SIGPIPE, handler);
 			}
-			switch (procfd)
+			switch(procfd)
 			{
-			case 0:
-				proc->wfd = pio[1];
-				ast_close(pio[0]);
-				break;
-			default:
+				case 0:
+					proc->wfd = pio[1];
+					ast_close(pio[0]);
+					break;
+				default:
 #if _pipe_rw || _lib_socketpair
-				proc->wfd = pio[0];
+					proc->wfd = pio[0];
 #else
-				proc->wfd = poi[1];
-				ast_close(poi[0]);
-#endif /* _pipe_rw || _lib_socketpair */
-				/* FALLTHROUGH */
-			case 1:
-				proc->rfd = pio[0];
-				ast_close(pio[1]);
-				break;
+					proc->wfd = poi[1];
+					ast_close(poi[0]);
+#endif                                  /* _pipe_rw || _lib_socketpair */
+					/* FALLTHROUGH */
+				case 1:
+					proc->rfd = pio[0];
+					ast_close(pio[1]);
+					break;
 			}
-			if (proc->rfd > 2)
+			if(proc->rfd > 2)
 				fcntl(proc->rfd, F_SETFD, FD_CLOEXEC);
-			if (proc->wfd > 2)
+			if(proc->wfd > 2)
 				fcntl(proc->wfd, F_SETFD, FD_CLOEXEC);
 		}
-		if (!proc->pid)
+		if(!proc->pid)
 			proc->pid = getpid();
-		else if (flags & PROC_ORPHAN)
+		else if(flags & PROC_ORPHAN)
 		{
-			while (waitpid(proc->pid, &i, 0) == -1 && errno == EINTR);
-			if (read(pop[0], &proc->pid, sizeof(proc->pid)) != sizeof(proc->pid))
+			while(waitpid(proc->pid, &i, 0) == -1 && errno == EINTR)
+				;
+			if(read(pop[0], &proc->pid, sizeof(proc->pid)) != sizeof(proc->pid))
 				goto bad;
 			ast_close(pop[0]);
 		}
 		return proc;
 	}
- bad:
-	if (signalled)
+bad:
+	if(signalled)
 	{
-		if (proc->sigint != SIG_IGN)
+		if(proc->sigint != SIG_IGN)
 			signal(SIGINT, proc->sigint);
-		if (proc->sigquit != SIG_IGN)
+		if(proc->sigquit != SIG_IGN)
 			signal(SIGQUIT, proc->sigquit);
 		sigprocmask(SIG_SETMASK, &proc->mask, NULL);
 	}
-	if ((flags & PROC_CLEANUP) && modv)
-		for (i = 0; n = modv[i]; i++)
-			switch (PROC_OP(n))
+	if((flags & PROC_CLEANUP) && modv)
+		for(i = 0; n = modv[i]; i++)
+			switch(PROC_OP(n))
 			{
-			case PROC_fd_dup:
-			case PROC_fd_dup|PROC_FD_PARENT:
-			case PROC_fd_dup|PROC_FD_CHILD:
-			case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-				if (PROC_ARG(n, 2) != PROC_ARG_NULL)
-					ast_close(PROC_ARG(n, 1));
-				break;
+				case PROC_fd_dup:
+				case PROC_fd_dup | PROC_FD_PARENT:
+				case PROC_fd_dup | PROC_FD_CHILD:
+				case PROC_fd_dup | PROC_FD_PARENT | PROC_FD_CHILD:
+					if(PROC_ARG(n, 2) != PROC_ARG_NULL)
+						ast_close(PROC_ARG(n, 1));
+					break;
 			}
-	if (pio[0] >= 0)
+	if(pio[0] >= 0)
 		ast_close(pio[0]);
-	if (pio[1] >= 0)
+	if(pio[1] >= 0)
 		ast_close(pio[1]);
-	if (pop[0] >= 0)
+	if(pop[0] >= 0)
 		ast_close(pop[0]);
-	if (pop[1] >= 0)
+	if(pop[1] >= 0)
 		ast_close(pop[1]);
 #if !_pipe_rw && !_lib_socketpair
-	if (poi[0] >= 0)
+	if(poi[0] >= 0)
 		ast_close(poi[0]);
-	if (poi[1] >= 0)
+	if(poi[1] >= 0)
 		ast_close(poi[1]);
 #endif /* !_pipe_rw && !_lib_socketpair */
 	procfree(proc);

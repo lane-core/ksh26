@@ -36,23 +36,23 @@
  * end of s is returned
  */
 
-char*
-tmpoff(char* s, size_t z, const char* p, int n, int d)
+char *
+tmpoff(char *s, size_t z, const char *p, int n, int d)
 {
-	char*	e = s + z;
+	char *e = s + z;
 
-	while (s < e && (*s = *p++))
+	while(s < e && (*s = *p++))
 		s++;
-	if (n != d && s < e)
+	if(n != d && s < e)
 	{
-		if (n < 0)
+		if(n < 0)
 		{
 			n = -n;
 			*s++ = '+';
 		}
 		else
 			*s++ = '-';
-		s += snprintf(s, e - s, "%02d%s%02d", n / 60, d == -24*60 ? ":" : "", n % 60);
+		s += snprintf(s, e - s, "%02d%s%02d", n / 60, d == -24 * 60 ? ":" : "", n % 60);
 	}
 	return s;
 }

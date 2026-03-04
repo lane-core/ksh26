@@ -24,74 +24,72 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: mkfifo (AT&T Research) 2009-01-02 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?mkfifo - make FIFOs (named pipes)]"
-"[+DESCRIPTION?\bmkfifo\b creates one or more FIFOs.  By "
-	"default, the mode of created FIFO is \ba=rw\b minus the "
-	"bits set in the \bumask\b(1).]"
-"[m:mode]:[mode?Set the mode of created FIFO to \amode\a.  "
-	"\amode\a is symbolic or octal mode as in \bchmod\b(1).  Relative "
-	"modes assume an initial mode of \ba=rw\b.]"
-"\n"
-"\nfile ...\n"
-"\n"
-"[+EXIT STATUS?]{"
-	"[+0?All FIFOs created successfully.]"
-	"[+>0?One or more FIFOs could not be created.]"
-"}"
-"[+SEE ALSO?\bchmod\b(1), \bumask\b(1)]"
-;
+    "[-?\n@(#)$Id: mkfifo (AT&T Research) 2009-01-02 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?mkfifo - make FIFOs (named pipes)]"
+    "[+DESCRIPTION?\bmkfifo\b creates one or more FIFOs.  By "
+    "default, the mode of created FIFO is \ba=rw\b minus the "
+    "bits set in the \bumask\b(1).]"
+    "[m:mode]:[mode?Set the mode of created FIFO to \amode\a.  "
+    "\amode\a is symbolic or octal mode as in \bchmod\b(1).  Relative "
+    "modes assume an initial mode of \ba=rw\b.]"
+    "\n"
+    "\nfile ...\n"
+    "\n"
+    "[+EXIT STATUS?]{"
+    "[+0?All FIFOs created successfully.]"
+    "[+>0?One or more FIFOs could not be created.]"
+    "}"
+    "[+SEE ALSO?\bchmod\b(1), \bumask\b(1)]";
 
 #include <cmd.h>
 #include <ls.h>
 
-int
-b_mkfifo(int argc, char** argv, Shbltin_t* context)
+int b_mkfifo(int argc, char **argv, Shbltin_t *context)
 {
-	char*	arg;
-	mode_t	mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
-	mode_t	mask = 0;
-	int	mflag = 0;
+	char *arg;
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	mode_t mask = 0;
+	int mflag = 0;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'm':
-			mflag = 1;
-			mode = strperm(arg = opt_info.arg, &opt_info.arg, mode);
-			if (*opt_info.arg)
-				error(ERROR_exit(0), "%s: invalid mode", arg);
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'm':
+				mflag = 1;
+				mode = strperm(arg = opt_info.arg, &opt_info.arg, mode);
+				if(*opt_info.arg)
+					error(ERROR_exit(0), "%s: invalid mode", arg);
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || !*argv)
+	if(error_info.errors || !*argv)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
 	mask = umask(0);
-	if (!mflag)
+	if(!mflag)
 	{
 		mode &= ~mask;
 		umask(mask);
 		mask = 0;
 	}
-	while (arg = *argv++)
-		if (mkfifo(arg, mode) < 0)
+	while(arg = *argv++)
+		if(mkfifo(arg, mode) < 0)
 			error(ERROR_system(0), "%s:", arg);
-	if (mask)
+	if(mask)
 		umask(mask);
 	return error_info.errors != 0;
 }

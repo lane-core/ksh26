@@ -17,11 +17,11 @@
 *                                                                      *
 ***********************************************************************/
 
-#define setenv		______setenv
+#define setenv ______setenv
 
 #include <ast.h>
 
-#undef	setenv
+#undef setenv
 
 #if _lib_setenv
 
@@ -29,17 +29,17 @@ NoN(setenv)
 
 #else
 
-#undef	_def_map_ast
+#undef _def_map_ast
 #include <ast_map.h>
 
 extern int
-setenv(const char* name, const char* value, int overwrite)
+setenv(const char *name, const char *value, int overwrite)
 {
-	char*	s;
+	char *s;
 
-	if (overwrite || !getenv(name))
+	if(overwrite || !getenv(name))
 	{
-		if (!(s = sfprints("%s=%s", name, value)) || !(s = strdup(s)))
+		if(!(s = sfprints("%s=%s", name, value)) || !(s = strdup(s)))
 			return -1;
 		return setenviron(s) ? 0 : -1;
 	}

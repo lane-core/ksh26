@@ -17,11 +17,11 @@
 *                                                                      *
 ***********************************************************************/
 
-#define putenv		______putenv
+#define putenv ______putenv
 
 #include <ast.h>
 
-#undef	putenv
+#undef putenv
 
 #if _lib_putenv
 
@@ -29,11 +29,11 @@ NoN(putenv)
 
 #else
 
-#undef	_def_map_ast
+#undef _def_map_ast
 #include <ast_map.h>
 
 extern int
-putenv(const char* s)
+putenv(const char *s)
 {
 	return setenviron(s) ? 0 : -1;
 }

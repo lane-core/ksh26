@@ -45,102 +45,102 @@
 
 typedef struct Link_s
 {
-	struct Link_s*		next;
-	char*			code;
-	int			index;
+	struct Link_s *next;
+	char *code;
+	int index;
 } Link_t;
 
 typedef struct Table_s
 {
-	Link_t*			root;
-	int			count;
+	Link_t *root;
+	int count;
 } Table_t;
 
 typedef struct Abbreviation_s
 {
-	Link_t			link;
-	char*			value;
+	Link_t link;
+	char *value;
 } Abbreviation_t;
 
 typedef struct Attribute_s
 {
-	Link_t			link;
+	Link_t link;
 } Attribute_t;
 
 typedef struct Attribute_list_s
 {
-	struct Attribute_list_s*next;
-	Attribute_t*		attribute;
+	struct Attribute_list_s *next;
+	Attribute_t *attribute;
 } Attribute_list_t;
 
 typedef struct Charset_s
 {
-	Link_t			link;
-	char*			alternates;
-	char*			ms;
+	Link_t link;
+	char *alternates;
+	char *ms;
 } Charset_t;
 
 typedef struct Language_s
 {
-	Link_t			link;
-	char*			name;
-	char*			alternates;
-	Charset_t*		charset;
-	Attribute_list_t*	attributes;
+	Link_t link;
+	char *name;
+	char *alternates;
+	Charset_t *charset;
+	Attribute_list_t *attributes;
 } Language_t;
 
 typedef struct Language_list_s
 {
-	struct Language_list_s*	next;
-	Language_t*		language;
+	struct Language_list_s *next;
+	Language_t *language;
 } Language_list_t;
 
 typedef struct Territory_s
 {
-	Link_t			link;
-	char*			name;
-	Language_list_t*	languages;
-	int			primary;
-	int			index;
+	Link_t link;
+	char *name;
+	Language_list_t *languages;
+	int primary;
+	int index;
 } Territory_t;
 
 typedef struct Map_s
 {
-	Link_t			link;
-	Language_t*		language;
-	Territory_t*		territory;
-	Charset_t*		charset;
-	Attribute_t*		attribute;
+	Link_t link;
+	Language_t *language;
+	Territory_t *territory;
+	Charset_t *charset;
+	Attribute_t *attribute;
 } Map_t;
 
 static struct State_s
 {
-	Table_t			attribute;
-	Table_t			charset;
-	Table_t			language;
-	Table_t			territory;
-	Table_t			map;
+	Table_t attribute;
+	Table_t charset;
+	Table_t language;
+	Table_t territory;
+	Table_t map;
 } state;
 
-#define INIT		0
-#define CHARSET		1
-#define LANGUAGE	2
-#define TERRITORY	3
-#define MAP		4
+#define INIT 0
+#define CHARSET 1
+#define LANGUAGE 2
+#define TERRITORY 3
+#define MAP 4
 
-#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
-#define newof(p,t,n,x)	((t*)calloc(1,sizeof(t)*(n)+(x)))
+#define elementsof(x) (sizeof(x) / sizeof(x[0]))
+#define newof(p, t, n, x) ((t *)calloc(1, sizeof(t) * (n) + (x)))
 
-static Link_t*
-enter(Table_t* tab, Link_t* v)
+static Link_t *
+enter(Table_t *tab, Link_t *v)
 {
-	Link_t*	x;
-	Link_t*	p;
+	Link_t *x;
+	Link_t *p;
 
-	for (p = 0, x = tab->root; x; p = x, x = x->next)
-		if (!strcmp(x->code, v->code))
+	for(p = 0, x = tab->root; x; p = x, x = x->next)
+		if(!strcmp(x->code, v->code))
 			return x;
-	if (p)
+	if(p)
 		p->next = v;
 	else
 		tab->root = v;
@@ -149,43 +149,44 @@ enter(Table_t* tab, Link_t* v)
 	return v;
 }
 
-static Link_t*
-lookup(Table_t* tab, char* s)
+static Link_t *
+lookup(Table_t *tab, char *s)
 {
-	Link_t*	x;
+	Link_t *x;
 
-	for (x = tab->root; x; x = x->next)
-		if (!strcmp(x->code, s))
+	for(x = tab->root; x; x = x->next)
+		if(!strcmp(x->code, s))
 			return x;
 	return NULL;
 }
 
-static char*
-copy(char** p, char* f)
+static char *
+copy(char **p, char *f)
 {
-	char*	t;
-	char*		b;
+	char *t;
+	char *b;
 
-	if (!f)
+	if(!f)
 		return NULL;
 	b = t = *p;
-	while (*t++ = *f++);
+	while(*t++ = *f++)
+		;
 	*p = t;
 	return b;
 }
 
 static void
-macro(FILE* f, char* p1, char* p2, char* p3)
+macro(FILE *f, char *p1, char *p2, char *p3)
 {
-	int	c;
-	char*	s;
-	char*	b;
-	char*	e;
-	int	i;
-	int	m;
-	int	n;
-	char*	part[4];
-	char	buf[128];
+	int c;
+	char *s;
+	char *b;
+	char *e;
+	int i;
+	int m;
+	int n;
+	char *part[4];
+	char buf[128];
 
 	part[0] = p1;
 	part[1] = p2;
@@ -197,24 +198,24 @@ macro(FILE* f, char* p1, char* p2, char* p3)
 	{
 		i = m = 0;
 		b = buf;
-		e = &buf[sizeof(buf)-1];
-		while (b < e)
+		e = &buf[sizeof(buf) - 1];
+		while(b < e)
 		{
-			if (!(s = part[i++]))
+			if(!(s = part[i++]))
 				break;
-			if (i > 1)
+			if(i > 1)
 				*b++ = '_';
-			while ((c = *s++) && b < e)
+			while((c = *s++) && b < e)
 			{
-				if (c == '|')
+				if(c == '|')
 				{
-					part[i-1] = s;
+					part[i - 1] = s;
 					m = 1;
 					break;
 				}
-				else if (islower(c))
+				else if(islower(c))
 					c = toupper(c);
-				else if (!isalnum(c))
+				else if(!isalnum(c))
 					c = '_';
 				*b++ = c;
 			}
@@ -222,56 +223,55 @@ macro(FILE* f, char* p1, char* p2, char* p3)
 		*b = 0;
 		fprintf(f, "#ifdef %s\n%s,\n#else\n", buf, buf);
 		n++;
-	} while (m);
+	} while(m);
 	fprintf(f, "0,\n");
-	while (n-- > 0)
+	while(n-- > 0)
 		fprintf(f, "#endif\n");
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	char*			s;
-	char**			vp;
-	char**			ve;
-	Attribute_t*		ap;
-	Attribute_list_t*	al;
-	Attribute_list_t*	az = NULL;
-	Charset_t*		cp;
-	Territory_t*		tp;
-	Language_t*		lp;
-	Language_list_t*	ll;
-	Language_list_t*	lz = NULL;
-	Map_t*			mp;
-	char*			b;
-	char*			f;
-	char*			command;
-	char*			hdr;
-	char*			lib;
-	FILE*			hf;
-	FILE*			lf;
-	int			c;
-	int			i;
-	int			line;
-	int			type;
-	int			language_attribute_max;
-	int			territory_language_max;
-	char*			arg[5];
-	char			buf[1024];
+	char *s;
+	char **vp;
+	char **ve;
+	Attribute_t *ap;
+	Attribute_list_t *al;
+	Attribute_list_t *az = NULL;
+	Charset_t *cp;
+	Territory_t *tp;
+	Language_t *lp;
+	Language_list_t *ll;
+	Language_list_t *lz = NULL;
+	Map_t *mp;
+	char *b;
+	char *f;
+	char *command;
+	char *hdr;
+	char *lib;
+	FILE *hf;
+	FILE *lf;
+	int c;
+	int i;
+	int line;
+	int type;
+	int language_attribute_max;
+	int territory_language_max;
+	char *arg[5];
+	char buf[1024];
 
 	command = *argv++;
 	line = 0;
-	if (!(hdr = *argv++) || !(lib = *argv++) || *argv)
+	if(!(hdr = *argv++) || !(lib = *argv++) || *argv)
 	{
 		fprintf(stderr, "%s: { hdr lib tab } arguments expected\n", command);
 		return 1;
 	}
-	if (!(hf = fopen(hdr, "w")))
+	if(!(hf = fopen(hdr, "w")))
 	{
 		fprintf(stderr, "%s: %s: cannot write\n", command, hdr);
 		return 1;
 	}
-	if (!(lf = fopen(lib, "w")))
+	if(!(lf = fopen(lib, "w")))
 	{
 		fprintf(stderr, "%s: %s: cannot write\n", command, lib);
 		return 1;
@@ -307,33 +307,35 @@ main(int argc, char** argv)
 	fprintf(lf, "\n");
 	fprintf(lf, "#include \"lclib.h\"\n");
 	fprintf(lf, "\n");
-	while (s = fgets(buf, sizeof(buf), stdin))
+	while(s = fgets(buf, sizeof(buf), stdin))
 	{
 		line++;
-		while (isspace(*s))
+		while(isspace(*s))
 			s++;
-		if (!*s || *s == '#')
+		if(!*s || *s == '#')
 			continue;
 		b = s;
 		vp = arg;
-		for (;;)
+		for(;;)
 		{
-			for (*vp++ = s; *s && !isspace(*s); s++);
-			if (!*s)
+			for(*vp++ = s; *s && !isspace(*s); s++)
+				;
+			if(!*s)
 				break;
-			for (*s++ = 0; isspace(*s); s++);
-			if (!strcmp(*(vp - 1), "-"))
+			for(*s++ = 0; isspace(*s); s++)
+				;
+			if(!strcmp(*(vp - 1), "-"))
 				*(vp - 1) = 0;
-			if (!*s || vp >= ve)
+			if(!*s || vp >= ve)
 				break;
 		}
-		while (vp < ve)
+		while(vp < ve)
 			*vp++ = 0;
-		if (*arg[0] == ':')
+		if(*arg[0] == ':')
 		{
-			if (!strcmp(arg[0], ":map:"))
+			if(!strcmp(arg[0], ":map:"))
 			{
-				if (type != TERRITORY)
+				if(type != TERRITORY)
 				{
 					fprintf(stderr, "%s: %d: %s: must be specified after :territory:\n", command, line, arg[0]);
 					return 1;
@@ -341,9 +343,9 @@ main(int argc, char** argv)
 				type = MAP;
 				continue;
 			}
-			else if (!strcmp(arg[0], ":charset:"))
+			else if(!strcmp(arg[0], ":charset:"))
 			{
-				if (type != INIT)
+				if(type != INIT)
 				{
 					fprintf(stderr, "%s: %d: %s must be specified first\n", command, line, arg[0]);
 					return 1;
@@ -351,9 +353,9 @@ main(int argc, char** argv)
 				type = CHARSET;
 				continue;
 			}
-			else if (!strcmp(arg[0], ":territory:"))
+			else if(!strcmp(arg[0], ":territory:"))
 			{
-				if (type != LANGUAGE)
+				if(type != LANGUAGE)
 				{
 					fprintf(stderr, "%s: %d: %s: must be specified after :language:\n", command, line, arg[0]);
 					return 1;
@@ -361,9 +363,9 @@ main(int argc, char** argv)
 				type = TERRITORY;
 				continue;
 			}
-			else if (!strcmp(arg[0], ":language:"))
+			else if(!strcmp(arg[0], ":language:"))
 			{
-				if (type != CHARSET)
+				if(type != CHARSET)
 				{
 					fprintf(stderr, "%s: %d: %s must be specified after :charset:\n", command, line, arg[0]);
 					return 1;
@@ -377,208 +379,210 @@ main(int argc, char** argv)
 				return 1;
 			}
 		}
-		if (!arg[1])
+		if(!arg[1])
 		{
 			fprintf(stderr, "%s: %d: at least two arguments expected\n", command, line);
 			return 1;
 		}
-		switch (type)
+		switch(type)
 		{
-		case CHARSET:
-			if (!(cp = newof(0, Charset_t, 1, s - b + 1)))
-			{
-				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
-			}
-			b = (char*)(cp + 1);
-			cp->link.code = copy(&b, arg[0]);
-			cp->alternates = copy(&b, arg[1]);
-			cp->ms = copy(&b, arg[2]);
-			if (cp != (Charset_t*)enter(&state.charset, (Link_t*)cp))
-			{
-				fprintf(stderr, "%s: %d: %s: duplicate charset\n", command, line, cp->link.code);
-				return 1;
-			}
-			break;
-		case TERRITORY:
-			if (!(tp = newof(0, Territory_t, 1, s - b + 1)))
-			{
-				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
-			}
-			b = (char*)(tp + 1);
-			tp->link.code = copy(&b, arg[0]);
-			tp->name = copy(&b, arg[1]);
-			tp->languages = 0;
-			if (s = copy(&b, arg[2]))
-			{
-				i = 0;
-				while (*(b = s))
+			case CHARSET:
+				if(!(cp = newof(0, Charset_t, 1, s - b + 1)))
 				{
-					for (; *s && *s != ':' && *s != '|'; s++);
-					if (c = *s)
-						*s++ = 0;
-					if (!(lp = (Language_t*)lookup(&state.language, b)))
-					{
-						fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, b);
-						return 1;
-					}
-					if (!(ll = newof(0, Language_list_t, 1, 0)))
-					{
-						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
-					}
-					if (!tp->languages)
-						tp->languages = ll;
-					else
-						lz->next = ll;
-					lz = ll;
-					ll->language = lp;
-					ll->next = 0;
-					i++;
-					if (c == ':')
-					{
-						for (b = s; *s && *s != '|'; s++);
-						if (*s)
-							*s++ = 0;
-						if (!strcmp(b, "primary"))
-							tp->primary = 1;
-					}
-				}
-				if (territory_language_max < i)
-					territory_language_max = i;
-			}
-			if (tp != (Territory_t*)enter(&state.territory, (Link_t*)tp))
-			{
-				fprintf(stderr, "%s: %d: %s: duplicate territory\n", command, line, tp->link.code);
-				return 1;
-			}
-			break;
-		case LANGUAGE:
-			if (!(lp = newof(0, Language_t, 1, s - b + 1)))
-			{
-				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
-			}
-			b = (char*)(lp + 1);
-			lp->link.code = copy(&b, arg[0]);
-			lp->name = copy(&b, arg[1]);
-			lp->alternates = copy(&b, arg[2]);
-			if (!arg[3])
-				lp->charset = 0;
-			else if (!(lp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
-			{
-				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
-				return 1;
-			}
-			lp->attributes = 0;
-			if (s = copy(&b, arg[4]))
-			{
-				i = 0;
-				fprintf(lf, "\nconst Lc_attribute_t attribute_%s[] =\n{\n", lp->link.code);
-				while (*(b = s))
-				{
-					for (f = 0; *s && *s != '|'; s++)
-						if (*s == ':')
-						{
-							*s++ = 0;
-							f = s;
-						}
-					if (*s)
-						*s++ = 0;
-					fprintf(lf, "{\"%s\",", b);
-					if (f)
-						fprintf(lf, "LC_%s,", f);
-					else
-						fprintf(lf, "0,");
-					if (!(ap = newof(0, Attribute_t, 1, 0)))
-					{
-						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
-					}
-					ap->link.code = b;
-					ap->link.index = i++;
-					if (!(al = newof(0, Attribute_list_t, 1, 0)))
-					{
-						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
-					}
-					if (!lp->attributes)
-						lp->attributes = al;
-					else
-						az->next = al;
-					az = al;
-					al->attribute = ap;
-					al->next = 0;
-					macro(lf, "SUBLANG", lp->name, b);
-					fprintf(lf, "\n},\n");
-				}
-				if (language_attribute_max < i)
-					language_attribute_max = i;
-				fprintf(lf, "};\n");
-			}
-			if (lp != (Language_t*)enter(&state.language, (Link_t*)lp))
-			{
-				fprintf(stderr, "%s: %d: %s: duplicate language\n", command, line, lp->link.code);
-				return 1;
-			}
-			break;
-		case MAP:
-			if (!(mp = newof(0, Map_t, 1, s - b + 1)))
-			{
-				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
-			}
-			b = (char*)(mp + 1);
-			mp->link.code = copy(&b, arg[0]);
-			if (!arg[2])
-			{
-				fprintf(stderr, "%s: %d: territory code expected\n", command, line);
-				return 1;
-			}
-			if (!(mp->language = (Language_t*)lookup(&state.language, arg[1])))
-			{
-				fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, arg[1]);
-				return 1;
-			}
-			if (!(mp->territory = (Territory_t*)lookup(&state.territory, arg[2])))
-			{
-				fprintf(stderr, "%s: %d: %s: unknown territory\n", command, line, arg[2]);
-				return 1;
-			}
-			if (!arg[3])
-				mp->charset = 0;
-			else if (!(mp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
-			{
-				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
-				return 1;
-			}
-			mp->attribute = 0;
-			if (arg[4])
-			{
-				for (al = mp->language->attributes; al; al = al->next)
-					if (!strcmp(al->attribute->link.code, arg[4]))
-					{
-						mp->attribute = al->attribute;
-						break;
-					}
-				if (!mp->attribute)
-				{
-					fprintf(stderr, "%s: %d: %s: unknown attribute\n", command, line, arg[4]);
+					fprintf(stderr, "%s: %d: out of memory\n", command, line);
 					return 1;
 				}
-			}
-			if (mp != (Map_t*)enter(&state.map, (Link_t*)mp))
-			{
-				fprintf(stderr, "%s: %d: %s: duplicate map\n", command, line, mp->link.code);
-				return 1;
-			}
-			break;
+				b = (char *)(cp + 1);
+				cp->link.code = copy(&b, arg[0]);
+				cp->alternates = copy(&b, arg[1]);
+				cp->ms = copy(&b, arg[2]);
+				if(cp != (Charset_t *)enter(&state.charset, (Link_t *)cp))
+				{
+					fprintf(stderr, "%s: %d: %s: duplicate charset\n", command, line, cp->link.code);
+					return 1;
+				}
+				break;
+			case TERRITORY:
+				if(!(tp = newof(0, Territory_t, 1, s - b + 1)))
+				{
+					fprintf(stderr, "%s: %d: out of memory\n", command, line);
+					return 1;
+				}
+				b = (char *)(tp + 1);
+				tp->link.code = copy(&b, arg[0]);
+				tp->name = copy(&b, arg[1]);
+				tp->languages = 0;
+				if(s = copy(&b, arg[2]))
+				{
+					i = 0;
+					while(*(b = s))
+					{
+						for(; *s && *s != ':' && *s != '|'; s++)
+							;
+						if(c = *s)
+							*s++ = 0;
+						if(!(lp = (Language_t *)lookup(&state.language, b)))
+						{
+							fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, b);
+							return 1;
+						}
+						if(!(ll = newof(0, Language_list_t, 1, 0)))
+						{
+							fprintf(stderr, "%s: %d: out of memory\n", command, line);
+							return 1;
+						}
+						if(!tp->languages)
+							tp->languages = ll;
+						else
+							lz->next = ll;
+						lz = ll;
+						ll->language = lp;
+						ll->next = 0;
+						i++;
+						if(c == ':')
+						{
+							for(b = s; *s && *s != '|'; s++)
+								;
+							if(*s)
+								*s++ = 0;
+							if(!strcmp(b, "primary"))
+								tp->primary = 1;
+						}
+					}
+					if(territory_language_max < i)
+						territory_language_max = i;
+				}
+				if(tp != (Territory_t *)enter(&state.territory, (Link_t *)tp))
+				{
+					fprintf(stderr, "%s: %d: %s: duplicate territory\n", command, line, tp->link.code);
+					return 1;
+				}
+				break;
+			case LANGUAGE:
+				if(!(lp = newof(0, Language_t, 1, s - b + 1)))
+				{
+					fprintf(stderr, "%s: %d: out of memory\n", command, line);
+					return 1;
+				}
+				b = (char *)(lp + 1);
+				lp->link.code = copy(&b, arg[0]);
+				lp->name = copy(&b, arg[1]);
+				lp->alternates = copy(&b, arg[2]);
+				if(!arg[3])
+					lp->charset = 0;
+				else if(!(lp->charset = (Charset_t *)lookup(&state.charset, arg[3])))
+				{
+					fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
+					return 1;
+				}
+				lp->attributes = 0;
+				if(s = copy(&b, arg[4]))
+				{
+					i = 0;
+					fprintf(lf, "\nconst Lc_attribute_t attribute_%s[] =\n{\n", lp->link.code);
+					while(*(b = s))
+					{
+						for(f = 0; *s && *s != '|'; s++)
+							if(*s == ':')
+							{
+								*s++ = 0;
+								f = s;
+							}
+						if(*s)
+							*s++ = 0;
+						fprintf(lf, "{\"%s\",", b);
+						if(f)
+							fprintf(lf, "LC_%s,", f);
+						else
+							fprintf(lf, "0,");
+						if(!(ap = newof(0, Attribute_t, 1, 0)))
+						{
+							fprintf(stderr, "%s: %d: out of memory\n", command, line);
+							return 1;
+						}
+						ap->link.code = b;
+						ap->link.index = i++;
+						if(!(al = newof(0, Attribute_list_t, 1, 0)))
+						{
+							fprintf(stderr, "%s: %d: out of memory\n", command, line);
+							return 1;
+						}
+						if(!lp->attributes)
+							lp->attributes = al;
+						else
+							az->next = al;
+						az = al;
+						al->attribute = ap;
+						al->next = 0;
+						macro(lf, "SUBLANG", lp->name, b);
+						fprintf(lf, "\n},\n");
+					}
+					if(language_attribute_max < i)
+						language_attribute_max = i;
+					fprintf(lf, "};\n");
+				}
+				if(lp != (Language_t *)enter(&state.language, (Link_t *)lp))
+				{
+					fprintf(stderr, "%s: %d: %s: duplicate language\n", command, line, lp->link.code);
+					return 1;
+				}
+				break;
+			case MAP:
+				if(!(mp = newof(0, Map_t, 1, s - b + 1)))
+				{
+					fprintf(stderr, "%s: %d: out of memory\n", command, line);
+					return 1;
+				}
+				b = (char *)(mp + 1);
+				mp->link.code = copy(&b, arg[0]);
+				if(!arg[2])
+				{
+					fprintf(stderr, "%s: %d: territory code expected\n", command, line);
+					return 1;
+				}
+				if(!(mp->language = (Language_t *)lookup(&state.language, arg[1])))
+				{
+					fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, arg[1]);
+					return 1;
+				}
+				if(!(mp->territory = (Territory_t *)lookup(&state.territory, arg[2])))
+				{
+					fprintf(stderr, "%s: %d: %s: unknown territory\n", command, line, arg[2]);
+					return 1;
+				}
+				if(!arg[3])
+					mp->charset = 0;
+				else if(!(mp->charset = (Charset_t *)lookup(&state.charset, arg[3])))
+				{
+					fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
+					return 1;
+				}
+				mp->attribute = 0;
+				if(arg[4])
+				{
+					for(al = mp->language->attributes; al; al = al->next)
+						if(!strcmp(al->attribute->link.code, arg[4]))
+						{
+							mp->attribute = al->attribute;
+							break;
+						}
+					if(!mp->attribute)
+					{
+						fprintf(stderr, "%s: %d: %s: unknown attribute\n", command, line, arg[4]);
+						return 1;
+					}
+				}
+				if(mp != (Map_t *)enter(&state.map, (Link_t *)mp))
+				{
+					fprintf(stderr, "%s: %d: %s: duplicate map\n", command, line, mp->link.code);
+					return 1;
+				}
+				break;
 		}
 	}
-	if (!language_attribute_max)
+	if(!language_attribute_max)
 		language_attribute_max = 1;
-	if (!territory_language_max)
+	if(!territory_language_max)
 		territory_language_max = 1;
 	fprintf(hf, "\n#define LC_language_attribute_max\t%d\n", language_attribute_max);
 	fprintf(hf, "#define LC_territory_language_max\t%d\n", territory_language_max);
@@ -661,14 +665,14 @@ main(int argc, char** argv)
 	fprintf(hf, "extern Lc_t*\t\tlcscan(Lc_t*);\n");
 	fprintf(hf, "\n");
 	fprintf(lf, "\nconst Lc_charset_t lc_charsets[] =\n{\n");
-	for (cp = (Charset_t*)state.charset.root; cp; cp = (Charset_t*)cp->link.next)
+	for(cp = (Charset_t *)state.charset.root; cp; cp = (Charset_t *)cp->link.next)
 	{
 		fprintf(lf, "{\"%s\",", cp->link.code);
-		if (cp->alternates)
+		if(cp->alternates)
 			fprintf(lf, "\"%s\",", cp->alternates);
 		else
 			fprintf(lf, "0,");
-		if (cp->ms)
+		if(cp->ms)
 			fprintf(lf, "\"%s\",", cp->ms);
 		else
 			fprintf(lf, "0");
@@ -677,69 +681,69 @@ main(int argc, char** argv)
 	fprintf(lf, "\t0\n};\n");
 	fprintf(lf, "\nconst Lc_language_t lc_languages[] =\n{\n");
 	fprintf(lf, "{\"C\",\"C\",\"POSIX\",&lc_charsets[0],LC_default,0,");
-	for (i = 0; i < language_attribute_max; i++)
+	for(i = 0; i < language_attribute_max; i++)
 		fprintf(lf, "0,");
 	fprintf(lf, "},\n");
 	fprintf(lf, "{\"debug\",\"debug\",0,&lc_charsets[0],LC_debug,0,");
-	for (i = 0; i < language_attribute_max; i++)
+	for(i = 0; i < language_attribute_max; i++)
 		fprintf(lf, "0,");
 	fprintf(lf, "},\n");
-	for (lp = (Language_t*)state.language.root; lp; lp = (Language_t*)lp->link.next)
+	for(lp = (Language_t *)state.language.root; lp; lp = (Language_t *)lp->link.next)
 	{
 		fprintf(lf, "{\"%s\",\"%s\",", lp->link.code, lp->name);
-		if (lp->alternates)
+		if(lp->alternates)
 			fprintf(lf, "\"%s\",", lp->alternates);
 		else
 			fprintf(lf, "0,");
 		fprintf(lf, "&lc_charsets[%d],0,", lp->charset ? lp->charset->link.index : 0);
 		macro(lf, "LANG", lp->name, NULL);
-		for (i = 0, al = lp->attributes; al; al = al->next, i++)
+		for(i = 0, al = lp->attributes; al; al = al->next, i++)
 			fprintf(lf, "&attribute_%s[%d],", lp->link.code, al->attribute->link.index);
-		for (; i < language_attribute_max; i++)
+		for(; i < language_attribute_max; i++)
 			fprintf(lf, "0,");
 		fprintf(lf, "\n},\n");
 	}
 	fprintf(lf, "\t0\n};\n");
 	fprintf(lf, "\nconst Lc_territory_t lc_territories[] =\n{\n");
 	fprintf(lf, "{\"C\",\"C\",LC_default,0,&lc_languages[0],");
-	for (i = 1; i < 2 * territory_language_max; i++)
+	for(i = 1; i < 2 * territory_language_max; i++)
 		fprintf(lf, "0,");
 	fprintf(lf, "},\n");
 	fprintf(lf, "{\"debug\",\"debug\",LC_debug,0,&lc_languages[1],");
-	for (i = 1; i < 2 * territory_language_max; i++)
+	for(i = 1; i < 2 * territory_language_max; i++)
 		fprintf(lf, "0,");
 	fprintf(lf, "},\n");
 	fprintf(lf, "{\"eu\",\"euro\",0,0,&lc_languages[0],");
-	for (i = 1; i < 2 * territory_language_max; i++)
+	for(i = 1; i < 2 * territory_language_max; i++)
 		fprintf(lf, "0,");
 	fprintf(lf, "},\n");
-	for (tp = (Territory_t*)state.territory.root; tp; tp = (Territory_t*)tp->link.next)
+	for(tp = (Territory_t *)state.territory.root; tp; tp = (Territory_t *)tp->link.next)
 	{
 		fprintf(lf, "{\"%s\",\"%s\",", tp->link.code, tp->name);
-		if (tp->primary)
+		if(tp->primary)
 			fprintf(lf, "LC_primary,");
 		else
 			fprintf(lf, "0,");
 		macro(lf, "CTRY", tp->name, NULL);
-		for (i = 0, ll = tp->languages; ll; ll = ll->next, i++)
+		for(i = 0, ll = tp->languages; ll; ll = ll->next, i++)
 			fprintf(lf, "&lc_languages[%d],", ll->language->link.index);
-		for (; i < territory_language_max; i++)
+		for(; i < territory_language_max; i++)
 			fprintf(lf, "0,");
-		for (i = 0, ll = tp->languages; ll; ll = ll->next, i++)
+		for(i = 0, ll = tp->languages; ll; ll = ll->next, i++)
 			macro(lf, "SUBLANG", ll->language->name, tp->name);
-		for (; i < territory_language_max; i++)
+		for(; i < territory_language_max; i++)
 			fprintf(lf, "0,");
 		fprintf(lf, "\n},\n");
 	}
 	fprintf(lf, "\t0\n};\n");
 	fprintf(lf, "\nconst Lc_map_t lc_maps[] =\n{\n");
-	for (mp = (Map_t*)state.map.root; mp; mp = (Map_t*)mp->link.next)
+	for(mp = (Map_t *)state.map.root; mp; mp = (Map_t *)mp->link.next)
 	{
 		fprintf(lf, "{\"%s\",", mp->link.code);
 		fprintf(lf, "&lc_languages[%d],", mp->language->link.index);
 		fprintf(lf, "&lc_territories[%d],", mp->territory->link.index);
 		fprintf(lf, "&lc_charsets[%d],", mp->charset ? mp->charset->link.index : 0);
-		if (mp->attribute)
+		if(mp->attribute)
 			fprintf(lf, "&attribute_%s[%d]", mp->language->link.code, mp->attribute->link.index);
 		else
 			fprintf(lf, "0");

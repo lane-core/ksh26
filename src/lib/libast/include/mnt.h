@@ -25,25 +25,25 @@
  */
 
 #ifndef _MNT_H
-#define _MNT_H	1
+#define _MNT_H 1
 
-#undef	MNT_REMOTE			/* AIX clash			*/
-#define MNT_REMOTE	(1<<0)		/* remote mount			*/
+#undef MNT_REMOTE           /* AIX clash			*/
+#define MNT_REMOTE (1 << 0) /* remote mount			*/
 
 typedef struct
 {
-	char*	fs;			/* filesystem name		*/
-	char*	dir;			/* mounted dir			*/
-	char*	type;			/* filesystem type		*/
-	char*	options;		/* options			*/
-	int	freq;			/* backup frequency		*/
-	int	npass;			/* number of parallel passes	*/
-	int	flags;			/* MNT_* flags			*/
+	char *fs;      /* filesystem name		*/
+	char *dir;     /* mounted dir			*/
+	char *type;    /* filesystem type		*/
+	char *options; /* options			*/
+	int freq;      /* backup frequency		*/
+	int npass;     /* number of parallel passes	*/
+	int flags;     /* MNT_* flags			*/
 } Mnt_t;
 
-extern void*	mntopen(const char*, const char*);
-extern Mnt_t*	mntread(void*);
-extern int	mntwrite(void*, const Mnt_t*);
-extern int	mntclose(void*);
+extern void *mntopen(const char *, const char *);
+extern Mnt_t *mntread(void *);
+extern int mntwrite(void *, const Mnt_t *);
+extern int mntclose(void *);
 
 #endif

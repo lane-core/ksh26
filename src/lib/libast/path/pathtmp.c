@@ -24,14 +24,15 @@
 #include <stdio.h>
 
 #ifndef L_tmpnam
-#define L_tmpnam	25
+#define L_tmpnam 25
 #endif
 
-char*
-pathtmp(char* buf, const char* dir, const char* pfx, int* fdp)
+char *
+pathtmp(char *buf, const char *dir, const char *pfx, int *fdp)
 {
-	size_t	len;
+	size_t len;
 
-	len = !buf ? 0 : !dir ? L_tmpnam : (strlen(dir) + 14);
+	len = !buf ? 0 : !dir ? L_tmpnam
+	                      : (strlen(dir) + 14);
 	return pathtemp(buf, len, dir, pfx, fdp);
 }

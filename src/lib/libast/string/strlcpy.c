@@ -23,7 +23,7 @@
 
 #include <ast.h>
 
-#undef	_def_map_ast
+#undef _def_map_ast
 #include <ast_map.h>
 
 #if _lib_strlcpy
@@ -39,21 +39,22 @@ NoN(strlcpy)
  */
 
 extern size_t
-strlcpy(char* s, const char* t, size_t n)
+strlcpy(char *s, const char *t, size_t n)
 {
-	const char*	o = t;
+	const char *o = t;
 
-	if (n)
+	if(n)
 		do
 		{
-			if (!--n)
+			if(!--n)
 			{
 				*s = 0;
 				break;
 			}
-		} while (*s++ = *t++);
-	if (!n)
-		while (*t++);
+		} while(*s++ = *t++);
+	if(!n)
+		while(*t++)
+			;
 	return t - o - 1;
 }
 

@@ -24,165 +24,161 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: wc (ksh26) 2022-08-30 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?wc - print the number of bytes, words, and lines in files]"
-"[+DESCRIPTION?\bwc\b reads one or more input files and, by default, "
-	"for each file writes a line containing the number of newlines, "
-	"\aword\as, and bytes contained in each file followed by the "
-	"file name to standard output in that order.  A \aword\a is "
-	"defined to be a non-zero length string delimited by \bisspace\b(3) "
-	"characters.]"
-"[+?If more than one file is specified, \bwc\b writes a total count "
-	"for all of the named files with \btotal\b written instead "
-	"of the file name.]"
-"[+?By default, \bwc\b writes all three counts.  Options can specified "
-	"so that only certain counts are written.  The options \b-c\b "
-	"and \b-m\b are mutually exclusive.]"
-"[+?If no \afile\a is given, or if the \afile\a is \b-\b, \bwc\b "
-	"reads from standard input and no filename is written to standard "
-	"output.  The start of the file is defined as the current offset.]"
-"[l:lines?List the line counts.]"
-"[w:words?List the word counts.]"
-"[c:bytes|chars:chars?List the byte counts.]"
-"[m|C:multibyte-chars?List the character counts.]"
-"[q:quiet?Suppress invalid multibyte character warnings.]"
-"[L:longest-line|max-line-length?List the longest line length; the newline "
+    "[-?\n@(#)$Id: wc (ksh26) 2022-08-30 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?wc - print the number of bytes, words, and lines in files]"
+    "[+DESCRIPTION?\bwc\b reads one or more input files and, by default, "
+    "for each file writes a line containing the number of newlines, "
+    "\aword\as, and bytes contained in each file followed by the "
+    "file name to standard output in that order.  A \aword\a is "
+    "defined to be a non-zero length string delimited by \bisspace\b(3) "
+    "characters.]"
+    "[+?If more than one file is specified, \bwc\b writes a total count "
+    "for all of the named files with \btotal\b written instead "
+    "of the file name.]"
+    "[+?By default, \bwc\b writes all three counts.  Options can specified "
+    "so that only certain counts are written.  The options \b-c\b "
+    "and \b-m\b are mutually exclusive.]"
+    "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \bwc\b "
+    "reads from standard input and no filename is written to standard "
+    "output.  The start of the file is defined as the current offset.]"
+    "[l:lines?List the line counts.]"
+    "[w:words?List the word counts.]"
+    "[c:bytes|chars:chars?List the byte counts.]"
+    "[m|C:multibyte-chars?List the character counts.]"
+    "[q:quiet?Suppress invalid multibyte character warnings.]"
+    "[L:longest-line|max-line-length?List the longest line length; the newline "
     "(if any) is not counted in the length.]"
-"[N!:utf8?For \bUTF-8\b locales \b--noutf8\b disables \bUTF-8\b "
+    "[N!:utf8?For \bUTF-8\b locales \b--noutf8\b disables \bUTF-8\b "
     "optimizations and relies on the native \bmbtowc\b(3).]"
-"\n"
-"\n[file ...]\n"
-"\n"
-"[+EXIT STATUS?]{"
-	"[+0?All files processed successfully.]"
-	"[+>0?One or more files failed to open or could not be read.]"
-"}"
-"[+SEE ALSO?\bcat\b(1), \bisspace\b(3)]"
-;
-
+    "\n"
+    "\n[file ...]\n"
+    "\n"
+    "[+EXIT STATUS?]{"
+    "[+0?All files processed successfully.]"
+    "[+>0?One or more files failed to open or could not be read.]"
+    "}"
+    "[+SEE ALSO?\bcat\b(1), \bisspace\b(3)]";
 
 #include <cmd.h>
 #include <wc.h>
 #include <ls.h>
 
-#define ERRORMAX	125
+#define ERRORMAX 125
 
-static void printout(Wc_t *wp, char *name,int mode)
+static void printout(Wc_t *wp, char *name, int mode)
 {
-	if (mode&WC_LINES)
-		sfprintf(sfstdout," %7I*d",sizeof(wp->lines),wp->lines);
-	if (mode&WC_WORDS)
-		sfprintf(sfstdout," %7I*d",sizeof(wp->words),wp->words);
-	if (mode&WC_CHARS)
-		sfprintf(sfstdout," %7I*d",sizeof(wp->chars),wp->chars);
-	if (mode&WC_LONGEST)
-		sfprintf(sfstdout," %7I*d",sizeof(wp->chars),wp->longest);
-	if (name)
-		sfprintf(sfstdout," %s",name);
-	sfputc(sfstdout,'\n');
+	if(mode & WC_LINES)
+		sfprintf(sfstdout, " %7I*d", sizeof(wp->lines), wp->lines);
+	if(mode & WC_WORDS)
+		sfprintf(sfstdout, " %7I*d", sizeof(wp->words), wp->words);
+	if(mode & WC_CHARS)
+		sfprintf(sfstdout, " %7I*d", sizeof(wp->chars), wp->chars);
+	if(mode & WC_LONGEST)
+		sfprintf(sfstdout, " %7I*d", sizeof(wp->chars), wp->longest);
+	if(name)
+		sfprintf(sfstdout, " %s", name);
+	sfputc(sfstdout, '\n');
 }
 
-int
-b_wc(int argc,char **argv, Shbltin_t* context)
+int b_wc(int argc, char **argv, Shbltin_t *context)
 {
-	char		*cp;
-	int		mode=0, n;
-	Wc_t		*wp;
-	Sfio_t		*fp;
-	Sfoff_t		tlines=0, twords=0, tchars=0;
-	struct stat	statb;
+	char *cp;
+	int mode = 0, n;
+	Wc_t *wp;
+	Sfio_t *fp;
+	Sfoff_t tlines = 0, twords = 0, tchars = 0;
+	struct stat statb;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'c':
-			mode |= WC_CHARS;
-			continue;
-		case 'l':
-			mode |= WC_LINES;
-			continue;
-		case 'L':
-			mode |= WC_LONGEST;
-			continue;
-		case 'N':
-			if (!opt_info.num)
-				mode |= WC_NOUTF8;
-			continue;
-		case 'm':
-			mode |= WC_MBYTE;
-			continue;
-		case 'q':
-			mode |= WC_QUIET;
-			continue;
-		case 'w':
-			mode |= WC_WORDS;
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'c':
+				mode |= WC_CHARS;
+				continue;
+			case 'l':
+				mode |= WC_LINES;
+				continue;
+			case 'L':
+				mode |= WC_LONGEST;
+				continue;
+			case 'N':
+				if(!opt_info.num)
+					mode |= WC_NOUTF8;
+				continue;
+			case 'm':
+				mode |= WC_MBYTE;
+				continue;
+			case 'q':
+				mode |= WC_QUIET;
+				continue;
+			case 'w':
+				mode |= WC_WORDS;
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors)
+	if(error_info.errors)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (mode&WC_MBYTE)
+	if(mode & WC_MBYTE)
 	{
-		if (mode&WC_CHARS)
+		if(mode & WC_CHARS)
 			error(2, "-c and -C are mutually exclusive");
-		if (!mbwide())
+		if(!mbwide())
 			mode &= ~WC_MBYTE;
 		mode |= WC_CHARS;
 	}
-	if (!(mode&(WC_WORDS|WC_CHARS|WC_LINES|WC_MBYTE|WC_LONGEST)))
-		mode |= (WC_WORDS|WC_CHARS|WC_LINES);
-	if (!(wp = wc_init(mode)))
-		error(3,"internal error");
-	if (cp = *argv)
+	if(!(mode & (WC_WORDS | WC_CHARS | WC_LINES | WC_MBYTE | WC_LONGEST)))
+		mode |= (WC_WORDS | WC_CHARS | WC_LINES);
+	if(!(wp = wc_init(mode)))
+		error(3, "internal error");
+	if(cp = *argv)
 		argv++;
 	n = 0;
 	do
 	{
-		if (!cp || streq(cp,"-"))
+		if(!cp || streq(cp, "-"))
 			fp = sfstdin;
-		else if (!(fp = sfopen(NULL,cp,"r")))
+		else if(!(fp = sfopen(NULL, cp, "r")))
 		{
-			error(ERROR_system(0),"%s: cannot open",cp);
+			error(ERROR_system(0), "%s: cannot open", cp);
 			continue;
 		}
-		if (cp)
+		if(cp)
 			n++;
-		if (!(mode&(WC_WORDS|WC_LINES|WC_MBYTE|WC_LONGEST)) && fstat(sffileno(fp),&statb)>=0
-			 && S_ISREG(statb.st_mode))
+		if(!(mode & (WC_WORDS | WC_LINES | WC_MBYTE | WC_LONGEST)) && fstat(sffileno(fp), &statb) >= 0 && S_ISREG(statb.st_mode))
 		{
-			wp->chars = statb.st_size - lseek(sffileno(fp),0L,1);
-			lseek(sffileno(fp),0L,2);
+			wp->chars = statb.st_size - lseek(sffileno(fp), 0L, 1);
+			lseek(sffileno(fp), 0L, 2);
 		}
 		else
 			wc_count(wp, fp, cp);
-		if (fp!=sfstdin)
+		if(fp != sfstdin)
 			sfclose(fp);
 		tchars += wp->chars;
 		twords += wp->words;
 		tlines += wp->lines;
-		printout(wp,cp,mode);
-	} while (cp= *argv++);
-	if (n > 1)
+		printout(wp, cp, mode);
+	} while(cp = *argv++);
+	if(n > 1)
 	{
 		wp->lines = tlines;
 		wp->chars = tchars;
 		wp->words = twords;
-		printout(wp,"total",mode);
+		printout(wp, "total", mode);
 	}
-	return error_info.errors<ERRORMAX?error_info.errors:ERRORMAX;
+	return error_info.errors < ERRORMAX ? error_info.errors : ERRORMAX;
 }

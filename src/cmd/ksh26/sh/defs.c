@@ -21,21 +21,20 @@
  * This file defines all the read/write shell global variables
  */
 
-#include	"shopt.h"
-#include	"defs.h"
-#include	"jobs.h"
-#include	"shlex.h"
+#include "shopt.h"
+#include "defs.h"
+#include "jobs.h"
+#include "shlex.h"
 
-Shell_t			sh = {0};
+Shell_t sh = {0};
 
-Dtdisc_t	_Nvdisc =
-{
-	offsetof(Namval_t,nvname), -1 , 0, 0, 0, nv_compare
-};
+Dtdisc_t _Nvdisc =
+    {
+        offsetof(Namval_t, nvname), -1, 0, 0, 0, nv_compare};
 
-struct jobs	job = {0};
-int32_t		sh_mailchk = 600;
+struct jobs job = {0};
+int32_t sh_mailchk = 600;
 
 #if SHOPT_KIA
-Kia_t		kia;
+Kia_t kia;
 #endif

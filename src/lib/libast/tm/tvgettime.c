@@ -22,13 +22,12 @@
 
 #include "FEATURE/tvlib"
 
-int
-tvgettime(Tv_t* tv)
+int tvgettime(Tv_t *tv)
 {
 
 #if _lib_clock_gettime && defined(CLOCK_REALTIME)
 
-	struct timespec			s;
+	struct timespec s;
 
 	clock_gettime(CLOCK_REALTIME, &s);
 	tv->tv_sec = s.tv_sec;
@@ -38,7 +37,7 @@ tvgettime(Tv_t* tv)
 
 #if defined(tmgettimeofday)
 
-	struct timeval			v;
+	struct timeval v;
 
 	tmgettimeofday(&v);
 	tv->tv_sec = v.tv_sec;
@@ -46,10 +45,10 @@ tvgettime(Tv_t* tv)
 
 #else
 
-	static time_t			s;
-	static uint32_t			n;
+	static time_t s;
+	static uint32_t n;
 
-	if ((tv->tv_sec = time(NULL)) != s)
+	if((tv->tv_sec = time(NULL)) != s)
 	{
 		s = tv->tv_sec;
 		n = 0;

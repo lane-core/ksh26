@@ -27,15 +27,15 @@
 #include <ast.h>
 #include <sig.h>
 
-char*
+char *
 fmtsignal(int sig)
 {
-	char*	buf;
-	int	z;
+	char *buf;
+	int z;
 
-	if (sig >= 0)
+	if(sig >= 0)
 	{
-		if (sig <= sig_info.sigmax)
+		if(sig <= sig_info.sigmax)
 			buf = sig_info.text[sig];
 		else
 		{
@@ -46,7 +46,7 @@ fmtsignal(int sig)
 	else
 	{
 		sig = -sig;
-		if (sig <= sig_info.sigmax)
+		if(sig <= sig_info.sigmax)
 			buf = sig_info.name[sig];
 		else
 		{

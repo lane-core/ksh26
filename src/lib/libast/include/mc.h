@@ -47,39 +47,39 @@
 
 #include <ast.h>
 
-#define MC_MAGIC	"\015\023\007\000"
-#define MC_MAGIC_SIZE	4
+#define MC_MAGIC "\015\023\007\000"
+#define MC_MAGIC_SIZE 4
 
-#define MC_SET_MAX	1023
-#define MC_NUM_MAX	32767
+#define MC_SET_MAX 1023
+#define MC_NUM_MAX 32767
 
-#define MC_NLS		(1<<10)
+#define MC_NLS (1 << 10)
 
-#define MC_MESSAGE_SET(s)	mcindex(s,NULL,NULL,NULL)
+#define MC_MESSAGE_SET(s) mcindex(s, NULL, NULL, NULL)
 
 typedef struct Mcset_s
 {
-	char**		msg;
-	int		num;
-	int		gen;
+	char **msg;
+	int num;
+	int gen;
 } Mcset_t;
 
 typedef struct Mc_s
 {
-	Mcset_t*	set;
-	int		num;
-	int		gen;
-	char*		translation;
+	Mcset_t *set;
+	int num;
+	int gen;
+	char *translation;
 #ifdef _MC_PRIVATE_
 	_MC_PRIVATE_
 #endif
 } Mc_t;
 
-extern char*		mcfind(const char*, const char*, int, int, char*, size_t);
-extern Mc_t*		mcopen(FILE*);
-extern char*		mcget(Mc_t*, int, int, const char*);
-extern int		mcput(Mc_t*, int, int, const char*);
-extern int		mcindex(const char*, char**, int*, int*);
-extern int		mcclose(Mc_t*);
+extern char *mcfind(const char *, const char *, int, int, char *, size_t);
+extern Mc_t *mcopen(FILE *);
+extern char *mcget(Mc_t *, int, int, const char *);
+extern int mcput(Mc_t *, int, int, const char *);
+extern int mcindex(const char *, char **, int *, int *);
+extern int mcclose(Mc_t *);
 
 #endif

@@ -20,34 +20,35 @@
 #include <ast.h>
 #include <ctype.h>
 
-#define IDENT	01
-#define USAGE	02
+#define IDENT 01
+#define USAGE 02
 
 /*
  * format what(1) and/or ident(1) string a
  */
 
-char*
-fmtident(const char* a)
+char *
+fmtident(const char *a)
 {
-	char*	s = (char*)a;
-	char*	t;
-	char*	buf;
-	int	i;
+	char *s = (char *)a;
+	char *t;
+	char *buf;
+	int i;
 
 	i = 0;
-	for (;;)
+	for(;;)
 	{
-		while (isspace(*s))
+		while(isspace(*s))
 			s++;
-		if (s[0] == '[')
+		if(s[0] == '[')
 		{
-			while (*++s && *s != '\n');
+			while(*++s && *s != '\n')
+				;
 			i |= USAGE;
 		}
-		else if (s[0] == '@' && s[1] == '(' && s[2] == '#' && s[3] == ')')
+		else if(s[0] == '@' && s[1] == '(' && s[2] == '#' && s[3] == ')')
 			s += 4;
-		else if (s[0] == '$' && s[1] == 'I' && s[2] == 'd' && s[3] == ':' && isspace(s[4]))
+		else if(s[0] == '$' && s[1] == 'I' && s[2] == 'd' && s[3] == ':' && isspace(s[4]))
 		{
 			s += 5;
 			i |= IDENT;
@@ -55,13 +56,13 @@ fmtident(const char* a)
 		else
 			break;
 	}
-	if (i)
+	if(i)
 	{
 		i &= IDENT;
-		for (t = s; isprint(*t) && *t != '\n'; t++)
-			if (i && t[0] == ' ' && t[1] == '$')
+		for(t = s; isprint(*t) && *t != '\n'; t++)
+			if(i && t[0] == ' ' && t[1] == '$')
 				break;
-		while (t > s && isspace(t[-1]))
+		while(t > s && isspace(t[-1]))
 			t--;
 		i = t - s;
 		buf = fmtbuf(i + 1);

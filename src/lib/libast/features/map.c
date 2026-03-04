@@ -23,12 +23,11 @@
  * which we are in the process of generating ... this prevents it
  */
 
-#define _def_map_ast	1
+#define _def_map_ast 1
 
 #include "FEATURE/lib"
 
-int
-main(void)
+int main(void)
 {
 	printf("/*\n");
 	printf(" * prototypes provided for standard interfaces hijacked\n");

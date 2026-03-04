@@ -18,109 +18,108 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)$Id: fmt (AT&T Research) 2007-01-02 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?fmt - simple text formatter]"
-"[+DESCRIPTION?\bfmt\b reads the input files and left justifies space "
+    "[-?\n@(#)$Id: fmt (AT&T Research) 2007-01-02 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?fmt - simple text formatter]"
+    "[+DESCRIPTION?\bfmt\b reads the input files and left justifies space "
     "separated words into lines \awidth\a characters or less in length and "
     "writes the lines to the standard output. The standard input is read if "
     "\b-\b or no files are specified. Blank lines and interword spacing are "
     "preserved in the output. Indentation is preserved, and lines with "
     "identical indentation are joined and justified.]"
-"[+?\bfmt\b is meant to format mail messages prior to sending, but may "
+    "[+?\bfmt\b is meant to format mail messages prior to sending, but may "
     "also be useful for other simple tasks. For example, in \bvi\b(1) the "
     "command \b:!}fmt\b will justify the lines in the current paragraph.]"
-"[c:crown-margin?Preserve the indentation of the first two lines within "
+    "[c:crown-margin?Preserve the indentation of the first two lines within "
     "a paragraph, and align the left margin of each subsequent line with "
     "that of the second line.]"
-"[o:optget?Format concatenated \boptget\b(3) usage strings.]"
-"[s:split-only?Split lines only; do not join short lines to form longer "
+    "[o:optget?Format concatenated \boptget\b(3) usage strings.]"
+    "[s:split-only?Split lines only; do not join short lines to form longer "
     "ones.]"
-"[u:uniform-spacing?One space between words, two after sentences.]"
-"[w:width?Set the output line width to \acolumns\a.]#[columns:=72]"
+    "[u:uniform-spacing?One space between words, two after sentences.]"
+    "[w:width?Set the output line width to \acolumns\a.]#[columns:=72]"
     "\n\n"
-"[ file ... ]"
+    "[ file ... ]"
     "\n\n"
-"[+SEE ALSO?\bmailx\b(1), \bnroff\b(1), \btroff\b(1), \bvi\b(1), "
-    "\boptget\b(3)]"
-;
+    "[+SEE ALSO?\bmailx\b(1), \bnroff\b(1), \btroff\b(1), \bvi\b(1), "
+    "\boptget\b(3)]";
 
 #include <cmd.h>
 #include <ctype.h>
 
 typedef struct Fmt_s
 {
-	long	flags;
-	char*	outp;
-	char*	outbuf;
-	char*	endbuf;
-	Sfio_t*	in;
-	Sfio_t*	out;
-	int	indent;
-	int	nextdent;
-	int	nwords;
-	int	prefix;
-	int	quote;
-	int	retain;
-	int	section;
+	long flags;
+	char *outp;
+	char *outbuf;
+	char *endbuf;
+	Sfio_t *in;
+	Sfio_t *out;
+	int indent;
+	int nextdent;
+	int nwords;
+	int prefix;
+	int quote;
+	int retain;
+	int section;
 } Fmt_t;
 
-#define INDENT		4
-#define TABSZ		8
+#define INDENT 4
+#define TABSZ 8
 
-#define isoption(fp,c)	((fp)->flags&(1L<<((c)-'a')))
-#define setoption(fp,c)	((fp)->flags|=(1L<<((c)-'a')))
-#define clroption(fp,c)	((fp)->flags&=~(1L<<((c)-'a')))
+#define isoption(fp, c) ((fp)->flags & (1L << ((c) - 'a')))
+#define setoption(fp, c) ((fp)->flags |= (1L << ((c) - 'a')))
+#define clroption(fp, c) ((fp)->flags &= ~(1L << ((c) - 'a')))
 
 static void
-outline(Fmt_t* fp)
+outline(Fmt_t *fp)
 {
-	char*	cp = fp->outbuf;
-	int	n = 0;
-	int	c;
-	int	d;
+	char *cp = fp->outbuf;
+	int n = 0;
+	int c;
+	int d;
 
-	if (!fp->outp)
+	if(!fp->outp)
 		return;
-	while (fp->outp[-1] == ' ')
+	while(fp->outp[-1] == ' ')
 		fp->outp--;
 	*fp->outp = 0;
-	while (*cp++ == ' ')
+	while(*cp++ == ' ')
 		n++;
-	if (n >= TABSZ)
+	if(n >= TABSZ)
 	{
 		n /= TABSZ;
-		cp = &fp->outbuf[TABSZ*n];
-		while (n--)
+		cp = &fp->outbuf[TABSZ * n];
+		while(n--)
 			*--cp = '\t';
 	}
 	else
 		cp = fp->outbuf;
 	fp->nwords = 0;
-	if (!isoption(fp, 'o'))
+	if(!isoption(fp, 'o'))
 		sfputr(fp->out, cp, '\n');
-	else if (*cp)
+	else if(*cp)
 	{
 		n = fp->indent;
-		if (*cp != '[')
+		if(*cp != '[')
 		{
-			if (*cp == ' ')
+			if(*cp == ' ')
 				cp++;
 			n += INDENT;
 		}
-		while (n--)
+		while(n--)
 			sfputc(fp->out, ' ');
-		if (fp->quote)
+		if(fp->quote)
 		{
-			if ((d = (fp->outp - cp)) <= 0)
+			if((d = (fp->outp - cp)) <= 0)
 				c = 0;
-			else if ((c = fp->outp[-1]) == 'n' && d > 1 && fp->outp[-2] == '\\')
+			else if((c = fp->outp[-1]) == 'n' && d > 1 && fp->outp[-2] == '\\')
 				c = '}';
 			sfprintf(fp->out, "\"%s%s\"\n", cp, c == ']' || c == '{' || c == '}' ? "" : " ");
 		}
 		else
 			sfputr(fp->out, cp, '\n');
-		if (fp->nextdent)
+		if(fp->nextdent)
 		{
 			fp->indent += fp->nextdent;
 			fp->endbuf -= fp->nextdent;
@@ -131,47 +130,48 @@ outline(Fmt_t* fp)
 }
 
 static void
-split(Fmt_t* fp, char* buf, int splice)
+split(Fmt_t *fp, char *buf, int splice)
 {
-	char*	cp;
-	char*	ep;
-	char*	qp;
-	int	c = 1;
-	int	q = 0;
-	int	n;
-	int	prefix;
+	char *cp;
+	char *ep;
+	char *qp;
+	int c = 1;
+	int q = 0;
+	int n;
+	int prefix;
 
-	for (ep = buf; *ep == ' '; ep++);
+	for(ep = buf; *ep == ' '; ep++)
+		;
 	prefix = ep - buf;
 
 	/*
 	 * preserve blank lines
 	 */
 
-	if ((*ep == 0 || *buf == '.') && !isoption(fp, 'o'))
+	if((*ep == 0 || *buf == '.') && !isoption(fp, 'o'))
 	{
-		if (*ep)
+		if(*ep)
 			prefix = strlen(buf);
 		outline(fp);
 		strcpy(fp->outbuf, buf);
-		fp->outp = fp->outbuf+prefix;
+		fp->outp = fp->outbuf + prefix;
 		outline(fp);
 		return;
 	}
-	if (fp->prefix < prefix && !isoption(fp, 'c'))
+	if(fp->prefix < prefix && !isoption(fp, 'c'))
 		outline(fp);
-	if (!fp->outp || prefix < fp->prefix)
+	if(!fp->outp || prefix < fp->prefix)
 		fp->prefix = prefix;
-	while (c)
+	while(c)
 	{
 		cp = ep;
-		while (*ep == ' ')
+		while(*ep == ' ')
 			ep++;
-		if (cp != ep && isoption(fp, 'u'))
-			cp = ep-1;
-		while (c = *ep)
+		if(cp != ep && isoption(fp, 'u'))
+			cp = ep - 1;
+		while(c = *ep)
 		{
-			if (c == ' ')
+			if(c == ' ')
 				break;
 			ep++;
 
@@ -179,79 +179,79 @@ split(Fmt_t* fp, char* buf, int splice)
 			 * skip over \space
 			 */
 
-			if (c == '\\' && *ep)
+			if(c == '\\' && *ep)
 				ep++;
 		}
-		n = (ep-cp);
-		if (n && isoption(fp, 'o'))
+		n = (ep - cp);
+		if(n && isoption(fp, 'o'))
 		{
-			for (qp = cp; qp < ep; qp++)
-				if (*qp == '\\')
+			for(qp = cp; qp < ep; qp++)
+				if(*qp == '\\')
 					qp++;
-				else if (*qp == '"')
+				else if(*qp == '"')
 					q = !q;
-			if (*(ep-1) == '"')
+			if(*(ep - 1) == '"')
 				goto skip;
 		}
-		if (fp->nwords > 0 && &fp->outp[n] >= fp->endbuf && !fp->retain && !q)
+		if(fp->nwords > 0 && &fp->outp[n] >= fp->endbuf && !fp->retain && !q)
 			outline(fp);
 	skip:
-		if (fp->nwords == 0)
+		if(fp->nwords == 0)
 		{
-			if (fp->prefix)
+			if(fp->prefix)
 				memset(fp->outbuf, ' ', fp->prefix);
 			fp->outp = &fp->outbuf[fp->prefix];
-			while (*cp == ' ')
+			while(*cp == ' ')
 				cp++;
-			n = (ep-cp);
+			n = (ep - cp);
 		}
 		memcpy(fp->outp, cp, n);
 		fp->outp += n;
 		fp->nwords++;
 	}
-	if (isoption(fp, 's') || *buf == 0)
+	if(isoption(fp, 's') || *buf == 0)
 		outline(fp);
-	else if (fp->outp)
+	else if(fp->outp)
 	{
 		/*
 		 * two spaces at ends of sentences
 		 */
 
-		if (!isoption(fp, 'o') && strchr(".:!?", fp->outp[-1]))
+		if(!isoption(fp, 'o') && strchr(".:!?", fp->outp[-1]))
 			*fp->outp++ = ' ';
-		if (!splice && !fp->retain && (!fp->quote || (fp->outp - fp->outbuf) < 2 || fp->outp[-2] != '\\' || fp->outp[-1] != 'n' && fp->outp[-1] != 't' && fp->outp[-1] != ' '))
+		if(!splice && !fp->retain && (!fp->quote || (fp->outp - fp->outbuf) < 2 || fp->outp[-2] != '\\' || fp->outp[-1] != 'n' && fp->outp[-1] != 't' && fp->outp[-1] != ' '))
 			*fp->outp++ = ' ';
 	}
 }
 
 static int
-dofmt(Fmt_t* fp)
+dofmt(Fmt_t *fp)
 {
-	int	c;
-	int	b;
-	int	x;
-	int	splice;
-	char*	cp;
-	char*	dp;
-	char*	ep;
-	char*	lp;
-	char*	tp;
-	char	buf[8192];
+	int c;
+	int b;
+	int x;
+	int splice;
+	char *cp;
+	char *dp;
+	char *ep;
+	char *lp;
+	char *tp;
+	char buf[8192];
 
 	cp = 0;
-	while (cp || (cp = sfgetr(fp->in, '\n', 0)) && !(splice = 0) && (lp = cp + sfvalue(fp->in) - 1) || (cp = sfgetr(fp->in, '\n', SFIO_LASTR)) && (splice = 1) && (lp = cp + sfvalue(fp->in)))
+	while(cp || (cp = sfgetr(fp->in, '\n', 0)) && !(splice = 0) && (lp = cp + sfvalue(fp->in) - 1) || (cp = sfgetr(fp->in, '\n', SFIO_LASTR)) && (splice = 1) && (lp = cp + sfvalue(fp->in)))
 	{
-		if (isoption(fp, 'o'))
+		if(isoption(fp, 'o'))
 		{
-			if (!isoption(fp, 'i'))
+			if(!isoption(fp, 'i'))
 			{
 				setoption(fp, 'i');
 				b = 0;
-				while (cp < lp)
+				while(cp < lp)
 				{
-					if (*cp == ' ')
+					if(*cp == ' ')
 						b += 1;
-					else if (*cp == '\t')
+					else if(*cp == '\t')
 						b += INDENT;
 					else
 						break;
@@ -260,21 +260,21 @@ dofmt(Fmt_t* fp)
 				fp->indent = roundof(b, INDENT);
 			}
 			else
-				while (cp < lp && (*cp == ' ' || *cp == '\t'))
+				while(cp < lp && (*cp == ' ' || *cp == '\t'))
 					cp++;
-			if (!isoption(fp, 'q') && cp < lp)
+			if(!isoption(fp, 'q') && cp < lp)
 			{
 				setoption(fp, 'q');
-				if (*cp == '"')
+				if(*cp == '"')
 				{
 					ep = lp;
-					while (--ep > cp)
-						if (*ep == '"')
+					while(--ep > cp)
+						if(*ep == '"')
 						{
 							fp->quote = 1;
 							break;
 						}
-						else if (*ep != ' ' && *ep != '\t')
+						else if(*ep != ' ' && *ep != '\t')
 							break;
 				}
 			}
@@ -282,45 +282,45 @@ dofmt(Fmt_t* fp)
 	again:
 		dp = buf;
 		ep = 0;
-		for (b = 1;; b = 0)
+		for(b = 1;; b = 0)
 		{
-			if (cp >= lp)
+			if(cp >= lp)
 			{
 				cp = 0;
 				break;
 			}
 			c = *cp++;
-			if (isoption(fp, 'o'))
+			if(isoption(fp, 'o'))
 			{
-				if (c == '\\')
+				if(c == '\\')
 				{
 					x = 0;
 					c = ' ';
 					cp--;
-					while (cp < lp)
+					while(cp < lp)
 					{
-						if (*cp == '\\')
+						if(*cp == '\\')
 						{
 							cp++;
-							if ((lp - cp) < 1)
+							if((lp - cp) < 1)
 							{
 								c = '\\';
 								break;
 							}
-							if (*cp == 'n')
+							if(*cp == 'n')
 							{
 								cp++;
 								c = '\n';
-								if ((lp - cp) > 2)
+								if((lp - cp) > 2)
 								{
-									if (*cp == ']' || *cp == '@' && *(cp + 1) == '(')
+									if(*cp == ']' || *cp == '@' && *(cp + 1) == '(')
 									{
 										*dp++ = '\\';
 										*dp++ = 'n';
 										c = *cp++;
 										break;
 									}
-									if (*cp == '\\' && *(cp + 1) == 'n')
+									if(*cp == '\\' && *(cp + 1) == 'n')
 									{
 										cp += 2;
 										*dp++ = '\n';
@@ -328,7 +328,7 @@ dofmt(Fmt_t* fp)
 									}
 								}
 							}
-							else if (*cp == 't' || *cp == ' ')
+							else if(*cp == 't' || *cp == ' ')
 							{
 								cp++;
 								x = 1;
@@ -336,14 +336,14 @@ dofmt(Fmt_t* fp)
 							}
 							else
 							{
-								if (x && dp != buf && *(dp - 1) != ' ')
+								if(x && dp != buf && *(dp - 1) != ' ')
 									*dp++ = ' ';
 								*dp++ = '\\';
 								c = *cp++;
 								break;
 							}
 						}
-						else if (*cp == ' ' || *cp == '\t')
+						else if(*cp == ' ' || *cp == '\t')
 						{
 							cp++;
 							c = ' ';
@@ -351,51 +351,51 @@ dofmt(Fmt_t* fp)
 						}
 						else
 						{
-							if (x && c != '\n' && dp != buf && *(dp - 1) != ' ')
+							if(x && c != '\n' && dp != buf && *(dp - 1) != ' ')
 								*dp++ = ' ';
 							break;
 						}
 					}
-					if (c == '\n')
+					if(c == '\n')
 					{
 						c = 0;
 						goto flush;
 					}
-					if (c == ' ' && (dp == buf || *(dp - 1) == ' '))
+					if(c == ' ' && (dp == buf || *(dp - 1) == ' '))
 						continue;
 				}
-				else if (c == '"')
+				else if(c == '"')
 				{
-					if (b || cp >= lp)
+					if(b || cp >= lp)
 					{
-						if (fp->quote)
+						if(fp->quote)
 							continue;
 						fp->section = 0;
 					}
 				}
-				else if (c == '\a')
+				else if(c == '\a')
 				{
 					*dp++ = '\\';
 					c = 'a';
 				}
-				else if (c == '\b')
+				else if(c == '\b')
 				{
 					*dp++ = '\\';
 					c = 'b';
 				}
-				else if (c == '\f')
+				else if(c == '\f')
 				{
 					*dp++ = '\\';
 					c = 'f';
 				}
-				else if (c == '\v')
+				else if(c == '\v')
 				{
 					*dp++ = '\\';
 					c = 'v';
 				}
-				else if (c == ']' && (cp >= lp || *cp != ':' && *cp != '#' && *cp != '!'))
+				else if(c == ']' && (cp >= lp || *cp != ':' && *cp != '#' && *cp != '!'))
 				{
-					if (cp < lp && *cp == ']')
+					if(cp < lp && *cp == ']')
 					{
 						cp++;
 						*dp++ = c;
@@ -412,11 +412,11 @@ dofmt(Fmt_t* fp)
 						goto again;
 					}
 				}
-				else if (fp->section)
+				else if(fp->section)
 				{
-					if (c == '[')
+					if(c == '[')
 					{
-						if (b)
+						if(b)
 							fp->retain = 1;
 						else
 						{
@@ -426,42 +426,42 @@ dofmt(Fmt_t* fp)
 						}
 						fp->section = 0;
 					}
-					else if (c == '{')
+					else if(c == '{')
 					{
 						x = 1;
-						for (tp = cp; tp < lp; tp++)
+						for(tp = cp; tp < lp; tp++)
 						{
-							if (*tp == '[' || *tp == '\n')
+							if(*tp == '[' || *tp == '\n')
 								break;
-							if (*tp == ' ' || *tp == '\t' || *tp == '"')
+							if(*tp == ' ' || *tp == '\t' || *tp == '"')
 								continue;
-							if (*tp == '\\' && (lp - tp) > 1)
+							if(*tp == '\\' && (lp - tp) > 1)
 							{
-								if (*++tp == 'n')
+								if(*++tp == 'n')
 									break;
-								if (*tp == 't' || *tp == '\n')
+								if(*tp == 't' || *tp == '\n')
 									continue;
 							}
 							x = 0;
 							break;
 						}
-						if (x)
+						if(x)
 						{
-							if (fp->endbuf > (fp->outbuf + fp->indent + 2*INDENT))
-								fp->nextdent = 2*INDENT;
+							if(fp->endbuf > (fp->outbuf + fp->indent + 2 * INDENT))
+								fp->nextdent = 2 * INDENT;
 							goto flush;
 						}
 						else
 							fp->section = 0;
 					}
-					else if (c == '}')
+					else if(c == '}')
 					{
-						if (fp->indent && (b || *(cp - 2) != 'f'))
+						if(fp->indent && (b || *(cp - 2) != 'f'))
 						{
-							if (b)
+							if(b)
 							{
-								fp->indent -= 2*INDENT;
-								fp->endbuf += 2*INDENT;
+								fp->indent -= 2 * INDENT;
+								fp->endbuf += 2 * INDENT;
 							}
 							else
 							{
@@ -473,68 +473,69 @@ dofmt(Fmt_t* fp)
 						else
 							fp->section = 0;
 					}
-					else if (c == ' ' || c == '\t')
+					else if(c == ' ' || c == '\t')
 						continue;
 					else
 						fp->section = 0;
 				}
-				else if (c == '?' && (cp >= lp || *cp != '?'))
+				else if(c == '?' && (cp >= lp || *cp != '?'))
 				{
-					if (fp->retain)
+					if(fp->retain)
 					{
 						cp--;
-						while (cp < lp && *cp != ' ' && *cp != '\t' && *cp != ']' && dp < &buf[sizeof(buf)-3])
+						while(cp < lp && *cp != ' ' && *cp != '\t' && *cp != ']' && dp < &buf[sizeof(buf) - 3])
 							*dp++ = *cp++;
-						if (cp < lp && (*cp == ' ' || *cp == '\t'))
+						if(cp < lp && (*cp == ' ' || *cp == '\t'))
 							*dp++ = *cp++;
 						*dp = 0;
 						split(fp, buf, 0);
 						dp = buf;
 						ep = 0;
 						fp->retain = 0;
-						if (fp->outp >= fp->endbuf)
+						if(fp->outp >= fp->endbuf)
 							outline(fp);
 						continue;
 					}
 				}
-				else if (c == ' ' || c == '\t')
-					for (c = ' '; *cp == ' ' || *cp == '\t'; cp++);
+				else if(c == ' ' || c == '\t')
+					for(c = ' '; *cp == ' ' || *cp == '\t'; cp++)
+						;
 			}
-			else if (c == '\b')
+			else if(c == '\b')
 			{
-				if (dp > buf)
+				if(dp > buf)
 				{
 					dp--;
-					if (ep)
+					if(ep)
 						ep--;
 				}
 				continue;
 			}
-			else if (c == '\t')
+			else if(c == '\t')
 			{
 				/*
 				 * expand tabs
 				 */
 
-				if (!ep)
+				if(!ep)
 					ep = dp;
 				c = isoption(fp, 'o') ? 1 : TABSZ - (dp - buf) % TABSZ;
-				if (dp >= &buf[sizeof(buf) - c - 3])
+				if(dp >= &buf[sizeof(buf) - c - 3])
 				{
 					cp--;
 					break;
 				}
-				while (c-- > 0)
+				while(c-- > 0)
 					*dp++ = ' ';
 				continue;
 			}
-			else if (!isprint(c))
+			else if(!isprint(c))
 				continue;
-			if (dp >= &buf[sizeof(buf) - 3])
+			if(dp >= &buf[sizeof(buf) - 3])
 			{
 				tp = dp;
-				while (--tp > buf)
-					if (isspace(*tp))
+				while(--tp > buf)
+					if(isspace(*tp))
 					{
 						cp -= dp - tp;
 						dp = tp;
@@ -543,13 +544,13 @@ dofmt(Fmt_t* fp)
 				ep = 0;
 				break;
 			}
-			if (c != ' ')
+			if(c != ' ')
 				ep = 0;
-			else if (!ep)
+			else if(!ep)
 				ep = dp;
 			*dp++ = c;
 		}
-		if (ep)
+		if(ep)
 			*ep = 0;
 		else
 			*dp = 0;
@@ -558,13 +559,12 @@ dofmt(Fmt_t* fp)
 	return 0;
 }
 
-int
-b_fmt(int argc, char** argv, Shbltin_t* context)
+int b_fmt(int argc, char **argv, Shbltin_t *context)
 {
-	int	n;
-	char*	cp;
-	Fmt_t	fmt;
-	char	outbuf[8 * 1024];
+	int n;
+	char *cp;
+	Fmt_t fmt;
+	char outbuf[8 * 1024];
 
 	fmt.flags = 0;
 	fmt.out = sfstdout;
@@ -579,58 +579,59 @@ b_fmt(int argc, char** argv, Shbltin_t* context)
 	fmt.retain = 0;
 	fmt.section = 1;
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (n = optget(argv, usage))
+		switch(n = optget(argv, usage))
 		{
-		case 'c':
-		case 'o':
-		case 's':
-		case 'u':
-			setoption(&fmt, n);
-			continue;
-		case 'w':
-			if (opt_info.num < TABSZ || opt_info.num>= sizeof(outbuf))
-				error(2, "width out of range");
-			fmt.endbuf = &outbuf[opt_info.num];
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'c':
+			case 'o':
+			case 's':
+			case 'u':
+				setoption(&fmt, n);
+				continue;
+			case 'w':
+				if(opt_info.num < TABSZ || opt_info.num >= sizeof(outbuf))
+					error(2, "width out of range");
+				fmt.endbuf = &outbuf[opt_info.num];
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors)
+	if(error_info.errors)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (isoption(&fmt, 'o'))
+	if(isoption(&fmt, 'o'))
 		setoption(&fmt, 'c');
-	if (isoption(&fmt, 's'))
+	if(isoption(&fmt, 's'))
 		clroption(&fmt, 'u');
-	if (cp = *argv)
+	if(cp = *argv)
 		argv++;
-	do {
-		if (!cp || streq(cp, "-"))
+	do
+	{
+		if(!cp || streq(cp, "-"))
 			fmt.in = sfstdin;
-		else if (!(fmt.in = sfopen(NULL, cp, "r")))
+		else if(!(fmt.in = sfopen(NULL, cp, "r")))
 		{
 			error(ERROR_system(0), "%s: cannot open", cp);
 			error_info.errors = 1;
 			continue;
 		}
 		dofmt(&fmt);
-		if (fmt.in != sfstdin)
+		if(fmt.in != sfstdin)
 			sfclose(fmt.in);
-	} while (cp = *argv++);
+	} while(cp = *argv++);
 	outline(&fmt);
-	if (sfsync(sfstdout))
+	if(sfsync(sfstdout))
 		error(ERROR_system(0), "write error");
 	return error_info.errors != 0;
 }

@@ -28,13 +28,13 @@
 #include <ast_fs.h>
 #include <modecanon.h>
 
-extern int		modei(int);
-extern int		modex(int);
+extern int modei(int);
+extern int modex(int);
 
 #if _S_IDPERM
-#define modei(m)	((m)&X_IPERM)
+#define modei(m) ((m) & X_IPERM)
 #if _S_IDTYPE
-#define modex(m)	(m)
+#define modex(m) (m)
 #endif
 #endif
 

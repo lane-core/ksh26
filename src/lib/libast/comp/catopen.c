@@ -36,7 +36,7 @@
 #include <iconv.h>
 
 #ifndef DEBUG_trace
-#define DEBUG_trace		0
+#define DEBUG_trace 0
 #endif
 #if DEBUG_trace
 #undef setlocale
@@ -44,74 +44,74 @@
 
 #if _lib_catopen
 
-#undef	nl_catd
-#undef	catopen
-#undef	catgets
-#undef	catclose
+#undef nl_catd
+#undef catopen
+#undef catgets
+#undef catclose
 
 typedef struct
 {
-	Mcset_t*	set;
-	nl_catd		cat;
-	iconv_t		cvt;
-	ast_wbuf_t	tmp;
+	Mcset_t *set;
+	nl_catd cat;
+	iconv_t cvt;
+	ast_wbuf_t tmp;
 } Cc_t;
 
 #else
 
-#define _ast_nl_catd	nl_catd
-#define _ast_catopen	catopen
-#define _ast_catgets	catgets
-#define _ast_catclose	catclose
+#define _ast_nl_catd nl_catd
+#define _ast_catopen catopen
+#define _ast_catgets catgets
+#define _ast_catclose catclose
 
 #endif
 
 _ast_nl_catd
-_ast_catopen(const char* name, int flag)
+_ast_catopen(const char *name, int flag)
 {
-	Mc_t*		mc;
-	char*		s;
-	FILE*		ip;
-	char		path[PATH_MAX];
+	Mc_t *mc;
+	char *s;
+	FILE *ip;
+	char path[PATH_MAX];
 
 	/*
 	 * first try the AST catalogs
 	 */
 
 #if DEBUG_trace
-fprintf(stderr, "AHA#%d:%s %s LC_MESSAGES=%s:%s\n", __LINE__, __FILE__, name, _ast_setlocale(LC_MESSAGES, 0), setlocale(LC_MESSAGES, 0));
+	fprintf(stderr, "AHA#%d:%s %s LC_MESSAGES=%s:%s\n", __LINE__, __FILE__, name, _ast_setlocale(LC_MESSAGES, 0), setlocale(LC_MESSAGES, 0));
 #endif
-	if ((s = mcfind(NULL, name, LC_MESSAGES, flag, path, sizeof(path))) && (ip = fopen(s, "r")))
+	if((s = mcfind(NULL, name, LC_MESSAGES, flag, path, sizeof(path))) && (ip = fopen(s, "r")))
 	{
 #if DEBUG_trace
-fprintf(stderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
+		fprintf(stderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 #endif
 		mc = mcopen(ip);
 		fclose(ip);
-		if (mc)
+		if(mc)
 			return (_ast_nl_catd)mc;
 	}
 #if _lib_catopen
-	if (strcmp(setlocale(LC_MESSAGES, NULL), "debug"))
+	if(strcmp(setlocale(LC_MESSAGES, NULL), "debug"))
 	{
-		Cc_t*		cc;
-		nl_catd		d;
+		Cc_t *cc;
+		nl_catd d;
 
 		/*
 		 * now the native catalogs
 		 */
 
-		if (s && (d = catopen(s, flag)) != (nl_catd)(-1) || !(s = 0) && (d = catopen(name, flag)) != (nl_catd)(-1))
+		if(s && (d = catopen(s, flag)) != (nl_catd)(-1) || !(s = 0) && (d = catopen(name, flag)) != (nl_catd)(-1))
 		{
-			if (!(cc = newof(0, Cc_t, 1, 0)))
+			if(!(cc = newof(0, Cc_t, 1, 0)))
 			{
 				catclose(d);
 				return (_ast_nl_catd)(-1);
 			}
 			cc->cat = d;
-			if ((s || *name == '/') && (ast.locale.set & (1<<AST_LC_MESSAGES)))
+			if((s || *name == '/') && (ast.locale.set & (1 << AST_LC_MESSAGES)))
 			{
-				if ((cc->cvt = iconv_open("", "utf")) == (iconv_t)(-1) || ast_wbuf_open(&cc->tmp))
+				if((cc->cvt = iconv_open("", "utf")) == (iconv_t)(-1) || ast_wbuf_open(&cc->tmp))
 				{
 					catclose(d);
 					free(cc);
@@ -121,7 +121,7 @@ fprintf(stderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 			else
 				cc->cvt = (iconv_t)(-1);
 #if DEBUG_trace
-fprintf(stderr, "AHA#%d:%s %s %s native %p\n", __LINE__, __FILE__, s, name, cc->cat);
+			fprintf(stderr, "AHA#%d:%s %s %s native %p\n", __LINE__, __FILE__, s, name, cc->cat);
 #endif
 			return (_ast_nl_catd)cc;
 		}
@@ -135,46 +135,45 @@ fprintf(stderr, "AHA#%d:%s %s %s native %p\n", __LINE__, __FILE__, s, name, cc->
 	return (_ast_nl_catd)(-1);
 }
 
-char*
-_ast_catgets(_ast_nl_catd cat, int set, int num, const char* msg)
+char *
+_ast_catgets(_ast_nl_catd cat, int set, int num, const char *msg)
 {
-	if (cat == (_ast_nl_catd)(-1))
-		return (char*)msg;
+	if(cat == (_ast_nl_catd)(-1))
+		return (char *)msg;
 #if _lib_catopen
-	if (!((Cc_t*)cat)->set)
+	if(!((Cc_t *)cat)->set)
 	{
-		char*	s;
-		size_t	n;
+		char *s;
+		size_t n;
 
-		msg = (char*)catgets(((Cc_t*)cat)->cat, set, num, msg);
-		if (((Cc_t*)cat)->cvt != (iconv_t)(-1))
+		msg = (char *)catgets(((Cc_t *)cat)->cat, set, num, msg);
+		if(((Cc_t *)cat)->cvt != (iconv_t)(-1))
 		{
-			s = (char*)msg;
+			s = (char *)msg;
 			n = strlen(s);
-			ast_wbuf_seek(&((Cc_t*)cat)->tmp, 0, SEEK_SET);
-			iconv_write(((Cc_t*)cat)->cvt, &((Cc_t*)cat)->tmp, &s, &n, NULL);
-			if (s = ast_wbuf_use(&((Cc_t*)cat)->tmp))
+			ast_wbuf_seek(&((Cc_t *)cat)->tmp, 0, SEEK_SET);
+			iconv_write(((Cc_t *)cat)->cvt, &((Cc_t *)cat)->tmp, &s, &n, NULL);
+			if(s = ast_wbuf_use(&((Cc_t *)cat)->tmp))
 				return s;
 		}
-		return (char*)msg;
+		return (char *)msg;
 	}
 #endif
-	return mcget((Mc_t*)cat, set, num, msg);
+	return mcget((Mc_t *)cat, set, num, msg);
 }
 
-int
-_ast_catclose(_ast_nl_catd cat)
+int _ast_catclose(_ast_nl_catd cat)
 {
-	if (cat == (_ast_nl_catd)(-1))
+	if(cat == (_ast_nl_catd)(-1))
 		return -1;
 #if _lib_catopen
-	if (!((Cc_t*)cat)->set)
+	if(!((Cc_t *)cat)->set)
 	{
-		if (((Cc_t*)cat)->cvt != (iconv_t)(-1))
-			iconv_close(((Cc_t*)cat)->cvt);
-		ast_wbuf_close(&((Cc_t*)cat)->tmp);
-		return catclose(((Cc_t*)cat)->cat);
+		if(((Cc_t *)cat)->cvt != (iconv_t)(-1))
+			iconv_close(((Cc_t *)cat)->cvt);
+		ast_wbuf_close(&((Cc_t *)cat)->tmp);
+		return catclose(((Cc_t *)cat)->cat);
 	}
 #endif
-	return mcclose((Mc_t*)cat);
+	return mcclose((Mc_t *)cat);
 }

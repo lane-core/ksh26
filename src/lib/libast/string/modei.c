@@ -31,20 +31,19 @@
  * NOTE: X_IFMT ignored
  */
 
-#undef	modei
+#undef modei
 
-int
-modei(int x)
+int modei(int x)
 {
 #if _S_IDPERM
 	return x & X_IPERM;
 #else
-	int	i;
-	int	c;
+	int i;
+	int c;
 
 	i = 0;
-	for (c = 0; c < PERMLEN; c += 2)
-		if (x & permmap[c + 1])
+	for(c = 0; c < PERMLEN; c += 2)
+		if(x & permmap[c + 1])
 			i |= permmap[c];
 	return i;
 #endif

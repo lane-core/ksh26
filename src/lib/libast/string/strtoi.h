@@ -93,214 +93,214 @@
 
 #include "sfhdr.h"
 
-#define QL		01
-#define QU		02
+#define QL 01
+#define QU 02
 
-#define S2I_umax	(~((S2I_unumber)0))
+#define S2I_umax (~((S2I_unumber)0))
 
 #if S2I_unsigned
-#define S2I_type	S2I_unumber
-#define S2I_min		0
-#define S2I_max		S2I_umax
+#define S2I_type S2I_unumber
+#define S2I_min 0
+#define S2I_max S2I_umax
 #else
-#define S2I_type	S2I_number
-#define S2I_min		(-S2I_max-1)
-#define S2I_max		(S2I_umax>>1)
+#define S2I_type S2I_number
+#define S2I_min (-S2I_max - 1)
+#define S2I_max (S2I_umax >> 1)
 #endif
 
 #if S2I_size
-#define S2I_valid(s)	((s)<(z))
+#define S2I_valid(s) ((s) < (z))
 #else
-#define S2I_valid(s)	1
+#define S2I_valid(s) 1
 #endif
 
-#define ADDOVER(n,c,s)	((S2I_umax-(n))<((S2I_unumber)((c)+(s))))
-#define MPYOVER(n,c)	(((S2I_unumber)(n))>(S2I_umax/(c)))
+#define ADDOVER(n, c, s) ((S2I_umax - (n)) < ((S2I_unumber)((c) + (s))))
+#define MPYOVER(n, c) (((S2I_unumber)(n)) > (S2I_umax / (c)))
 
-static const S2I_unumber	mm[] =
-{
-	0,
-	S2I_umax /  1,
-	S2I_umax /  2,
-	S2I_umax /  3,
-	S2I_umax /  4,
-	S2I_umax /  5,
-	S2I_umax /  6,
-	S2I_umax /  7,
-	S2I_umax /  8,
-	S2I_umax /  9,
-	S2I_umax / 10,
-	S2I_umax / 11,
-	S2I_umax / 12,
-	S2I_umax / 13,
-	S2I_umax / 14,
-	S2I_umax / 15,
-	S2I_umax / 16,
-	S2I_umax / 17,
-	S2I_umax / 18,
-	S2I_umax / 19,
-	S2I_umax / 20,
-	S2I_umax / 21,
-	S2I_umax / 22,
-	S2I_umax / 23,
-	S2I_umax / 24,
-	S2I_umax / 25,
-	S2I_umax / 26,
-	S2I_umax / 27,
-	S2I_umax / 28,
-	S2I_umax / 29,
-	S2I_umax / 30,
-	S2I_umax / 31,
-	S2I_umax / 32,
-	S2I_umax / 33,
-	S2I_umax / 34,
-	S2I_umax / 35,
-	S2I_umax / 36,
-	S2I_umax / 37,
-	S2I_umax / 38,
-	S2I_umax / 39,
-	S2I_umax / 40,
-	S2I_umax / 41,
-	S2I_umax / 42,
-	S2I_umax / 43,
-	S2I_umax / 44,
-	S2I_umax / 45,
-	S2I_umax / 46,
-	S2I_umax / 47,
-	S2I_umax / 48,
-	S2I_umax / 49,
-	S2I_umax / 50,
-	S2I_umax / 51,
-	S2I_umax / 52,
-	S2I_umax / 53,
-	S2I_umax / 54,
-	S2I_umax / 55,
-	S2I_umax / 56,
-	S2I_umax / 57,
-	S2I_umax / 58,
-	S2I_umax / 59,
-	S2I_umax / 60,
-	S2I_umax / 61,
-	S2I_umax / 62,
-	S2I_umax / 63,
-	S2I_umax / 64,
+static const S2I_unumber mm[] =
+    {
+        0,
+        S2I_umax / 1,
+        S2I_umax / 2,
+        S2I_umax / 3,
+        S2I_umax / 4,
+        S2I_umax / 5,
+        S2I_umax / 6,
+        S2I_umax / 7,
+        S2I_umax / 8,
+        S2I_umax / 9,
+        S2I_umax / 10,
+        S2I_umax / 11,
+        S2I_umax / 12,
+        S2I_umax / 13,
+        S2I_umax / 14,
+        S2I_umax / 15,
+        S2I_umax / 16,
+        S2I_umax / 17,
+        S2I_umax / 18,
+        S2I_umax / 19,
+        S2I_umax / 20,
+        S2I_umax / 21,
+        S2I_umax / 22,
+        S2I_umax / 23,
+        S2I_umax / 24,
+        S2I_umax / 25,
+        S2I_umax / 26,
+        S2I_umax / 27,
+        S2I_umax / 28,
+        S2I_umax / 29,
+        S2I_umax / 30,
+        S2I_umax / 31,
+        S2I_umax / 32,
+        S2I_umax / 33,
+        S2I_umax / 34,
+        S2I_umax / 35,
+        S2I_umax / 36,
+        S2I_umax / 37,
+        S2I_umax / 38,
+        S2I_umax / 39,
+        S2I_umax / 40,
+        S2I_umax / 41,
+        S2I_umax / 42,
+        S2I_umax / 43,
+        S2I_umax / 44,
+        S2I_umax / 45,
+        S2I_umax / 46,
+        S2I_umax / 47,
+        S2I_umax / 48,
+        S2I_umax / 49,
+        S2I_umax / 50,
+        S2I_umax / 51,
+        S2I_umax / 52,
+        S2I_umax / 53,
+        S2I_umax / 54,
+        S2I_umax / 55,
+        S2I_umax / 56,
+        S2I_umax / 57,
+        S2I_umax / 58,
+        S2I_umax / 59,
+        S2I_umax / 60,
+        S2I_umax / 61,
+        S2I_umax / 62,
+        S2I_umax / 63,
+        S2I_umax / 64,
 };
 
 extern S2I_type
 #if S2I_size
 #if S2I_multiplier
-S2I_function(const char* a, size_t size, char** e, char* basep, int m)
+S2I_function(const char *a, size_t size, char **e, char *basep, int m)
 #else
-S2I_function(const char* a, size_t size, char** e, int base)
+S2I_function(const char *a, size_t size, char **e, int base)
 #endif
 #else
 #if S2I_multiplier
-S2I_function(const char* a, char** e, char* basep, int m)
+S2I_function(const char *a, char **e, char *basep, int m)
 #else
-S2I_function(const char* a, char** e, int base)
+S2I_function(const char *a, char **e, int base)
 #endif
 #endif
 {
-	unsigned char*	s = (unsigned char*)a;
+	unsigned char *s = (unsigned char *)a;
 #if S2I_size
-	unsigned char*	z = s + size;
+	unsigned char *z = s + size;
 #endif
-	S2I_unumber	n;
-	S2I_unumber	x;
-	int		c = 0;
-	int		shift;
-	unsigned char*	p;
-	unsigned char*	cv;
-	unsigned char*	b;
-	unsigned char*	k;
-	S2I_unumber	v = 0;
+	S2I_unumber n;
+	S2I_unumber x;
+	int c = 0;
+	int shift;
+	unsigned char *p;
+	unsigned char *cv;
+	unsigned char *b;
+	unsigned char *k;
+	S2I_unumber v = 0;
 #if S2I_multiplier
-	int		base;
+	int base;
 #endif
-	int		negative;
-	int		overflow = 0;
-	int		decimal = 0;
-	int		thousand = 0;
+	int negative;
+	int overflow = 0;
+	int decimal = 0;
+	int thousand = 0;
 #if !S2I_unsigned
-	int		qualifier = 0;
+	int qualifier = 0;
 #endif
 
 #if S2I_multiplier
-	base = basep ? *((unsigned char*)basep) : 0;
+	base = basep ? *((unsigned char *)basep) : 0;
 #else
-	if (base > 36 && base <= SFIO_RADIX)
+	if(base > 36 && base <= SFIO_RADIX)
 	{
-		static int	conformance = -1;
+		static int conformance = -1;
 
-		if (conformance < 0)
+		if(conformance < 0)
 			conformance = !strcmp(astconf("CONFORMANCE", NULL, NULL), "standard");
-		if (conformance)
+		if(conformance)
 			base = 1;
 	}
 #endif
-	if (base && (base < 2 || base > SFIO_RADIX))
+	if(base && (base < 2 || base > SFIO_RADIX))
 	{
-		if (e)
-			*e = (char*)a;
+		if(e)
+			*e = (char *)a;
 		errno = EINVAL;
 		return 0;
 	}
-	while (S2I_valid(s) && isspace(*s))
+	while(S2I_valid(s) && isspace(*s))
 		s++;
-	if ((negative = S2I_valid(s) && (*s == '-')) || S2I_valid(s) && *s == '+')
+	if((negative = S2I_valid(s) && (*s == '-')) || S2I_valid(s) && *s == '+')
 		k = ++s;
 	else
 		k = 0;
 	p = s;
-	if (!base)
+	if(!base)
 	{
-		if (S2I_valid(p) && (c = *p++) >= '0' && c <= '9')
+		if(S2I_valid(p) && (c = *p++) >= '0' && c <= '9')
 		{
 			n = c - '0';
-			if (S2I_valid(p) && (c = *p) >= '0' && c <= '9')
+			if(S2I_valid(p) && (c = *p) >= '0' && c <= '9')
 			{
 				n = (n << 3) + (n << 1) + c - '0';
 				p++;
 			}
-			if (S2I_valid(p) && *p == '#')
+			if(S2I_valid(p) && *p == '#')
 			{
-				if (n >= 2 && n <= 64)
+				if(n >= 2 && n <= 64)
 				{
 					k = s = p + 1;
 					base = n;
 				}
 			}
-			else if (base)
+			else if(base)
 				base = 0;
-			else if (S2I_valid(s) && *s == '0' && S2I_valid(s + 1))
+			else if(S2I_valid(s) && *s == '0' && S2I_valid(s + 1))
 			{
-				if ((c = *(s + 1)) == 'x' || c == 'X')
+				if((c = *(s + 1)) == 'x' || c == 'X')
 				{
 					k = s += 2;
 					base = 16;
 				}
 				/* a single 0 is not an octal base prefix if followed by a non-digit suffix --
 				 * but do set octal for '8' and '9' to catch invalid 0-prefixed octal numbers */
-				else if (isdigit(c))
+				else if(isdigit(c))
 				{
 					s++;
 					base = 8;
 				}
 			}
 		}
-		if (!base)
+		if(!base)
 			base = 10;
-		else if (base < 2 || base > SFIO_RADIX)
+		else if(base < 2 || base > SFIO_RADIX)
 		{
-			if (e)
-				*e = (char*)a;
+			if(e)
+				*e = (char *)a;
 			errno = EINVAL;
 			return 0;
 		}
 #if S2I_multiplier
 		else
 		{
-			if (basep)
+			if(basep)
 				*basep = base;
 			m = -1;
 		}
@@ -318,39 +318,39 @@ S2I_function(const char* a, char** e, int base)
 	SFSETLOCALE(&decimal, &thousand);
 	x = mm[base];
 	n = 0;
-	if (base == 10)
+	if(base == 10)
 	{
 		b = s;
 		p = 0;
-		for (;;)
+		for(;;)
 		{
-			if (S2I_valid(s) && (c = *s++) >= '0' && c <= '9')
+			if(S2I_valid(s) && (c = *s++) >= '0' && c <= '9')
 			{
-				if (n > x)
+				if(n > x)
 					overflow = 1;
 				else
 				{
 					n = (n << 3) + (n << 1);
 					c -= '0';
-					if (ADDOVER(n, c, negative))
+					if(ADDOVER(n, c, negative))
 						overflow = 1;
 					n += c;
 				}
 			}
-			else if (p && (s - p) != (3 + S2I_valid(s)))
+			else if(p && (s - p) != (3 + S2I_valid(s)))
 			{
 				s = p;
 				n = v;
 				c = 0;
 				break;
 			}
-			else if (!S2I_valid(s) || c != thousand)
+			else if(!S2I_valid(s) || c != thousand)
 				break;
-			else if (!p && (s - b) > 4)
+			else if(!p && (s - b) > 4)
 			{
-				if (e)
-					*e = (char*)s - 1;
-				if (overflow)
+				if(e)
+					*e = (char *)s - 1;
+				if(overflow)
 				{
 					errno = ERANGE;
 #if S2I_unsigned
@@ -372,39 +372,39 @@ S2I_function(const char* a, char** e, int base)
 	{
 		SFCVINIT();
 		cv = base <= 36 ? _Sfcv36 : _Sfcv64;
-		if ((base & ~(base - 1)) == base)
+		if((base & ~(base - 1)) == base)
 		{
 #if !S2I_unsigned
 			qualifier |= QU;
 #endif
-			if (base < 8)
-				shift = base <  4 ? 1 : 2;
-			else if (base < 32)
+			if(base < 8)
+				shift = base < 4 ? 1 : 2;
+			else if(base < 32)
 				shift = base < 16 ? 3 : 4;
 			else
 				shift = base < 64 ? 5 : 6;
-			while (S2I_valid(s) && (c = cv[*s++]) < base)
+			while(S2I_valid(s) && (c = cv[*s++]) < base)
 			{
-				if (n > x)
+				if(n > x)
 					overflow = 1;
 				else
 				{
 					n <<= shift;
-					if (ADDOVER(n, c, negative))
+					if(ADDOVER(n, c, negative))
 						overflow = 1;
 					n += c;
 				}
 			}
 		}
 		else
-			while (S2I_valid(s) && (c = cv[*s++]) < base)
+			while(S2I_valid(s) && (c = cv[*s++]) < base)
 			{
-				if (n > x)
+				if(n > x)
 					overflow = 1;
 				else
 				{
 					n *= base;
-					if (ADDOVER(n, c, negative))
+					if(ADDOVER(n, c, negative))
 						overflow = 1;
 					n += c;
 				}
@@ -418,31 +418,31 @@ S2I_function(const char* a, char** e, int base)
 	 * optional qualifier suffix
 	 */
 
-	if (S2I_valid(s) && s > (unsigned char*)(a + 1))
+	if(S2I_valid(s) && s > (unsigned char *)(a + 1))
 	{
 		base = 0;
-		for (;;)
+		for(;;)
 		{
-			if (!(base & QL) && (c == 'l' || c == 'L'))
+			if(!(base & QL) && (c == 'l' || c == 'L'))
 			{
 				base |= QL;
-				if (!S2I_valid(s))
+				if(!S2I_valid(s))
 					break;
 				c = *s++;
-				if (c == 'l' || c == 'L')
+				if(c == 'l' || c == 'L')
 				{
-					if (!S2I_valid(s))
+					if(!S2I_valid(s))
 						break;
 					c = *s++;
 				}
 			}
-			else if (!(base & QU) && (c == 'u' || c == 'U'))
+			else if(!(base & QU) && (c == 'u' || c == 'U'))
 			{
 				base |= QU;
 #if !S2I_unsigned
 				qualifier |= QU;
 #endif
-				if (!S2I_valid(s))
+				if(!S2I_valid(s))
 					break;
 				c = *s++;
 			}
@@ -451,97 +451,97 @@ S2I_function(const char* a, char** e, int base)
 		}
 	}
 #endif
-	if (S2I_valid(s))
+	if(S2I_valid(s))
 	{
 #if S2I_multiplier
 		/*
 		 * optional multiplier suffix
 		 */
 
-		if (m < 0 || s == (unsigned char*)(a + 1))
+		if(m < 0 || s == (unsigned char *)(a + 1))
 			s--;
 		else
 		{
 			x = m != 1;
-			switch (c)
+			switch(c)
 			{
-			case 'b':
-			case 'B':
-				shift = 9;
-				x = 0;
-				break;
-			case 'k':
-			case 'K':
-				shift = 10;
-				break;
-			case 'm':
-			case 'M':
-				shift = 20;
-				break;
-			case 'g':
-			case 'G':
-				shift = 30;
-				break;
-			case 't':
-			case 'T':
-				shift = 40;
-				break;
-			case 'p':
-			case 'P':
-				shift = 50;
-				break;
-			case 'e':
-			case 'E':
-				shift = 60;
-				break;
-			default:
-				if (m <= 1)
-					v = 0;
-				else if (c == decimal && S2I_valid(s))
-				{
-					/* pseudo-float */
-					if (MPYOVER(n, m))
-						overflow = 1;
-					n *= m;
-					v = 0;
-					while (S2I_valid(s) && (c = *s++) >= '0' && c <= '9')
-						v += (m /= 10) * (c - '0');
-					if (ADDOVER(n, v, negative))
-						overflow = 1;
-					n += v;
-					v = 0;
-				}
-				else
-					v = m;
-				s--;
-				shift = 0;
-				break;
+				case 'b':
+				case 'B':
+					shift = 9;
+					x = 0;
+					break;
+				case 'k':
+				case 'K':
+					shift = 10;
+					break;
+				case 'm':
+				case 'M':
+					shift = 20;
+					break;
+				case 'g':
+				case 'G':
+					shift = 30;
+					break;
+				case 't':
+				case 'T':
+					shift = 40;
+					break;
+				case 'p':
+				case 'P':
+					shift = 50;
+					break;
+				case 'e':
+				case 'E':
+					shift = 60;
+					break;
+				default:
+					if(m <= 1)
+						v = 0;
+					else if(c == decimal && S2I_valid(s))
+					{
+						/* pseudo-float */
+						if(MPYOVER(n, m))
+							overflow = 1;
+						n *= m;
+						v = 0;
+						while(S2I_valid(s) && (c = *s++) >= '0' && c <= '9')
+							v += (m /= 10) * (c - '0');
+						if(ADDOVER(n, v, negative))
+							overflow = 1;
+						n += v;
+						v = 0;
+					}
+					else
+						v = m;
+					s--;
+					shift = 0;
+					break;
 			}
-			if (shift)
+			if(shift)
 			{
-				if (S2I_valid(s))
-					switch (*s)
+				if(S2I_valid(s))
+					switch(*s)
 					{
-					case 'i':
-					case 'I':
-						s++;
-						x = 0;
-						break;
+						case 'i':
+						case 'I':
+							s++;
+							x = 0;
+							break;
 					}
-				if (S2I_valid(s))
-					switch (*s)
+				if(S2I_valid(s))
+					switch(*s)
 					{
-					case 'b':
-					case 'B':
-						s++;
-						break;
+						case 'b':
+						case 'B':
+							s++;
+							break;
 					}
-				if (x)
+				if(x)
 				{
 					v = 1;
-					for (shift /= 10; shift; shift--)
+					for(shift /= 10; shift; shift--)
 					{
-						if (v >= (S2I_max/1000))
+						if(v >= (S2I_max / 1000))
 						{
 							v = 0;
 							overflow = 1;
@@ -551,9 +551,9 @@ S2I_function(const char* a, char** e, int base)
 				}
 				else
 #if S2I_unsigned
-				if (shift >= (sizeof(S2I_type) * CHAR_BIT))
+				    if(shift >= (sizeof(S2I_type) * CHAR_BIT))
 #else
-				if (shift >= (sizeof(S2I_type) * CHAR_BIT - 1))
+				    if(shift >= (sizeof(S2I_type) * CHAR_BIT - 1))
 #endif
 				{
 					v = 0;
@@ -562,9 +562,9 @@ S2I_function(const char* a, char** e, int base)
 				else
 					v = ((S2I_unumber)1) << shift;
 			}
-			if (v)
+			if(v)
 			{
-				if (MPYOVER(n, v))
+				if(MPYOVER(n, v))
 					overflow = 1;
 				n *= v;
 			}
@@ -573,46 +573,46 @@ S2I_function(const char* a, char** e, int base)
 		s--;
 #endif
 	}
-	if (s == k)
+	if(s == k)
 	{
 		s--;
 #if S2I_multiplier
-		if (basep)
+		if(basep)
 			*basep = 10;
 #endif
 	}
 #if !S2I_unsigned
-	else if (!(qualifier & QU))
+	else if(!(qualifier & QU))
 	{
-		if (negative)
+		if(negative)
 		{
-			if (!n)
+			if(!n)
 			{
 				b = k;
 				do
 				{
-					if (b >= s)
+					if(b >= s)
 					{
 						negative = 0;
 						break;
 					}
-				} while (*b++ == '0');
+				} while(*b++ == '0');
 			}
-			if (negative && (n - 1) > S2I_max)
+			if(negative && (n - 1) > S2I_max)
 				overflow = 1;
 		}
-		else if (n > S2I_max)
+		else if(n > S2I_max)
 			overflow = 1;
 	}
 #endif
-	if (e)
-		*e = (char*)s;
-	if (overflow)
+	if(e)
+		*e = (char *)s;
+	if(overflow)
 	{
 #if !S2I_unsigned
-		if (negative)
+		if(negative)
 		{
-			if (x << 1)
+			if(x << 1)
 				errno = ERANGE;
 			return (S2I_type)S2I_min;
 		}

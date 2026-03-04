@@ -40,17 +40,17 @@
  */
 
 Time_t
-tmxtime(Tm_t* tm, int west)
+tmxtime(Tm_t *tm, int west)
 {
-	Time_t		t;
-	Tm_leap_t*	lp;
-	int32_t		y;
-	int		n;
-	int		sec;
-	time_t		now;
-	struct tm*	tl;
-	Tm_t*		to;
-	Tm_t		ts;
+	Time_t t;
+	Tm_leap_t *lp;
+	int32_t y;
+	int n;
+	int sec;
+	time_t now;
+	struct tm *tl;
+	Tm_t *to;
+	Tm_t ts;
 
 	ts = *tm;
 	to = tm;
@@ -58,14 +58,14 @@ tmxtime(Tm_t* tm, int west)
 	tmset(tm_info.zone, time(NULL), 0);
 	tmfix(tm);
 	y = tm->tm_year;
-	if (y < 69 || y > (TMX_MAXYEAR - 1900))
+	if(y < 69 || y > (TMX_MAXYEAR - 1900))
 		return TMX_NOTIME;
 	y--;
 	t = y * 365 + y / 4 - y / 100 + (y + (1900 - 1600)) / 400 - (1970 - 1901) * 365 - (1970 - 1901) / 4;
-	if ((n = tm->tm_mon) > 11)
+	if((n = tm->tm_mon) > 11)
 		n = 11;
 	y += 1901;
-	if (n > 1 && tmisleapyear(y))
+	if(n > 1 && tmisleapyear(y))
 		t++;
 	t += tm_data.sum[n] + tm->tm_mday - 1;
 	t *= 24;
@@ -74,16 +74,16 @@ tmxtime(Tm_t* tm, int west)
 	t += tm->tm_min;
 	t *= 60;
 	t += sec = tm->tm_sec;
-	if (west != TM_UTCZONE && !(tm_info.flags & TM_UTC))
+	if(west != TM_UTCZONE && !(tm_info.flags & TM_UTC))
 	{
 		/*
 		 * time zone adjustments
 		 */
 
-		if (west == TM_LOCALZONE)
+		if(west == TM_LOCALZONE)
 		{
 			t += tm_info.zone->west * 60;
-			if (!tm_info.zone->daylight)
+			if(!tm_info.zone->daylight)
 				tm->tm_isdst = 0;
 			else
 			{
@@ -91,43 +91,44 @@ tmxtime(Tm_t* tm, int west)
 				tm->tm_year = tmequiv(tm) - 1900;
 				now = tmxsec(tmxtime(tm, tm_info.zone->west));
 				tm->tm_year = y;
-				if (!(tl = tmlocaltime(&now)))
+				if(!(tl = tmlocaltime(&now)))
 					return TMX_NOTIME;
-				if (tm->tm_isdst = tl->tm_isdst)
+				if(tm->tm_isdst = tl->tm_isdst)
 					t += tm_info.zone->dst * 60;
 			}
 		}
 		else
 		{
 			t += west * 60;
-			if (!tm_info.zone->daylight)
+			if(!tm_info.zone->daylight)
 				tm->tm_isdst = 0;
-			else if (tm->tm_isdst < 0)
+			else if(tm->tm_isdst < 0)
 			{
 				y = tm->tm_year;
 				tm->tm_year = tmequiv(tm) - 1900;
 				tm->tm_isdst = 0;
 				now = tmxsec(tmxtime(tm, tm_info.zone->west));
 				tm->tm_year = y;
-				if (!(tl = tmlocaltime(&now)))
+				if(!(tl = tmlocaltime(&now)))
 					return TMX_NOTIME;
 				tm->tm_isdst = tl->tm_isdst;
 			}
 		}
 	}
-	else if (tm->tm_isdst)
+	else if(tm->tm_isdst)
 		tm->tm_isdst = 0;
 	*to = *tm;
-	if (tm_info.flags & TM_LEAP)
+	if(tm_info.flags & TM_LEAP)
 	{
 		/*
 		 * leap second adjustments
 		 */
 
-		for (lp = &tm_data.leap[0]; t < lp->time - (lp+1)->total; lp++);
+		for(lp = &tm_data.leap[0]; t < lp->time - (lp + 1)->total; lp++)
+			;
 		t += lp->total;
-		n = lp->total - (lp+1)->total;
-		if (t <= (lp->time + n) && (n > 0 && sec > 59 || n < 0 && sec > (59 + n) && sec <= 59))
+		n = lp->total - (lp + 1)->total;
+		if(t <= (lp->time + n) && (n > 0 && sec > 59 || n < 0 && sec > (59 + n) && sec <= 59))
 			t -= n;
 	}
 	return tmxsns(t, tm->tm_nsec);

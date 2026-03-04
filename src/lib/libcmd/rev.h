@@ -23,8 +23,8 @@
 #ifndef _REVLIB_H
 #define _REVLIB_H
 
-#define rev_line	_cmd_revline
+#define rev_line _cmd_revline
 
-extern int		rev_line(Sfio_t*, Sfio_t*, off_t);
+extern int rev_line(Sfio_t *, Sfio_t *, off_t);
 
 #endif

@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfstacked
 
-int sfstacked(Sfio_t* f)
+int sfstacked(Sfio_t *f)
 {
 	return __sf_stacked(f);
 }

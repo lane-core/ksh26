@@ -20,25 +20,27 @@
 
 #include "asohdr.h"
 
-int
-asolock(unsigned int volatile* lock, unsigned int key, int type)
+int asolock(unsigned int volatile *lock, unsigned int key, int type)
 {
-	unsigned int	k;
+	unsigned int k;
 
-	if (key)
-		switch (type)
+	if(key)
+		switch(type)
 		{
-		case ASO_UNLOCK:
-			return *lock == 0 ? 0 : asocasint(lock, key, 0) == key ? 0 : -1;
-		case ASO_TRYLOCK:
-			return *lock == key ? 0 : asocasint(lock, 0, key) == 0 ? 0 : -1;
-		case ASO_LOCK:
-			if (*lock == key)
+			case ASO_UNLOCK:
+				return *lock == 0 ? 0 : asocasint(lock, key, 0) == key ? 0
+				                                                       : -1;
+			case ASO_TRYLOCK:
+				return *lock == key ? 0 : asocasint(lock, 0, key) == 0 ? 0
+				                                                       : -1;
+			case ASO_LOCK:
+				if(*lock == key)
+					return 0;
+				/* FALLTHROUGH */
+			case ASO_SPINLOCK:
+				for(k = 0; asocasint(lock, 0, key) != 0; ASOLOOP(k))
+					;
 				return 0;
-			/* FALLTHROUGH */
-		case ASO_SPINLOCK:
-			for (k = 0; asocasint(lock, 0, key) != 0; ASOLOOP(k));
-			return 0;
 		}
 	return -1;
 }

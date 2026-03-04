@@ -30,8 +30,8 @@
  * see tmxmake() for details
  */
 
-Tm_t*
-tmmake(time_t* clock)
+Tm_t *
+tmmake(time_t *clock)
 {
 	return tmxmake(tmxclock(clock));
 }

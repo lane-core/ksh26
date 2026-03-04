@@ -17,56 +17,65 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Write out an unsigned long value in a portable format.
 **
 **	Written by Kiem-Phong Vo.
 */
 
-int _sfputu(Sfio_t*	f,	/* write a portable ulong to this stream */
-	    Sfulong_t	v)	/* the unsigned value to be written */
+int _sfputu(Sfio_t *f,   /* write a portable ulong to this stream */
+            Sfulong_t v) /* the unsigned value to be written */
 {
-#define N_ARRAY		(2*sizeof(Sfulong_t))
-	uchar	*s, *ps;
-	ssize_t	n, p;
-	uchar		c[N_ARRAY];
+#define N_ARRAY (2 * sizeof(Sfulong_t))
+	uchar *s, *ps;
+	ssize_t n, p;
+	uchar c[N_ARRAY];
 
-	if(!f || (f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0))
+	if(!f || (f->mode != SFIO_WRITE && _sfmode(f, SFIO_WRITE, 0) < 0))
 		return -1;
-	SFLOCK(f,0);
+	SFLOCK(f, 0);
 
 	/* code v as integers in base SFIO_UBASE */
-	s = ps = &(c[N_ARRAY-1]);
+	s = ps = &(c[N_ARRAY - 1]);
 	*s = (uchar)SFUVALUE(v);
-	while((v >>= SFIO_UBITS) )
+	while((v >>= SFIO_UBITS))
 		*--s = (uchar)(SFUVALUE(v) | SFIO_MORE);
-	n = (ps-s)+1;
+	n = (ps - s) + 1;
 
-	if(n > 8 || SFWPEEK(f,ps,p) < n)
-		n = SFWRITE(f,s,n); /* write the hard way */
+	if(n > 8 || SFWPEEK(f, ps, p) < n)
+		n = SFWRITE(f, s, n); /* write the hard way */
 	else
-	{	switch(n)
+	{
+		switch(n)
 		{
-		case 8 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 7 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 6 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 5 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 4 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 3 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 2 : *ps++ = *s++;
-			 /* FALLTHROUGH */
-		case 1 : *ps++ = *s++;
+			case 8:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 7:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 6:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 5:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 4:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 3:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 2:
+				*ps++ = *s++;
+				/* FALLTHROUGH */
+			case 1:
+				*ps++ = *s++;
 		}
 		f->next = ps;
 	}
 
-	SFOPEN(f,0);
+	SFOPEN(f, 0);
 	return (int)n;
 }

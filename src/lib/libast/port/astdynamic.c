@@ -24,15 +24,15 @@
 
 #include <ast.h>
 
-#if _dll_data_intercept && ( _DLL_BLD || _BLD_DLL )
+#if _dll_data_intercept && (_DLL_BLD || _BLD_DLL)
 
-#undef	environ
+#undef environ
 
-extern char**	environ;
+extern char **environ;
 
-struct _astdll	_ast_dll = { &environ };
+struct _astdll _ast_dll = {&environ};
 
-struct _astdll*
+struct _astdll *
 _ast_getdll(void)
 {
 	return &_ast_dll;

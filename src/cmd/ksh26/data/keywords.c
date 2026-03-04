@@ -15,9 +15,9 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"shopt.h"
-#include	"shell.h"
-#include	"shlex.h"
+#include "shopt.h"
+#include "shell.h"
+#include "shlex.h"
 
 /*
  * table of reserved words in shell language
@@ -25,29 +25,51 @@
  */
 
 const Shtable_t shtab_reserved[] =
-{
-		"!",		NOTSYM,
-		"[[",		BTESTSYM,
-		"case",		CASESYM,
-		"do",		DOSYM,
-		"done",		DONESYM,
-		"elif",		ELIFSYM,
-		"else",		ELSESYM,
-		"esac",		ESACSYM,
-		"fi",		FISYM,
-		"for",		FORSYM,
-		"function",	FUNCTSYM,
-		"if",		IFSYM,
-		"in",		INSYM,
+    {
+        "!",
+        NOTSYM,
+        "[[",
+        BTESTSYM,
+        "case",
+        CASESYM,
+        "do",
+        DOSYM,
+        "done",
+        DONESYM,
+        "elif",
+        ELIFSYM,
+        "else",
+        ELSESYM,
+        "esac",
+        ESACSYM,
+        "fi",
+        FISYM,
+        "for",
+        FORSYM,
+        "function",
+        FUNCTSYM,
+        "if",
+        IFSYM,
+        "in",
+        INSYM,
 #if SHOPT_NAMESPACE
-		"namespace",	NSPACESYM,
+        "namespace",
+        NSPACESYM,
 #endif /* SHOPT_NAMESPACE */
-		"select",	SELECTSYM,
-		"then",		THENSYM,
-		"time",		TIMESYM,
-		"until",	UNTILSYM,
-		"while",	WHILESYM,
-		"{",		LBRACE,
-		"}",		RBRACE,
-		"",		0,
+        "select",
+        SELECTSYM,
+        "then",
+        THENSYM,
+        "time",
+        TIMESYM,
+        "until",
+        UNTILSYM,
+        "while",
+        WHILESYM,
+        "{",
+        LBRACE,
+        "}",
+        RBRACE,
+        "",
+        0,
 };

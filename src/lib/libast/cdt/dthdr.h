@@ -17,18 +17,18 @@
 *                                                                      *
 ***********************************************************************/
 #ifndef _DTHDR_H
-#define _DTHDR_H	1
+#define _DTHDR_H 1
 
 #ifndef _BLD_cdt
-#define _BLD_cdt	1
+#define _BLD_cdt 1
 #endif
 
 /*	Internal definitions for libcdt.
 **	Written by Kiem-Phong Vo (5/25/96)
 */
 
-#undef	_DTTRACE
+#undef _DTTRACE
 
-#include	<cdtlib.h>
+#include <cdtlib.h>
 
 #endif /* _DTHDR_H */

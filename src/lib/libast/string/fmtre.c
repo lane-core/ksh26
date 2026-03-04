@@ -30,193 +30,195 @@
 
 typedef struct Stack_s
 {
-	char*		beg;
-	short		len;
-	short		min;
+	char *beg;
+	short len;
+	short min;
 } Stack_t;
 
-char*
-fmtre(const char* as)
+char *
+fmtre(const char *as)
 {
-	char*		s = (char*)as;
-	int		c;
-	char*		t;
-	Stack_t*	p;
-	char*		x;
-	int		n;
-	int		end;
-	char*		buf;
-	Stack_t		stack[32];
+	char *s = (char *)as;
+	int c;
+	char *t;
+	Stack_t *p;
+	char *x;
+	int n;
+	int end;
+	char *buf;
+	Stack_t stack[32];
 
 	end = 1;
 	c = 2 * strlen(s) + 1;
 	t = buf = fmtbuf(c);
 	p = stack;
-	if (*s != '*' || *(s + 1) == '(' || *(s + 1) == '-' && *(s + 2) == '(')
+	if(*s != '*' || *(s + 1) == '(' || *(s + 1) == '-' && *(s + 2) == '(')
 		*t++ = '^';
 	else
 		s++;
-	for (;;)
+	for(;;)
 	{
-		switch (c = *s++)
+		switch(c = *s++)
 		{
-		case 0:
-			break;
-		case '\\':
-			if (!(c = *s++) || c == '{' || c == '}')
-				return NULL;
-			*t++ = '\\';
-			if ((*t++ = c) == '(' && *s == '|')
-			{
-				*t++ = *s++;
-				goto logical;
-			}
-			continue;
-		case '[':
-			*t++ = c;
-			n = 0;
-			if ((c = *s++) == '!')
-			{
-				*t++ = '^';
-				c = *s++;
-			}
-			else if (c == '^')
-			{
-				if ((c = *s++) == ']')
-				{
-					*(t - 1) = '\\';
-					*t++ = '^';
-					continue;
-				}
-				n = '^';
-			}
-			for (;;)
-			{
-				if (!(*t++ = c))
-					return NULL;
-				if ((c = *s++) == ']')
-				{
-					if (n)
-						*t++ = n;
-					*t++ = c;
-					break;
-				}
-			}
-			continue;
-		case '{':
-			for (x = s; *x && *x != '}'; x++);
-			if (*x++ && (*x == '(' || *x == '-' && *(x + 1) == '('))
-			{
-				if (p >= &stack[elementsof(stack)])
-					return NULL;
-				p->beg = s - 1;
-				s = x;
-				p->len = s - p->beg;
-				if (p->min = *s == '-')
-					s++;
-				p++;
-				*t++ = *s++;
-			}
-			else
-				*t++ = c;
-			continue;
-		case '*':
-			if (!*s)
-			{
-				end = 0;
+			case 0:
 				break;
-			}
-			/* FALLTHROUGH */
-		case '?':
-		case '+':
-		case '@':
-		case '!':
-		case '~':
-			if (*s == '(' || c != '~' && *s == '-' && *(s + 1) == '(')
-			{
-				if (p >= &stack[elementsof(stack)])
+			case '\\':
+				if(!(c = *s++) || c == '{' || c == '}')
 					return NULL;
-				p->beg = s - 1;
-				if (c == '~')
+				*t++ = '\\';
+				if((*t++ = c) == '(' && *s == '|')
 				{
-					if (*(s + 1) == 'E' && *(s + 2) == ')')
+					*t++ = *s++;
+					goto logical;
+				}
+				continue;
+			case '[':
+				*t++ = c;
+				n = 0;
+				if((c = *s++) == '!')
+				{
+					*t++ = '^';
+					c = *s++;
+				}
+				else if(c == '^')
+				{
+					if((c = *s++) == ']')
 					{
-						for (s += 3; *t = *s; t++, s++);
+						*(t - 1) = '\\';
+						*t++ = '^';
 						continue;
 					}
-					p->len = 0;
-					p->min = 0;
+					n = '^';
+				}
+				for(;;)
+				{
+					if(!(*t++ = c))
+						return NULL;
+					if((c = *s++) == ']')
+					{
+						if(n)
+							*t++ = n;
+						*t++ = c;
+						break;
+					}
+				}
+				continue;
+			case '{':
+				for(x = s; *x && *x != '}'; x++)
+					;
+				if(*x++ && (*x == '(' || *x == '-' && *(x + 1) == '('))
+				{
+					if(p >= &stack[elementsof(stack)])
+						return NULL;
+					p->beg = s - 1;
+					s = x;
+					p->len = s - p->beg;
+					if(p->min = *s == '-')
+						s++;
+					p++;
 					*t++ = *s++;
-					*t++ = '?';
+				}
+				else
+					*t++ = c;
+				continue;
+			case '*':
+				if(!*s)
+				{
+					end = 0;
+					break;
+				}
+				/* FALLTHROUGH */
+			case '?':
+			case '+':
+			case '@':
+			case '!':
+			case '~':
+				if(*s == '(' || c != '~' && *s == '-' && *(s + 1) == '(')
+				{
+					if(p >= &stack[elementsof(stack)])
+						return NULL;
+					p->beg = s - 1;
+					if(c == '~')
+					{
+						if(*(s + 1) == 'E' && *(s + 2) == ')')
+						{
+							for(s += 3; *t = *s; t++, s++)
+								;
+							continue;
+						}
+						p->len = 0;
+						p->min = 0;
+						*t++ = *s++;
+						*t++ = '?';
+					}
+					else
+					{
+						p->len = c != '@';
+						if(p->min = *s == '-')
+							s++;
+						*t++ = *s++;
+					}
+					p++;
 				}
 				else
 				{
-					p->len = c != '@';
-					if (p->min = *s == '-')
-						s++;
-					*t++ = *s++;
+					switch(c)
+					{
+						case '*':
+							*t++ = '.';
+							break;
+						case '?':
+							c = '.';
+							break;
+						case '+':
+						case '!':
+							*t++ = '\\';
+							break;
+					}
+					*t++ = c;
 				}
+				continue;
+			case '(':
+				if(p >= &stack[elementsof(stack)])
+					return NULL;
+				p->beg = s - 1;
+				p->len = 0;
+				p->min = 0;
 				p++;
-			}
-			else
-			{
-				switch (c)
-				{
-				case '*':
-					*t++ = '.';
-					break;
-				case '?':
-					c = '.';
-					break;
-				case '+':
-				case '!':
-					*t++ = '\\';
-					break;
-				}
 				*t++ = c;
-			}
-			continue;
-		case '(':
-			if (p >= &stack[elementsof(stack)])
-				return NULL;
-			p->beg = s - 1;
-			p->len = 0;
-			p->min = 0;
-			p++;
-			*t++ = c;
-			continue;
-		case ')':
-			if (p == stack)
-				return NULL;
-			*t++ = c;
-			p--;
-			for (c = 0; c < p->len; c++)
-				*t++ = p->beg[c];
-			if (p->min)
-				*t++ = '?';
-			continue;
-		case '^':
-		case '.':
-		case '$':
-			*t++ = '\\';
-			*t++ = c;
-			continue;
-		case '|':
-			if (t == buf || *(t - 1) == '(')
-				return NULL;
-		logical:
-			if (!*s || *s == ')')
-				return NULL;
-			/* FALLTHROUGH */
-		default:
-			*t++ = c;
-			continue;
+				continue;
+			case ')':
+				if(p == stack)
+					return NULL;
+				*t++ = c;
+				p--;
+				for(c = 0; c < p->len; c++)
+					*t++ = p->beg[c];
+				if(p->min)
+					*t++ = '?';
+				continue;
+			case '^':
+			case '.':
+			case '$':
+				*t++ = '\\';
+				*t++ = c;
+				continue;
+			case '|':
+				if(t == buf || *(t - 1) == '(')
+					return NULL;
+			logical:
+				if(!*s || *s == ')')
+					return NULL;
+				/* FALLTHROUGH */
+			default:
+				*t++ = c;
+				continue;
 		}
 		break;
 	}
-	if (p != stack)
+	if(p != stack)
 		return NULL;
-	if (end)
+	if(end)
 		*t++ = '$';
 	*t = 0;
 	return buf;

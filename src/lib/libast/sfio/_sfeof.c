@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfeof
 
-int sfeof(Sfio_t* f)
+int sfeof(Sfio_t *f)
 {
 	return __sf_eof(f);
 }

@@ -26,8 +26,7 @@
 #include <debug.h>
 #include "FEATURE/time"
 
-void
-debug_fatal(const char* file, int line)
+void debug_fatal(const char *file, int line)
 {
 	error(2, "%s:%d: debug error", file, line);
 	abort();
@@ -42,14 +41,14 @@ debug_fatal(const char* file, int line)
 double
 debug_elapsed(int set)
 {
-	double		tm;
-	struct rusage	ru;
+	double tm;
+	struct rusage ru;
 
-	static double	prev;
+	static double prev;
 
 	getrusage(RUSAGE_SELF, &ru);
-	tm = (double)ru.ru_utime.tv_sec  + (double)ru.ru_utime.tv_usec/1000000.0;
-	if (set)
+	tm = (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000.0;
+	if(set)
 		return prev = tm;
 	return tm - prev;
 }

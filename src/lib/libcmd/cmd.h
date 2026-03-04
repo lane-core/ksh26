@@ -29,17 +29,17 @@
 #include <stk.h>
 #include <shcmd.h>
 
-#define cmdinit			_cmd_init
+#define cmdinit _cmd_init
 
 #include <cmdext.h>
 
 #if defined(CMD_BUILTIN) && !defined(CMD_STANDALONE)
-#define CMD_STANDALONE	CMD_BUILTIN
+#define CMD_STANDALONE CMD_BUILTIN
 #endif
 
 #ifdef CMD_STANDALONE
 
-#define CMD_CONTEXT(c)		(NULL)
+#define CMD_CONTEXT(c) (NULL)
 
 #if CMD_DYNAMIC
 
@@ -47,7 +47,7 @@
 
 #else
 
-extern int CMD_STANDALONE(int, char**, Shbltin_t*);
+extern int CMD_STANDALONE(int, char **, Shbltin_t *);
 
 #endif
 
@@ -58,66 +58,65 @@ extern int CMD_STANDALONE(int, char**, Shbltin_t*);
  */
 
 static int
-cmdinit(int argc, char** argv, Shbltin_t* context, const char* catalog, int flags)
+cmdinit(int argc, char **argv, Shbltin_t *context, const char *catalog, int flags)
 {
-	char*	cp;
-	char*	pp;
+	char *cp;
+	char *pp;
 
 	NOT_USED(argc);
-	if (cp = strrchr(argv[0], '/'))
+	if(cp = strrchr(argv[0], '/'))
 		cp++;
 	else
 		cp = argv[0];
-	if (pp = strrchr(cp, '_'))
+	if(pp = strrchr(cp, '_'))
 		cp = pp + 1;
 	error_info.id = cp;
-	if (!error_info.catalog)
-		error_info.catalog = (char*)catalog;
+	if(!error_info.catalog)
+		error_info.catalog = (char *)catalog;
 	opt_info.index = 0;
-	if (context)
-		error_info.flags |= flags & ~(ERROR_CALLBACK|ERROR_NOTIFY);
+	if(context)
+		error_info.flags |= flags & ~(ERROR_CALLBACK | ERROR_NOTIFY);
 	return 0;
 }
 
 #endif
 
-int
-main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 #if CMD_DYNAMIC
-	char*	s;
-	char*	t;
-	void*		dll;
-	Shbltin_f	fun;
-	char		buf[64];
+	char *s;
+	char *t;
+	void *dll;
+	Shbltin_f fun;
+	char buf[64];
 
-	if (s = strrchr(argv[0], '/'))
+	if(s = strrchr(argv[0], '/'))
 		s++;
-	else if (!(s = argv[0]))
+	else if(!(s = argv[0]))
 		return 127;
-	if ((t = strrchr(s, '_')) && *++t)
+	if((t = strrchr(s, '_')) && *++t)
 		s = t;
 	buf[0] = '_';
 	buf[1] = 'b';
 	buf[2] = '_';
 	strncpy(buf + 3, s, sizeof(buf) - 4);
 	buf[sizeof(buf) - 1] = 0;
-	if (t = strchr(buf, '.'))
+	if(t = strchr(buf, '.'))
 		*t = 0;
-	for (;;)
+	for(;;)
 	{
-		if (dll = dlopen(NULL, RTLD_LAZY))
+		if(dll = dlopen(NULL, RTLD_LAZY))
 		{
-			if (fun = (Shbltin_f)dlsym(dll, buf + 1))
+			if(fun = (Shbltin_f)dlsym(dll, buf + 1))
 				break;
-			if (fun = (Shbltin_f)dlsym(dll, buf))
+			if(fun = (Shbltin_f)dlsym(dll, buf))
 				break;
 		}
-		if (dll = dllplug(NULL, "cmd", NULL, RTLD_LAZY, NULL, 0))
+		if(dll = dllplug(NULL, "cmd", NULL, RTLD_LAZY, NULL, 0))
 		{
-			if (fun = (Shbltin_f)dlsym(dll, buf + 1))
+			if(fun = (Shbltin_f)dlsym(dll, buf + 1))
 				break;
-			if (fun = (Shbltin_f)dlsym(dll, buf))
+			if(fun = (Shbltin_f)dlsym(dll, buf))
 				break;
 		}
 		return 127;
@@ -130,16 +129,25 @@ main(int argc, char** argv)
 
 #else
 
-#undef	cmdinit
+#undef cmdinit
 #ifdef _MSC_VER
-#define CMD_CONTEXT(p)		((Shbltin_t*)(p))
-#define cmdinit(a,b,c,d,e)	do{if(_cmd_init(a,b,c,d,e))return -1;}while(0)
+#define CMD_CONTEXT(p) ((Shbltin_t *)(p))
+#define cmdinit(a, b, c, d, e)                          \
+	do                                              \
+	{                                               \
+		if(_cmd_init(a, b, c, d, e)) return -1; \
+	} while(0)
 #else
-#define CMD_CONTEXT(p)		(((p)&&((Shbltin_t*)(p))->version>=20071012&&((Shbltin_t*)(p))->version<20350101)?((Shbltin_t*)(p)):0)
-#define cmdinit(a,b,c,d,e)	do{if((c)&&!CMD_CONTEXT(c))c=0;if(_cmd_init(a,b,c,d,e))return -1;}while(0)
+#define CMD_CONTEXT(p) (((p) && ((Shbltin_t *)(p))->version >= 20071012 && ((Shbltin_t *)(p))->version < 20350101) ? ((Shbltin_t *)(p)) : 0)
+#define cmdinit(a, b, c, d, e)                          \
+	do                                              \
+	{                                               \
+		if((c) && !CMD_CONTEXT(c)) c = 0;       \
+		if(_cmd_init(a, b, c, d, e)) return -1; \
+	} while(0)
 #endif
 
-extern int	_cmd_init(int, char**, Shbltin_t*, const char*, int);
+extern int _cmd_init(int, char **, Shbltin_t *, const char *, int);
 
 #endif
 

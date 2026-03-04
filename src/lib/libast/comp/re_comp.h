@@ -25,7 +25,7 @@
 #ifndef _RE_COMP_H
 #define _RE_COMP_H
 
-extern char*	re_comp(const char*);
-extern int	re_exec(const char*);
+extern char *re_comp(const char *);
+extern int re_exec(const char *);
 
 #endif

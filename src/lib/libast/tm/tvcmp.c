@@ -24,18 +24,17 @@
  * strcmp semantics
  */
 
-int
-tvcmp(const Tv_t* a, const Tv_t* b)
+int tvcmp(const Tv_t *a, const Tv_t *b)
 {
-	if (a->tv_sec < b->tv_sec)
+	if(a->tv_sec < b->tv_sec)
 		return -1;
-	if (a->tv_sec > b->tv_sec)
+	if(a->tv_sec > b->tv_sec)
 		return 1;
-	if (a->tv_nsec != TV_NSEC_IGNORE && b->tv_nsec != TV_NSEC_IGNORE)
+	if(a->tv_nsec != TV_NSEC_IGNORE && b->tv_nsec != TV_NSEC_IGNORE)
 	{
-		if (a->tv_nsec < b->tv_nsec)
+		if(a->tv_nsec < b->tv_nsec)
 			return -1;
-		if (a->tv_nsec > b->tv_nsec)
+		if(a->tv_nsec > b->tv_nsec)
 			return 1;
 	}
 	return 0;

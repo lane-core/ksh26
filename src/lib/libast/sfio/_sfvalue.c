@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfvalue
 
-ssize_t sfvalue(Sfio_t* f)
+ssize_t sfvalue(Sfio_t *f)
 {
 	return __sf_value(f);
 }

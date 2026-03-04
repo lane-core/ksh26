@@ -24,8 +24,7 @@
 
 #include "reglib.h"
 
-void
-regalloc(void* handle, void*(*resize)(void*,void*,size_t), regflags_t flags)
+void regalloc(void *handle, void *(*resize)(void *, void *, size_t), regflags_t flags)
 {
 	state.disc.re_flags = flags;
 	state.disc.re_resizef = resize;

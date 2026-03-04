@@ -16,20 +16,20 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /* Walk streams and run operations on them
 **
 ** Written by Kiem-Phong Vo.
 */
 
-int sfwalk(Sfwalk_f	walkf,	/* return <0: stop, >=0: continue	*/
-	   void*	data,
-	   int		type)	/* walk streams with all given flags	*/
+int sfwalk(Sfwalk_f walkf, /* return <0: stop, >=0: continue	*/
+           void *data,
+           int type) /* walk streams with all given flags	*/
 {
-	Sfpool_t	*p;
-	Sfio_t		*f;
-	int		n, rv;
+	Sfpool_t *p;
+	Sfio_t *f;
+	int n, rv;
 
 	/* truly initializing std-streams before walking */
 	if(sfstdin->mode & SFIO_INIT)
@@ -40,10 +40,12 @@ int sfwalk(Sfwalk_f	walkf,	/* return <0: stop, >=0: continue	*/
 		_sfmode(sfstderr, (sfstderr->mode & SFIO_RDWR), 0);
 
 	for(rv = 0, p = &_Sfpool; p; p = p->next)
-	{	for(n = 0; n < p->n_sf; )
-		{	f = p->sf[n];
+	{
+		for(n = 0; n < p->n_sf;)
+		{
+			f = p->sf[n];
 
-			if(type != 0 && (f->_flags&type) != type )
+			if(type != 0 && (f->_flags & type) != type)
 				continue; /* not in the interested set */
 
 			if((rv = (*walkf)(f, data)) < 0)

@@ -23,26 +23,26 @@
  *
  */
 
-#include	"shopt.h"
-#include	<ast.h>
-#include	<error.h>
-#include	<fcin.h>
+#include "shopt.h"
+#include <ast.h>
+#include <error.h>
+#include <fcin.h>
 
 Fcin_t _Fcin = {0};
 
 /*
  * open stream <f> for fast character input
  */
-int	fcfopen(Sfio_t* f)
+int fcfopen(Sfio_t *f)
 {
-	int	n;
-	char	*buff;
-	Fcin_t	save;
+	int n;
+	char *buff;
+	Fcin_t save;
 	errno = 0;
 	_Fcin.fcbuff = _Fcin.fcptr;
 	_Fcin._fcfile = f;
 	fcsave(&save);
-	if(!(buff=(char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR)))
+	if(!(buff = (char *)sfreserve(f, SFIO_UNBOUND, SFIO_LOCKR)))
 	{
 		fcrestore(&save);
 		_Fcin.fcchar = 0;
@@ -53,14 +53,13 @@ int	fcfopen(Sfio_t* f)
 	}
 	n = sfvalue(f);
 	fcrestore(&save);
-	sfread(f,buff,0);
-	buff = (char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR);
-	_Fcin.fclast = (_Fcin.fcptr=_Fcin.fcbuff=(unsigned char*)buff)+n;
+	sfread(f, buff, 0);
+	buff = (char *)sfreserve(f, SFIO_UNBOUND, SFIO_LOCKR);
+	_Fcin.fclast = (_Fcin.fcptr = _Fcin.fcbuff = (unsigned char *)buff) + n;
 	if(sffileno(f) >= 0)
 		*_Fcin.fclast = 0;
 	return n;
 }
-
 
 /*
  * With _Fcin.fcptr>_Fcin.fcbuff, the stream pointer is advanced and
@@ -69,30 +68,30 @@ int	fcfopen(Sfio_t* f)
  * If last is non-zero, and the stream is a file, 0 is returned when
  * the previous character is a 0 byte.
  */
-int	fcfill(void)
+int fcfill(void)
 {
-	int	n;
-	Sfio_t	*f;
-	unsigned char	*last=_Fcin.fclast, *ptr=_Fcin.fcptr;
-	if(!(f=fcfile()))
+	int n;
+	Sfio_t *f;
+	unsigned char *last = _Fcin.fclast, *ptr = _Fcin.fcptr;
+	if(!(f = fcfile()))
 	{
 		/* see whether pointer has passed null byte */
-		if(ptr>_Fcin.fcbuff && *--ptr==0)
-			_Fcin.fcptr=ptr;
+		if(ptr > _Fcin.fcbuff && *--ptr == 0)
+			_Fcin.fcptr = ptr;
 		return 0;
 	}
 	if(last)
 	{
-		if( ptr<last && ptr>_Fcin.fcbuff && *(ptr-1)==0)
+		if(ptr < last && ptr > _Fcin.fcbuff && *(ptr - 1) == 0)
 			return 0;
 		if(_Fcin.fcchar)
 			*last = _Fcin.fcchar;
 		if(ptr > last)
 			_Fcin.fcptr = ptr = last;
 	}
-	if((n = ptr-_Fcin.fcbuff) && _Fcin.fcfun)
-		(*_Fcin.fcfun)(f,(const char*)_Fcin.fcbuff,n,_Fcin.context);
-	sfread(f, (char*)_Fcin.fcbuff, n);
+	if((n = ptr - _Fcin.fcbuff) && _Fcin.fcfun)
+		(*_Fcin.fcfun)(f, (const char *)_Fcin.fcbuff, n, _Fcin.context);
+	sfread(f, (char *)_Fcin.fcbuff, n);
 	_Fcin._fcfile = 0;
 	if(!last)
 		return 0;
@@ -107,9 +106,9 @@ int	fcfill(void)
 int fcclose(void)
 {
 	unsigned char *ptr;
-	if(_Fcin.fclast==0)
+	if(_Fcin.fclast == 0)
 		return 0;
-	if((ptr=_Fcin.fcptr)>_Fcin.fcbuff && *(ptr-1)==0)
+	if((ptr = _Fcin.fcptr) > _Fcin.fcbuff && *(ptr - 1) == 0)
 		_Fcin.fcptr--;
 	if(_Fcin.fcchar)
 		*_Fcin.fclast = _Fcin.fcchar;
@@ -121,7 +120,7 @@ int fcclose(void)
 /*
  * Set the notify function that is called for each fcfill()
  */
-void fcnotify(void (*fun)(Sfio_t*,const char*,int,void*),void* context)
+void fcnotify(void (*fun)(Sfio_t *, const char *, int, void *), void *context)
 {
 	_Fcin.fcfun = fun;
 	_Fcin.context = context;
@@ -143,14 +142,14 @@ extern void fcrestore(Fcin_t *fp)
 /* struct for part of a multibyte character that crosses buffer boundaries */
 struct Extra
 {
-	unsigned char	buff[2*MB_LEN_MAX];
-	unsigned char	*next;
+	unsigned char buff[2 * MB_LEN_MAX];
+	unsigned char *next;
 };
 
 int _fcmbget(short *len)
 {
-	static struct Extra	extra;
-	int			i, c, n;
+	static struct Extra extra;
+	int i, c, n;
 	/*
 	 * Check if we need to piece together a split multibyte
 	 * character started at the end of the previous buffer.
@@ -159,15 +158,15 @@ int _fcmbget(short *len)
 	{
 		if((c = mbsize(extra.next)) < 0)
 			c = 1;
-		if((_Fcin.fcleft -= c) <=0)
+		if((_Fcin.fcleft -= c) <= 0)
 		{
-			_Fcin.fcptr = (unsigned char*)fcfirst() - _Fcin.fcleft; 
+			_Fcin.fcptr = (unsigned char *)fcfirst() - _Fcin.fcleft;
 			_Fcin.fcleft = 0;
 		}
 		*len = c;
-		if(c==1)
+		if(c == 1)
 			c = *extra.next++;
-		else if(c==0)
+		else if(c == 0)
 			_Fcin.fcleft = 0;
 		else
 			c = mbchar(extra.next);
@@ -175,31 +174,31 @@ int _fcmbget(short *len)
 	}
 	switch(*len = mbsize(_Fcin.fcptr))
 	{
-	    case -1:
-		/*
+		case -1:
+			/*
 		 * Invalid multibyte character. Check if we're near the end of the buffer; if so,
 		 * the multibyte character is probably split between this buffer and the next.
 		 */
-		if(_Fcin._fcfile && (n=(_Fcin.fclast-_Fcin.fcptr)) < MB_LEN_MAX)
-		{
-			memcpy(extra.buff, _Fcin.fcptr, n);
-			_Fcin.fcptr = _Fcin.fclast;
-			/* fcgetc() will read the next buffer via fcfill() */
-			for(i=n; i < MB_LEN_MAX+n; i++)
-				if((extra.buff[i] = fcgetc())==0)
-					break;
-			_Fcin.fcleft = n;
-			extra.next = extra.buff;
-			return _fcmbget(len);
-		}
-		*len = 1;
-		/* FALLTHROUGH */
-	    case 0:
-	    case 1:
-		c=fcget();
-		break;
-	    default:
-		c = mbchar(_Fcin.fcptr);
+			if(_Fcin._fcfile && (n = (_Fcin.fclast - _Fcin.fcptr)) < MB_LEN_MAX)
+			{
+				memcpy(extra.buff, _Fcin.fcptr, n);
+				_Fcin.fcptr = _Fcin.fclast;
+				/* fcgetc() will read the next buffer via fcfill() */
+				for(i = n; i < MB_LEN_MAX + n; i++)
+					if((extra.buff[i] = fcgetc()) == 0)
+						break;
+				_Fcin.fcleft = n;
+				extra.next = extra.buff;
+				return _fcmbget(len);
+			}
+			*len = 1;
+			/* FALLTHROUGH */
+		case 0:
+		case 1:
+			c = fcget();
+			break;
+		default:
+			c = mbchar(_Fcin.fcptr);
 	}
 	return c;
 }

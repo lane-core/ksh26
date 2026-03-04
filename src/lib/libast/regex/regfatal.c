@@ -26,21 +26,19 @@
 
 #include <error.h>
 
-void
-regfatalpat(regex_t* p, int level, int code, const char* pat)
+void regfatalpat(regex_t *p, int level, int code, const char *pat)
 {
-	char	buf[128];
+	char buf[128];
 
 	regerror(code, p, buf, sizeof(buf));
 	regfree(p);
-	if (pat)
+	if(pat)
 		error(level, "regular expression: %s: %s", pat, buf);
 	else
 		error(level, "regular expression: %s", buf);
 }
 
-void
-regfatal(regex_t* p, int level, int code)
+void regfatal(regex_t *p, int level, int code)
 {
 	regfatalpat(p, level, code, NULL);
 }

@@ -24,41 +24,40 @@
  * version strncmp(3)
  */
 
-int
-strnvcmp(const char* a, const char* b, size_t n)
+int strnvcmp(const char *a, const char *b, size_t n)
 {
-	const char*	ae;
-	const char*	be;
-	unsigned long	na;
-	unsigned long	nb;
+	const char *ae;
+	const char *be;
+	unsigned long na;
+	unsigned long nb;
 
 	ae = a + n;
 	be = b + n;
-	for (;;)
+	for(;;)
 	{
-		if (a >= ae)
+		if(a >= ae)
 		{
-			if (b >= be)
+			if(b >= be)
 				return 0;
 			return 1;
 		}
-		else if (b >= be)
+		else if(b >= be)
 			return -1;
-		if (isdigit(*a) && isdigit(*b))
+		if(isdigit(*a) && isdigit(*b))
 		{
 			na = nb = 0;
-			while (a < ae && isdigit(*a))
+			while(a < ae && isdigit(*a))
 				na = na * 10 + *a++ - '0';
-			while (b < be && isdigit(*b))
+			while(b < be && isdigit(*b))
 				nb = nb * 10 + *b++ - '0';
-			if (na < nb)
+			if(na < nb)
 				return -1;
-			if (na > nb)
+			if(na > nb)
 				return 1;
 		}
-		else if (*a != *b)
+		else if(*a != *b)
 			break;
-		else if (!*a)
+		else if(!*a)
 			return 0;
 		else
 		{
@@ -66,17 +65,17 @@ strnvcmp(const char* a, const char* b, size_t n)
 			b++;
 		}
 	}
-	if (*a == 0)
+	if(*a == 0)
 		return -1;
-	if (*b == 0)
+	if(*b == 0)
 		return 1;
-	if (*a == '.')
+	if(*a == '.')
 		return -1;
-	if (*b == '.')
+	if(*b == '.')
 		return 1;
-	if (*a == '-')
+	if(*a == '-')
 		return -1;
-	if (*b == '-')
+	if(*b == '-')
 		return 1;
 	return *a < *b ? -1 : 1;
 }

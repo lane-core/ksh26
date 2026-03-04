@@ -27,17 +27,17 @@
 
 #include <ast.h>
 
-char*
+char *
 fmtnum(unsigned long n, int m)
 {
-	int		i;
-	unsigned long	r;
-	char*		buf;
-	int		z;
+	int i;
+	unsigned long r;
+	char *buf;
+	int z;
 
-	char		suf[2];
+	char suf[2];
 
-	if (m > 1)
+	if(m > 1)
 	{
 		r = n;
 		n /= m;
@@ -46,15 +46,15 @@ fmtnum(unsigned long n, int m)
 	else
 		r = 0;
 	suf[1] = 0;
-	if (n < 1024)
+	if(n < 1024)
 		suf[0] = 0;
-	else if (n < 1024 * 1024)
+	else if(n < 1024 * 1024)
 	{
 		suf[0] = 'k';
 		r = ((n % 1024) * 100) / 1024;
 		n /= 1024;
 	}
-	else if (n < 1024 * 1024 * 1024)
+	else if(n < 1024 * 1024 * 1024)
 	{
 		suf[0] = 'm';
 		r = ((n % (1024 * 1024)) * 100) / (1024 * 1024);
@@ -66,21 +66,21 @@ fmtnum(unsigned long n, int m)
 		r = ((n % (1024 * 1024 * 1024)) * 100) / (1024 * 1024 * 1024);
 		n /= 1024 * 1024 * 1024;
 	}
-	if (r)
+	if(r)
 	{
-		if (n >= 100)
+		if(n >= 100)
 			r = 0;
-		else if (n >= 10)
+		else if(n >= 10)
 		{
 			i = 1;
-			if (r >= 10)
+			if(r >= 10)
 				r /= 10;
 		}
 		else
 			i = 2;
 	}
 	buf = fmtbuf(z = 8);
-	if (r)
+	if(r)
 		snprintf(buf, z, "%lu.%0*lu%s", n, i, r, suf);
 	else
 		snprintf(buf, z, "%lu%s", n, suf);

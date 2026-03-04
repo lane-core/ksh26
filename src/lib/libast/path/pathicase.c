@@ -28,17 +28,16 @@
 #endif
 
 #if _sys_ioctl && _hdr_linux_fs && defined(FS_IOC_GETFLAGS) && defined(FS_CASEFOLD_FL)
-#define _linux_casefold	1
+#define _linux_casefold 1
 #endif
 #if _sys_ioctl && _hdr_linux_msdos_fs && defined(FAT_IOCTL_GET_ATTRIBUTES)
-#define _linux_fatfs	1
+#define _linux_fatfs 1
 #endif
 
 /*
  * Return 1 if the given path is on a case insensitive file system, 0 if not, -1 on error.
  */
-int
-pathicase(const char *path)
+int pathicase(const char *path)
 {
 #if _lib_pathconf && defined(_PC_CASE_SENSITIVE)
 	/* macOS; QNX 7.0+ */
@@ -51,18 +50,18 @@ pathicase(const char *path)
 #elif _linux_fatfs
 	/* Linux */
 	int attr = 0, fd, r;
-	if ((fd = open(path, O_RDONLY|O_NONBLOCK)) < 0)
+	if((fd = open(path, O_RDONLY | O_NONBLOCK)) < 0)
 		return -1;
 	r = ioctl(fd, FAT_IOCTL_GET_ATTRIBUTES, &attr);
-#   if _linux_casefold
+#if _linux_casefold
 	/* Linux 5.2+ */
-	if (r < 0 && errno == ENOTTY)	/* if it's not VFAT/FAT32...*/
+	if(r < 0 && errno == ENOTTY) /* if it's not VFAT/FAT32...*/
 	{
 		r = ioctl(fd, FS_IOC_GETFLAGS, &attr);
 		ast_close(fd);
 		return r < 0 ? -1 : (attr & FS_CASEFOLD_FL) != 0;
 	}
-#   endif /* _linux_casefold */
+#endif /* _linux_casefold */
 	ast_close(fd);
 	return r < 0 ? (errno != ENOTTY ? -1 : 0) : 1;
 #elif __APPLE__

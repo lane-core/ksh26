@@ -29,15 +29,15 @@
 
 #include <ast_common.h>
 
-#define int_swap	_ast_intswap
+#define int_swap _ast_intswap
 
-#define SWAP_MAX	8
+#define SWAP_MAX 8
 
-#define SWAPOP(n)	(((n)&int_swap)^(n))
+#define SWAPOP(n) (((n) & int_swap) ^ (n))
 
-extern void*		swapmem(int, const void*, void*, size_t);
-extern intmax_t		swapget(int, const void*, int);
-extern void*		swapput(int, void*, int, intmax_t);
-extern int		swapop(const void*, const void*, int);
+extern void *swapmem(int, const void *, void *, size_t);
+extern intmax_t swapget(int, const void *, int);
+extern void *swapput(int, void *, int, intmax_t);
+extern int swapop(const void *, const void *, int);
 
 #endif

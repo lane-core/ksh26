@@ -24,28 +24,28 @@
  * group name -> GID number
  */
 
-#define getgrgid	______getgrgid
-#define getgrnam	______getgrnam
-#define getpwnam	______getpwnam
+#define getgrgid ______getgrgid
+#define getgrnam ______getgrnam
+#define getpwnam ______getpwnam
 
 #include <ast.h>
 #include <cdt.h>
 #include <pwd.h>
 #include <grp.h>
 
-#undef	getgrgid
-#undef	getgrnam
-#undef	getpwnam
+#undef getgrgid
+#undef getgrnam
+#undef getpwnam
 
-extern struct group*	getgrgid(gid_t);
-extern struct group*	getgrnam(const char*);
-extern struct passwd*	getpwnam(const char*);
+extern struct group *getgrgid(gid_t);
+extern struct group *getgrnam(const char *);
+extern struct passwd *getpwnam(const char *);
 
 typedef struct Id_s
 {
-	Dtlink_t	link;
-	int		id;
-	char		name[1];
+	Dtlink_t link;
+	int id;
+	char name[1];
 } Id_t;
 
 /*
@@ -55,36 +55,35 @@ typedef struct Id_s
  * -2 on subsequent errors for a given name
  */
 
-int
-strgid(const char* name)
+int strgid(const char *name)
 {
-	Id_t*		ip;
-	struct group*	gr;
-	struct passwd*	pw;
-	int		id;
-	char*		e;
+	Id_t *ip;
+	struct group *gr;
+	struct passwd *pw;
+	int id;
+	char *e;
 
-	static Dt_t*	dict;
-	static Dtdisc_t	disc;
+	static Dt_t *dict;
+	static Dtdisc_t disc;
 
-	if (!dict)
+	if(!dict)
 	{
 		disc.key = offsetof(Id_t, name);
 		dict = dtopen(&disc, Dtset);
 	}
-	else if (ip = (Id_t*)dtmatch(dict, name))
+	else if(ip = (Id_t *)dtmatch(dict, name))
 		return ip->id;
-	if (gr = getgrnam(name))
+	if(gr = getgrnam(name))
 		id = gr->gr_gid;
-	else if (pw = getpwnam(name))
+	else if(pw = getpwnam(name))
 		id = pw->pw_gid;
 	else
 	{
 		id = strtol(name, &e, 0);
-		if (*e || !getgrgid(id))
+		if(*e || !getgrgid(id))
 			id = -1;
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if(dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{
 		strcpy(ip->name, name);
 		ip->id = id >= 0 ? id : -2;

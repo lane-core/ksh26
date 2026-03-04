@@ -24,18 +24,18 @@
  * Time_t fmttime()
  */
 
-char*
-fmttmx(const char* fmt, Time_t t)
+char *
+fmttmx(const char *fmt, Time_t t)
 {
-	char*	b;
-	char*	e;
-	int	z;
+	char *b;
+	char *e;
+	int z;
 
 	z = 0;
 	do
 	{
 		b = fmtbuf(z += 80);
 		e = tmxfmt(b, z, fmt, t);
-	} while (e == b + z);
+	} while(e == b + z);
 	return b;
 }

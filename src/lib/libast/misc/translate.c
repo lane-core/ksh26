@@ -32,46 +32,46 @@
 #include <nl_types.h>
 
 #ifndef DEBUG_trace
-#define DEBUG_trace		0
+#define DEBUG_trace 0
 #endif
 
-#define NOCAT			((nl_catd)-1)
-#define GAP			100
+#define NOCAT ((nl_catd) - 1)
+#define GAP 100
 
-typedef	struct
+typedef struct
 {
-	Dtlink_t	link;		/* dictionary link		*/
-	Dt_t*		messages;	/* message dictionary handle	*/
-	nl_catd		cat;		/* message catalog handle	*/
-	int		debug;		/* special debug locale		*/
-	const char*	locale;		/* message catalog locale	*/
-	const char*	nlspath;	/* message catalog NLSPATH	*/
-	char		name[1];	/* catalog name			*/
+	Dtlink_t link;       /* dictionary link		*/
+	Dt_t *messages;      /* message dictionary handle	*/
+	nl_catd cat;         /* message catalog handle	*/
+	int debug;           /* special debug locale		*/
+	const char *locale;  /* message catalog locale	*/
+	const char *nlspath; /* message catalog NLSPATH	*/
+	char name[1];        /* catalog name			*/
 } Catalog_t;
 
 typedef struct
 {
-	Dtlink_t	link;		/* dictionary link		*/
-	Catalog_t*	cat;		/* current catalog pointer	*/
-	int		set;		/* set number			*/
-	int		seq;		/* sequence number		*/
-	char		text[1];	/* message text			*/
+	Dtlink_t link;  /* dictionary link		*/
+	Catalog_t *cat; /* current catalog pointer	*/
+	int set;        /* set number			*/
+	int seq;        /* sequence number		*/
+	char text[1];   /* message text			*/
 } Message_t;
 
 typedef struct
 {
-	Dtdisc_t	message_disc;	/* message dict discipline	*/
-	Dtdisc_t	catalog_disc;	/* catalog dict discipline	*/
-	Dt_t*		catalogs;	/* catalog dictionary handle	*/
-	ast_wbuf_t	wb;		/* temporary string writer	*/
-	int		error;		/* no dictionaries!		*/
-	char		null[1];	/* null string			*/
+	Dtdisc_t message_disc; /* message dict discipline	*/
+	Dtdisc_t catalog_disc; /* catalog dict discipline	*/
+	Dt_t *catalogs;        /* catalog dictionary handle	*/
+	ast_wbuf_t wb;         /* temporary string writer	*/
+	int error;             /* no dictionaries!		*/
+	char null[1];          /* null string			*/
 } State_t;
 
-static State_t	state =
-{
-	{	offsetof(Message_t, text),	0,	0	},
-	{	offsetof(Catalog_t, name),	0,	0	},
+static State_t state =
+    {
+        {offsetof(Message_t, text), 0, 0},
+        {offsetof(Catalog_t, name), 0, 0},
 };
 
 /*
@@ -79,22 +79,22 @@ static State_t	state =
  */
 
 static int
-entry(Dt_t* dict, int set, int seq, const char* msg)
+entry(Dt_t *dict, int set, int seq, const char *msg)
 {
-	Message_t*	mp;
+	Message_t *mp;
 
-	if (!(mp = newof(0, Message_t, 1, strlen(msg))))
+	if(!(mp = newof(0, Message_t, 1, strlen(msg))))
 		return 0;
 	strcpy(mp->text, msg);
 	mp->set = set;
 	mp->seq = seq;
-	if (!dtinsert(dict, mp))
+	if(!dtinsert(dict, mp))
 	{
 		free(mp);
 		return 0;
 	}
 #if DEBUG_trace > 1
-fprintf(stderr, "AHA#%d:%s set %d seq %d msg `%s'\n", __LINE__, __FILE__, set, seq, msg);
+	fprintf(stderr, "AHA#%d:%s set %d seq %d msg `%s'\n", __LINE__, __FILE__, set, seq, msg);
 #endif
 	return 1;
 }
@@ -104,23 +104,23 @@ fprintf(stderr, "AHA#%d:%s set %d seq %d msg `%s'\n", __LINE__, __FILE__, set, s
  */
 
 static nl_catd
-find(const char* locale, const char* catalog)
+find(const char *locale, const char *catalog)
 {
-	char*		o;
-	nl_catd		d;
-	char		path[PATH_MAX];
+	char *o;
+	nl_catd d;
+	char path[PATH_MAX];
 
-	if (!mcfind(locale, catalog, LC_MESSAGES, 0, path, sizeof(path)) || (d = catopen(path, NL_CAT_LOCALE)) == NOCAT)
+	if(!mcfind(locale, catalog, LC_MESSAGES, 0, path, sizeof(path)) || (d = catopen(path, NL_CAT_LOCALE)) == NOCAT)
 	{
-		if (locale == (const char*)lc_categories[AST_LC_MESSAGES].prev)
+		if(locale == (const char *)lc_categories[AST_LC_MESSAGES].prev)
 			o = 0;
-		else if (o = setlocale(LC_MESSAGES, NULL))
+		else if(o = setlocale(LC_MESSAGES, NULL))
 		{
 			ast.locale.set |= AST_LC_internal;
 			setlocale(LC_MESSAGES, locale);
 		}
 		d = catopen(catalog, NL_CAT_LOCALE);
-		if (o)
+		if(o)
 		{
 			setlocale(LC_MESSAGES, o);
 			ast.locale.set &= ~AST_LC_internal;
@@ -133,23 +133,23 @@ find(const char* locale, const char* catalog)
  * initialize the catalog s by loading in the default locale messages
  */
 
-static Catalog_t*
-init(char* s)
+static Catalog_t *
+init(char *s)
 {
-	Catalog_t*	cp;
-	int		n;
-	int		m;
-	int		set;
-	nl_catd		d;
+	Catalog_t *cp;
+	int n;
+	int m;
+	int set;
+	nl_catd d;
 
 	/*
 	 * insert into the catalog dictionary
 	 */
 
-	if (!(cp = newof(0, Catalog_t, 1, strlen(s))))
+	if(!(cp = newof(0, Catalog_t, 1, strlen(s))))
 		return NULL;
 	strcpy(cp->name, s);
-	if (!dtinsert(state.catalogs, cp))
+	if(!dtinsert(state.catalogs, cp))
 	{
 		free(cp);
 		return NULL;
@@ -160,7 +160,7 @@ init(char* s)
 	 * locate the default locale catalog
 	 */
 
-	if ((d = find("C", s)) != NOCAT)
+	if((d = find("C", s)) != NOCAT)
 	{
 		/*
 		 * load the default locale messages
@@ -175,18 +175,18 @@ init(char* s)
 		 * missing messages
 		 */
 
-		if (cp->messages = dtopen(&state.message_disc, Dtset))
+		if(cp->messages = dtopen(&state.message_disc, Dtset))
 		{
 			n = m = 0;
-			for (;;)
+			for(;;)
 			{
 				n++;
-				if (((s = catgets(d, set = AST_MESSAGE_SET, n, state.null)) && *s || (s = catgets(d, set = 1, n, state.null)) && *s) && entry(cp->messages, set, n, s))
+				if(((s = catgets(d, set = AST_MESSAGE_SET, n, state.null)) && *s || (s = catgets(d, set = 1, n, state.null)) && *s) && entry(cp->messages, set, n, s))
 					m = n;
-				else if ((n - m) > GAP)
+				else if((n - m) > GAP)
 					break;
 			}
-			if (!m)
+			if(!m)
 			{
 				dtclose(cp->messages);
 				cp->messages = 0;
@@ -202,38 +202,38 @@ init(char* s)
  * cat may be a : separated list of candidate names
  */
 
-static Message_t*
-match(const char* cat, const char* msg)
+static Message_t *
+match(const char *cat, const char *msg)
 {
-	char*	s;
-	char*	t;
-	Catalog_t*	cp;
-	Message_t*	mp;
-	size_t		n;
+	char *s;
+	char *t;
+	Catalog_t *cp;
+	Message_t *mp;
+	size_t n;
 
-	char		buf[1024];
+	char buf[1024];
 
-	s = (char*)cat;
-	for (;;)
+	s = (char *)cat;
+	for(;;)
 	{
-		if (t = strchr(s, ':'))
+		if(t = strchr(s, ':'))
 		{
-			if (s == (char*)cat)
+			if(s == (char *)cat)
 			{
-				if ((n = strlen(s)) >= sizeof(buf))
+				if((n = strlen(s)) >= sizeof(buf))
 					n = sizeof(buf) - 1;
-				s = (char*)memcpy(buf, s, n);
+				s = (char *)memcpy(buf, s, n);
 				s[n] = 0;
 				t = strchr(s, ':');
 			}
 			*t = 0;
 		}
-		if (*s && ((cp = (Catalog_t*)dtmatch(state.catalogs, s)) || (cp = init(s))) && cp->messages && (mp = (Message_t*)dtmatch(cp->messages, msg)))
+		if(*s && ((cp = (Catalog_t *)dtmatch(state.catalogs, s)) || (cp = init(s))) && cp->messages && (mp = (Message_t *)dtmatch(cp->messages, msg)))
 		{
 			mp->cat = cp;
 			return mp;
 		}
-		if (!t)
+		if(!t)
 			break;
 		s = t + 1;
 	}
@@ -268,44 +268,44 @@ match(const char* cat, const char* msg)
  * for each Catalog_t.
  */
 
-char*
-translate(const char* loc, const char* cmd, const char* cat, const char* msg)
+char *
+translate(const char *loc, const char *cmd, const char *cat, const char *msg)
 {
-	char*		r;
-	char*		t;
-	int		oerrno;
-	Catalog_t*	cp = NULL;
-	Message_t*	mp;
+	char *r;
+	char *t;
+	int oerrno;
+	Catalog_t *cp = NULL;
+	Message_t *mp;
 
-	static uint32_t	serial;
-	static char*	nlspath;
+	static uint32_t serial;
+	static char *nlspath;
 
 	oerrno = errno;
-	r = (char*)msg;
+	r = (char *)msg;
 
 	/*
 	 * quick out
 	 */
 
-	if (!cmd && !cat)
+	if(!cmd && !cat)
 		goto done;
-	if (cmd && (t = strrchr(cmd, '/')))
-		cmd = (const char*)(t + 1);
+	if(cmd && (t = strrchr(cmd, '/')))
+		cmd = (const char *)(t + 1);
 
 	/*
 	 * initialize the catalogs dictionary
 	 */
 
-	if (!state.catalogs)
+	if(!state.catalogs)
 	{
-		if (state.error)
+		if(state.error)
 			goto done;
-		if (ast_wbuf_open(&state.wb) < 0)
+		if(ast_wbuf_open(&state.wb) < 0)
 		{
 			state.error = 1;
 			goto done;
 		}
-		if (!(state.catalogs = dtopen(&state.catalog_disc, Dtset)))
+		if(!(state.catalogs = dtopen(&state.catalog_disc, Dtset)))
 		{
 			ast_wbuf_close(&state.wb);
 			state.error = 1;
@@ -318,14 +318,14 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	 * or do we have to spell it out for you
 	 */
 
-	if ((!cmd || !(mp = match(cmd, msg))) &&
-	    (!cat || !(mp = match(cat, msg))) &&
-	    (!error_info.catalog || !(mp = match(error_info.catalog, msg))) &&
-	    (!ast.id || !(mp = match(ast.id, msg))) ||
-	     !(cp = mp->cat))
+	if((!cmd || !(mp = match(cmd, msg))) &&
+	       (!cat || !(mp = match(cat, msg))) &&
+	       (!error_info.catalog || !(mp = match(error_info.catalog, msg))) &&
+	       (!ast.id || !(mp = match(ast.id, msg))) ||
+	   !(cp = mp->cat))
 	{
 #if DEBUG_trace > 1
-fprintf(stderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
+		fprintf(stderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
 #endif
 		goto done;
 	}
@@ -335,35 +335,35 @@ fprintf(stderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE_
 	 */
 
 #if DEBUG_trace
-fprintf(stderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FILE__, cp->locale, cp->locale, loc, loc);
+	fprintf(stderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FILE__, cp->locale, cp->locale, loc, loc);
 #endif
-	if (serial != ast.env_serial)
+	if(serial != ast.env_serial)
 	{
 		serial = ast.env_serial;
 		nlspath = getenv("NLSPATH");
 	}
-	if (cp->locale != loc || cp->nlspath != nlspath)
+	if(cp->locale != loc || cp->nlspath != nlspath)
 	{
 		cp->locale = loc;
 		cp->nlspath = nlspath;
-		if (cp->cat != NOCAT)
+		if(cp->cat != NOCAT)
 			catclose(cp->cat);
-		if ((cp->cat = find(cp->locale, cp->name)) == NOCAT)
+		if((cp->cat = find(cp->locale, cp->name)) == NOCAT)
 			cp->debug = streq(cp->locale, "debug");
 		else
 			cp->debug = 0;
 #if DEBUG_trace
-fprintf(stderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE__, cp->cat, cp->debug, NOCAT);
+		fprintf(stderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE__, cp->cat, cp->debug, NOCAT);
 #endif
 	}
-	if (cp->cat == NOCAT)
+	if(cp->cat == NOCAT)
 	{
-		if (cp->debug)
+		if(cp->debug)
 		{
 			ast_wbuf_printf(&state.wb, "(%s,%d,%d)", cp->name, mp->set, mp->seq);
 			r = ast_wbuf_use(&state.wb);
 		}
-		else if (ast.locale.set & AST_LC_debug)
+		else if(ast.locale.set & AST_LC_debug)
 		{
 			ast_wbuf_printf(&state.wb, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
 			r = ast_wbuf_use(&state.wb);
@@ -376,26 +376,26 @@ fprintf(stderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE
 		 */
 
 		r = catgets(cp->cat, mp->set, mp->seq, msg);
-		if (r != (char*)msg)
+		if(r != (char *)msg)
 		{
-			if (streq(r, (char*)msg))
-				r = (char*)msg;
-			else if (strcmp(fmtfmt(r), fmtfmt(msg)))
+			if(streq(r, (char *)msg))
+				r = (char *)msg;
+			else if(strcmp(fmtfmt(r), fmtfmt(msg)))
 			{
 				fprintf(stderr, "locale %s catalog %s message %d.%d \"%s\" does not match \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, r, msg);
-				r = (char*)msg;
+				r = (char *)msg;
 			}
 		}
-		if (ast.locale.set & AST_LC_debug)
+		if(ast.locale.set & AST_LC_debug)
 		{
 			ast_wbuf_printf(&state.wb, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
 			r = ast_wbuf_use(&state.wb);
 		}
 	}
-	if (ast.locale.set & AST_LC_translate)
-		fprintf(stderr, "translate locale=%s catalog=%s set=%d seq=%d \"%s\" => \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, msg, r == (char*)msg ? "NOPE" : r);
- done:
-	if (r == (char*)msg && (!cp && streq(loc, "debug") || cp && cp->debug) && state.wb.fp)
+	if(ast.locale.set & AST_LC_translate)
+		fprintf(stderr, "translate locale=%s catalog=%s set=%d seq=%d \"%s\" => \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, msg, r == (char *)msg ? "NOPE" : r);
+done:
+	if(r == (char *)msg && (!cp && streq(loc, "debug") || cp && cp->debug) && state.wb.fp)
 	{
 		ast_wbuf_printf(&state.wb, "(%s,%s,%s,%s)", loc, cmd, cat, r);
 		r = ast_wbuf_use(&state.wb);

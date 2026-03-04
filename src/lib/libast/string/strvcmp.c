@@ -24,29 +24,28 @@
  * version strcmp(3)
  */
 
-int
-strvcmp(const char* a, const char* b)
+int strvcmp(const char *a, const char *b)
 {
-	unsigned long	na;
-	unsigned long	nb;
+	unsigned long na;
+	unsigned long nb;
 
-	for (;;)
+	for(;;)
 	{
-		if (isdigit(*a) && isdigit(*b))
+		if(isdigit(*a) && isdigit(*b))
 		{
 			na = nb = 0;
-			while (isdigit(*a))
+			while(isdigit(*a))
 				na = na * 10 + *a++ - '0';
-			while (isdigit(*b))
+			while(isdigit(*b))
 				nb = nb * 10 + *b++ - '0';
-			if (na < nb)
+			if(na < nb)
 				return -1;
-			if (na > nb)
+			if(na > nb)
 				return 1;
 		}
-		else if (*a != *b)
+		else if(*a != *b)
 			break;
-		else if (!*a)
+		else if(!*a)
 			return 0;
 		else
 		{
@@ -54,17 +53,17 @@ strvcmp(const char* a, const char* b)
 			b++;
 		}
 	}
-	if (*a == 0)
+	if(*a == 0)
 		return -1;
-	if (*b == 0)
+	if(*b == 0)
 		return 1;
-	if (*a == '.')
+	if(*a == '.')
 		return -1;
-	if (*b == '.')
+	if(*b == '.')
 		return 1;
-	if (*a == '-')
+	if(*a == '-')
 		return -1;
-	if (*b == '-')
+	if(*b == '-')
 		return 1;
 	return *a < *b ? -1 : 1;
 }

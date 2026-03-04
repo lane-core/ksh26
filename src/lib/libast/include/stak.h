@@ -27,25 +27,25 @@
 #ifndef _STAK_H
 #define _STAK_H
 
-#include	<stk.h>
+#include <stk.h>
 
-#define Stak_t		Stk_t
-#define staksp		stkstd
-#define STAK_SMALL	STK_SMALL
+#define Stak_t Stk_t
+#define staksp stkstd
+#define STAK_SMALL STK_SMALL
 
-#define stakptr(n)		stkptr(stkstd,n)
-#define staktell()		stktell(stkstd)
-#define stakputc(c)		stkputc(stkstd,(c))
-#define stakwrite(b,n)		stkwrite(stkstd,(b),(n))
-#define stakputs(s)		(stkputs(stkstd,(s),0),--stkstd->_next)
-#define stakseek(n)		((char*)stkseek(stkstd,n))
-#define stakcreate(n)		stkopen(n)
-#define stakinstall(s,f)	stkinstall(s,f)
-#define stakdelete(s)		stkclose(s)
-#define staklink(s)		stklink(s)
-#define stakalloc(n)		((char*)stkalloc(stkstd,n))
-#define stakcopy(s)		stkcopy(stkstd,s)
-#define stakset(c,n)		((char*)stkset(stkstd,c,n))
-#define stakfreeze(n)		((char*)stkfreeze(stkstd,n))
+#define stakptr(n) stkptr(stkstd, n)
+#define staktell() stktell(stkstd)
+#define stakputc(c) stkputc(stkstd, (c))
+#define stakwrite(b, n) stkwrite(stkstd, (b), (n))
+#define stakputs(s) (stkputs(stkstd, (s), 0), --stkstd->_next)
+#define stakseek(n) ((char *)stkseek(stkstd, n))
+#define stakcreate(n) stkopen(n)
+#define stakinstall(s, f) stkinstall(s, f)
+#define stakdelete(s) stkclose(s)
+#define staklink(s) stklink(s)
+#define stakalloc(n) ((char *)stkalloc(stkstd, n))
+#define stakcopy(s) stkcopy(stkstd, s)
+#define stakset(c, n) ((char *)stkset(stkstd, c, n))
+#define stakfreeze(n) ((char *)stkfreeze(stkstd, n))
 
 #endif

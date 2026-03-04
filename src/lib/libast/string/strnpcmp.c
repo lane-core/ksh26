@@ -23,25 +23,24 @@
  * path prefix strncmp(3) -- longest first!
  */
 
-int
-strnpcmp(const char* a, const char* b, size_t n)
+int strnpcmp(const char *a, const char *b, size_t n)
 {
-	const char*	e;
+	const char *e;
 
 	e = a + n;
-	for (;;)
+	for(;;)
 	{
-		if (a >= e)
+		if(a >= e)
 			return 0;
-		if (*a != *b)
+		if(*a != *b)
 			break;
-		if (!*a++)
+		if(!*a++)
 			return 0;
 		b++;
 	}
-	if (*a == 0 && *b == '/')
+	if(*a == 0 && *b == '/')
 		return 1;
-	if (*a == '/' && *b == 0)
+	if(*a == '/' && *b == 0)
 		return -1;
 	return (a < b) ? -1 : 1;
 }

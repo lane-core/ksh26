@@ -26,29 +26,29 @@
 
 #include <ast_common.h>
 
-#define WRDE_APPEND	01
-#define WRDE_DOOFFS	02
-#define WRDE_NOCMD	04
-#define WRDE_NOSYS	0100
-#define WRDE_REUSE	010
-#define WRDE_SHOWERR	020
-#define WRDE_UNDEF	040
+#define WRDE_APPEND 01
+#define WRDE_DOOFFS 02
+#define WRDE_NOCMD 04
+#define WRDE_NOSYS 0100
+#define WRDE_REUSE 010
+#define WRDE_SHOWERR 020
+#define WRDE_UNDEF 040
 
-#define WRDE_BADCHAR	1
-#define WRDE_BADVAL	2
-#define WRDE_CMDSUB	3
-#define WRDE_NOSPACE	4
-#define WRDE_SYNTAX	5
-#define WRDE_NOSHELL	6
+#define WRDE_BADCHAR 1
+#define WRDE_BADVAL 2
+#define WRDE_CMDSUB 3
+#define WRDE_NOSPACE 4
+#define WRDE_SYNTAX 5
+#define WRDE_NOSHELL 6
 
 typedef struct _wdarg
 {
-	size_t	we_wordc;
-	char	**we_wordv;
-	size_t	we_offs;
+	size_t we_wordc;
+	char **we_wordv;
+	size_t we_offs;
 } wordexp_t;
 
-extern int wordexp(const char*, wordexp_t*, int);
-extern int wordfree(wordexp_t*);
+extern int wordexp(const char *, wordexp_t *, int);
+extern int wordfree(wordexp_t *);
 
 #endif /* _WORDEXP_H */

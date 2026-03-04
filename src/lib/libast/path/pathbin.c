@@ -25,16 +25,16 @@
 
 #include <ast.h>
 
-char*
+char *
 pathbin(void)
 {
-	char*		bin;
+	char *bin;
 
-	static char*	val;
+	static char *val;
 
-	if ((!(bin = getenv("PATH")) || !*bin) && !(bin = val))
+	if((!(bin = getenv("PATH")) || !*bin) && !(bin = val))
 	{
-		if (!*(bin = astconf("PATH", NULL, NULL)) || !(bin = strdup(bin)))
+		if(!*(bin = astconf("PATH", NULL, NULL)) || !(bin = strdup(bin)))
 			abort();
 		val = bin;
 	}

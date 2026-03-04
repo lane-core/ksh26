@@ -24,37 +24,38 @@
  *
  */
 
-#include	"shopt.h"
-#include	"defs.h"
-#include	<tmx.h>
-#include	<ast_float.h>
-#include	"builtins.h"
-#include	"FEATURE/time"
-#include	"FEATURE/poll"
+#include "shopt.h"
+#include "defs.h"
+#include <tmx.h>
+#include <ast_float.h>
+#include "builtins.h"
+#include "FEATURE/time"
+#include "FEATURE/poll"
 
-int	b_sleep(int argc,char *argv[],Shbltin_t *context)
+int b_sleep(int argc, char *argv[], Shbltin_t *context)
 {
 	char *cp;
-	double d=0;
-	int sflag=0;
+	double d = 0;
+	int sflag = 0;
 	time_t tloc = 0;
 	char *last;
 	NOT_USED(context);
-	if(!(sh.sigflag[SIGALRM]&(SH_SIGFAULT|SH_SIGOFF)))
+	if(!(sh.sigflag[SIGALRM] & (SH_SIGFAULT | SH_SIGOFF)))
 		sh_sigtrap(SIGALRM);
-	while((argc = optget(argv,sh_optsleep))) switch(argc)
-	{
-		case 's':
-			sflag=1;
-			break;
-		case ':':
-			errormsg(SH_DICT,2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
-	}
+	while((argc = optget(argv, sh_optsleep)))
+		switch(argc)
+		{
+			case 's':
+				sflag = 1;
+				break;
+			case ':':
+				errormsg(SH_DICT, 2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
+		}
 	if(error_info.errors)
 	{
 		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
@@ -64,26 +65,26 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 	if(cp = *argv)
 	{
 		d = strtod(cp, &last);
-		if (isnan(d))
-			last = cp;  /* trigger error */
+		if(isnan(d))
+			last = cp; /* trigger error */
 		if(*last)
 		{
-			Time_t now,ns;
-			char* pp;
+			Time_t now, ns;
+			char *pp;
 			now = TMX_NOW;
 			ns = 0;
 			if(*cp == 'P' || *cp == 'p')
 				ns = tmxdate(cp, &last, now);
-			else if(*last=='.' && sh.radixpoint!='.' && d==(unsigned long)d)
+			else if(*last == '.' && sh.radixpoint != '.' && d == (unsigned long)d)
 			{
-				*(pp=last) = sh.radixpoint;
-				if(!strchr(cp,'.'))
-					d = strtod(cp,&last);
+				*(pp = last) = sh.radixpoint;
+				if(!strchr(cp, '.'))
+					d = strtod(cp, &last);
 				*pp = '.';
-				if(*last==0)
+				if(*last == 0)
 					goto skip;
 			}
-			else if(*last!='.' && *last!=sh.radixpoint)
+			else if(*last != '.' && *last != sh.radixpoint)
 			{
 				if(pp = sfprints("exact %s", cp))
 					ns = tmxdate(pp, &last, now);
@@ -92,44 +93,45 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 			}
 			if(*last)
 			{
-				errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
+				errormsg(SH_DICT, ERROR_exit(1), e_number, *argv);
 				UNREACHABLE();
 			}
 			d = ns - now;
 			d /= TMX_RESOLUTION;
 		}
-skip:
+	skip:
 		if(argv[1])
 		{
-			errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
+			errormsg(SH_DICT, ERROR_exit(1), e_oneoperand);
 			UNREACHABLE();
 		}
 	}
 	else if(!sflag)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
+		errormsg(SH_DICT, ERROR_exit(1), e_oneoperand);
 		UNREACHABLE();
 	}
 	if(d > .10)
 	{
 		time(&tloc);
-		tloc += (time_t)(d+.5);
+		tloc += (time_t)(d + .5);
 	}
-	if(sflag && d==0)
-		pause();  /* 'sleep -s' waits until a signal is sent */
-	else while(1)
-	{
-		time_t now;
-		errno = 0;
-		sh.lastsig=0;
-		sh_delay(d,sflag);
-		if(sflag || tloc==0 || errno!=EINTR || sh.lastsig)
-			break;
-		sh_sigcheck();
-		if(tloc < (now=time(NULL)))
-			break;
-		d = (double)(tloc-now);
-	}
+	if(sflag && d == 0)
+		pause(); /* 'sleep -s' waits until a signal is sent */
+	else
+		while(1)
+		{
+			time_t now;
+			errno = 0;
+			sh.lastsig = 0;
+			sh_delay(d, sflag);
+			if(sflag || tloc == 0 || errno != EINTR || sh.lastsig)
+				break;
+			sh_sigcheck();
+			if(tloc < (now = time(NULL)))
+				break;
+			d = (double)(tloc - now);
+		}
 	return 0;
 }
 
@@ -142,14 +144,14 @@ void sh_delay(double t, int sflag)
 {
 	uint32_t n;
 	Tv_t ts, tx;
-	if (isinf(t))
+	if(isinf(t))
 	{
-		while (1)
+		while(1)
 		{
 			pause();
-			if (sh.trapnote & SH_SIGALRM)
+			if(sh.trapnote & SH_SIGALRM)
 				sh_timetraps();
-			if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
+			if((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
 				return;
 		}
 	}
@@ -162,19 +164,19 @@ void sh_delay(double t, int sflag)
 	 * (^Z), the forked ksh process freezes in the nanosleep(2) function in libsystem_c.dylib.
 	 * As a workaround, make it impossible to suspend sleep in that case, by ignoring SIGTSTP.
 	 */
-	if (sh_isstate(SH_INTERACTIVE))
-		signal(SIGTSTP,SIG_IGN);
+	if(sh_isstate(SH_INTERACTIVE))
+		signal(SIGTSTP, SIG_IGN);
 #endif
 	while(tvsleep(&ts, &tx) < 0)
 	{
-		if (sh.trapnote & SH_SIGALRM)
+		if(sh.trapnote & SH_SIGALRM)
 			sh_timetraps();
-		if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
+		if((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
 			break;
 		ts = tx;
 	}
 #if __APPLE__ && __MACH__
-	if (sh_isstate(SH_INTERACTIVE))
-		signal(SIGTSTP,SIG_DFL);
+	if(sh_isstate(SH_INTERACTIVE))
+		signal(SIGTSTP, SIG_DFL);
 #endif
 }

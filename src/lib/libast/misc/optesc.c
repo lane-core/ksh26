@@ -27,29 +27,29 @@
 #include <optlib.h>
 #include <ctype.h>
 
-int
-optesc(ast_wbuf_t* sp, const char* s, int esc)
+int optesc(ast_wbuf_t *sp, const char *s, int esc)
 {
-	const char*	m;
-	int		c;
+	const char *m;
+	int c;
 
-	if (*s == '[' && *(s + 1) == '+' && *(s + 2) == '?')
+	if(*s == '[' && *(s + 1) == '+' && *(s + 2) == '?')
 	{
 		c = strlen(s);
-		if (s[c - 1] == ']')
+		if(s[c - 1] == ']')
 		{
 			ast_wbuf_printf(sp, "%-.*s", c - 4, s + 3);
 			return 0;
 		}
 	}
-	if (esc != '?' && esc != ':')
+	if(esc != '?' && esc != ':')
 		esc = 0;
-	while (c = *s++)
+	while(c = *s++)
 	{
-		if (isalnum(c))
+		if(isalnum(c))
 		{
-			for (m = s - 1; isalnum(*s); s++);
-			if (isalpha(c) && *s == '(' && isdigit(*(s + 1)) && *(s + 2) == ')')
+			for(m = s - 1; isalnum(*s); s++)
+				;
+			if(isalpha(c) && *s == '(' && isdigit(*(s + 1)) && *(s + 2) == ')')
 			{
 				ast_wbuf_putc(sp, '\b');
 				ast_wbuf_write(sp, m, s - m);
@@ -60,16 +60,16 @@ optesc(ast_wbuf_t* sp, const char* s, int esc)
 			else
 				ast_wbuf_write(sp, m, s - m);
 		}
-		else if (c == '-' && *s == '-' || c == '<')
+		else if(c == '-' && *s == '-' || c == '<')
 		{
 			m = s - 1;
-			if (c == '-')
+			if(c == '-')
 				s++;
-			else if (*s == '/')
+			else if(*s == '/')
 				s++;
-			while (isalnum(*s))
+			while(isalnum(*s))
 				s++;
-			if (c == '<' && *s == '>' || isspace(*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
+			if(c == '<' && *s == '>' || isspace(*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
 			{
 				ast_wbuf_putc(sp, '\b');
 				ast_wbuf_write(sp, m, s - m);
@@ -80,7 +80,7 @@ optesc(ast_wbuf_t* sp, const char* s, int esc)
 		}
 		else
 		{
-			if (c == ']' || c == esc)
+			if(c == ']' || c == esc)
 				ast_wbuf_putc(sp, c);
 			ast_wbuf_putc(sp, c);
 		}

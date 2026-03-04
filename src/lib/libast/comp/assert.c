@@ -19,10 +19,10 @@
 void noreturn _ast_assertfail(const char *a, const char *fun, const char *file, int line)
 {
 #if _has___func__ || _has___FUNCTION__
-	fprintf(stderr,"\n*** assertion %s failed in %s(), %s:%d\n", a, fun, file, line);
+	fprintf(stderr, "\n*** assertion %s failed in %s(), %s:%d\n", a, fun, file, line);
 #else
 	NOT_USED(fun);
-	fprintf(stderr,"\n*** assertion %s failed in %s:%d\n", a, file, line);
+	fprintf(stderr, "\n*** assertion %s failed in %s:%d\n", a, file, line);
 #endif
 	fflush(NULL);
 	abort();

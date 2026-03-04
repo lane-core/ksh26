@@ -32,15 +32,15 @@
  * 0 returned if name not found
  */
 
-void*
-strlook(const void* tab, size_t siz, const char* name)
+void *
+strlook(const void *tab, size_t siz, const char *name)
 {
-	char*	t = (char*)tab;
-	char*	s;
-	int	c = *name;
+	char *t = (char *)tab;
+	char *s;
+	int c = *name;
 
-	for (; s = *((char**)t); t += siz)
-		if (*s == c && !strcmp(s, name))
+	for(; s = *((char **)t); t += siz)
+		if(*s == c && !strcmp(s, name))
 			return t;
 	return NULL;
 }

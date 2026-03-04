@@ -15,8 +15,8 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
-#include	"defs.h"
+#include "shopt.h"
+#include "defs.h"
 /*
  *  This installs a hook to allow the processing of events when
  *  the shell is waiting for input and when the shell is

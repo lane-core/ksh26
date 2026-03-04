@@ -24,15 +24,15 @@
  */
 
 #ifndef _national_h_defined
-#define _national_h_defined	1
+#define _national_h_defined 1
 
 #if SHOPT_MULTIBYTE
-#   ifndef MARKER
-#	define MARKER		0xdfff	/* Must be invalid character */
-#   endif
+#ifndef MARKER
+#define MARKER 0xdfff /* Must be invalid character */
+#endif
 #endif /* SHOPT_MULTIBYTE */
 
-extern int sh_strchr(const char*,const char*);
-extern int sh_strwidth(const char*);
+extern int sh_strchr(const char *, const char *);
+extern int sh_strwidth(const char *);
 
 #endif /* _national_h_defined */

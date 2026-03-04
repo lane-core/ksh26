@@ -33,24 +33,24 @@ NoN(eaccess)
 #else
 
 extern int
-eaccess(const char* path, int flags)
+eaccess(const char *path, int flags)
 {
 #ifdef EFF_ONLY_OK
-	return access(path, flags|EFF_ONLY_OK);
+	return access(path, flags | EFF_ONLY_OK);
 #else
 #if _lib_euidaccess
 	return euidaccess(path, flags);
 #else
-	int		mode;
-	struct stat	st;
+	int mode;
+	struct stat st;
 
-	static int	init;
-	static uid_t	ruid;
-	static uid_t	euid;
-	static gid_t	rgid;
-	static gid_t	egid;
+	static int init;
+	static uid_t ruid;
+	static uid_t euid;
+	static gid_t rgid;
+	static gid_t egid;
 
-	if (!init)
+	if(!init)
 	{
 		ruid = getuid();
 		euid = geteuid();
@@ -58,70 +58,70 @@ eaccess(const char* path, int flags)
 		egid = getegid();
 		init = (ruid == euid && rgid == egid) ? 1 : -1;
 	}
-	if (init > 0 || flags == F_OK)
+	if(init > 0 || flags == F_OK)
 		return access(path, flags);
-	if (stat(path, &st))
+	if(stat(path, &st))
 		return -1;
 	mode = 0;
-	if (euid == 0)
+	if(euid == 0)
 	{
-		if (!S_ISREG(st.st_mode) || !(flags & X_OK) || (st.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)))
+		if(!S_ISREG(st.st_mode) || !(flags & X_OK) || (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
 			return 0;
 		goto nope;
 	}
-	else if (euid == st.st_uid)
+	else if(euid == st.st_uid)
 	{
-		if (flags & R_OK)
+		if(flags & R_OK)
 			mode |= S_IRUSR;
-		if (flags & W_OK)
+		if(flags & W_OK)
 			mode |= S_IWUSR;
-		if (flags & X_OK)
+		if(flags & X_OK)
 			mode |= S_IXUSR;
 	}
-	else if (egid == st.st_gid)
+	else if(egid == st.st_gid)
 	{
 #if _lib_getgroups
 	setgroup:
 #endif
-		if (flags & R_OK)
+		if(flags & R_OK)
 			mode |= S_IRGRP;
-		if (flags & W_OK)
+		if(flags & W_OK)
 			mode |= S_IWGRP;
-		if (flags & X_OK)
+		if(flags & X_OK)
 			mode |= S_IXGRP;
 	}
 	else
 	{
 #if _lib_getgroups
-		int	n;
+		int n;
 
-		static int	ngroups = -2;
-		static gid_t*	groups;
+		static int ngroups = -2;
+		static gid_t *groups;
 
-		if (ngroups == -2)
+		if(ngroups == -2)
 		{
-			if ((ngroups = getgroups(0, NULL)) <= 0)
+			if((ngroups = getgroups(0, NULL)) <= 0)
 				ngroups = (int)astconf_long(CONF_NGROUPS_MAX);
-			if (!(groups = newof(0, gid_t, ngroups + 1, 0)))
+			if(!(groups = newof(0, gid_t, ngroups + 1, 0)))
 				ngroups = -1;
 			else
 				ngroups = getgroups(ngroups, groups);
 		}
 		n = ngroups;
-		while (--n >= 0)
-			if (groups[n] == st.st_gid)
+		while(--n >= 0)
+			if(groups[n] == st.st_gid)
 				goto setgroup;
 #endif
-		if (flags & R_OK)
+		if(flags & R_OK)
 			mode |= S_IROTH;
-		if (flags & W_OK)
+		if(flags & W_OK)
 			mode |= S_IWOTH;
-		if (flags & X_OK)
+		if(flags & X_OK)
 			mode |= S_IXOTH;
 	}
-	if ((st.st_mode & mode) == mode)
+	if((st.st_mode & mode) == mode)
 		return 0;
- nope:
+nope:
 	errno = EACCES;
 	return -1;
 #endif

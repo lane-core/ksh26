@@ -27,10 +27,9 @@
 #include <tm.h>
 #include <tv.h>
 
-int
-tmsleep(time_t sec, time_t nsec)
+int tmsleep(time_t sec, time_t nsec)
 {
-	Tv_t	tv;
+	Tv_t tv;
 
 	tv.tv_sec = sec;
 	tv.tv_nsec = nsec;

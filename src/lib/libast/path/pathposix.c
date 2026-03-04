@@ -31,11 +31,11 @@
 #include <ast.h>
 
 size_t
-pathposix(const char* path, char* buf, size_t siz)
+pathposix(const char *path, char *buf, size_t siz)
 {
-	size_t		n;
+	size_t n;
 
-	if ((n = strlen(path)) < siz && buf)
+	if((n = strlen(path)) < siz && buf)
 		memcpy(buf, path, n + 1);
 	return n;
 }

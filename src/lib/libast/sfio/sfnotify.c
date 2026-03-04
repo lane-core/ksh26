@@ -16,14 +16,13 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
-
+#include "sfhdr.h"
 
 /*	Set the function to be called when a stream is opened or closed
 **
 **	Written by Kiem-Phong Vo.
 */
-int sfnotify(void(*notify)(Sfio_t*, int, void*))
+int sfnotify(void (*notify)(Sfio_t *, int, void *))
 {
 	_Sfnotify = notify;
 	return 0;

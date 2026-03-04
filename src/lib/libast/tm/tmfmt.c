@@ -30,8 +30,8 @@
  * see tmxfmt() for details
  */
 
-char*
-tmfmt(char* buf, size_t len, const char* format, time_t* clock)
+char *
+tmfmt(char *buf, size_t len, const char *format, time_t *clock)
 {
 	return tmxfmt(buf, len, format, tmxclock(clock));
 }

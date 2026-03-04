@@ -18,17 +18,16 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)$Id: fds (AT&T Research) 2009-09-09 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?fds - list open file descriptor status]"
-"[+DESCRIPTION?\bfds\b lists the status for each open file descriptor. "
+    "[-?\n@(#)$Id: fds (AT&T Research) 2009-09-09 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?fds - list open file descriptor status]"
+    "[+DESCRIPTION?\bfds\b lists the status for each open file descriptor. "
     "When invoked as a shell builtin it accesses the file descriptors of the "
     "calling shell, otherwise it lists the file descriptors passed across "
     "\bexec\b(2).]"
-"[l:long?List file descriptor details.]"
-"[u:unit?Write output to \afd\a.]#[fd]"
-"[+SEE ALSO?\blogname\b(1), \bwho\b(1), \bgetgroups\b(2), \bgetsockname\b(2), \bgetsockopts\b(2)]"
-;
+    "[l:long?List file descriptor details.]"
+    "[u:unit?Write output to \afd\a.]#[fd]"
+    "[+SEE ALSO?\blogname\b(1), \bwho\b(1), \bgetgroups\b(2), \bgetsockname\b(2), \bgetsockopts\b(2)]";
 
 #include <cmd.h>
 #include <ls.h>
@@ -44,175 +43,173 @@ static const char usage[] =
 #include <sys/endian.h>
 #endif /* __ANDROID_API__ */
 #else
-#undef	S_IFSOCK
+#undef S_IFSOCK
 #endif
 
 #ifndef minor
-#define minor(x)	(int)((x)&0xff)
+#define minor(x) (int)((x) & 0xff)
 #endif
 #ifndef major
-#define major(x)	(int)(((unsigned int)(x)>>8)&0xff)
+#define major(x) (int)(((unsigned int)(x) >> 8) & 0xff)
 #endif
 
 #ifdef S_IFSOCK
 
 typedef struct NV_s
 {
-	const char*	name;
-	int		value;
+	const char *name;
+	int value;
 } NV_t;
 
-static const NV_t	family[] =
-{
+static const NV_t family[] =
+    {
 #ifdef AF_LOCAL
-	"pipe",		AF_LOCAL,
+        "pipe", AF_LOCAL,
 #endif
 #ifdef AF_UNIX
-	"pipe",		AF_UNIX,
+        "pipe", AF_UNIX,
 #endif
 #ifdef AF_FILE
-	"FILE",		AF_FILE,
+        "FILE", AF_FILE,
 #endif
 #ifdef AF_INET
-	"INET",		AF_INET,
+        "INET", AF_INET,
 #endif
 #ifdef AF_AX25
-	"AX25",		AF_AX25,
+        "AX25", AF_AX25,
 #endif
 #ifdef AF_IPX
-	"IPX",		AF_IPX,
+        "IPX", AF_IPX,
 #endif
 #ifdef AF_APPLETALK
-	"APPLETALK",	AF_APPLETALK,
+        "APPLETALK", AF_APPLETALK,
 #endif
 #ifdef AF_NETROM
-	"NETROM",	AF_NETROM,
+        "NETROM", AF_NETROM,
 #endif
 #ifdef AF_BRIDGE
-	"BRIDGE",	AF_BRIDGE,
+        "BRIDGE", AF_BRIDGE,
 #endif
 #ifdef AF_ATMPVC
-	"ATMPVC",	AF_ATMPVC,
+        "ATMPVC", AF_ATMPVC,
 #endif
 #ifdef AF_X25
-	"X25",		AF_X25,
+        "X25", AF_X25,
 #endif
 #ifdef AF_INET6
-	"INET6",	AF_INET6,
+        "INET6", AF_INET6,
 #endif
 #ifdef AF_ROSE
-	"ROSE",		AF_ROSE,
+        "ROSE", AF_ROSE,
 #endif
 #ifdef AF_DECnet
-	"DECnet",	AF_DECnet,
+        "DECnet", AF_DECnet,
 #endif
 #ifdef AF_NETBEUI
-	"NETBEUI",	AF_NETBEUI,
+        "NETBEUI", AF_NETBEUI,
 #endif
 #ifdef AF_SECURITY
-	"SECURITY",	AF_SECURITY,
+        "SECURITY", AF_SECURITY,
 #endif
 #ifdef AF_KEY
-	"KEY",		AF_KEY,
+        "KEY", AF_KEY,
 #endif
 #ifdef AF_NETLINK
-	"NETLINK",	AF_NETLINK,
+        "NETLINK", AF_NETLINK,
 #endif
 #ifdef AF_ROUTE
-	"ROUTE",	AF_ROUTE,
+        "ROUTE", AF_ROUTE,
 #endif
 #ifdef AF_PACKET
-	"PACKET",	AF_PACKET,
+        "PACKET", AF_PACKET,
 #endif
 #ifdef AF_ASH
-	"ASH",		AF_ASH,
+        "ASH", AF_ASH,
 #endif
 #ifdef AF_ECONET
-	"ECONET",	AF_ECONET,
+        "ECONET", AF_ECONET,
 #endif
 #ifdef AF_ATMSVC
-	"ATMSVC",	AF_ATMSVC,
+        "ATMSVC", AF_ATMSVC,
 #endif
 #ifdef AF_SNA
-	"SNA",		AF_SNA,
+        "SNA", AF_SNA,
 #endif
 #ifdef AF_IRDA
-	"IRDA",		AF_IRDA,
+        "IRDA", AF_IRDA,
 #endif
 #ifdef AF_PPPOX
-	"PPPOX",	AF_PPPOX,
+        "PPPOX", AF_PPPOX,
 #endif
 #ifdef AF_WANPIPE
-	"WANPIPE",	AF_WANPIPE,
+        "WANPIPE", AF_WANPIPE,
 #endif
 #ifdef AF_BLUETOOTH
-	"BLUETOOTH",	AF_BLUETOOTH,
+        "BLUETOOTH", AF_BLUETOOTH,
 #endif
-	0
-};
+        0};
 
 #endif
 
-int
-b_fds(int argc, char** argv, Shbltin_t* context)
+int b_fds(int argc, char **argv, Shbltin_t *context)
 {
-	char*			s;
-	int			i;
-	char*			m;
-	char*			x;
-	int			flags;
-	int			details;
-	int			open_max;
-	int			unit;
-	Sfio_t*			sp;
-	struct stat		st;
+	char *s;
+	int i;
+	char *m;
+	char *x;
+	int flags;
+	int details;
+	int open_max;
+	int unit;
+	Sfio_t *sp;
+	struct stat st;
 #ifdef S_IFSOCK
-	struct sockaddr_in	addr;
-	char*			a;
-	unsigned char*		b;
-	unsigned char*		e;
-	socklen_t		addrlen;
-	socklen_t		len;
-	int			type;
-	int			port;
-	int			prot;
-	char			num[64];
-	char			fam[64];
+	struct sockaddr_in addr;
+	char *a;
+	unsigned char *b;
+	unsigned char *e;
+	socklen_t addrlen;
+	socklen_t len;
+	int type;
+	int port;
+	int prot;
+	char num[64];
+	char fam[64];
 #ifdef INET6_ADDRSTRLEN
-	char			nam[256];
+	char nam[256];
 #endif
 #endif
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	details = 0;
 	unit = 1;
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'l':
-			details = opt_info.num;
-			continue;
-		case 'u':
-			unit = opt_info.num;
-			continue;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
+			case 'l':
+				details = opt_info.num;
+				continue;
+			case 'u':
+				unit = opt_info.num;
+				continue;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || *argv)
+	if(error_info.errors || *argv)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if ((open_max = (int)astconf_long(CONF_OPEN_MAX)) <= 0)
+	if((open_max = (int)astconf_long(CONF_OPEN_MAX)) <= 0)
 	{
 #if defined(OPEN_MAX)
 		open_max = OPEN_MAX;
@@ -220,45 +217,45 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 		open_max = FOPEN_MAX;
 #endif
 	}
-	if (unit == 1)
+	if(unit == 1)
 		sp = sfstdout;
-	else if (fstat(unit, &st) || !(sp = sfnew(NULL, NULL, SFIO_UNBOUND, unit, SFIO_WRITE)))
+	else if(fstat(unit, &st) || !(sp = sfnew(NULL, NULL, SFIO_UNBOUND, unit, SFIO_WRITE)))
 	{
-		error(ERROR_SYSTEM|3, "%d: cannot write to file descriptor");
+		error(ERROR_SYSTEM | 3, "%d: cannot write to file descriptor");
 		UNREACHABLE();
 	}
-	for (i = 0; i <= open_max; i++)
+	for(i = 0; i <= open_max; i++)
 	{
-		if (fstat(i, &st))
+		if(fstat(i, &st))
 		{
 			/* not open */
 			continue;
 		}
-		if (!details)
+		if(!details)
 		{
 			sfprintf(sp, "%d\n", i);
 			continue;
 		}
-		if ((flags = fcntl(i, F_GETFL, NULL)) == -1)
+		if((flags = fcntl(i, F_GETFL, NULL)) == -1)
 			m = "--";
 		else
-			switch (flags & (O_RDONLY|O_WRONLY|O_RDWR))
+			switch(flags & (O_RDONLY | O_WRONLY | O_RDWR))
 			{
-			case O_RDONLY:
-				m = "r-";
-				break;
-			case O_WRONLY:
-				m = "-w";
-				break;
-			case O_RDWR:
-				m = "rw";
-				break;
-			default:
-				m = "??";
-				break;
+				case O_RDONLY:
+					m = "r-";
+					break;
+				case O_WRONLY:
+					m = "-w";
+					break;
+				case O_RDWR:
+					m = "rw";
+					break;
+				default:
+					m = "??";
+					break;
 			}
 		x = (fcntl(i, F_GETFD, NULL) > 0) ? "x" : "-";
-		if (isatty(i) && (s = ttyname(i)))
+		if(isatty(i) && (s = ttyname(i)))
 		{
 			sfprintf(sp, "%02d %s%s %s %s\n", i, m, x, fmtmode(st.st_mode, 0), s);
 			continue;
@@ -266,81 +263,82 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 #ifdef S_IFSOCK
 		addrlen = sizeof(addr);
 		memset(&addr, 0, addrlen);
-		if (!getsockname(i, (struct sockaddr*)&addr, &addrlen))
+		if(!getsockname(i, (struct sockaddr *)&addr, &addrlen))
 		{
 			type = 0;
 			prot = 0;
 #ifdef SO_TYPE
 			len = sizeof(type);
-			if (getsockopt(i, SOL_SOCKET, SO_TYPE, &type, &len))
+			if(getsockopt(i, SOL_SOCKET, SO_TYPE, &type, &len))
 				type = -1;
 #endif
 #ifdef SO_PROTOTYPE
 			len = sizeof(prot);
-			if (getsockopt(i, SOL_SOCKET, SO_PROTOTYPE, &prot, &len))
+			if(getsockopt(i, SOL_SOCKET, SO_PROTOTYPE, &prot, &len))
 				prot = -1;
 #endif
-			if (!st.st_mode)
-				st.st_mode = S_IFSOCK|S_IRUSR|S_IWUSR;
+			if(!st.st_mode)
+				st.st_mode = S_IFSOCK | S_IRUSR | S_IWUSR;
 			s = 0;
-			switch (type)
+			switch(type)
 			{
-			case SOCK_DGRAM:
-				switch (addr.sin_family)
-				{
-				case AF_INET:
+				case SOCK_DGRAM:
+					switch(addr.sin_family)
+					{
+						case AF_INET:
 #ifdef AF_INET6
-				case AF_INET6:
+						case AF_INET6:
 #endif
-					s = "udp";
+							s = "udp";
+							break;
+					}
 					break;
-				}
-				break;
-			case SOCK_STREAM:
-				switch (addr.sin_family)
-				{
-				case AF_INET:
+				case SOCK_STREAM:
+					switch(addr.sin_family)
+					{
+						case AF_INET:
 #ifdef AF_INET6
-				case AF_INET6:
+						case AF_INET6:
 #endif
 #ifdef IPPROTO_SCTP
-					if (prot == IPPROTO_SCTP)
-						s = "sctp";
-					else
+							if(prot == IPPROTO_SCTP)
+								s = "sctp";
+							else
 #endif
-						s = "tcp";
+								s = "tcp";
+							break;
+					}
 					break;
-				}
-				break;
 #ifdef SOCK_RAW
-			case SOCK_RAW:
-				s = "raw";
-				break;
+				case SOCK_RAW:
+					s = "raw";
+					break;
 #endif
 #ifdef SOCK_RDM
-			case SOCK_RDM:
-				s = "rdm";
-				break;
+				case SOCK_RDM:
+					s = "rdm";
+					break;
 #endif
 #ifdef SOCK_SEQPACKET
-			case SOCK_SEQPACKET:
-				s = "seqpacket";
-				break;
+				case SOCK_SEQPACKET:
+					s = "seqpacket";
+					break;
 #endif
 			}
-			if (!s)
+			if(!s)
 			{
-				for (type = 0; family[type].name && family[type].value != addr.sin_family; type++);
-				if (!(s = (char*)family[type].name))
+				for(type = 0; family[type].name && family[type].value != addr.sin_family; type++)
+					;
+				if(!(s = (char *)family[type].name))
 					sfsprintf(s = num, sizeof(num), "family.%d", addr.sin_family);
 			}
 			port = 0;
 #ifdef INET6_ADDRSTRLEN
-			if (a = (char*)inet_ntop(addr.sin_family, &addr.sin_addr, nam, sizeof(nam)))
+			if(a = (char *)inet_ntop(addr.sin_family, &addr.sin_addr, nam, sizeof(nam)))
 				port = ntohs(addr.sin_port);
 			else
 #endif
-			if (addr.sin_family == AF_INET)
+			    if(addr.sin_family == AF_INET)
 			{
 				a = inet_ntoa(addr.sin_addr);
 				port = ntohs(addr.sin_port);
@@ -348,12 +346,12 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 			else
 			{
 				a = fam;
-				e = (b = (unsigned char*)&addr) + addrlen;
-				while (b < e && a < &fam[sizeof(fam)-1])
+				e = (b = (unsigned char *)&addr) + addrlen;
+				while(b < e && a < &fam[sizeof(fam) - 1])
 					a += sfsprintf(a, &fam[sizeof(fam)] - a - 1, ".%d", *b++);
 				a = a == fam ? "0" : fam + 1;
 			}
-			if (port)
+			if(port)
 				sfprintf(sp, "%02d %s%s %s /dev/%s/%s/%d\n", i, m, x, fmtmode(st.st_mode, 0), s, a, port);
 			else
 				sfprintf(sp, "%02d %s%s %s /dev/%s/%s\n", i, m, x, fmtmode(st.st_mode, 0), s, a);
@@ -362,7 +360,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 #endif
 		sfprintf(sp, "%02d %s%s %s /dev/inode/%u/%u\n", i, m, x, fmtmode(st.st_mode, 0), st.st_dev, st.st_ino);
 	}
-	if (sp != sfstdout)
+	if(sp != sfstdout)
 	{
 		sfsetfd(sp, -1);
 		sfclose(sp);

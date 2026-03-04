@@ -30,7 +30,6 @@
  * <K.Fleischer@omnium.de>
  */
 
-
 #include "shopt.h"
 #include "defs.h"
 #include "edit.h"
@@ -38,16 +37,23 @@
 #if SHOPT_HISTEXPAND
 
 static char *modifiers = "htrepqxs&";
-static int mod_flags[] = { 0, 0, 0, 0, HIST_PRINT, HIST_QUOTE, HIST_QUOTE|HIST_QUOTE_BR, 0, 0 };
+static int mod_flags[] = {0, 0, 0, 0, HIST_PRINT, HIST_QUOTE, HIST_QUOTE | HIST_QUOTE_BR, 0, 0};
 
-#define DONE		{ stkseek(sh.stk,0); goto done; }
-#define ERROROUT	{ flag |= HIST_ERROR; DONE; }
+#define DONE                        \
+	{                           \
+		stkseek(sh.stk, 0); \
+		goto done;          \
+	}
+#define ERROROUT                    \
+	{                           \
+		flag |= HIST_ERROR; \
+		DONE;               \
+	}
 
 struct subst
 {
-	char *str[2];	/* [0] is "old", [1] is "new" string */
+	char *str[2]; /* [0] is "old", [1] is "new" string */
 };
-
 
 /*
  * parse an /old/new/ string, delimiter expected as first char.
@@ -61,8 +67,8 @@ struct subst
 
 static char *parse_subst(const char *s, struct subst *sb)
 {
-	char	*cp,del;
-	int	off,n = 0;
+	char *cp, del;
+	int off, n = 0;
 
 	/* build the strings on the stack, mainly for '&' substitution in "new" */
 	off = stktell(sh.stk);
@@ -75,7 +81,7 @@ static char *parse_subst(const char *s, struct subst *sb)
 	/* get delimiter */
 	del = *s;
 
-	cp = (char*) s + 1;
+	cp = (char *)s + 1;
 
 	while(n < 2)
 	{
@@ -85,11 +91,11 @@ static char *parse_subst(const char *s, struct subst *sb)
 			if(stktell(sh.stk) != off)
 			{
 				/* dupe string on stack and rewind stack */
-				stkputc(sh.stk,'\0');
+				stkputc(sh.stk, '\0');
 				if(sb->str[n])
 					free(sb->str[n]);
-				sb->str[n] = sh_strdup(stkptr(sh.stk,off));
-				stkseek(sh.stk,off);
+				sb->str[n] = sh_strdup(stkptr(sh.stk, off));
+				stkseek(sh.stk, off);
 			}
 			n++;
 
@@ -99,29 +105,29 @@ static char *parse_subst(const char *s, struct subst *sb)
 		}
 		else if(*cp == '\\')
 		{
-			if(*(cp+1) == del)	/* quote delimiter */
+			if(*(cp + 1) == del) /* quote delimiter */
 			{
-				stkputc(sh.stk,del);
+				stkputc(sh.stk, del);
 				cp++;
 			}
-			else if(*(cp+1) == '&' && n == 1)
-			{		/* quote '&' only in "new" */
-				stkputc(sh.stk,'&');
+			else if(*(cp + 1) == '&' && n == 1)
+			{ /* quote '&' only in "new" */
+				stkputc(sh.stk, '&');
 				cp++;
 			}
 			else
-				stkputc(sh.stk,'\\');
+				stkputc(sh.stk, '\\');
 		}
 		else if(*cp == '&' && n == 1 && sb->str[0])
 			/* substitute '&' with "old" in "new" */
-			stkputs(sh.stk,sb->str[0],-1);
+			stkputs(sh.stk, sb->str[0], -1);
 		else
-			stkputc(sh.stk,*cp);
+			stkputc(sh.stk, *cp);
 		cp++;
 	}
 
 	/* rewind stack */
-	stkseek(sh.stk,off);
+	stkseek(sh.stk, off);
 
 	return cp;
 }
@@ -138,8 +144,8 @@ void hist_setchars(char *hc)
 	hc[0] = '!';
 	hc[1] = '^';
 	hc[2] = '#';
-	if((np = nv_open("histchars",sh.var_tree,NV_NOADD)) && (cp = nv_getval(np)))
-		for(i=0; i<3 && cp[i]; i++)
+	if((np = nv_open("histchars", sh.var_tree, NV_NOADD)) && (cp = nv_getval(np)))
+		for(i = 0; i < 3 && cp[i]; i++)
 			hc[i] = cp[i];
 }
 
@@ -149,27 +155,27 @@ void hist_setchars(char *hc)
 
 int hist_expand(const char *ln, char **xp)
 {
-	int	off,	/* stack offset */
-		q,	/* quotation flags */
-		p,	/* flag */
-		c,	/* current char */
-		flag=0;	/* HIST_* flags */
-	Sfoff_t	n,	/* history line number, counter, etc. */
-		i,	/* counter */
-		w[2];	/* word range */
-	char	*sp,	/* stack pointer */
-		*cp,	/* current char in ln */
-		*str,	/* search string */
-		*evp,	/* event/word designator string, for error msgs */
-		*cc=0,	/* copy of current line up to cp */
-		hc[3],	/* default histchars */
-		*qc="\'\"`";	/* quote characters */
-	Sfio_t	*ref=0,	/* line referenced by event designator */
-		*tmp=0,	/* temporary line buffer */
-		*tmp2=0;/* temporary line buffer */
-	Histloc_t hl;	/* history location */
-	static struct subst	sb = {0,0};	/* substitution strings */
-	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
+	int off,                         /* stack offset */
+	    q,                           /* quotation flags */
+	    p,                           /* flag */
+	    c,                           /* current char */
+	    flag = 0;                    /* HIST_* flags */
+	Sfoff_t n,                       /* history line number, counter, etc. */
+	    i,                           /* counter */
+	    w[2];                        /* word range */
+	char *sp,                        /* stack pointer */
+	    *cp,                         /* current char in ln */
+	    *str,                        /* search string */
+	    *evp,                        /* event/word designator string, for error msgs */
+	        *cc = 0,                 /* copy of current line up to cp */
+	    hc[3],                       /* default histchars */
+	        *qc = "\'\"`";           /* quote characters */
+	Sfio_t *ref = 0,                 /* line referenced by event designator */
+	    *tmp = 0,                    /* temporary line buffer */
+	        *tmp2 = 0;               /* temporary line buffer */
+	Histloc_t hl;                    /* history location */
+	static struct subst sb = {0, 0}; /* substitution strings */
+	static Sfio_t *wm = 0;           /* word match from !?string? event designator */
 
 	if(!wm)
 		wm = sfopen(NULL, NULL, "swr");
@@ -178,25 +184,24 @@ int hist_expand(const char *ln, char **xp)
 
 	/* save shell stack */
 	if(off = stktell(sh.stk))
-		sp = stkfreeze(sh.stk,0);
+		sp = stkfreeze(sh.stk, 0);
 
-	cp = (char*)ln;
+	cp = (char *)ln;
 
 	while(cp && *cp)
 	{
 		/* read until event/quick substitution/comment designator */
-		if((*cp != hc[0] && *cp != hc[1] && *cp != hc[2])
-		   || (*cp == hc[1] && cp != ln))
+		if((*cp != hc[0] && *cp != hc[1] && *cp != hc[2]) || (*cp == hc[1] && cp != ln))
 		{
-			if(*cp == '\\' || (cp > ln && cp[-1]=='$' && *cp == '{')) /* skip escaped designators */
-				stkputc(sh.stk,*cp++);
+			if(*cp == '\\' || (cp > ln && cp[-1] == '$' && *cp == '{')) /* skip escaped designators */
+				stkputc(sh.stk, *cp++);
 			else if(*cp == '\'') /* skip quoted designators */
 			{
 				do
-					stkputc(sh.stk,*cp);
+					stkputc(sh.stk, *cp);
 				while(*++cp && *cp != '\'');
 			}
-			stkputc(sh.stk,*cp++);
+			stkputc(sh.stk, *cp++);
 			continue;
 		}
 
@@ -205,10 +210,10 @@ int hist_expand(const char *ln, char **xp)
 			if(cp == ln || hist_iswordbndry(cp[-1]))
 			{
 				/* word begins with history comment character; skip rest of line */
-				stkputs(sh.stk,cp,0);
+				stkputs(sh.stk, cp, 0);
 				DONE;
 			}
-			stkputc(sh.stk,*cp++);
+			stkputc(sh.stk, *cp++);
 			continue;
 		}
 
@@ -224,92 +229,89 @@ int hist_expand(const char *ln, char **xp)
 			goto getline;
 		}
 
-		if(*cp == hc[0] && *(cp+1) == hc[0]) /* refer to line -1 */
+		if(*cp == hc[0] && *(cp + 1) == hc[0]) /* refer to line -1 */
 		{
 			cp += 2;
 			goto getline;
 		}
 
-		switch(c = *++cp) {
-		case ' ':
-		case '\t':
-		case '\n':
-		case '\0':
-		case '=':
-		case '(':
-			stkputc(sh.stk,hc[0]);
-			continue;
-		case '#': /* the line up to current position */
-			flag |= HIST_HASH;
-			cp++;
-			n = stktell(sh.stk); /* terminate string and dup */
-			stkputc(sh.stk,'\0');
-			cc = sh_strdup(stkptr(sh.stk,0));
-			stkseek(sh.stk,n); /* remove null byte again */
-			ref = sfopen(ref, cc, "s"); /* open as file */
-			n = 0; /* skip history file referencing */
-			break;
-		case '-': /* back reference by number */
-			if(!isdigit(*(cp+1)))
-				goto string_event;
-			cp++;
-			/* FALLTHROUGH */
-		case '0': /* reference by number */
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			n = 0;
-			while(isdigit(*cp))
-				n = n * 10 + (*cp++) - '0';
-			if(c == '-')
-				n = -n;
-			break;
-		case '$':
-			n = -1;
-		case ':':
-			break;
-		case '?':
-			cp++;
-			flag |= HIST_QUESTION;
-			/* FALLTHROUGH */
-		string_event:
-		default:
-			/* read until end of string or word designator/modifier */
-			str = cp;
-			while(*cp)
-			{
+		switch(c = *++cp)
+		{
+			case ' ':
+			case '\t':
+			case '\n':
+			case '\0':
+			case '=':
+			case '(':
+				stkputc(sh.stk, hc[0]);
+				continue;
+			case '#': /* the line up to current position */
+				flag |= HIST_HASH;
 				cp++;
-				if((!(flag&HIST_QUESTION) &&
-				   (*cp == ':' || isspace(*cp)
-				    || *cp == '^' || *cp == '$'
-				    || *cp == '*' || *cp == '-'
-				    || *cp == '%')
-				   )
-				   || ((flag&HIST_QUESTION) && (*cp == '?' || *cp == '\n')))
+				n = stktell(sh.stk); /* terminate string and dup */
+				stkputc(sh.stk, '\0');
+				cc = sh_strdup(stkptr(sh.stk, 0));
+				stkseek(sh.stk, n);         /* remove null byte again */
+				ref = sfopen(ref, cc, "s"); /* open as file */
+				n = 0;                      /* skip history file referencing */
+				break;
+			case '-': /* back reference by number */
+				if(!isdigit(*(cp + 1)))
+					goto string_event;
+				cp++;
+				/* FALLTHROUGH */
+			case '0': /* reference by number */
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				n = 0;
+				while(isdigit(*cp))
+					n = n * 10 + (*cp++) - '0';
+				if(c == '-')
+					n = -n;
+				break;
+			case '$':
+				n = -1;
+			case ':':
+				break;
+			case '?':
+				cp++;
+				flag |= HIST_QUESTION;
+				/* FALLTHROUGH */
+			string_event:
+			default:
+				/* read until end of string or word designator/modifier */
+				str = cp;
+				while(*cp)
 				{
-					c = *cp;
-					*cp = '\0';
+					cp++;
+					if((!(flag & HIST_QUESTION) &&
+					    (*cp == ':' || isspace(*cp) || *cp == '^' || *cp == '$' || *cp == '*' || *cp == '-' || *cp == '%')) ||
+					   ((flag & HIST_QUESTION) && (*cp == '?' || *cp == '\n')))
+					{
+						c = *cp;
+						*cp = '\0';
+					}
 				}
-			}
-			break;
+				break;
 		}
 
-getline:
+	getline:
 		flag |= HIST_EVENT;
-		if(str)	/* !string or !?string? event designator */
+		if(str) /* !string or !?string? event designator */
 		{
 			/* search history for string */
 			hl = hist_find(sh.hist_ptr, str,
-				       sh.hist_ptr->histind,
-				       flag&HIST_QUESTION, -1);
+			               sh.hist_ptr->histind,
+			               flag & HIST_QUESTION, -1);
 			if((n = hl.hist_command) == -1)
-				n = 0;	/* not found */
+				n = 0; /* not found */
 		}
 		if(n)
 		{
@@ -318,7 +320,6 @@ getline:
 			/* search and use history file if found */
 			if(n > 0 && hist_seek(sh.hist_ptr, n) != -1)
 				ref = sh.hist_ptr->histfp;
-
 		}
 		if(!ref)
 		{
@@ -332,7 +333,7 @@ getline:
 
 		if(str) /* string search: restore orig. line */
 		{
-			if(flag&HIST_QUESTION)
+			if(flag & HIST_QUESTION)
 				*cp++ = c; /* skip second question mark */
 			else
 				*cp = c;
@@ -342,7 +343,7 @@ getline:
 		if(*(evp = cp) == ':')
 			cp++;
 
-		w[0] = 0; /* -1 means last word, -2 means match from !?string? */
+		w[0] = 0;  /* -1 means last word, -2 means match from !?string? */
 		w[1] = -1; /* -1 means last word, -2 means suppress last word */
 
 		if(flag & HIST_QUICKSUBST) /* shortcut substitution */
@@ -351,78 +352,79 @@ getline:
 		n = 0;
 		while(n < 2)
 		{
-			switch(c = *cp++) {
-			case '^': /* first word */
-				if(n == 0)
-				{
-					w[0] = w[1] = 1;
-					goto skip;
-				}
-				else
-					goto skip2;
-			case '$': /* last word */
-				w[n] = -1;
-				goto skip;
-			case '%': /* match from !?string? event designator */
-				if(n == 0)
-				{
-					if(!str)
+			switch(c = *cp++)
+			{
+				case '^': /* first word */
+					if(n == 0)
 					{
-						w[0] = 0;
-						w[1] = -1;
-						ref = wm;
+						w[0] = w[1] = 1;
+						goto skip;
 					}
 					else
-					{
-						w[0] = -2;
-						w[1] = sftell(ref) + hl.hist_char;
-					}
-					sfseek(wm, 0, SEEK_SET);
+						goto skip2;
+				case '$': /* last word */
+					w[n] = -1;
 					goto skip;
-				}
-				/* FALLTHROUGH */
-			default:
-			skip2:
-				cp--;
-				n = 2;
-				break;
-			case '*': /* until last word */
-				if(n == 0)
-					w[0] = 1;
-				w[1] = -1;
-			skip:
-				flag |= HIST_WORDDSGN;
-				n = 2;
-				break;
-			case '-': /* until last word or specified index */
-				w[1] = -2;
-				flag |= HIST_WORDDSGN;
-				n = 1;
-				break;
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9': /* specify index */
-				if((*evp == ':') || w[1] == -2)
-				{
-					w[n] = c - '0';
-					while(isdigit(c=*cp++))
-						w[n] = w[n] * 10 + c - '0';
-					flag |= HIST_WORDDSGN;
+				case '%': /* match from !?string? event designator */
 					if(n == 0)
-						w[1] = w[0];
-					n++;
-				}
-				else
+					{
+						if(!str)
+						{
+							w[0] = 0;
+							w[1] = -1;
+							ref = wm;
+						}
+						else
+						{
+							w[0] = -2;
+							w[1] = sftell(ref) + hl.hist_char;
+						}
+						sfseek(wm, 0, SEEK_SET);
+						goto skip;
+					}
+					/* FALLTHROUGH */
+				default:
+				skip2:
+					cp--;
 					n = 2;
-				cp--;
-				break;
+					break;
+				case '*': /* until last word */
+					if(n == 0)
+						w[0] = 1;
+					w[1] = -1;
+				skip:
+					flag |= HIST_WORDDSGN;
+					n = 2;
+					break;
+				case '-': /* until last word or specified index */
+					w[1] = -2;
+					flag |= HIST_WORDDSGN;
+					n = 1;
+					break;
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9': /* specify index */
+					if((*evp == ':') || w[1] == -2)
+					{
+						w[n] = c - '0';
+						while(isdigit(c = *cp++))
+							w[n] = w[n] * 10 + c - '0';
+						flag |= HIST_WORDDSGN;
+						if(n == 0)
+							w[1] = w[0];
+						n++;
+					}
+					else
+						n = 2;
+					cp--;
+					break;
 			}
 		}
 
@@ -439,7 +441,7 @@ getline:
 		if(!(flag & HIST_WORDDSGN) && (*evp == ':'))
 			cp = evp;
 
-getsel:
+	getsel:
 		/* open temp buffer, let sfio do the (re)allocation */
 		tmp = sfopen(NULL, NULL, "swr");
 
@@ -473,13 +475,12 @@ getsel:
 
 			do
 			{
-				char	*tempcp;
+				char *tempcp;
 				tempcp = strchr(qc, c);
-				q ^= tempcp ? 1<<(int)(tempcp - qc) : 0;
+				q ^= tempcp ? 1 << (int)(tempcp - qc) : 0;
 				if(p)
 					sfputc(tmp, c);
-			}
-			while((c = sfgetc(ref)) > 0  && (!isspace(c) || q));
+			} while((c = sfgetc(ref)) > 0 && (!isspace(c) || q));
 
 			if(w[0] == -2 && sftell(ref) > w[1])
 				break;
@@ -495,7 +496,7 @@ getsel:
 			*cp = c;
 			ERROROUT;
 		}
-		else if(w[1] == -2)	/* skip last word */
+		else if(w[1] == -2) /* skip last word */
 			sfseek(tmp, i, SEEK_SET);
 
 		/* remove trailing newline */
@@ -515,7 +516,7 @@ getsel:
 			wm = tmp;
 		}
 
-		if(cc && (flag&HIST_HASH))
+		if(cc && (flag & HIST_HASH))
 		{
 			/* close !# temp file */
 			sfclose(ref);
@@ -529,7 +530,7 @@ getsel:
 		/* selected line/words are now in buffer, now go for the modifiers */
 		while(*cp == ':' || (flag & HIST_QUICKSUBST))
 		{
-			char	*tempcp;
+			char *tempcp;
 			if(flag & HIST_QUICKSUBST)
 			{
 				flag &= ~HIST_QUICKSUBST;
@@ -560,13 +561,13 @@ getsel:
 			{
 				n = -1;
 				while((c = sfgetc(tmp)) > 0)
-				{	/* remember position of / or . */
+				{ /* remember position of / or . */
 					if((c == '/' && *cp == 'h') || (c == '.' && *cp == 'r'))
 						n = sftell(tmp2);
 					sfputc(tmp2, c);
 				}
 				if(n > 0)
-				{	 /* rewind to last / or . */
+				{ /* rewind to last / or . */
 					sfseek(tmp2, n, SEEK_SET);
 					/* end string there */
 					sfputc(tmp2, '\0');
@@ -576,7 +577,7 @@ getsel:
 			{
 				n = 0;
 				while((c = sfgetc(tmp)) > 0)
-				{	/* remember position of / or . */
+				{ /* remember position of / or . */
 					if((c == '/' && *cp == 't') || (c == '.' && *cp == 'e'))
 						n = sftell(tmp);
 				}
@@ -595,7 +596,7 @@ getsel:
 					/* preset old with match from !?string? */
 					if(!sb.str[0] && wm)
 					{
-						char *sbuf = sfsetbuf(wm, (void*)1, 0);
+						char *sbuf = sfsetbuf(wm, (void *)1, 0);
 						int n = sftell(wm);
 						sb.str[0] = sh_malloc(n + 1);
 						sb.str[0][n] = '\0';
@@ -609,22 +610,22 @@ getsel:
 					c = *cp;
 					*cp = '\0';
 					errormsg(SH_DICT, ERROR_ERROR,
-						 "%s%s: no previous substitution",
-						(flag & HIST_QUICKSUBST) ? ":s" : "",
-						evp);
+					         "%s%s: no previous substitution",
+					         (flag & HIST_QUICKSUBST) ? ":s" : "",
+					         evp);
 					*cp = c;
 					ERROROUT;
 				}
 
 				/* need pointer for strstr() */
-				str = sfsetbuf(tmp, (void*)1, 0);
+				str = sfsetbuf(tmp, (void *)1, 0);
 
 				flag |= HIST_SUBSTITUTE;
 				while(flag & HIST_SUBSTITUTE)
 				{
 					/* find string */
 					if(tempcp = strstr(str, sb.str[0]))
-					{	/* replace it */
+					{ /* replace it */
 						c = *tempcp;
 						*tempcp = '\0';
 						sfputr(tmp2, str, -1);
@@ -633,13 +634,13 @@ getsel:
 						str = tempcp + strlen(sb.str[0]);
 					}
 					else if(!sftell(tmp2))
-					{	/* not successful */
+					{ /* not successful */
 						c = *cp;
 						*cp = '\0';
 						errormsg(SH_DICT, ERROR_ERROR,
-							 "%s%s: substitution failed",
-							(flag & HIST_QUICKSUBST) ? ":s" : "",
-							evp);
+						         "%s%s: substitution failed",
+						         (flag & HIST_QUICKSUBST) ? ":s" : "",
+						         evp);
 						*cp = c;
 						ERROROUT;
 					}
@@ -672,7 +673,7 @@ getsel:
 			sfseek(tmp, 0, SEEK_SET);
 
 			if(flag & HIST_QUOTE)
-				stkputc(sh.stk,'\'');
+				stkputc(sh.stk, '\'');
 
 			while((c = sfgetc(tmp)) > 0)
 			{
@@ -691,24 +692,24 @@ getsel:
 					c = (flag & HIST_NEWLINE) ? '\n' : ' ';
 
 					if(flag & HIST_QUOTE_BR)
-						stkprintf(sh.stk,"'%c'",c);
+						stkprintf(sh.stk, "'%c'", c);
 					else
-						stkputc(sh.stk,c);
+						stkputc(sh.stk, c);
 				}
 				else if((c == '\'') && (flag & HIST_QUOTE))
-					stkprintf(sh.stk,"'\\%c'",c);
+					stkprintf(sh.stk, "'\\%c'", c);
 				else
-					stkputc(sh.stk,c);
+					stkputc(sh.stk, c);
 			}
 			if(flag & HIST_QUOTE)
-				stkputc(sh.stk,'\'');
+				stkputc(sh.stk, '\'');
 		}
 	}
 
-	stkputc(sh.stk,'\0');
+	stkputc(sh.stk, '\0');
 
 done:
-	if(cc && (flag&HIST_HASH))
+	if(cc && (flag & HIST_HASH))
 	{
 		/* close !# temp file */
 		sfclose(ref);
@@ -719,7 +720,7 @@ done:
 	/* error? */
 	if(stktell(sh.stk) && !(flag & HIST_ERROR))
 	{
-		sfputr(sh.strbuf, stkfreeze(sh.stk,1), -1);
+		sfputr(sh.strbuf, stkfreeze(sh.stk, 1), -1);
 		*xp = sfstruse(sh.strbuf);
 	}
 	else
@@ -727,9 +728,9 @@ done:
 
 	/* restore shell stack */
 	if(off)
-		stkset(sh.stk,sp,off);
+		stkset(sh.stk, sp, off);
 	else
-		stkseek(sh.stk,0);
+		stkseek(sh.stk, 0);
 
 	/* drop temporary files */
 

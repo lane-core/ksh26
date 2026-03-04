@@ -33,43 +33,44 @@
  * time zone and leap seconds accounted for in return value
  */
 
-Tm_t*
-tmxtm(Tm_t* tm, Time_t t, Tm_zone_t* zone, const char newzone)
+Tm_t *
+tmxtm(Tm_t *tm, Time_t t, Tm_zone_t *zone, const char newzone)
 {
-	struct tm*		tp;
-	Tm_leap_t*		lp;
-	Time_t			x;
-	time_t			now;
-	int			leapsec;
-	int			y;
-	uint32_t		n;
-	int32_t			o;
+	struct tm *tp;
+	Tm_leap_t *lp;
+	Time_t x;
+	time_t now;
+	int leapsec;
+	int y;
+	uint32_t n;
+	int32_t o;
 #if TMX_FLOAT
-	Time_t			z;
-	uint32_t		i;
+	Time_t z;
+	uint32_t i;
 #endif
 
 	tmset(tm_info.zone, tmxsec(t), newzone);
 	leapsec = 0;
-	if ((tm_info.flags & (TM_ADJUST|TM_LEAP)) == (TM_ADJUST|TM_LEAP) && (n = tmxsec(t)))
+	if((tm_info.flags & (TM_ADJUST | TM_LEAP)) == (TM_ADJUST | TM_LEAP) && (n = tmxsec(t)))
 	{
-		for (lp = &tm_data.leap[0]; n < lp->time; lp++);
-		if (lp->total)
+		for(lp = &tm_data.leap[0]; n < lp->time; lp++)
+			;
+		if(lp->total)
 		{
-			if (n == lp->time && (leapsec = (lp->total - (lp+1)->total)) < 0)
+			if(n == lp->time && (leapsec = (lp->total - (lp + 1)->total)) < 0)
 				leapsec = 0;
 			t = tmxsns(n - lp->total, tmxnsec(t));
 		}
 	}
 	x = tmxsec(t);
-	if (!(tm->tm_zone = zone))
+	if(!(tm->tm_zone = zone))
 	{
-		if (tm_info.flags & TM_UTC)
+		if(tm_info.flags & TM_UTC)
 			tm->tm_zone = &tm_data.zone[2];
 		else
 			tm->tm_zone = tm_info.zone;
 	}
-	if ((o = 60 * tm->tm_zone->west) && x > o)
+	if((o = 60 * tm->tm_zone->west) && x > o)
 	{
 		x -= o;
 		o = 0;
@@ -83,7 +84,7 @@ tmxtm(Tm_t* tm, Time_t t, Tm_zone_t* zone, const char newzone)
 	tm->tm_min = n % 60;
 	n /= 60;
 	tm->tm_hour = n % 24;
-#define x	i
+#define x i
 #else
 	tm->tm_sec = x % 60 + leapsec;
 	x /= 60;
@@ -102,19 +103,19 @@ tmxtm(Tm_t* tm, Time_t t, Tm_zone_t* zone, const char newzone)
 	tmfix(tm);
 	n += 1900;
 	tm->tm_isdst = 0;
-	if (tm->tm_zone->daylight)
+	if(tm->tm_zone->daylight)
 	{
-		if ((y = tmequiv(tm) - 1900) == tm->tm_year)
+		if((y = tmequiv(tm) - 1900) == tm->tm_year)
 			now = tmxsec(t);
 		else
 		{
-			Tm_t	te;
+			Tm_t te;
 
 			te = *tm;
 			te.tm_year = y;
 			now = tmxsec(tmxtime(&te, tm->tm_zone->west));
 		}
-		if ((tp = tmlocaltime(&now)) && ((tm->tm_isdst = tp->tm_isdst) || o))
+		if((tp = tmlocaltime(&now)) && ((tm->tm_isdst = tp->tm_isdst) || o))
 		{
 			tm->tm_min -= o / 60 + (tm->tm_isdst ? tm->tm_zone->dst : 0);
 			tmfix(tm);
@@ -128,10 +129,10 @@ tmxtm(Tm_t* tm, Time_t t, Tm_zone_t* zone, const char newzone)
  * time zone and leap seconds accounted for in return value
  */
 
-Tm_t*
+Tm_t *
 tmxmake(Time_t t)
 {
-	static Tm_t		ts;
+	static Tm_t ts;
 
 	return tmxtm(&ts, t, NULL, 0);
 }

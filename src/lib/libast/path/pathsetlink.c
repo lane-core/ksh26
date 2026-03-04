@@ -28,8 +28,7 @@
  * the arg order matches link(2)
  */
 
-int
-pathsetlink(const char* buf, const char* name)
+int pathsetlink(const char *buf, const char *name)
 {
 	return symlink(buf, name);
 }

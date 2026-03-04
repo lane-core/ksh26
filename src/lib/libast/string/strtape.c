@@ -27,67 +27,67 @@
 
 #include <ast.h>
 
-char*
-strtape(const char* s, char** e)
+char *
+strtape(const char *s, char **e)
 {
-	int		mtunit = '0';
-	int		mtdensity = 0;
-	char		mtrewind[2];
-	char		mtbehavior[2];
+	int mtunit = '0';
+	int mtdensity = 0;
+	char mtrewind[2];
+	char mtbehavior[2];
 
-	static char	tapefile[sizeof("/dev/Xrmt/123456789")];
+	static char tapefile[sizeof("/dev/Xrmt/123456789")];
 
 	mtrewind[0] = mtrewind[1] = mtbehavior[0] = mtbehavior[1] = 0;
-	for (;;)
+	for(;;)
 	{
-		switch (*s)
+		switch(*s)
 		{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-			mtunit = *s++;
-			continue;
-		case 'b':
-		case 'v':
-			mtbehavior[0] = *s++;
-			continue;
-		case 'l':
-		case 'm':
-		case 'h':
-		case 'u':
-		case 'c':
-			mtdensity = *s++;
-			continue;
-		case 'n':
-			mtrewind[0] = *s++;
-			continue;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+				mtunit = *s++;
+				continue;
+			case 'b':
+			case 'v':
+				mtbehavior[0] = *s++;
+				continue;
+			case 'l':
+			case 'm':
+			case 'h':
+			case 'u':
+			case 'c':
+				mtdensity = *s++;
+				continue;
+			case 'n':
+				mtrewind[0] = *s++;
+				continue;
 		}
 		break;
 	}
-	if (e) *e = (char*)s;
-	if (!access("/dev/rmt/.", F_OK))
+	if(e) *e = (char *)s;
+	if(!access("/dev/rmt/.", F_OK))
 	{
 		/*
 		 * System V
 		 */
 
-		if (!mtdensity) mtdensity = 'm';
+		if(!mtdensity) mtdensity = 'm';
 		snprintf(tapefile, sizeof(tapefile), "/dev/rmt/ctape%c%s", mtunit, mtrewind);
-		if (!access(tapefile, F_OK)) return tapefile;
-		for (;;)
+		if(!access(tapefile, F_OK)) return tapefile;
+		for(;;)
 		{
 			snprintf(tapefile, sizeof(tapefile), "/dev/rmt/%c%c%s%s", mtunit, mtdensity, mtbehavior, mtrewind);
-			if (!access(tapefile, F_OK)) return tapefile;
-			if (!mtbehavior[0]) break;
+			if(!access(tapefile, F_OK)) return tapefile;
+			if(!mtbehavior[0]) break;
 			mtbehavior[0] = 0;
 		}
 	}
-	else if (!access("/dev/nst0", F_OK))
+	else if(!access("/dev/nst0", F_OK))
 	{
 		/*
 		 * Linux
@@ -95,23 +95,23 @@ strtape(const char* s, char** e)
 
 		snprintf(tapefile, sizeof(tapefile), "/dev/%sst%c", mtrewind, mtunit);
 	}
-	else if (!access("/dev/nrmt0", F_OK))
+	else if(!access("/dev/nrmt0", F_OK))
 	{
 		/*
 		 * 9th edition
 		 */
 
-		switch (mtdensity)
+		switch(mtdensity)
 		{
-		case 'l':
-			mtunit = '0';
-			break;
-		case 'm':
-			mtunit = '1';
-			break;
-		case 'h':
-			mtunit = '2';
-			break;
+			case 'l':
+				mtunit = '0';
+				break;
+			case 'm':
+				mtunit = '1';
+				break;
+			case 'h':
+				mtunit = '2';
+				break;
 		}
 		snprintf(tapefile, sizeof(tapefile), "/dev/%srmt%c", mtrewind, mtunit);
 	}
@@ -122,22 +122,22 @@ strtape(const char* s, char** e)
 		 */
 
 		mtunit -= '0';
-		switch (mtdensity)
+		switch(mtdensity)
 		{
-		case 'l':
-			break;
-		case 'h':
-			mtunit |= 020;
-			break;
-		default:
-			mtunit |= 010;
-			break;
+			case 'l':
+				break;
+			case 'h':
+				mtunit |= 020;
+				break;
+			default:
+				mtunit |= 010;
+				break;
 		}
-		switch (mtrewind[0])
+		switch(mtrewind[0])
 		{
-		case 'n':
-			mtunit |= 040;
-			break;
+			case 'n':
+				mtunit |= 040;
+				break;
 		}
 		snprintf(tapefile, sizeof(tapefile), "/dev/rmt%d", mtunit);
 	}

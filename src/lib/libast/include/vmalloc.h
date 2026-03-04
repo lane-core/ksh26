@@ -26,27 +26,27 @@
 typedef struct
 {
 	/* public use */
-	uint32_t	options;		/* option bits for the region		*/
-	void		(*outofmemory)(size_t);	/* called when malloc, etc. fails	*/
+	uint32_t options;            /* option bits for the region		*/
+	void (*outofmemory)(size_t); /* called when malloc, etc. fails	*/
 	/* internal use only */
-	void		*_list_;		/* head of allocations list		*/
+	void *_list_; /* head of allocations list		*/
 } Vmalloc_t;
 
-extern Vmalloc_t	*vmopen(void);
-extern void		*vmalloc(Vmalloc_t*, size_t);
-extern void		*vmresize(Vmalloc_t*, void*, size_t);
-extern void		*_Vm_newoldof_(Vmalloc_t*, void*, size_t, int);
-extern char		*vmstrdup(Vmalloc_t*, const char*);
-extern void		vmfree(Vmalloc_t*, void*);
-extern void		vmclear(Vmalloc_t*);
-extern void		vmclose(Vmalloc_t*);
+extern Vmalloc_t *vmopen(void);
+extern void *vmalloc(Vmalloc_t *, size_t);
+extern void *vmresize(Vmalloc_t *, void *, size_t);
+extern void *_Vm_newoldof_(Vmalloc_t *, void *, size_t, int);
+extern char *vmstrdup(Vmalloc_t *, const char *);
+extern void vmfree(Vmalloc_t *, void *);
+extern void vmclear(Vmalloc_t *);
+extern void vmclose(Vmalloc_t *);
 
 /* region option bits */
-#define VM_INIT		0x01			/* initialize allocated/grown memory	*/
-#define VM_FREEONFAIL	0x02			/* vmresize frees block on resize fail	*/
+#define VM_INIT 0x01       /* initialize allocated/grown memory	*/
+#define VM_FREEONFAIL 0x02 /* vmresize frees block on resize fail	*/
 
 /* legacy */
-#define vmnewof(v,p,t,n,x)	( (t*)_Vm_newoldof_((v), (p), sizeof(t)*(n)+(x), 1) )
-#define vmoldof(v,p,t,n,x)	( (t*)_Vm_newoldof_((v), (p), sizeof(t)*(n)+(x), 0) )
+#define vmnewof(v, p, t, n, x) ((t *)_Vm_newoldof_((v), (p), sizeof(t) * (n) + (x), 1))
+#define vmoldof(v, p, t, n, x) ((t *)_Vm_newoldof_((v), (p), sizeof(t) * (n) + (x), 0))
 
 #endif /* _VMALLOC_H */

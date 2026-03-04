@@ -32,22 +32,23 @@
  * 0 returned if name not found
  */
 
-void*
-strsearch(const void* tab, size_t num, size_t siz, Strcmp_f comparf, const char* name, void* context)
+void *
+strsearch(const void *tab, size_t num, size_t siz, Strcmp_f comparf, const char *name, void *context)
 {
-	char*		lo = (char*)tab;
-	char*		hi = lo + (num - 1) * siz;
-	char*		mid;
-	int		v;
+	char *lo = (char *)tab;
+	char *hi = lo + (num - 1) * siz;
+	char *mid;
+	int v;
 
-	while (lo <= hi)
+	while(lo <= hi)
 	{
 		mid = lo + (((hi - lo) / siz) / 2) * siz;
-		if (!(v = context ? (*(Strcmp_context_f)comparf)(name, *((char**)mid), context) : (*comparf)(name, *((char**)mid))))
+		if(!(v = context ? (*(Strcmp_context_f)comparf)(name, *((char **)mid), context) : (*comparf)(name, *((char **)mid))))
 			return mid;
-		else if (v > 0)
+		else if(v > 0)
 			lo = mid + siz;
-		else hi = mid - siz;
+		else
+			hi = mid - siz;
 	}
 	return NULL;
 }

@@ -29,14 +29,13 @@
 
 #include "proclib.h"
 
-int
-procrun(const char* path, char** argv, int flags)
+int procrun(const char *path, char **argv, int flags)
 {
-	if (flags & PROC_CHECK)
+	if(flags & PROC_CHECK)
 	{
-		char	buf[PATH_MAX];
+		char buf[PATH_MAX];
 
-		return pathpath(path, NULL, PATH_REGULAR|PATH_EXECUTE, buf, sizeof(buf)) ? 0 : -1;
+		return pathpath(path, NULL, PATH_REGULAR | PATH_EXECUTE, buf, sizeof(buf)) ? 0 : -1;
 	}
-	return procclose(procopen(path, argv, NULL, NULL, flags|PROC_FOREGROUND|PROC_GID|PROC_UID));
+	return procclose(procopen(path, argv, NULL, NULL, flags | PROC_FOREGROUND | PROC_GID | PROC_UID));
 }

@@ -22,76 +22,77 @@
 #include <ast_wbuf.h>
 #include <ctype.h>
 
-static char**		ids;
+static char **ids;
 
-static const char*	dflt[] = { "ast", "standard", 0 };
+static const char *dflt[] = {"ast", "standard", 0};
 
 /*
  * initialize the conformance() ID list
  */
 
-static char**
+static char **
 initconformance(void)
 {
-	char*			m;
-	char**			p;
-	char*			t;
-	int			h;
-	int			i;
-	int			j;
-	int			c;
-	ast_wbuf_t		wb = AST_WBUF_INIT;
+	char *m;
+	char **p;
+	char *t;
+	int h;
+	int i;
+	int j;
+	int c;
+	ast_wbuf_t wb = AST_WBUF_INIT;
 
-	static const char*	conf[] = { "CONFORMANCE", "HOSTTYPE", "UNIVERSE" };
+	static const char *conf[] = {"CONFORMANCE", "HOSTTYPE", "UNIVERSE"};
 
 	p = 0;
-	if (ast_wbuf_open(&wb) == 0)
+	if(ast_wbuf_open(&wb) == 0)
 	{
-		for (i = h = 0, j = 1; i < elementsof(conf); i++)
-			if (*(m = astconf(conf[i], NULL, NULL)) && (h |= (1<<i)) || !i && (m = "ast"))
+		for(i = h = 0, j = 1; i < elementsof(conf); i++)
+			if(*(m = astconf(conf[i], NULL, NULL)) && (h |= (1 << i)) || !i && (m = "ast"))
 			{
 				t = m;
-				while ((c = *m++) && c != '.')
+				while((c = *m++) && c != '.')
 				{
-					if (isupper(c))
+					if(isupper(c))
 						c = tolower(c);
 					ast_wbuf_putc(&wb, c);
 				}
 				ast_wbuf_putc(&wb, 0);
 				j++;
-				if ((c = (m - t)) == 6 && strneq(t, "linux", 5))
+				if((c = (m - t)) == 6 && strneq(t, "linux", 5))
 				{
 					ast_wbuf_puts(&wb, "gnu");
 					ast_wbuf_putc(&wb, 0);
 					j++;
 				}
-				else if (c > 3 && strneq(t, "bsd", 3) || c == 7 && strneq(t, "debian", 7))
+				else if(c > 3 && strneq(t, "bsd", 3) || c == 7 && strneq(t, "debian", 7))
 				{
 					ast_wbuf_puts(&wb, "bsd");
 					ast_wbuf_putc(&wb, 0);
 					j++;
 				}
-				if (h & 1)
+				if(h & 1)
 					break;
 			}
 		i = ast_wbuf_tell(&wb);
-		if (p = newof(0, char*, j, i))
+		if(p = newof(0, char *, j, i))
 		{
-			m = (char*)(p + j--);
+			m = (char *)(p + j--);
 			memcpy(m, ast_wbuf_base(&wb), i);
 			i = 0;
 			p[i++] = m;
-			while (i < j)
+			while(i < j)
 			{
-				while (*m++);
+				while(*m++)
+					;
 				p[i++] = m;
 			}
 			p[i] = 0;
 		}
 		ast_wbuf_close(&wb);
 	}
-	if (!p)
-		p = (char**)dflt;
+	if(!p)
+		p = (char **)dflt;
 	return ids = p;
 }
 
@@ -101,50 +102,51 @@ initconformance(void)
  * s==0 => "standard"
  */
 
-char*
-conformance(const char* s, size_t n)
+char *
+conformance(const char *s, size_t n)
 {
-	char**		p;
-	char**		q;
-	char*		m;
-	const char*	e;
-	const char*	t;
+	char **p;
+	char **q;
+	char *m;
+	const char *e;
+	const char *t;
 
-	static uint32_t	serial = ~(uint32_t)0;
+	static uint32_t serial = ~(uint32_t)0;
 
-	if (!(p = ids) || serial != ast.env_serial)
+	if(!(p = ids) || serial != ast.env_serial)
 	{
 		serial = ast.env_serial;
-		if (ids)
+		if(ids)
 		{
-			if (ids != (char**)dflt)
+			if(ids != (char **)dflt)
 				free(ids);
 			ids = 0;
 		}
 		p = initconformance();
 	}
-	if (!s)
+	if(!s)
 		s = dflt[1];
-	if (!n)
+	if(!n)
 		n = strlen(s);
 	e = s + n;
-	if (*s == '(')
+	if(*s == '(')
 		s++;
 	do
 	{
-		while (s < e && (isspace(*s) || *s == ',' || *s == '|'))
+		while(s < e && (isspace(*s) || *s == ',' || *s == '|'))
 			s++;
-		if (*s == ')')
+		if(*s == ')')
 			break;
-		for (t = s; s < e && !isspace(*s) && *s != ',' && *s != '|' && *s != ')'; s++);
-		if (s == t)
+		for(t = s; s < e && !isspace(*s) && *s != ',' && *s != '|' && *s != ')'; s++)
+			;
+		if(s == t)
 			break;
 		q = p;
-		while (m = *q++)
-			if (strneq(t, m, s - t))
+		while(m = *q++)
+			if(strneq(t, m, s - t))
 				return m;
-		if (s < e)
+		if(s < e)
 			s++;
-	} while (s < e);
+	} while(s < e);
 	return NULL;
 }

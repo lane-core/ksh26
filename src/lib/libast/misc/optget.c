@@ -33,294 +33,364 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh26) 2025-05-02"
+#define OPTGET_VERSION "optget (ksh26) 2025-05-02"
 
-#define KEEP		"*[A-Za-z][A-Za-z]*"
-#define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
+#define KEEP "*[A-Za-z][A-Za-z]*"
+#define OMIT "*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
 
-#define GO		'{'		/* group nest open		*/
-#define OG		'}'		/* group nest close		*/
+#define GO '{' /* group nest open		*/
+#define OG '}' /* group nest close		*/
 
-#define OPT_WIDTH	80		/* default help text width	*/
-#define OPT_MARGIN	10		/* default help text margin	*/
-#define OPT_USAGE	7		/* usage continuation indent	*/
+#define OPT_WIDTH 80  /* default help text width	*/
+#define OPT_MARGIN 10 /* default help text margin	*/
+#define OPT_USAGE 7   /* usage continuation indent	*/
 
-#define OPT_flag	0x001		/* flag ( 0 or 1 )		*/
-#define OPT_hidden	0x002		/* remaining are hidden		*/
-#define OPT_ignorecase	0x004		/* arg match ignores case	*/
-#define OPT_invert	0x008		/* flag inverts long sense	*/
-#define OPT_listof	0x010		/* arg is ' ' or ',' list	*/
-#define OPT_number	0x020		/* arg is strtonll() number	*/
-#define OPT_oneof	0x040		/* arg may be set once		*/
-#define OPT_optional	0x080		/* arg is optional		*/
-#define OPT_string	0x100		/* arg is string		*/
+#define OPT_flag 0x001       /* flag ( 0 or 1 )		*/
+#define OPT_hidden 0x002     /* remaining are hidden		*/
+#define OPT_ignorecase 0x004 /* arg match ignores case	*/
+#define OPT_invert 0x008     /* flag inverts long sense	*/
+#define OPT_listof 0x010     /* arg is ' ' or ',' list	*/
+#define OPT_number 0x020     /* arg is strtonll() number	*/
+#define OPT_oneof 0x040      /* arg may be set once		*/
+#define OPT_optional 0x080   /* arg is optional		*/
+#define OPT_string 0x100     /* arg is string		*/
 
-#define OPT_preformat	0001		/* output preformat string	*/
-#define OPT_proprietary	0002		/* proprietary docs		*/
+#define OPT_preformat 0001   /* output preformat string	*/
+#define OPT_proprietary 0002 /* proprietary docs		*/
 
-#define OPT_TYPE	(OPT_flag|OPT_number|OPT_string)
+#define OPT_TYPE (OPT_flag | OPT_number | OPT_string)
 
-#define STYLE_posix	0		/* POSIX getopt usage		*/
-#define STYLE_short	1		/* [default] short usage	*/
-#define STYLE_long	2		/* long usage			*/
-#define STYLE_match	3		/* long description of matches	*/
-#define STYLE_options	4		/* short and long descriptions	*/
-#define STYLE_man	5		/* pretty details		*/
-#define STYLE_html	6		/* html details			*/
-#define STYLE_nroff	7		/* nroff details		*/
-#define STYLE_api	8		/* program details		*/
-#define STYLE_keys	9		/* translation key strings	*/
-#define STYLE_usage	10		/* escaped usage string		*/
+#define STYLE_posix 0   /* POSIX getopt usage		*/
+#define STYLE_short 1   /* [default] short usage	*/
+#define STYLE_long 2    /* long usage			*/
+#define STYLE_match 3   /* long description of matches	*/
+#define STYLE_options 4 /* short and long descriptions	*/
+#define STYLE_man 5     /* pretty details		*/
+#define STYLE_html 6    /* html details			*/
+#define STYLE_nroff 7   /* nroff details		*/
+#define STYLE_api 8     /* program details		*/
+#define STYLE_keys 9    /* translation key strings	*/
+#define STYLE_usage 10  /* escaped usage string		*/
 
-#define FONT_BOLD	1
-#define FONT_ITALIC	2
-#define FONT_LITERAL	4
+#define FONT_BOLD 1
+#define FONT_ITALIC 2
+#define FONT_LITERAL 4
 
-#define HELP_head	0x01
-#define HELP_index	0x02
+#define HELP_head 0x01
+#define HELP_index 0x02
 
-#define TAG_NONE	0
-#define TAG_DIV		1
-#define TAG_DL		2
+#define TAG_NONE 0
+#define TAG_DIV 1
+#define TAG_DL 2
 
-#define SEP(c)		((c)=='-'||(c)=='_')
+#define SEP(c) ((c) == '-' || (c) == '_')
 
 typedef struct Attr_s
 {
-	const char*	name;
-	int		flag;
+	const char *name;
+	int flag;
 } Attr_t;
 
 typedef struct Help_s
 {
-	const char*	match;		/* builtin help match name	*/
-	const char*	name;		/* builtin help name		*/
-	int		style;		/* STYLE_*			*/
-	const char*	text;		/* --? text			*/
-	unsigned int	size;		/* strlen text			*/
+	const char *match; /* builtin help match name	*/
+	const char *name;  /* builtin help name		*/
+	int style;         /* STYLE_*			*/
+	const char *text;  /* --? text			*/
+	unsigned int size; /* strlen text			*/
 } Help_t;
 
 typedef struct Font_s
 {
-	const char*	html[2];
-	const char*	nroff[2];
-	const char*	term[2];
+	const char *html[2];
+	const char *nroff[2];
+	const char *term[2];
 } Font_t;
 
 typedef struct List_s
 {
-	int		type;		/* { - + : }			*/
-	const char*	name;		/* list name			*/
-	const char*	text;		/* help text			*/
+	int type;         /* { - + : }			*/
+	const char *name; /* list name			*/
+	const char *text; /* help text			*/
 } List_t;
 
 typedef struct Msg_s
 {
-	const char*	text;		/* default message text		*/
-	Dtlink_t	link;		/* cdt link			*/
+	const char *text; /* default message text		*/
+	Dtlink_t link;    /* cdt link			*/
 } Msg_t;
 
 typedef struct Save_s
 {
-	Dtlink_t	link;		/* cdt link			*/
-	char		text[1];	/* saved text text		*/
+	Dtlink_t link; /* cdt link			*/
+	char text[1];  /* saved text text		*/
 } Save_t;
 
 typedef struct Push_s
 {
-	struct Push_s*	next;		/* next string			*/
-	char*		ob;		/* next char in old string	*/
-	char*		oe;		/* end of old string		*/
-	char*		nb;		/* next char in new string	*/
-	char*		ne;		/* end of new string		*/
-	int		ch;		/* localize() translation	*/
+	struct Push_s *next; /* next string			*/
+	char *ob;            /* next char in old string	*/
+	char *oe;            /* end of old string		*/
+	char *nb;            /* next char in new string	*/
+	char *ne;            /* end of new string		*/
+	int ch;              /* localize() translation	*/
 } Push_t;
 
 typedef struct Tag_s
 {
-	unsigned char	level;		/* indent level			*/
-	unsigned char	id;		/* TAG_* ID			*/
+	unsigned char level; /* indent level			*/
+	unsigned char id;    /* TAG_* ID			*/
 } Tag_t;
 
 typedef struct Indent_s
 {
-	int		stop;		/* tab column position		*/
+	int stop; /* tab column position		*/
 } Indent_t;
 
-static Indent_t		indent[] =
-{
-	0,2,	4,10,	12,18,	20,26,	28,34,	36,42,	44,50,	0,0
+static Indent_t indent[] =
+    {
+        0, 2, 4, 10, 12, 18, 20, 26, 28, 34, 36, 42, 44, 50, 0, 0};
+
+static const char *end[] =
+    {
+        "", "</DIV>\n", "</DL>\n"};
+
+static const char term_off[] = {CC_esc, '[', '0', 'm', 0};
+static const char term_B_on[] = {CC_esc, '[', '1', 'm', 0};
+static const char term_I_on[] = {CC_esc, '[', '1', ';', '4', 'm', 0};
+
+static const Font_t fonts[] =
+    {
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "</B>",
+        "<B>",
+        "\\fP",
+        "\\fB",
+        &term_off[0],
+        &term_B_on[0],
+        "</I>",
+        "<I>",
+        "\\fP",
+        "\\fI",
+        &term_off[0],
+        &term_I_on[0],
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "</TT>",
+        "<TT>",
+        "\\fP",
+        "\\f5",
+        "",
+        "",
 };
 
-static const char*	end[] =
-{
-	"", "</DIV>\n", "</DL>\n"
-};
+static char native[] = "";
 
-static const char	term_off[] =	{CC_esc,'[','0','m',0};
-static const char	term_B_on[] =	{CC_esc,'[','1','m',0};
-static const char	term_I_on[] =	{CC_esc,'[','1',';','4','m',0};
+static unsigned char map[UCHAR_MAX];
 
-static const Font_t	fonts[] =
-{
-	"",	"",	"",	"",	"",			"",
-	"</B>",	"<B>", "\\fP",	"\\fB",	&term_off[0],	&term_B_on[0],
-	"</I>",	"<I>", "\\fP",	"\\fI",	&term_off[0],	&term_I_on[0],
-	"",	"",	"",	"",	"",			"",
-	"</TT>","<TT>","\\fP",	"\\f5",	"",			"",
-};
+static Optstate_t state;
 
-static char		native[] = "";
+#define ID ast.id
 
-static unsigned char	map[UCHAR_MAX];
-
-static Optstate_t	state;
-
-#define ID		ast.id
-
-#define C(s)		ERROR_catalog(s)
-#define D(s)		(state.msgdict && dtmatch(state.msgdict, (s)))
-#define T(i,c,m)	(X(c)?translate(i,c,C(m)):(m))
-#define X(c)		(ERROR_translating()&&(c)!=native)
-#define Z(x)		C(x),sizeof(x)-1
+#define C(s) ERROR_catalog(s)
+#define D(s) (state.msgdict && dtmatch(state.msgdict, (s)))
+#define T(i, c, m) (X(c) ? translate(i, c, C(m)) : (m))
+#define X(c) (ERROR_translating() && (c) != native)
+#define Z(x) C(x), sizeof(x) - 1
 
 /*
  * translate with C_LC_MESSAGES_libast[] check
  */
 
-static char*
-translate(const char* cmd, const char* cat, const char* msg)
+static char *
+translate(const char *cmd, const char *cat, const char *msg)
 {
-	if (!X(cat))
-		return (char*)msg;
-	if (cat != (const char*)ID && D(msg))
-		cat = (const char*)ID;
+	if(!X(cat))
+		return (char *)msg;
+	if(cat != (const char *)ID && D(msg))
+		cat = (const char *)ID;
 	return errorx(NULL, cmd, cat, msg);
 }
 
-static const List_t	help_head[] =
-{
-	'-',	0,
-		0,
-	'+',	C("NAME"),
-		C("options available to all \bAST\b commands"),
-	'+',	C("DESCRIPTION"),
-		C("\b-?\b and \b--?\b* options are the same \
+static const List_t help_head[] =
+    {
+        '-',
+        0,
+        0,
+        '+',
+        C("NAME"),
+        C("options available to all \bAST\b commands"),
+        '+',
+        C("DESCRIPTION"),
+        C("\b-?\b and \b--?\b* options are the same \
 for all \bAST\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
 supported by a given command then it is equivalent to \b--\?\?\b\aitem\a. The \
 \b--\?\?\b form should be used for portability. \
 Note that question marks should be quoted to avoid pathanme expansion."),
 };
 
-static const Help_t	styles[] =
-{
-	C("about"),	"-",		STYLE_match,
-	Z("Show all implementation info."),
-	C("api"),	"?api",		STYLE_api,
-	Z("Output detailed info in program readable form."),
-	C("help"),	"",		-1,
-	Z("Show detailed help option info."),
-	C("html"),	"?html",	STYLE_html,
-	Z("Output detailed info in HTML."),
-	C("keys"),	"?keys",	STYLE_keys,
-	Z("Output usage key strings for translation."),
-	C("long"),	"?long",	STYLE_long,
-	Z("Show brief usage with long options."),
-	C("man"),	"?man",		STYLE_man,
-	Z("Show detailed info as a manual page."),
-	C("nroff"),	"?nroff",	STYLE_nroff,
-	Z("Output detailed info in nroff format."),
-	C("options"),	"?options",	STYLE_options,
-	Z("List short and long option details."),
-	C("posix"),	"?posix",	STYLE_posix,
-	Z("Output POSIX-compliant getopt(3) short options string."),
-	C("short"),	"?short",	STYLE_short,
-	Z("Show brief usage with short options."),
-	C("usage"),	"?usage",	STYLE_usage,
-	Z("Output the full AST optget(3) usage string."),
+static const Help_t styles[] =
+    {
+        C("about"),
+        "-",
+        STYLE_match,
+        Z("Show all implementation info."),
+        C("api"),
+        "?api",
+        STYLE_api,
+        Z("Output detailed info in program readable form."),
+        C("help"),
+        "",
+        -1,
+        Z("Show detailed help option info."),
+        C("html"),
+        "?html",
+        STYLE_html,
+        Z("Output detailed info in HTML."),
+        C("keys"),
+        "?keys",
+        STYLE_keys,
+        Z("Output usage key strings for translation."),
+        C("long"),
+        "?long",
+        STYLE_long,
+        Z("Show brief usage with long options."),
+        C("man"),
+        "?man",
+        STYLE_man,
+        Z("Show detailed info as a manual page."),
+        C("nroff"),
+        "?nroff",
+        STYLE_nroff,
+        Z("Output detailed info in nroff format."),
+        C("options"),
+        "?options",
+        STYLE_options,
+        Z("List short and long option details."),
+        C("posix"),
+        "?posix",
+        STYLE_posix,
+        Z("Output POSIX-compliant getopt(3) short options string."),
+        C("short"),
+        "?short",
+        STYLE_short,
+        Z("Show brief usage with short options."),
+        C("usage"),
+        "?usage",
+        STYLE_usage,
+        Z("Output the full AST optget(3) usage string."),
 };
 
-static const List_t	help_tail[] =
-{
-	':',	C("\?\?-\alabel\a"),
-		C("List implementation info matching \alabel\a*."),
-	':',	C("\?\?\aname\a"),
-		C("Equivalent to \b--help=\b\aname\a."),
-	':',	C("\?\?"),
-		C("Equivalent to \b--\?\?options\b."),
-	':',	C("\?\?\?\?"),
-		C("Equivalent to \b--\?\?man\b."),
-	':',	C("\?\?\?\?\?\?"),
-		C("Equivalent to \b--\?\?help\b."),
-	':',	C("\?\?\?\?\?\?\aitem\a"),
-		C("If the next argument is \b--\b\aoption\a then list \
+static const List_t help_tail[] =
+    {
+        ':',
+        C("\?\?-\alabel\a"),
+        C("List implementation info matching \alabel\a*."),
+        ':',
+        C("\?\?\aname\a"),
+        C("Equivalent to \b--help=\b\aname\a."),
+        ':',
+        C("\?\?"),
+        C("Equivalent to \b--\?\?options\b."),
+        ':',
+        C("\?\?\?\?"),
+        C("Equivalent to \b--\?\?man\b."),
+        ':',
+        C("\?\?\?\?\?\?"),
+        C("Equivalent to \b--\?\?help\b."),
+        ':',
+        C("\?\?\?\?\?\?\aitem\a"),
+        C("If the next argument is \b--\b\aoption\a then list \
 the \aoption\a output in the \aitem\a style. Otherwise print \
 \bversion=\b\an\a where \an\a>0 if \b--\?\?\b\aitem\a is supported, \b0\b \
 if not."),
-	':',	C("\?\?\?\?\?\?EMPHASIS"),
-		C("Equivalent to \b--\?\?\?ESC\b."),
-	':',	C("\?\?\?\?\?\?ESC"),
-		C("Emit ANSI escape codes for emphasis even if standard output is not on a terminal. \
+        ':',
+        C("\?\?\?\?\?\?EMPHASIS"),
+        C("Equivalent to \b--\?\?\?ESC\b."),
+        ':',
+        C("\?\?\?\?\?\?ESC"),
+        C("Emit ANSI escape codes for emphasis even if standard output is not on a terminal. \
 Use \b--\?\?noESC\b to emit no escape codes even if standard output is on a terminal."),
-	':',	C("\?\?\?\?\?\?MAN[=\asection\a]]"),
-		C("List the \bman\b(1) section title for \asection\a [the \
+        ':',
+        C("\?\?\?\?\?\?MAN[=\asection\a]]"),
+        C("List the \bman\b(1) section title for \asection\a [the \
 current command]]."),
-	':',	C("\?\?\?\?\?\?SECTION"),
-		C("List the \bman\b(1) section number for the current command."),
-	':',	C("\?\?\?\?\?\?TEST"),
-		C("Massage the output for regression testing."),
+        ':',
+        C("\?\?\?\?\?\?SECTION"),
+        C("List the \bman\b(1) section number for the current command."),
+        ':',
+        C("\?\?\?\?\?\?TEST"),
+        C("Massage the output for regression testing."),
 };
 
-static const Attr_t	attrs[] =
-{
-	"flag",		OPT_flag,
-	"hidden",	OPT_hidden,
-	"ignorecase",	OPT_ignorecase,
-	"invert",	OPT_invert,
-	"listof",	OPT_listof,
-	"number",	OPT_number,
-	"oneof",	OPT_oneof,
-	"optional",	OPT_optional,
-	"string",	OPT_string,
+static const Attr_t attrs[] =
+    {
+        "flag",
+        OPT_flag,
+        "hidden",
+        OPT_hidden,
+        "ignorecase",
+        OPT_ignorecase,
+        "invert",
+        OPT_invert,
+        "listof",
+        OPT_listof,
+        "number",
+        OPT_number,
+        "oneof",
+        OPT_oneof,
+        "optional",
+        OPT_optional,
+        "string",
+        OPT_string,
 };
 
-static const char	unknown[] = C("unknown option or attribute");
+static const char unknown[] = C("unknown option or attribute");
 
 /*
  * list of common man page strings
  * NOTE: add but do not delete from this table
  */
 
-static Msg_t		C_LC_MESSAGES_libast[] =
-{
-	{ C("APPLICATION USAGE") },
-	{ C("ASYNCHRONOUS EVENTS") },
-	{ C("BUGS") },
-	{ C("CAVEATS") },
-	{ C("CONSEQUENCES OF ERRORS") },
-	{ C("DESCRIPTION") },
-	{ C("ENVIRONMENT VARIABLES") },
-	{ C("EXAMPLES") },
-	{ C("EXIT STATUS") },
-	{ C("EXTENDED DESCRIPTION") },
-	{ C("INPUT FILES") },
-	{ C("LIBRARY") },
-	{ C("NAME") },
-	{ C("OPERANDS") },
-	{ C("OPTIONS") },
-	{ C("OUTPUT FILES") },
-	{ C("PLUGIN") },
-	{ C("SEE ALSO") },
-	{ C("STDERR") },
-	{ C("STDIN") },
-	{ C("STDOUT") },
-	{ C("SYNOPSIS") },
-	{ C("author") },
-	{ C("copyright") },
-	{ C("license") },
-	{ C("name") },
-	{ C("path") },
-	{ C("version") },
+static Msg_t C_LC_MESSAGES_libast[] =
+    {
+        {C("APPLICATION USAGE")},
+        {C("ASYNCHRONOUS EVENTS")},
+        {C("BUGS")},
+        {C("CAVEATS")},
+        {C("CONSEQUENCES OF ERRORS")},
+        {C("DESCRIPTION")},
+        {C("ENVIRONMENT VARIABLES")},
+        {C("EXAMPLES")},
+        {C("EXIT STATUS")},
+        {C("EXTENDED DESCRIPTION")},
+        {C("INPUT FILES")},
+        {C("LIBRARY")},
+        {C("NAME")},
+        {C("OPERANDS")},
+        {C("OPTIONS")},
+        {C("OUTPUT FILES")},
+        {C("PLUGIN")},
+        {C("SEE ALSO")},
+        {C("STDERR")},
+        {C("STDIN")},
+        {C("STDOUT")},
+        {C("SYNOPSIS")},
+        {C("author")},
+        {C("copyright")},
+        {C("license")},
+        {C("name")},
+        {C("path")},
+        {C("version")},
 };
 
 /*
@@ -328,11 +398,11 @@ static Msg_t		C_LC_MESSAGES_libast[] =
  *	      to allow future Opt_t growth
  */
 
-static Opt_t	_opt_info_ = { 0,0,0,0,0,0,0,{0},{0},0,0,0,{0},{0},&state };
-Opt_t*		_opt_infop_ = &_opt_info_;
+static Opt_t _opt_info_ = {0, 0, 0, 0, 0, 0, 0, {0}, {0}, 0, 0, 0, {0}, {0}, &state};
+Opt_t *_opt_infop_ = &_opt_info_;
 
-Optstate_t*
-optstate(Opt_t* p)
+Optstate_t *
+optstate(Opt_t *p)
 {
 	NOT_USED(p);
 	return &state;
@@ -344,53 +414,53 @@ optstate(Opt_t* p)
  * debug usage string segment format
  */
 
-static char*
-show(char* s)
+static char *
+show(char *s)
 {
-	int	c;
-	char*	t;
-	char*	e;
+	int c;
+	char *t;
+	char *e;
 
-	static char	buf[32];
+	static char buf[32];
 
-	if (!s)
+	if(!s)
 		return "(null)";
 	t = buf;
 	e = buf + sizeof(buf) - 2;
-	while (t < e)
+	while(t < e)
 	{
-		switch (c = *s++)
+		switch(c = *s++)
 		{
-		case 0:
-			goto done;
-		case '\a':
-			*t++ = '\\';
-			c = 'a';
-			break;
-		case '\b':
-			*t++ = '\\';
-			c = 'b';
-			break;
-		case '\f':
-			*t++ = '\\';
-			c = 'f';
-			break;
-		case '\n':
-			*t++ = '\\';
-			c = 'n';
-			break;
-		case '\t':
-			*t++ = '\\';
-			c = 't';
-			break;
-		case '\v':
-			*t++ = '\\';
-			c = 'v';
-			break;
+			case 0:
+				goto done;
+			case '\a':
+				*t++ = '\\';
+				c = 'a';
+				break;
+			case '\b':
+				*t++ = '\\';
+				c = 'b';
+				break;
+			case '\f':
+				*t++ = '\\';
+				c = 'f';
+				break;
+			case '\n':
+				*t++ = '\\';
+				c = 'n';
+				break;
+			case '\t':
+				*t++ = '\\';
+				c = 't';
+				break;
+			case '\v':
+				*t++ = '\\';
+				c = 'v';
+				break;
 		}
 		*t++ = c;
 	}
- done:
+done:
 	*t = 0;
 	return buf;
 }
@@ -399,75 +469,96 @@ show(char* s)
 
 typedef struct Section_s
 {
-	const char	section[4];
-	const char*	name;
+	const char section[4];
+	const char *name;
 } Section_t;
 
-static const Section_t	sections[] =
-{
-	"1M",	"MAKE ASSERTION OPERATORS AND RULES",
-	"1",	"USER COMMANDS",
-	"2",	"SYSTEM CALLS",
-	"3F",	"FORTRAN LIBRARY ROUTINES",
-	"3K",	"KERNEL VM LIBRARY FUNCTIONS",
-	"3L",	"LIGHTWEIGHT PROCESSES LIBRARY",
-	"3M",	"MATHEMATICAL LIBRARY",
-	"3N",	"NETWORK FUNCTIONS",
-	"3R",	"RPC SERVICES LIBRARY",
-	"3S",	"STANDARD I/O FUNCTIONS",
-	"3V",	"SYSTEM V LIBRARY",
-	"3",	"C LIBRARY FUNCTIONS",
-	"4F",	"PROTOCOL FAMILIES",
-	"4P",	"PROTOCOLS",
-	"4",	"DEVICES AND NETWORK INTERFACES",
-	"5P",	"PLUGINS",
-	"5",	"FILE FORMATS",
-	"6",	"GAMES AND DEMOS",
-	"7",	"PUBLIC FILES AND TABLES",
-	"8",	"ADMINISTRATIVE COMMANDS",
-	"L",	"LOCAL COMMANDS",
+static const Section_t sections[] =
+    {
+        "1M",
+        "MAKE ASSERTION OPERATORS AND RULES",
+        "1",
+        "USER COMMANDS",
+        "2",
+        "SYSTEM CALLS",
+        "3F",
+        "FORTRAN LIBRARY ROUTINES",
+        "3K",
+        "KERNEL VM LIBRARY FUNCTIONS",
+        "3L",
+        "LIGHTWEIGHT PROCESSES LIBRARY",
+        "3M",
+        "MATHEMATICAL LIBRARY",
+        "3N",
+        "NETWORK FUNCTIONS",
+        "3R",
+        "RPC SERVICES LIBRARY",
+        "3S",
+        "STANDARD I/O FUNCTIONS",
+        "3V",
+        "SYSTEM V LIBRARY",
+        "3",
+        "C LIBRARY FUNCTIONS",
+        "4F",
+        "PROTOCOL FAMILIES",
+        "4P",
+        "PROTOCOLS",
+        "4",
+        "DEVICES AND NETWORK INTERFACES",
+        "5P",
+        "PLUGINS",
+        "5",
+        "FILE FORMATS",
+        "6",
+        "GAMES AND DEMOS",
+        "7",
+        "PUBLIC FILES AND TABLES",
+        "8",
+        "ADMINISTRATIVE COMMANDS",
+        "L",
+        "LOCAL COMMANDS",
 };
 
 /*
  * return section name given abbreviation
  */
 
-static char*
-secname(char* section)
+static char *
+secname(char *section)
 {
-	int		i;
-	char*		b;
-	char*		t;
-	const char*	s;
+	int i;
+	char *b;
+	char *t;
+	const char *s;
 
 	b = t = fmtbuf(64);
-	if (section[1])
+	if(section[1])
 	{
-		switch (section[2] ? section[2] : section[1])
+		switch(section[2] ? section[2] : section[1])
 		{
-		case 'C':
-			s = "COMPATIBILITY ";
-			break;
-		case 'X':
-			s = "MISCELLANEOUS ";
-			break;
-		default:
-			s = 0;
-			break;
+			case 'C':
+				s = "COMPATIBILITY ";
+				break;
+			case 'X':
+				s = "MISCELLANEOUS ";
+				break;
+			default:
+				s = 0;
+				break;
 		}
-		if (s)
+		if(s)
 			t = strcopy(t, s);
 	}
 	s = 0;
-	for (i = 0; i < elementsof(sections); i++)
+	for(i = 0; i < elementsof(sections); i++)
 	{
-		if (section[0] == sections[i].section[0] && (section[1] == sections[i].section[1] || !sections[i].section[1]))
+		if(section[0] == sections[i].section[0] && (section[1] == sections[i].section[1] || !sections[i].section[1]))
 		{
 			s = sections[i].name;
 			break;
 		}
 	}
-	if (!s)
+	if(!s)
 	{
 		t = strcopy(t, "SECTION ");
 		s = section;
@@ -480,12 +571,12 @@ secname(char* section)
  * pop the push stack
  */
 
-static Push_t*
-pop(Push_t* psp)
+static Push_t *
+pop(Push_t *psp)
 {
-	Push_t*	tsp;
+	Push_t *tsp;
 
-	while (tsp = psp)
+	while(tsp = psp)
 	{
 		psp = psp->next;
 		free(tsp);
@@ -497,18 +588,19 @@ pop(Push_t* psp)
  * skip over line space to the next token
  */
 
-static char*
-next(char* s, int version)
+static char *
+next(char *s, int version)
 {
-	char*	b;
+	char *b;
 
-	while (*s == '\t' || *s == '\r' || version >= 1 && *s == ' ')
+	while(*s == '\t' || *s == '\r' || version >= 1 && *s == ' ')
 		s++;
-	if (*s == '\n')
+	if(*s == '\n')
 	{
 		b = s;
-		while (*++s == ' ' || *s == '\t' || *s == '\r');
-		if (*s == '\n')
+		while(*++s == ' ' || *s == '\t' || *s == '\r')
+			;
+		if(*s == '\n')
 			return b;
 	}
 	return s;
@@ -529,87 +621,88 @@ next(char* s, int version)
  * :: for : inside [...] before ?
  */
 
-static char*
-skip(char* s, int t1, int t2, int t3, int n, int b, int past, int version)
+static char *
+skip(char *s, int t1, int t2, int t3, int n, int b, int past, int version)
 {
-	int	c;
-	int	on = n;
-	int	ob = b;
+	int c;
+	int on = n;
+	int ob = b;
 
-	if (version < 1)
+	if(version < 1)
 	{
 		n = n >= 1;
-		for (;;)
+		for(;;)
 		{
-			switch (*s++)
+			switch(*s++)
 			{
-			case 0:
-				break;
-			case '[':
-				n++;
-				continue;
-			case ']':
-				if (--n <= 0)
+				case 0:
 					break;
-				continue;
-			default:
-				continue;
+				case '[':
+					n++;
+					continue;
+				case ']':
+					if(--n <= 0)
+						break;
+					continue;
+				default:
+					continue;
 			}
 			break;
 		}
 	}
-	else while (c = *s++)
-	{
-		message((-22, "optget: skip t1=%c t2=%c t3=%c n=%d b=%d `%s'", t1 ? t1 : '@', t2 ? t2 : '@', t3 ? t3 : '@', n, b, show(s - 1)));
-		if (c == '[')
+	else
+		while(c = *s++)
 		{
-			if (!n)
-				n = 1;
-		}
-		else if (c == ']')
-		{
-			if (n)
+			message((-22, "optget: skip t1=%c t2=%c t3=%c n=%d b=%d `%s'", t1 ? t1 : '@', t2 ? t2 : '@', t3 ? t3 : '@', n, b, show(s - 1)));
+			if(c == '[')
 			{
-				if (*s == ']')
-					s++;
-				else if (on == 1)
-					break;
-				else
-					n = 0;
+				if(!n)
+					n = 1;
 			}
-		}
-		else if (c == GO)
-		{
-			if (n == 0)
-				b++;
-		}
-		else if (c == OG)
-		{
-			if (n == 0 && b-- == ob)
-				break;
-		}
-		else if (c == '?')
-		{
-			if (n == 1)
+			else if(c == ']')
 			{
-				if (*s == '?')
-					s++;
-				else
+				if(n)
 				{
-					if (n == on && (c == t1 || c == t2 || c == t3))
+					if(*s == ']')
+						s++;
+					else if(on == 1)
 						break;
-					n = 2;
+					else
+						n = 0;
 				}
 			}
+			else if(c == GO)
+			{
+				if(n == 0)
+					b++;
+			}
+			else if(c == OG)
+			{
+				if(n == 0 && b-- == ob)
+					break;
+			}
+			else if(c == '?')
+			{
+				if(n == 1)
+				{
+					if(*s == '?')
+						s++;
+					else
+					{
+						if(n == on && (c == t1 || c == t2 || c == t3))
+							break;
+						n = 2;
+					}
+				}
+			}
+			else if(n == on && (c == t1 || c == t2 || c == t3))
+			{
+				if(n == 1 && c == ':' && *s == c)
+					s++;
+				else
+					break;
+			}
 		}
-		else if (n == on && (c == t1 || c == t2 || c == t3))
-		{
-			if (n == 1 && c == ':' && *s == c)
-				s++;
-			else
-				break;
-		}
-	}
 	return past && *(s - 1) ? next(s, version) : s - 1;
 }
 
@@ -618,25 +711,25 @@ skip(char* s, int t1, int t2, int t3, int n, int b, int past, int version)
  * return is one past matching ')'
  */
 
-static char*
-nest(char* s)
+static char *
+nest(char *s)
 {
-	int	n;
+	int n;
 
 	n = 0;
-	for (;;)
+	for(;;)
 	{
-		switch (*s++)
+		switch(*s++)
 		{
-		case '(':
-			n++;
-			continue;
-		case ')':
-			if (!--n)
-				break;
-			continue;
-		default:
-			continue;
+			case '(':
+				n++;
+				continue;
+			case ')':
+				if(!--n)
+					break;
+				continue;
+			default:
+				continue;
 		}
 		break;
 	}
@@ -652,32 +745,32 @@ nest(char* s)
  */
 
 static int
-match(char* s, char* t, int version, const char* id, const char* catalog)
+match(char *s, char *t, int version, const char *id, const char *catalog)
 {
-	char*	w;
-	char*	x;
-	char*	xw;
-	char*	ww;
-	int	n;
-	int	v;
-	int	j;
+	char *w;
+	char *x;
+	char *xw;
+	char *ww;
+	int n;
+	int v;
+	int j;
 
-	for (n = 0; n < 2; n++)
+	for(n = 0; n < 2; n++)
 	{
-		if (n)
+		if(n)
 			x = t;
 		else
 		{
-			if (catalog)
+			if(catalog)
 			{
 				w = skip(t, ':', '?', 0, 1, 0, 0, version);
 				w = sfprints("%-.*s", w - t, t);
 				x = T(id, catalog, w);
-				if (x == w)
+				if(x == w)
 					continue;
 			}
 			x = T(NULL, ID, t);
-			if (x == t)
+			if(x == t)
 				continue;
 		}
 		do
@@ -685,73 +778,73 @@ match(char* s, char* t, int version, const char* id, const char* catalog)
 			v = 0;
 			xw = x;
 			w = ww = s;
-			while (*x && *w)
+			while(*x && *w)
 			{
-				if (isupper(*x))
+				if(isupper(*x))
 					xw = x;
-				if (isupper(*w))
+				if(isupper(*w))
 					ww = w;
-				if (*x == '*' && !v++ || *x == '\a')
+				if(*x == '*' && !v++ || *x == '\a')
 				{
-					if (*x == '\a')
+					if(*x == '\a')
 						do
 						{
-							if (!*++x)
+							if(!*++x)
 							{
 								x--;
 								break;
 							}
-						} while (*x != '\a');
+						} while(*x != '\a');
 					j = *(x + 1);
-					if (j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
-						while (*w)
+					if(j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
+						while(*w)
 							w++;
 				}
-				else if (SEP(*x))
+				else if(SEP(*x))
 					xw = ++x;
-				else if (SEP(*w) && w != s)
+				else if(SEP(*w) && w != s)
 					ww = ++w;
-				else if (*x == *w)
+				else if(*x == *w)
 				{
 					x++;
 					w++;
 				}
-				else if (w == ww && x == xw)
+				else if(w == ww && x == xw)
 					break;
 				else
 				{
-					if (x != xw)
+					if(x != xw)
 					{
-						while (*x && !SEP(*x) && !isupper(*x))
+						while(*x && !SEP(*x) && !isupper(*x))
 							x++;
-						if (!*x)
+						if(!*x)
 							break;
-						if (SEP(*x))
+						if(SEP(*x))
 							x++;
 						xw = x;
 					}
-					while (w > ww && *w != *x)
+					while(w > ww && *w != *x)
 						w--;
 				}
 			}
-			if (!*w)
+			if(!*w)
 			{
-				if (!v)
+				if(!v)
 				{
-					for (;;)
+					for(;;)
 					{
-						switch (*x++)
+						switch(*x++)
 						{
-						case 0:
-						case ':':
-						case '|':
-						case '?':
-						case ']':
-							return 1;
-						case '*':
-							break;
-						default:
-							continue;
+							case 0:
+							case ':':
+							case '|':
+							case '?':
+							case ']':
+								return 1;
+							case '*':
+								break;
+							default:
+								continue;
 						}
 						break;
 					}
@@ -759,7 +852,7 @@ match(char* s, char* t, int version, const char* id, const char* catalog)
 				}
 				return 1;
 			}
-		} while (*(x = skip(x, '|', 0, 0, 1, 0, 0, version)) == '|' && x++);
+		} while(*(x = skip(x, '|', 0, 0, 1, 0, 0, version)) == '|' && x++);
 	}
 	return 0;
 }
@@ -769,14 +862,14 @@ match(char* s, char* t, int version, const char* id, const char* catalog)
  * with optional translation
  */
 
-static void*
-search(const void* tab, size_t num, size_t siz, char* s)
+static void *
+search(const void *tab, size_t num, size_t siz, char *s)
 {
-	char*	p;
-	char*	e;
+	char *p;
+	char *e;
 
-	for (e = (p = (char*)tab) + num * siz; p < e; p += siz)
-		if (match(s, *((char**)p), -1, NULL, NULL))
+	for(e = (p = (char *)tab) + num * siz; p < e; p += siz)
+		if(match(s, *((char **)p), -1, NULL, NULL))
 			return p;
 	return NULL;
 }
@@ -785,40 +878,43 @@ search(const void* tab, size_t num, size_t siz, char* s)
  * save ap+bp+cp and return the saved pointer
  */
 
-static char*
-save(const char* ap, size_t az, const char* bp, size_t bz, const char* cp, size_t cz)
+static char *
+save(const char *ap, size_t az, const char *bp, size_t bz, const char *cp, size_t cz)
 {
-	char*		b;
-	char*		e;
-	const char*	ep;
-	Save_t*		p;
-	Dtdisc_t*	d;
-	char		buf[1024];
+	char *b;
+	char *e;
+	const char *ep;
+	Save_t *p;
+	Dtdisc_t *d;
+	char buf[1024];
 
-	static Dt_t*	dict;
+	static Dt_t *dict;
 
-	if (!dict)
+	if(!dict)
 	{
-		if (!(d = newof(0, Dtdisc_t, 1, 0)))
-			return (char*)ap;
+		if(!(d = newof(0, Dtdisc_t, 1, 0)))
+			return (char *)ap;
 		d->key = offsetof(Save_t, text);
-		if (!(dict = dtopen(d, Dtset)))
-			return (char*)ap;
+		if(!(dict = dtopen(d, Dtset)))
+			return (char *)ap;
 	}
 	b = buf;
 	e = b + sizeof(buf) - 1;
-	for (ep = ap + az; b < e && ap < ep; *b++ = *ap++);
-	if (bp)
+	for(ep = ap + az; b < e && ap < ep; *b++ = *ap++)
+		;
+	if(bp)
 	{
-		for (ep = bp + bz; b < e && bp < ep; *b++ = *bp++);
-		if (cp)
-			for (ep = cp + cz; b < e && cp < ep; *b++ = *cp++);
+		for(ep = bp + bz; b < e && bp < ep; *b++ = *bp++)
+			;
+		if(cp)
+			for(ep = cp + cz; b < e && cp < ep; *b++ = *cp++)
+				;
 	}
 	*b = 0;
-	if (!(p = (Save_t*)dtmatch(dict, buf)))
+	if(!(p = (Save_t *)dtmatch(dict, buf)))
 	{
-		if (!(p = newof(0, Save_t, 1, b - buf)))
-			return (char*)ap;
+		if(!(p = newof(0, Save_t, 1, b - buf)))
+			return (char *)ap;
 		strcpy(p->text, buf);
 		dtinsert(dict, p);
 	}
@@ -831,27 +927,28 @@ save(const char* ap, size_t az, const char* bp, size_t bz, const char* cp, size_
  * expanded value returned
  */
 
-static char*
-expand(char* s, char* e, char** p, ast_wbuf_t* ip, char* id)
+static char *
+expand(char *s, char *e, char **p, ast_wbuf_t *ip, char *id)
 {
-	int	c;
-	char*	b = s;
-	size_t	n;
+	int c;
+	char *b = s;
+	size_t n;
 
 	n = ast_wbuf_tell(ip);
 	c = 1;
-	while ((!e || s < e) && (c = *s++) && c != '\f');
+	while((!e || s < e) && (c = *s++) && c != '\f')
+		;
 	ast_wbuf_write(ip, b, s - b - 1);
 	ast_wbuf_putc(ip, 0);
 	b = ast_wbuf_base(ip) + n;
 	n = ast_wbuf_tell(ip);
-	if (!c)
+	if(!c)
 		s--;
-	if (*b == '?')
+	if(*b == '?')
 	{
-		if (!*++b || streq(b, "NAME"))
+		if(!*++b || streq(b, "NAME"))
 		{
-			if (!(b = id))
+			if(!(b = id))
 				b = "command";
 			ast_wbuf_seek(ip, 0, SEEK_SET);
 			ast_wbuf_puts(ip, b);
@@ -860,10 +957,10 @@ expand(char* s, char* e, char** p, ast_wbuf_t* ip, char* id)
 		else
 			n = 1;
 	}
-	else if (!opt_info.disc || !opt_info.disc->infof || (*opt_info.disc->infof)(&opt_info, ip, b, opt_info.disc) < 0)
+	else if(!opt_info.disc || !opt_info.disc->infof || (*opt_info.disc->infof)(&opt_info, ip, b, opt_info.disc) < 0)
 		n = 0;
 	*p = s;
-	if (s = ast_wbuf_use(ip))
+	if(s = ast_wbuf_use(ip))
 		s += n;
 	else
 		s = "error";
@@ -877,14 +974,14 @@ expand(char* s, char* e, char** p, ast_wbuf_t* ip, char* id)
 static void
 initdict(void)
 {
-	int	n;
+	int n;
 
 	ast_wbuf_open(&state.vp);
 	state.msgdisc.key = offsetof(Msg_t, text);
 	state.msgdisc.size = -1;
 	state.msgdisc.link = offsetof(Msg_t, link);
-	if (state.msgdict = dtopen(&state.msgdisc, Dtset))
-		for (n = 0; n < elementsof(C_LC_MESSAGES_libast); n++)
+	if(state.msgdict = dtopen(&state.msgdisc, Dtset))
+		for(n = 0; n < elementsof(C_LC_MESSAGES_libast); n++)
 			dtinsert(state.msgdict, C_LC_MESSAGES_libast + n);
 }
 
@@ -893,26 +990,26 @@ initdict(void)
  */
 
 static int
-init(char* s, Optpass_t* p)
+init(char *s, Optpass_t *p)
 {
-	char*	t;
-	char*	u;
-	int	c;
-	int	a;
-	int	n;
-	char*	e;
-	int	l;
+	char *t;
+	char *u;
+	int c;
+	int a;
+	int n;
+	char *e;
+	int l;
 
-	if (!state.localized)
+	if(!state.localized)
 	{
-		unsigned char	*opts = (unsigned char*)OPT_FLAGS;
-		unsigned char	*o;
+		unsigned char *opts = (unsigned char *)OPT_FLAGS;
+		unsigned char *o;
 		state.localized = 1;
-		if (!ast.locale.serial)
+		if(!ast.locale.serial)
 			setlocale(LC_ALL, "");
 		ast_wbuf_open(&state.xp);
-		if (!map[opts[0]])
-			for (n = 0, o = opts; *o; o++)
+		if(!map[opts[0]])
+			for(n = 0, o = opts; *o; o++)
 				map[*o] = ++n;
 	}
 #if _BLD_DEBUG
@@ -927,125 +1024,127 @@ init(char* s, Optpass_t* p)
 	p->id = error_info.id;
 	p->catalog = 0;
 	s = next(s, 0);
-	if (*s == ':')
+	if(*s == ':')
 		s++;
-	if (*s == '+')
+	if(*s == '+')
 		s++;
 	s = next(s, 0);
-	if (*s++ == '[')
+	if(*s++ == '[')
 	{
-		if (*s == '+')
+		if(*s == '+')
 			p->version = 1;
-		else if (*s++ == '-')
+		else if(*s++ == '-')
 		{
-			if (*s == '?' || *s == ']')
+			if(*s == '?' || *s == ']')
 				p->version = 1;
 			else
 			{
-				if (!isdigit(*s))
+				if(!isdigit(*s))
 					p->version = 1;
 				else
-					while (isdigit(*s))
+					while(isdigit(*s))
 						p->version = p->version * 10 + (*s++ - '0');
-				while (*s && *s != ']')
+				while(*s && *s != ']')
 				{
-					if ((c = *s++) == '?')
+					if((c = *s++) == '?')
 					{
 						p->release = s;
-						while (*s && *s != ']')
-							if (isspace(*s++))
+						while(*s && *s != ']')
+							if(isspace(*s++))
 								p->release = s;
 						break;
 					}
-					else if (!isdigit(*s))
+					else if(!isdigit(*s))
 						n = 1;
 					else
 					{
 						n = 0;
-						while (isdigit(*s))
+						while(isdigit(*s))
 							n = n * 10 + (*s++ - '0');
 					}
-					switch (c)
+					switch(c)
 					{
-					case '+':
-						p->flags |= OPT_plus;
-						break;
-					case 'a':
-						p->flags |= OPT_append;
-						break;
-					case 'c':
-						p->flags |= OPT_cache;
-						break;
-					case 'i':
-						p->flags |= OPT_ignore;
-						break;
-					case 'l':
-						p->flags |= OPT_long;
-						break;
-					case 'm':
-						p->flags |= OPT_module;
-						break;
-					case 'n':
-						p->flags |= OPT_numeric;
-						break;
-					case 'o':
-						p->flags |= OPT_old;
-						break;
-					case 'p':
-						p->prefix = n;
-						break;
-					case 's':
-						if (n > 1 && n < 5)
-						{
-							p->flags |= OPT_functions;
-							p->prefix = 0;
-						}
-						p->section[0] = '0' + (n % 10);
-						n = 1;
-						if (isupper(*s))
-							p->section[n++] = *s++;
-						if (isupper(*s))
-							p->section[n++] = *s++;
-						p->section[n] = 0;
-						break;
+						case '+':
+							p->flags |= OPT_plus;
+							break;
+						case 'a':
+							p->flags |= OPT_append;
+							break;
+						case 'c':
+							p->flags |= OPT_cache;
+							break;
+						case 'i':
+							p->flags |= OPT_ignore;
+							break;
+						case 'l':
+							p->flags |= OPT_long;
+							break;
+						case 'm':
+							p->flags |= OPT_module;
+							break;
+						case 'n':
+							p->flags |= OPT_numeric;
+							break;
+						case 'o':
+							p->flags |= OPT_old;
+							break;
+						case 'p':
+							p->prefix = n;
+							break;
+						case 's':
+							if(n > 1 && n < 5)
+							{
+								p->flags |= OPT_functions;
+								p->prefix = 0;
+							}
+							p->section[0] = '0' + (n % 10);
+							n = 1;
+							if(isupper(*s))
+								p->section[n++] = *s++;
+							if(isupper(*s))
+								p->section[n++] = *s++;
+							p->section[n] = 0;
+							break;
 					}
 				}
 			}
 		}
-		while (*s)
-			if (*s++ == ']')
+		while(*s)
+			if(*s++ == ']')
 			{
-				while (isspace(*s))
+				while(isspace(*s))
 					s++;
-				if (*s++ == '[')
+				if(*s++ == '[')
 				{
-					if (*s++ != '-')
+					if(*s++ != '-')
 					{
 						l = 0;
-						if (strneq(s - 1, "+NAME?", 6) && (s += 5) || strneq(s - 1, "+LIBRARY?", 9) && (s += 8) && (l = 1) || strneq(s - 1, "+PLUGIN?", 8) && (s += 7) && (l = 1))
+						if(strneq(s - 1, "+NAME?", 6) && (s += 5) || strneq(s - 1, "+LIBRARY?", 9) && (s += 8) && (l = 1) || strneq(s - 1, "+PLUGIN?", 8) && (s += 7) && (l = 1))
 						{
-							for (; *s == '\a' || *s == '\b' || *s == '\v' || *s == ' '; s++);
-							if (*s == '\f')
+							for(; *s == '\a' || *s == '\b' || *s == '\v' || *s == ' '; s++)
+								;
+							if(*s == '\f')
 							{
-								if (*(s + 1) == '?' && *(s + 2) == '\f')
+								if(*(s + 1) == '?' && *(s + 2) == '\f')
 									break;
 								s = expand(s + 1, NULL, &e, &state.xp, p->id);
 							}
-							for (t = s; *t && *t != ' ' && *t != ']'; t++);
-							if (t > s)
+							for(t = s; *t && *t != ' ' && *t != ']'; t++)
+								;
+							if(t > s)
 							{
 								u = t;
-								if (*(t - 1) == '\a' || *(t - 1) == '\b' || *(t - 1) == '\v')
+								if(*(t - 1) == '\a' || *(t - 1) == '\b' || *(t - 1) == '\v')
 									t--;
-								if (t > s)
+								if(t > s)
 								{
-									while (*u == ' ' || *u == '\\')
+									while(*u == ' ' || *u == '\\')
 										u++;
-									if (*u == '-' || *u == ']')
+									if(*u == '-' || *u == ']')
 									{
-										if (!l)
+										if(!l)
 											p->id = save(s, t - s, 0, 0, 0, 0);
-										else if ((a = strlen(p->id)) <= (n = t - s) || strncmp(p->id + a - n, s, n) || *(p->id + a - n - 1) != ':')
+										else if((a = strlen(p->id)) <= (n = t - s) || strncmp(p->id + a - n, s, n) || *(p->id + a - n - 1) != ':')
 											p->id = save(p->id, strlen(p->id), "::", 2, s, t - s);
 									}
 								}
@@ -1053,90 +1152,90 @@ init(char* s, Optpass_t* p)
 						}
 						break;
 					}
-					if (*s == '-')
+					if(*s == '-')
 						s++;
-					if (strneq(s, "catalog?", 8))
+					if(strneq(s, "catalog?", 8))
 						p->catalog = s += 8;
 				}
 			}
 	}
-	if (!error_info.id)
+	if(!error_info.id)
 	{
-		if (!(error_info.id = p->id))
+		if(!(error_info.id = p->id))
 			p->id = "command";
 	}
-	else if (p->id == error_info.id)
+	else if(p->id == error_info.id)
 		p->id = save(p->id, strlen(p->id), 0, 0, 0, 0);
-	if (s = p->catalog)
+	if(s = p->catalog)
 		p->catalog = ((t = strchr(s, ']')) && (!p->id || (t - s) != strlen(p->id) || !strneq(s, p->id, t - s))) ? save(s, t - s, 0, 0, 0, 0) : NULL;
-	if (!p->catalog)
+	if(!p->catalog)
 	{
-		if (opt_info.disc && opt_info.disc->catalog && (!p->id || !streq(opt_info.disc->catalog, p->id)))
+		if(opt_info.disc && opt_info.disc->catalog && (!p->id || !streq(opt_info.disc->catalog, p->id)))
 			p->catalog = opt_info.disc->catalog;
 		else
 			p->catalog = ID;
 	}
 	s = p->oopts;
-	if (*s == ':')
+	if(*s == ':')
 		s++;
-	if (*s == '+')
+	if(*s == '+')
 	{
 		s++;
 		p->flags |= OPT_plus;
 	}
 	s = next(s, 0);
-	if (*s != '[')
+	if(*s != '[')
 	{
-		for (t = s, a = 0; *t; t++)
+		for(t = s, a = 0; *t; t++)
 		{
-			if (!a && *t == '-')
+			if(!a && *t == '-')
 			{
 				p->flags |= OPT_minus;
 				break;
 			}
-			else if (*t == '[')
+			else if(*t == '[')
 				a++;
-			else if (*t == ']')
+			else if(*t == ']')
 				a--;
 		}
 	}
-	if (!p->version && (t = strchr(s, '(')) && strchr(t, ')') && (state.cp.fp || !ast_wbuf_open(&state.cp)))
+	if(!p->version && (t = strchr(s, '(')) && strchr(t, ')') && (state.cp.fp || !ast_wbuf_open(&state.cp)))
 	{
 		/*
 		 * Solaris long option compatibility
 		 */
 
 		p->version = 1;
-		for (t = p->oopts; t < s; t++)
+		for(t = p->oopts; t < s; t++)
 			ast_wbuf_putc(&state.cp, *t);
 		n = t - p->oopts;
 		ast_wbuf_putc(&state.cp, '[');
 		ast_wbuf_putc(&state.cp, '-');
 		ast_wbuf_putc(&state.cp, ']');
 		c = *s++;
-		while (c)
+		while(c)
 		{
 			ast_wbuf_putc(&state.cp, '[');
 			ast_wbuf_putc(&state.cp, c);
-			if (a = (c = *s++) == ':')
+			if(a = (c = *s++) == ':')
 				c = *s++;
-			if (c == '(')
+			if(c == '(')
 			{
 				ast_wbuf_putc(&state.cp, ':');
-				for (;;)
+				for(;;)
 				{
-					while ((c = *s++) && c != ')')
+					while((c = *s++) && c != ')')
 						ast_wbuf_putc(&state.cp, c);
-					if (!c || (c = *s++) != '(')
+					if(!c || (c = *s++) != '(')
 						break;
 					ast_wbuf_putc(&state.cp, '|');
 				}
 			}
 			ast_wbuf_putc(&state.cp, ']');
-			if (a)
+			if(a)
 				ast_wbuf_puts(&state.cp, ":[string]");
 		}
-		if (!(p->oopts = s = ast_wbuf_use(&state.cp)))
+		if(!(p->oopts = s = ast_wbuf_use(&state.cp)))
 			return -1;
 		s += n;
 	}
@@ -1149,24 +1248,24 @@ init(char* s, Optpass_t* p)
  * return the bold set/unset sequence for style
  */
 
-static const char*
+static const char *
 font(int f, int style, int set)
 {
-	switch (style)
+	switch(style)
 	{
-	case STYLE_html:
-		return fonts[f].html[set];
-	case STYLE_nroff:
-		return fonts[f].nroff[set];
-	case STYLE_short:
-	case STYLE_long:
-	case STYLE_posix:
-	case STYLE_api:
-		break;
-	default:
-		if (state.emphasis > 0)
-			return fonts[f].term[set];
-		break;
+		case STYLE_html:
+			return fonts[f].html[set];
+		case STYLE_nroff:
+			return fonts[f].nroff[set];
+		case STYLE_short:
+		case STYLE_long:
+		case STYLE_posix:
+		case STYLE_api:
+			break;
+		default:
+			if(state.emphasis > 0)
+				return fonts[f].term[set];
+			break;
 	}
 	return "";
 }
@@ -1175,20 +1274,20 @@ font(int f, int style, int set)
  * push \f...\f info
  */
 
-static Push_t*
-info(Push_t* psp, char* s, char* e, ast_wbuf_t* ip, char* id)
+static Push_t *
+info(Push_t *psp, char *s, char *e, ast_wbuf_t *ip, char *id)
 {
-	char*	b;
-	int	n;
-	Push_t*	tsp;
+	char *b;
+	int n;
+	Push_t *tsp;
 
-	static Push_t	push;
+	static Push_t push;
 
 	b = expand(s, e, &s, ip, id);
 	n = strlen(b);
-	if (tsp = newof(0, Push_t, 1, n + 1))
+	if(tsp = newof(0, Push_t, 1, n + 1))
 	{
-		tsp->nb = (char*)(tsp + 1);
+		tsp->nb = (char *)(tsp + 1);
 		tsp->ne = tsp->nb + n;
 		strcpy(tsp->nb, b);
 	}
@@ -1204,39 +1303,39 @@ info(Push_t* psp, char* s, char* e, ast_wbuf_t* ip, char* id)
  * push translation
  */
 
-static Push_t*
-localize(Push_t* psp, char* s, char* e, int term, int n, ast_wbuf_t* ip, int version, char* id, char* catalog)
+static Push_t *
+localize(Push_t *psp, char *s, char *e, int term, int n, ast_wbuf_t *ip, int version, char *id, char *catalog)
 {
-	char*		t;
-	char*		u;
-	Push_t*		tsp;
-	int		c;
+	char *t;
+	char *u;
+	Push_t *tsp;
+	int c;
 
 	t = skip(s, term, 0, 0, n, 0, 0, version);
-	if (e && t > e)
+	if(e && t > e)
 		t = e;
-	while (s < t)
+	while(s < t)
 	{
-		switch (c = *s++)
+		switch(c = *s++)
 		{
-		case ':':
-		case '?':
-			if (term && *s == c)
-				s++;
-			break;
-		case ']':
-			if (*s == c)
-				s++;
-			break;
+			case ':':
+			case '?':
+				if(term && *s == c)
+					s++;
+				break;
+			case ']':
+				if(*s == c)
+					s++;
+				break;
 		}
 		ast_wbuf_putc(ip, c);
 	}
-	if (!(s = ast_wbuf_use(ip)) || (u = T(id, catalog, s)) == s)
+	if(!(s = ast_wbuf_use(ip)) || (u = T(id, catalog, s)) == s)
 		return NULL;
 	n = strlen(u);
-	if (tsp = newof(0, Push_t, 1, n + 1))
+	if(tsp = newof(0, Push_t, 1, n + 1))
 	{
-		tsp->nb = (char*)(tsp + 1);
+		tsp->nb = (char *)(tsp + 1);
 		tsp->ne = tsp->nb + n;
 		strcpy(tsp->nb, u);
 		tsp->ob = t;
@@ -1253,112 +1352,112 @@ localize(Push_t* psp, char* s, char* e, int term, int n, ast_wbuf_t* ip, int ver
  */
 
 static int
-label(ast_wbuf_t* sp, int sep, char* s, int about, int z, int level, int style, int f, ast_wbuf_t* ip, int version, char* id, char* catalog)
+label(ast_wbuf_t *sp, int sep, char *s, int about, int z, int level, int style, int f, ast_wbuf_t *ip, int version, char *id, char *catalog)
 {
-	char* const	save_s = s;
-	int		c;
-	char*		t;
-	char*		e;
-	int		ostyle;
-	int		a;
-	int		i;
-	char*		p;
-	char*		q;
-	char*		w;
-	char*		y;
-	int		va;
-	Push_t*		tsp;
+	char *const save_s = s;
+	int c;
+	char *t;
+	char *e;
+	int ostyle;
+	int a;
+	int i;
+	char *p;
+	char *q;
+	char *w;
+	char *y;
+	int va;
+	Push_t *tsp;
 
-	int		r = 0;
-	int		n = 1;
-	Push_t*		psp = 0;
+	int r = 0;
+	int n = 1;
+	Push_t *psp = 0;
 
-	if ((ostyle = style) > (STYLE_nroff - (sep <= 0)) && f != FONT_LITERAL && f >= 0)
+	if((ostyle = style) > (STYLE_nroff - (sep <= 0)) && f != FONT_LITERAL && f >= 0)
 		style = 0;
-	if (z < 0)
+	if(z < 0)
 		e = s + strlen(s);
 	else
 		e = s + z;
-	if (sep > 0)
+	if(sep > 0)
 	{
-		if (sep == ' ' && style == STYLE_nroff)
+		if(sep == ' ' && style == STYLE_nroff)
 			ast_wbuf_putc(sp, '\\');
 		ast_wbuf_putc(sp, sep);
 	}
 	sep = !sep || z < 0;
 	va = 0;
 	y = 0;
-	if (about)
+	if(about)
 		ast_wbuf_putc(sp, '(');
-	if (version < 1)
+	if(version < 1)
 	{
 		a = 0;
-		for (;;)
+		for(;;)
 		{
-			if (s >= e)
+			if(s >= e)
 				return r;
-			switch (c = *s++)
+			switch(c = *s++)
 			{
-			case '[':
-				a++;
-				break;
-			case ']':
-				if (--a < 0)
-					return r;
-				break;
+				case '[':
+					a++;
+					break;
+				case ']':
+					if(--a < 0)
+						return r;
+					break;
 			}
 			ast_wbuf_putc(sp, c);
 		}
 	}
-	else if (level && (*(p = skip(s, 0, 0, 0, 1, level, 1, version)) == ':' || *p == '#'))
+	else if(level && (*(p = skip(s, 0, 0, 0, 1, level, 1, version)) == ':' || *p == '#'))
 	{
 		va = 0;
-		if (*++p == '?' || *p == *(p - 1))
+		if(*++p == '?' || *p == *(p - 1))
 		{
 			p++;
 			va |= OPT_optional;
 		}
-		if (*(p = next(p, version)) == '[')
+		if(*(p = next(p, version)) == '[')
 			y = p + 1;
 	}
-	if (X(catalog) && (!level || *s == '\a' || s == save_s || *(s - 1) != '+') &&
-	    (tsp = localize(psp, s, e, (sep || level) ? '?' : 0, sep || level, ip, version, id, catalog)))
+	if(X(catalog) && (!level || *s == '\a' || s == save_s || *(s - 1) != '+') &&
+	   (tsp = localize(psp, s, e, (sep || level) ? '?' : 0, sep || level, ip, version, id, catalog)))
 	{
 		psp = tsp;
 		s = psp->nb;
 		e = psp->ne;
 		r = psp->ch > 0;
 	}
-	switch (*s)
+	switch(*s)
 	{
-	case '\a':
-		if (f == FONT_ITALIC || f < 0)
-			s++;
-		if (f > 0)
-			f = 0;
-		break;
-	case '\b':
-		if (f == FONT_BOLD || f < 0)
-			s++;
-		if (f > 0)
-			f = 0;
-		break;
-	case '\v':
-		if (f == FONT_LITERAL || f < 0)
-			s++;
-		if (f > 0)
-			f = 0;
-		break;
-	default:
-		if (f > 0)
-			ast_wbuf_puts(sp, font(f, style, 1));
-		break;
+		case '\a':
+			if(f == FONT_ITALIC || f < 0)
+				s++;
+			if(f > 0)
+				f = 0;
+			break;
+		case '\b':
+			if(f == FONT_BOLD || f < 0)
+				s++;
+			if(f > 0)
+				f = 0;
+			break;
+		case '\v':
+			if(f == FONT_LITERAL || f < 0)
+				s++;
+			if(f > 0)
+				f = 0;
+			break;
+		default:
+			if(f > 0)
+				ast_wbuf_puts(sp, font(f, style, 1));
+			break;
 	}
-	for (;;)
+	for(;;)
 	{
-		if (s >= e)
+		if(s >= e)
 		{
-			if (!(tsp = psp))
+			if(!(tsp = psp))
 				goto restore;
 			s = psp->ob;
 			e = psp->oe;
@@ -1366,905 +1465,146 @@ label(ast_wbuf_t* sp, int sep, char* s, int about, int z, int level, int style, 
 			free(tsp);
 			continue;
 		}
-		switch (c = *s++)
+		switch(c = *s++)
 		{
-		case '(':
-			if (n)
-			{
-				n = 0;
-				if (f > 0)
+			case '(':
+				if(n)
 				{
-					ast_wbuf_puts(sp, font(f, style, 0));
-					f = 0;
-				}
-			}
-			break;
-		case '?':
-		case ':':
-		case ']':
-			if (psp && psp->ch)
-				break;
-			if (y)
-			{
-				if (va & OPT_optional)
-					ast_wbuf_putc(sp, '[');
-				ast_wbuf_putc(sp, '=');
-				label(sp, 0, y, 0, -1, 0, style, f >= 0 ? FONT_ITALIC : f, ip, version, id, catalog);
-				if (va & OPT_optional)
-					ast_wbuf_putc(sp, ']');
-				y = 0;
-			}
-			switch (c)
-			{
-			case '?':
-				if (*s == '?')
-					s++;
-				else if (*s == ']' && *(s + 1) != ']')
-					continue;
-				else if (sep)
-					goto restore;
-				else if (X(catalog) && (tsp = localize(psp, s, e, 0, 1, ip, version, id, catalog)))
-				{
-					psp = tsp;
-					s = psp->nb;
-					e = psp->ne;
-				}
-				break;
-			case ']':
-				if (sep && *s++ != ']')
-					goto restore;
-				break;
-			case ':':
-				if (sep && *s++ != ':')
-					goto restore;
-				break;
-			}
-			break;
-		case '\a':
-			a = FONT_ITALIC;
-		setfont:
-			if (f >= 0)
-			{
-				if (f & ~a)
-				{
-					ast_wbuf_puts(sp, font(f, style, 0));
-					f = 0;
-				}
-				if (!f && style == STYLE_html)
-				{
-					for (t = s; t < e && !isspace(*t) && !iscntrl(*t); t++);
-					if (*t == c && *++t == '(')
-					{
-						w = t;
-						if (++t < e && isdigit(*t))
-							while (++t < e && isupper(*t));
-						if (t < e && *t == ')' && t > w + 1)
-						{
-							ast_wbuf_printf(sp, "<NOBR><A href=\"../man%-.*s/"
-								, t - w - 1, w + 1
-								);
-							for (q = s; q < w - 1; q++)
-							{
-								if (*q == ':' && q < w - 2 && *(q + 1) == ':')
-								{
-									ast_wbuf_putc(sp, '-');
-									q++;
-								}
-								else
-									ast_wbuf_putc(sp, *q);
-							}
-							ast_wbuf_printf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>"
-								, font(a, style, 1)
-								, w - s - 1, s
-								, font(a, style, 0)
-								, t - w + 1, w
-								);
-							s = t + 1;
-							continue;
-						}
-					}
-				}
-				ast_wbuf_puts(sp, font(a, style, !!(f ^= a)));
-			}
-			continue;
-		case '\b':
-			a = FONT_BOLD;
-			goto setfont;
-		case '\f':
-			psp = info(psp, s, e, ip, id);
-			if (psp->nb)
-			{
-				s = psp->nb;
-				e = psp->ne;
-			}
-			else
-			{
-				s = psp->ob;
-				psp = psp->next;
-			}
-			continue;
-		case '\n':
-			ast_wbuf_putc(sp, c);
-			for (i = 0; i < level; i++)
-				ast_wbuf_putc(sp, '\t');
-			continue;
-		case '\v':
-			a = FONT_LITERAL;
-			goto setfont;
-		case '<':
-			if (style == STYLE_html)
-			{
-				ast_wbuf_puts(sp, "&lt;");
-				c = 0;
-				for (t = s; t < e; t++)
-				{
-					if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
-					{
-						if (*t == '@')
-						{
-							if (c)
-								break;
-							c = 1;
-						}
-						else if (*t == '>')
-						{
-							if (c)
-							{
-								ast_wbuf_printf(sp, "<A href=\"mailto:%-.*s>%-.*s</A>&gt;", t - s, s, t - s, s);
-								s = t + 1;
-							}
-							break;
-						}
-						else
-							break;
-					}
-				}
-				continue;
-			}
-			break;
-		case '>':
-			if (style == STYLE_html)
-			{
-				ast_wbuf_puts(sp, "&gt;");
-				continue;
-			}
-			break;
-		case '&':
-			if (style == STYLE_html)
-			{
-				ast_wbuf_puts(sp, "&amp;");
-				continue;
-			}
-			break;
-		case '"':
-			if (style == STYLE_html)
-			{
-				ast_wbuf_puts(sp, "&quot;");
-				continue;
-			}
-			break;
-		case '-':
-			if (ostyle == STYLE_nroff)
-				ast_wbuf_putc(sp, '\\');
-			break;
-		case '.':
-			if (ostyle == STYLE_nroff)
-			{
-				ast_wbuf_putc(sp, '\\');
-				ast_wbuf_putc(sp, '&');
-			}
-			break;
-		case '\\':
-			if (ostyle == STYLE_nroff)
-			{
-				c = 'e';
-				ast_wbuf_putc(sp, '\\');
-			}
-			break;
-		case ' ':
-			if (ostyle == STYLE_nroff)
-				ast_wbuf_putc(sp, '\\');
-			break;
-		}
-		ast_wbuf_putc(sp, c);
-	}
- restore:
-	if (f > 0)
-		ast_wbuf_puts(sp, font(f, style, 0));
-	if (about)
-		ast_wbuf_putc(sp, ')');
-	if (psp)
-		pop(psp);
-	return r;
-}
-
-/*
- * output args description to sp from p of length n
- */
-
-static void
-args(ast_wbuf_t* sp, char* p, int n, int flags, int style, ast_wbuf_t* ip, int version, char* id, char* catalog)
-{
-	int	i;
-	char*	t;
-	char*	o;
-	char*	a = 0;
-	char*	b = style == STYLE_nroff ? "\\ " : " ";
-	int	sep;
-
-	if (flags & OPT_functions)
-		sep = '\t';
-	else
-	{
-		sep = ' ';
-		o = T(NULL, ID, "options");
-		for (;;)
-		{
-			t = (char*)memchr(p, '\n', n);
-			if (style >= STYLE_man)
-			{
-				int firstline = !a;
-				/* --man page: print command name */
-				if (!(a = id))
-					a = "...";
-				ast_wbuf_printf(sp, "\t%s%s%s", font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0));
-				if (firstline)
-				{
-					/* Append "[ options ]" label */
-					ast_wbuf_printf(sp, "%s[%s%s%s%s%s]",
-						b, b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b);
-				}
-			}
-			else if (a)
-			{
-				/* Usage/--help, line 2+: specific usages. Prefix by "Or:" */
-				ast_wbuf_printf(sp, "%*.*s%s%s", OPT_USAGE - 1, OPT_USAGE - 1, T(NULL, ID, "Or:"), b, a);
-			}
-			else
-			{
-				/* Usage on unknown long option error: no short options are printed, so print "[ options ]" */
-				if (!(a = error_info.id) && !(a = id))
-					a = "...";
-				if (!ast_wbuf_tell(sp))
-					ast_wbuf_printf(sp, "[%s%s%s]", b, o, b);
-			}
-			if (!t)
-				break;
-			i = ++t - p;
-			if (i)
-			{
-				/* Print options for usage line */
-				ast_wbuf_puts(sp, b);
-				if (X(catalog))
-				{
-					char	*cp;
-					ast_wbuf_write(ip, p, i);
-					if (cp = ast_wbuf_use(ip))
-						ast_wbuf_puts(sp, T(id, catalog, cp));
-					else
-						ast_wbuf_write(sp, p, i);
-				}
-				else
-					ast_wbuf_write(sp, p, i);
-			}
-			/* New line */
-			if (style == STYLE_html)
-			{
-				ast_wbuf_puts(sp, "<BR>");
-				ast_wbuf_putc(sp, '\n');
-			}
-			else if (style == STYLE_nroff)
-			{
-				ast_wbuf_puts(sp, ".br");
-				ast_wbuf_putc(sp, '\n');
-			}
-			else if (style == STYLE_api)
-			{
-				ast_wbuf_puts(sp, ".BR");
-				ast_wbuf_putc(sp, '\n');
-			}
-			p = t;
-			n -= i;
-			while (n > 0 && (*p == ' ' || *p == '\t'))
-			{
-				p++;
-				n--;
-			}
-		}
-	}
-	/* Print options for the last usage line */
-	if (n)
-		label(sp, sep, p, 0, n, 0, style, 0, ip, version, id, catalog);
-	/* In usage/--help messages, tell the user how to get more help */
-	if (style < STYLE_man)
-	{
-		ast_wbuf_printf(sp, "\n%*.*s%s%s [%s--help%s|%s--man%s]",
-			OPT_USAGE - 1, OPT_USAGE - 1, T(NULL, ID, "Help:"), b, a, b, b, b, b);
-	}
-}
-
-/*
- * output [+-...label...?...] label s to sp
- * according to {...} level and style
- * return 0:header 1:paragraph
- */
-
-static int
-item(ast_wbuf_t* sp, char* s, int about, int level, int style, ast_wbuf_t* ip, int version, char* id, char* catalog, int* hflags)
-{
-	char*	t;
-	int	n;
-	int	par;
-
-	ast_wbuf_putc(sp, '\n');
-	if (*s == '\n')
-	{
-		par = 0;
-		if (style >= STYLE_nroff)
-			ast_wbuf_puts(sp, ".DS\n");
-		else
-		{
-			if (style == STYLE_html)
-				ast_wbuf_puts(sp, "<PRE>\n");
-			else
-				ast_wbuf_putc(sp, '\n');
-			for (n = 0; n < level; n++)
-				ast_wbuf_putc(sp, '\t');
-		}
-		label(sp, 0, s + 1, about, -1, level, style, FONT_LITERAL, ip, version, id, catalog);
-		ast_wbuf_putc(sp, '\n');
-		if (style >= STYLE_nroff)
-			ast_wbuf_puts(sp, ".DE");
-		else if (style == STYLE_html)
-			ast_wbuf_puts(sp, "</PRE>");
-	}
-	else if (*s != ']' && (*s != '?' || *(s + 1) == '?'))
-	{
-		par = 0;
-		if (level)
-		{
-			if (style >= STYLE_nroff)
-				ast_wbuf_printf(sp, ".H%d ", (level - (level > 2)) / 2);
-			else
-				for (n = 0; n < level; n++)
-					ast_wbuf_putc(sp, '\t');
-		}
-		if (style == STYLE_html)
-		{
-			if (!level)
-			{
-				if (*hflags & HELP_head)
-				{
-					ast_wbuf_puts(sp, "</DIV>");
-					ast_wbuf_putc(sp, '\n');
-				}
-				else
-					*hflags |= HELP_head;
-				ast_wbuf_puts(sp, "<H4>");
-			}
-			ast_wbuf_puts(sp, "<A name=\"");
-			if (s[-1] == '-' && s[0] == 'l' && s[1] == 'i' && s[2] == 'c' && s[3] == 'e' && s[4] == 'n' && s[5] == 's' && s[6] == 'e' && s[7] == '?')
-			{
-				for (t = s + 8; *t && *t != ']'; t++)
-				{
-					if (t[0] == 'p' && (!strncmp(t, "proprietary", 11) || !strncmp(t, "private", 7)) || t[0] == 'n' && !strncmp(t, "noncommercial", 13))
-					{
-						state.flags |= OPT_proprietary;
-						break;
-					}
-				}
-			}
-			label(sp, 0, s, about, -1, level, style, -1, ip, version, id, catalog);
-			ast_wbuf_puts(sp, "\">");
-			label(sp, 0, s, about, -1, level, style, level ? FONT_BOLD : 0, ip, version, id, catalog);
-			ast_wbuf_puts(sp, "</A>");
-			if (!level)
-			{
-				if (!strncmp(s, C("SYNOPSIS"), strlen(C("SYNOPSIS"))))
-					ast_wbuf_puts(sp, "</H4>\n<DIV class=SY>");
-				else
-				{
-					ast_wbuf_puts(sp, "</H4>\n<DIV class=SH>");
-					if (!strncmp(s, C("NAME"), strlen(C("NAME"))) || !strncmp(s, C("PLUGIN"), strlen(C("PLUGIN"))))
-						*hflags |= HELP_index;
-				}
-			}
-		}
-		else
-		{
-			if (!level)
-			{
-				if (style >= STYLE_nroff)
-					ast_wbuf_puts(sp, ".SH ");
-				else if (style == STYLE_man)
-					ast_wbuf_putc(sp, '\n');
-				else if (style != STYLE_options && style != STYLE_match || *s == '-' || *s == '+')
-					ast_wbuf_putc(sp, '\t');
-			}
-			label(sp, 0, s, about, -1, level, style, FONT_BOLD, ip, version, id, catalog);
-		}
-	}
-	else
-	{
-		par = 1;
-		if (style >= STYLE_nroff)
-			ast_wbuf_puts(sp, level ? ".SP" : ".PP");
-	}
-	if (style >= STYLE_nroff || !level)
-		ast_wbuf_putc(sp, '\n');
-	if (par && style < STYLE_nroff)
-		for (n = 0; n < level; n++)
-			ast_wbuf_putc(sp, '\t');
-	return par;
-}
-
-/*
- * output text to sp from p according to style
- */
-
-#if _BLD_DEBUG
-
-static char*	textout(ast_wbuf_t*, char*, char*, int, int, int, int, ast_wbuf_t*, int, char*, char*, int*);
-
-static char*
-trace_textout(ast_wbuf_t* sp, char* p, char* conform, int conformlen, int style, int level, int bump, ast_wbuf_t* ip, int version, char* id, char* catalog, int* hflags, int line)
-{
-	static int	depth = 0;
-
-	message((-21, "opthelp: txt#%d +++ %2d \"%s\" style=%d level=%d bump=%d", line, ++depth, show(p), style, level, bump));
-	p = textout(sp, p, conform, conformlen, style, level, bump, ip, version, id, catalog, hflags);
-	message((-21, "opthelp: txt#%d --- %2d \"%s\"", line, depth--, show(p)));
-	return p;
-}
-
-#endif
-
-static char*
-textout(ast_wbuf_t* sp, char* s, char* conform, int conformlen, int style, int level, int bump, ast_wbuf_t* ip, int version, char* id, char* catalog, int* hflags)
-{
-#if _BLD_DEBUG
-#define textout(sp,s,conform,conformlen,style,level,bump,ip,version,id,catalog,hflags)	trace_textout(sp,s,conform,conformlen,style,level,bump,ip,version,id,catalog,hflags,__LINE__)
-#endif
-	char*		t;
-	int		c;
-	int		n;
-	char*		w;
-	char*		q;
-	int		a;
-	int		f;
-	int		par;
-	int		about;
-	Push_t*		tsp;
-
-	int		ident = 0;
-	int		lev = level;
-	Push_t*		psp = 0;
-
- again:
-	about = 0;
-	if ((c = *s) == GO)
-	{
-		for (;;)
-		{
-			while (*(s = next(s + 1, version)) == '\n');
-			if (*s == GO)
-			{
-				if (level > 1)
-					level++;
-				level++;
-			}
-			else if (*s != OG)
-			{
-				if (level <= 1 || *s != '[' || *(s + 1) != '-' || style == STYLE_man && *(s + 2) == '?' || isalpha(*(s + 2)))
-					break;
-				s = skip(s, 0, 0, 0, 1, level, 0, version);
-			}
-			else if ((level -= 2) <= lev)
-				return s + 1;
-		}
-		if (*s == '\f')
-		{
-			psp = info(psp, s + 1, NULL, ip, id);
-			if (psp->nb)
-				s = psp->nb;
-			else
-			{
-				s = psp->ob;
-				psp = psp->next;
-			}
-		}
-		if (*s != '[')
-			return s;
-		c = *++s;
-		if (level > 1)
-			level++;
-		level++;
-	}
-	if (c == '-' && level > 1)
-	{
-		if (style == STYLE_man)
-		{
-			about = 1;
-			if (*(s + 1) == '-')
-				s++;
-		}
-		else
-			for (;;)
-			{
-				s = skip(s, 0, 0, 0, 1, level, 0, version);
-				while (*(s = next(s + 1, version)) == '\n');
-				if (*s == '[')
-				{
-					if ((c = *++s) != '-')
-						break;
-				}
-				else if (*s == GO)
-					goto again;
-				else if (*s == OG)
-					return s + 1;
-			}
-	}
-	if (c == '+' || c == '-' && (bump = 3) || c != ' ' && level > 1)
-	{
-		s = skip(t = s + 1, '?', 0, 0, 1, level, 0, version);
-		if (c == '-' && (*t == '?' || isdigit(*t) || *s == '?' && *(s + 1) == '\n'))
-		{
-			if ((c = *s) != '?')
-				return skip(s, 0, 0, 0, 1, level, 1, version);
-			w = C("version");
-			par = item(sp, w, about, level, style, ip, version, id, ID, hflags);
-			for (;;)
-			{
-				while (isspace(*(s + 1)))
-					s++;
-				w = s;
-				if (w[1] == '@' && w[2] == '(' && w[3] == '#' && w[4] == ')')
-					s = w + 4;
-				else if (w[1] == '$' && w[2] == 'I' && w[3] == 'd' && w[4] == ':' && w[5] == ' ')
-				{
-					s = w + 5;
-					ident = 1;
-				}
-				else
-					break;
-			}
-		}
-		else
-		{
-			if (isdigit(c) && isdigit(*t))
-			{
-				while (isdigit(*t))
-					t++;
-				if (*t == ':')
-					t++;
-			}
-			else if (isalnum(c) && *t-- == ':')
-			{
-				if (X(catalog) || *t == *(t + 2))
-					t += 2;
-				else
-				{
-					ast_wbuf_printf(ip, "%s", t);
-					if (w = ast_wbuf_use(ip))
-						*((t = w) + 1) = '|';
-				}
-			}
-			par = item(sp, t, about, level, style, ip, version, id, catalog, hflags);
-			c = *s;
-		}
-		if (!about && level)
-			par = 0;
-	}
-	else
-	{
-		if (style >= STYLE_nroff)
-			ast_wbuf_putc(sp, '\n');
-		else if (c == '?')
-			for (n = 0; n < level; n++)
-				ast_wbuf_putc(sp, '\t');
-		par = 0;
-	}
-	if (c == ':')
-		c = *(s = skip(s, '?', 0, 0, 1, 0, 0, version));
-	if ((c == ']' || c == '?' && *(s + 1) == ']' && *(s + 2) != ']' && s++) && (c = *(s = next(s + 1, version))) == GO)
-	{
-		s = textout(sp, s, conform, conformlen, style, level + bump + par + 1, 0, ip, version, id, catalog, hflags);
-		if (level > lev && *s && *(s = next(s, version)) == '[')
-		{
-			s++;
-			message((-21, "textout#%d s=%s", __LINE__, show(s)));
-			goto again;
-		}
-	}
-	else if (c == '?' || c == ' ')
-	{
-		s++;
-		if (c == ' ')
-			ast_wbuf_putc(sp, c);
-		else
-		{
-			if (X(catalog) && (tsp = localize(psp, s, NULL, 0, 1, ip, version, id, catalog)))
-			{
-				psp = tsp;
-				s = psp->nb;
-			}
-			if (style < STYLE_nroff)
-				for (n = 0; n < bump + 1; n++)
-					ast_wbuf_putc(sp, '\t');
-		}
-		if (conform)
-		{
-			ast_wbuf_printf(sp, "[%-.*s %s] ", conformlen, conform, T(NULL, ID, "conformance"));
-			conform = 0;
-		}
-		if (*hflags & HELP_index)
-		{
-			*hflags &= ~HELP_index;
-			ast_wbuf_puts(sp, "<!--MAN-INDEX-->");
-		}
-		f = 0;
-		for (;;)
-		{
-			switch (c = *s++)
-			{
-			case 0:
-				if (!(tsp = psp))
-				{
-					if (f)
-						ast_wbuf_puts(sp, font(f, style, 0));
-					return s - 1;
-				}
-				s = psp->ob;
-				psp = psp->next;
-				free(tsp);
-				continue;
-			case ']':
-				if (psp && psp->ch)
-					break;
-				if (*s != ']')
-				{
-					if (f)
+					n = 0;
+					if(f > 0)
 					{
 						ast_wbuf_puts(sp, font(f, style, 0));
 						f = 0;
 					}
-					for (;;)
-					{
-						if ((*s == '#' || *s == ':') && level > lev)
-						{
-							char*	o;
-							char*	v;
-							int	j;
-							int	m;
-							int	ol;
-							int	vl;
-
-							a = 0;
-							o = 0;
-							v = 0;
-							if (*++s == '?' || *s == *(s - 1))
-							{
-								s++;
-								a |= OPT_optional;
-							}
-							if (*(s = next(s, version)) == '[')
-							{
-								s = skip(s + 1, ':', '?', 0, 1, 0, 0, version);
-								while (*s == ':')
-								{
-									s = skip(t = s + 1, ':', '?', 0, 1, 0, 0, version);
-									m = s - t;
-									if (*t == '!')
-									{
-										o = t + 1;
-										ol = m - 1;
-									}
-									else if (*t == '=')
-									{
-										v = t + 1;
-										vl = m - 1;
-									}
-									else
-									{
-										for (j = 0; j < elementsof(attrs); j++)
-										{
-											if (strneq(t, attrs[j].name, m))
-											{
-												a |= attrs[j].flag;
-												break;
-											}
-										}
-									}
-								}
-							}
-							if (a & OPT_optional)
-							{
-								if (o)
-								{
-									ast_wbuf_printf(sp, " %s ", T(NULL, ID, "If the option value is omitted then"));
-									ast_wbuf_puts(sp, font(FONT_BOLD, style, 1));
-									t = o + ol;
-									while (o < t)
-									{
-										if (((c = *o++) == ':' || c == '?') && *o == c)
-											o++;
-										ast_wbuf_putc(sp, c);
-									}
-									ast_wbuf_puts(sp, font(FONT_BOLD, style, 0));
-									ast_wbuf_printf(sp, " %s.", T(NULL, ID, "is assumed"));
-								}
-								else
-									ast_wbuf_printf(sp, " %s", T(NULL, ID, "The option value may be omitted."));
-							}
-							if (v)
-							{
-								ast_wbuf_printf(sp, " %s ", T(NULL, ID, "The default value is"));
-								ast_wbuf_puts(sp, font(FONT_BOLD, style, 1));
-								t = v + vl;
-								while (v < t)
-								{
-									if (((c = *v++) == ':' || c == '?') && *v == c)
-										v++;
-									ast_wbuf_putc(sp, c);
-								}
-								ast_wbuf_puts(sp, font(FONT_BOLD, style, 0));
-								ast_wbuf_putc(sp, '.');
-							}
-							s = skip(s, 0, 0, 0, 1, 0, 1, version);
-						}
-						if (*(s = next(s, version)) == GO)
-						{
-							s = textout(sp, s, 0, 0, style, level + bump + !level, 0, ip, version, id, catalog, hflags);
-							if (*s && *(s = next(s, version)) == '[' && !isalnum(*(s + 1)))
-							{
-								s++;
-								message((-21, "textout#%d s=%s", __LINE__, show(s)));
-								goto again;
-							}
-						}
-						else if (*s == '[' && level > lev)
-						{
-							s++;
-							goto again;
-						}
-						else if (*s == '\f')
-						{
-							s++;
-							if (style != STYLE_keys)
-							{
-								psp = info(psp, s, NULL, ip, id);
-								if (psp->nb)
-									s = psp->nb;
-								else
-								{
-									s = psp->ob;
-									psp = psp->next;
-								}
-							}
-						}
-						else if (*s != OG)
-						{
-							if (!(tsp = psp))
-								break;
-							s = psp->ob;
-							psp = psp->next;
-							free(tsp);
-						}
-						else
-						{
-							s++;
-							if ((level -= 2) <= lev)
-								break;
-						}
-					}
-					return s;
 				}
-				s++;
+				break;
+			case '?':
+			case ':':
+			case ']':
+				if(psp && psp->ch)
+					break;
+				if(y)
+				{
+					if(va & OPT_optional)
+						ast_wbuf_putc(sp, '[');
+					ast_wbuf_putc(sp, '=');
+					label(sp, 0, y, 0, -1, 0, style, f >= 0 ? FONT_ITALIC : f, ip, version, id, catalog);
+					if(va & OPT_optional)
+						ast_wbuf_putc(sp, ']');
+					y = 0;
+				}
+				switch(c)
+				{
+					case '?':
+						if(*s == '?')
+							s++;
+						else if(*s == ']' && *(s + 1) != ']')
+							continue;
+						else if(sep)
+							goto restore;
+						else if(X(catalog) && (tsp = localize(psp, s, e, 0, 1, ip, version, id, catalog)))
+						{
+							psp = tsp;
+							s = psp->nb;
+							e = psp->ne;
+						}
+						break;
+					case ']':
+						if(sep && *s++ != ']')
+							goto restore;
+						break;
+					case ':':
+						if(sep && *s++ != ':')
+							goto restore;
+						break;
+				}
 				break;
 			case '\a':
 				a = FONT_ITALIC;
 			setfont:
-				if (f & ~a)
+				if(f >= 0)
 				{
-					ast_wbuf_puts(sp, font(f, style, 0));
-					f = 0;
-				}
-				if (!f && style == STYLE_html)
-				{
-					for (t = s; *t && !isspace(*t) && !iscntrl(*t); t++);
-					if (*t == c && *++t == '(')
+					if(f & ~a)
 					{
-						w = t;
-						if (isdigit(*++t))
-							while (isupper(*++t));
-						if (*t == ')' && t > w + 1)
+						ast_wbuf_puts(sp, font(f, style, 0));
+						f = 0;
+					}
+					if(!f && style == STYLE_html)
+					{
+						for(t = s; t < e && !isspace(*t) && !iscntrl(*t); t++)
+							;
+						if(*t == c && *++t == '(')
 						{
-							ast_wbuf_printf(sp, "<NOBR><A href=\"../man%-.*s/"
-								, t - w - 1, w + 1
-								);
-							for (q = s; q < w - 1; q++)
+							w = t;
+							if(++t < e && isdigit(*t))
+								while(++t < e && isupper(*t))
+									;
+							if(t < e && *t == ')' && t > w + 1)
 							{
-								if (*q == ':' && q < w - 2 && *(q + 1) == ':')
+								ast_wbuf_printf(sp, "<NOBR><A href=\"../man%-.*s/", t - w - 1, w + 1);
+								for(q = s; q < w - 1; q++)
 								{
-									ast_wbuf_putc(sp, '-');
-									q++;
+									if(*q == ':' && q < w - 2 && *(q + 1) == ':')
+									{
+										ast_wbuf_putc(sp, '-');
+										q++;
+									}
+									else
+										ast_wbuf_putc(sp, *q);
 								}
-								else
-									ast_wbuf_putc(sp, *q);
+								ast_wbuf_printf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>", font(a, style, 1), w - s - 1, s, font(a, style, 0), t - w + 1, w);
+								s = t + 1;
+								continue;
 							}
-							ast_wbuf_printf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>"
-								, font(a, style, 1)
-								, w - s - 1, s
-								, font(a, style, 0)
-								, t - w + 1, w
-								);
-							s = t + 1;
-							continue;
 						}
 					}
+					ast_wbuf_puts(sp, font(a, style, !!(f ^= a)));
 				}
-				ast_wbuf_puts(sp, font(a, style, !!(f ^= a)));
 				continue;
 			case '\b':
 				a = FONT_BOLD;
 				goto setfont;
 			case '\f':
-				if (style != STYLE_keys)
+				psp = info(psp, s, e, ip, id);
+				if(psp->nb)
 				{
-					psp = info(psp, s, NULL, ip, id);
-					if (psp->nb)
-						s = psp->nb;
-					else
-					{
-						s = psp->ob;
-						psp = psp->next;
-					}
+					s = psp->nb;
+					e = psp->ne;
 				}
+				else
+				{
+					s = psp->ob;
+					psp = psp->next;
+				}
+				continue;
+			case '\n':
+				ast_wbuf_putc(sp, c);
+				for(i = 0; i < level; i++)
+					ast_wbuf_putc(sp, '\t');
 				continue;
 			case '\v':
 				a = FONT_LITERAL;
 				goto setfont;
-			case ' ':
-				if (ident && *s == '$')
-				{
-					while (*++s)
-						if (*s == ']')
-						{
-							if (*(s + 1) != ']')
-								break;
-							s++;
-						}
-					continue;
-				}
-			case '\n':
-			case '\r':
-			case '\t':
-				while (*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n')
-					s++;
-				if (*s == ']' && *(s + 1) != ']' && (!psp || !psp->ch))
-					continue;
-				c = ' ';
-				break;
 			case '<':
-				if (style == STYLE_html)
+				if(style == STYLE_html)
 				{
 					ast_wbuf_puts(sp, "&lt;");
 					c = 0;
-					for (t = s; *t; t++)
+					for(t = s; t < e; t++)
 					{
-						if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
+						if(!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
 						{
-							if (*t == '@')
+							if(*t == '@')
 							{
-								if (c)
+								if(c)
 									break;
 								c = 1;
 							}
-							else if (*t == '>')
+							else if(*t == '>')
 							{
-								if (c)
+								if(c)
 								{
-									ast_wbuf_printf(sp, "<A href=\"mailto:%-.*s\">%-.*s</A>&gt;", t - s, s, t - s, s);
+									ast_wbuf_printf(sp, "<A href=\"mailto:%-.*s>%-.*s</A>&gt;", t - s, s, t - s, s);
 									s = t + 1;
 								}
 								break;
@@ -2277,42 +1617,793 @@ textout(ast_wbuf_t* sp, char* s, char* conform, int conformlen, int style, int l
 				}
 				break;
 			case '>':
-				if (style == STYLE_html)
+				if(style == STYLE_html)
 				{
 					ast_wbuf_puts(sp, "&gt;");
 					continue;
 				}
 				break;
 			case '&':
-				if (style == STYLE_html)
+				if(style == STYLE_html)
 				{
 					ast_wbuf_puts(sp, "&amp;");
 					continue;
 				}
 				break;
+			case '"':
+				if(style == STYLE_html)
+				{
+					ast_wbuf_puts(sp, "&quot;");
+					continue;
+				}
+				break;
 			case '-':
-				if (style == STYLE_nroff)
+				if(ostyle == STYLE_nroff)
 					ast_wbuf_putc(sp, '\\');
 				break;
 			case '.':
-				if (style == STYLE_nroff)
+				if(ostyle == STYLE_nroff)
 				{
 					ast_wbuf_putc(sp, '\\');
 					ast_wbuf_putc(sp, '&');
 				}
 				break;
 			case '\\':
-				if (style == STYLE_nroff)
+				if(ostyle == STYLE_nroff)
 				{
-					ast_wbuf_putc(sp, c);
 					c = 'e';
+					ast_wbuf_putc(sp, '\\');
 				}
 				break;
+			case ' ':
+				if(ostyle == STYLE_nroff)
+					ast_wbuf_putc(sp, '\\');
+				break;
+		}
+		ast_wbuf_putc(sp, c);
+	}
+restore:
+	if(f > 0)
+		ast_wbuf_puts(sp, font(f, style, 0));
+	if(about)
+		ast_wbuf_putc(sp, ')');
+	if(psp)
+		pop(psp);
+	return r;
+}
+
+/*
+ * output args description to sp from p of length n
+ */
+
+static void
+args(ast_wbuf_t *sp, char *p, int n, int flags, int style, ast_wbuf_t *ip, int version, char *id, char *catalog)
+{
+	int i;
+	char *t;
+	char *o;
+	char *a = 0;
+	char *b = style == STYLE_nroff ? "\\ " : " ";
+	int sep;
+
+	if(flags & OPT_functions)
+		sep = '\t';
+	else
+	{
+		sep = ' ';
+		o = T(NULL, ID, "options");
+		for(;;)
+		{
+			t = (char *)memchr(p, '\n', n);
+			if(style >= STYLE_man)
+			{
+				int firstline = !a;
+				/* --man page: print command name */
+				if(!(a = id))
+					a = "...";
+				ast_wbuf_printf(sp, "\t%s%s%s", font(FONT_BOLD, style, 1), a, font(FONT_BOLD, style, 0));
+				if(firstline)
+				{
+					/* Append "[ options ]" label */
+					ast_wbuf_printf(sp, "%s[%s%s%s%s%s]",
+					                b, b, font(FONT_ITALIC, style, 1), o, font(FONT_ITALIC, style, 0), b);
+				}
+			}
+			else if(a)
+			{
+				/* Usage/--help, line 2+: specific usages. Prefix by "Or:" */
+				ast_wbuf_printf(sp, "%*.*s%s%s", OPT_USAGE - 1, OPT_USAGE - 1, T(NULL, ID, "Or:"), b, a);
+			}
+			else
+			{
+				/* Usage on unknown long option error: no short options are printed, so print "[ options ]" */
+				if(!(a = error_info.id) && !(a = id))
+					a = "...";
+				if(!ast_wbuf_tell(sp))
+					ast_wbuf_printf(sp, "[%s%s%s]", b, o, b);
+			}
+			if(!t)
+				break;
+			i = ++t - p;
+			if(i)
+			{
+				/* Print options for usage line */
+				ast_wbuf_puts(sp, b);
+				if(X(catalog))
+				{
+					char *cp;
+					ast_wbuf_write(ip, p, i);
+					if(cp = ast_wbuf_use(ip))
+						ast_wbuf_puts(sp, T(id, catalog, cp));
+					else
+						ast_wbuf_write(sp, p, i);
+				}
+				else
+					ast_wbuf_write(sp, p, i);
+			}
+			/* New line */
+			if(style == STYLE_html)
+			{
+				ast_wbuf_puts(sp, "<BR>");
+				ast_wbuf_putc(sp, '\n');
+			}
+			else if(style == STYLE_nroff)
+			{
+				ast_wbuf_puts(sp, ".br");
+				ast_wbuf_putc(sp, '\n');
+			}
+			else if(style == STYLE_api)
+			{
+				ast_wbuf_puts(sp, ".BR");
+				ast_wbuf_putc(sp, '\n');
+			}
+			p = t;
+			n -= i;
+			while(n > 0 && (*p == ' ' || *p == '\t'))
+			{
+				p++;
+				n--;
+			}
+		}
+	}
+	/* Print options for the last usage line */
+	if(n)
+		label(sp, sep, p, 0, n, 0, style, 0, ip, version, id, catalog);
+	/* In usage/--help messages, tell the user how to get more help */
+	if(style < STYLE_man)
+	{
+		ast_wbuf_printf(sp, "\n%*.*s%s%s [%s--help%s|%s--man%s]",
+		                OPT_USAGE - 1, OPT_USAGE - 1, T(NULL, ID, "Help:"), b, a, b, b, b, b);
+	}
+}
+
+/*
+ * output [+-...label...?...] label s to sp
+ * according to {...} level and style
+ * return 0:header 1:paragraph
+ */
+
+static int
+item(ast_wbuf_t *sp, char *s, int about, int level, int style, ast_wbuf_t *ip, int version, char *id, char *catalog, int *hflags)
+{
+	char *t;
+	int n;
+	int par;
+
+	ast_wbuf_putc(sp, '\n');
+	if(*s == '\n')
+	{
+		par = 0;
+		if(style >= STYLE_nroff)
+			ast_wbuf_puts(sp, ".DS\n");
+		else
+		{
+			if(style == STYLE_html)
+				ast_wbuf_puts(sp, "<PRE>\n");
+			else
+				ast_wbuf_putc(sp, '\n');
+			for(n = 0; n < level; n++)
+				ast_wbuf_putc(sp, '\t');
+		}
+		label(sp, 0, s + 1, about, -1, level, style, FONT_LITERAL, ip, version, id, catalog);
+		ast_wbuf_putc(sp, '\n');
+		if(style >= STYLE_nroff)
+			ast_wbuf_puts(sp, ".DE");
+		else if(style == STYLE_html)
+			ast_wbuf_puts(sp, "</PRE>");
+	}
+	else if(*s != ']' && (*s != '?' || *(s + 1) == '?'))
+	{
+		par = 0;
+		if(level)
+		{
+			if(style >= STYLE_nroff)
+				ast_wbuf_printf(sp, ".H%d ", (level - (level > 2)) / 2);
+			else
+				for(n = 0; n < level; n++)
+					ast_wbuf_putc(sp, '\t');
+		}
+		if(style == STYLE_html)
+		{
+			if(!level)
+			{
+				if(*hflags & HELP_head)
+				{
+					ast_wbuf_puts(sp, "</DIV>");
+					ast_wbuf_putc(sp, '\n');
+				}
+				else
+					*hflags |= HELP_head;
+				ast_wbuf_puts(sp, "<H4>");
+			}
+			ast_wbuf_puts(sp, "<A name=\"");
+			if(s[-1] == '-' && s[0] == 'l' && s[1] == 'i' && s[2] == 'c' && s[3] == 'e' && s[4] == 'n' && s[5] == 's' && s[6] == 'e' && s[7] == '?')
+			{
+				for(t = s + 8; *t && *t != ']'; t++)
+				{
+					if(t[0] == 'p' && (!strncmp(t, "proprietary", 11) || !strncmp(t, "private", 7)) || t[0] == 'n' && !strncmp(t, "noncommercial", 13))
+					{
+						state.flags |= OPT_proprietary;
+						break;
+					}
+				}
+			}
+			label(sp, 0, s, about, -1, level, style, -1, ip, version, id, catalog);
+			ast_wbuf_puts(sp, "\">");
+			label(sp, 0, s, about, -1, level, style, level ? FONT_BOLD : 0, ip, version, id, catalog);
+			ast_wbuf_puts(sp, "</A>");
+			if(!level)
+			{
+				if(!strncmp(s, C("SYNOPSIS"), strlen(C("SYNOPSIS"))))
+					ast_wbuf_puts(sp, "</H4>\n<DIV class=SY>");
+				else
+				{
+					ast_wbuf_puts(sp, "</H4>\n<DIV class=SH>");
+					if(!strncmp(s, C("NAME"), strlen(C("NAME"))) || !strncmp(s, C("PLUGIN"), strlen(C("PLUGIN"))))
+						*hflags |= HELP_index;
+				}
+			}
+		}
+		else
+		{
+			if(!level)
+			{
+				if(style >= STYLE_nroff)
+					ast_wbuf_puts(sp, ".SH ");
+				else if(style == STYLE_man)
+					ast_wbuf_putc(sp, '\n');
+				else if(style != STYLE_options && style != STYLE_match || *s == '-' || *s == '+')
+					ast_wbuf_putc(sp, '\t');
+			}
+			label(sp, 0, s, about, -1, level, style, FONT_BOLD, ip, version, id, catalog);
+		}
+	}
+	else
+	{
+		par = 1;
+		if(style >= STYLE_nroff)
+			ast_wbuf_puts(sp, level ? ".SP" : ".PP");
+	}
+	if(style >= STYLE_nroff || !level)
+		ast_wbuf_putc(sp, '\n');
+	if(par && style < STYLE_nroff)
+		for(n = 0; n < level; n++)
+			ast_wbuf_putc(sp, '\t');
+	return par;
+}
+
+/*
+ * output text to sp from p according to style
+ */
+
+#if _BLD_DEBUG
+
+static char *textout(ast_wbuf_t *, char *, char *, int, int, int, int, ast_wbuf_t *, int, char *, char *, int *);
+
+static char *
+trace_textout(ast_wbuf_t *sp, char *p, char *conform, int conformlen, int style, int level, int bump, ast_wbuf_t *ip, int version, char *id, char *catalog, int *hflags, int line)
+{
+	static int depth = 0;
+
+	message((-21, "opthelp: txt#%d +++ %2d \"%s\" style=%d level=%d bump=%d", line, ++depth, show(p), style, level, bump));
+	p = textout(sp, p, conform, conformlen, style, level, bump, ip, version, id, catalog, hflags);
+	message((-21, "opthelp: txt#%d --- %2d \"%s\"", line, depth--, show(p)));
+	return p;
+}
+
+#endif
+
+static char *
+textout(ast_wbuf_t *sp, char *s, char *conform, int conformlen, int style, int level, int bump, ast_wbuf_t *ip, int version, char *id, char *catalog, int *hflags)
+{
+#if _BLD_DEBUG
+#define textout(sp, s, conform, conformlen, style, level, bump, ip, version, id, catalog, hflags) trace_textout(sp, s, conform, conformlen, style, level, bump, ip, version, id, catalog, hflags, __LINE__)
+#endif
+	char *t;
+	int c;
+	int n;
+	char *w;
+	char *q;
+	int a;
+	int f;
+	int par;
+	int about;
+	Push_t *tsp;
+
+	int ident = 0;
+	int lev = level;
+	Push_t *psp = 0;
+
+again:
+	about = 0;
+	if((c = *s) == GO)
+	{
+		for(;;)
+		{
+			while(*(s = next(s + 1, version)) == '\n')
+				;
+			if(*s == GO)
+			{
+				if(level > 1)
+					level++;
+				level++;
+			}
+			else if(*s != OG)
+			{
+				if(level <= 1 || *s != '[' || *(s + 1) != '-' || style == STYLE_man && *(s + 2) == '?' || isalpha(*(s + 2)))
+					break;
+				s = skip(s, 0, 0, 0, 1, level, 0, version);
+			}
+			else if((level -= 2) <= lev)
+				return s + 1;
+		}
+		if(*s == '\f')
+		{
+			psp = info(psp, s + 1, NULL, ip, id);
+			if(psp->nb)
+				s = psp->nb;
+			else
+			{
+				s = psp->ob;
+				psp = psp->next;
+			}
+		}
+		if(*s != '[')
+			return s;
+		c = *++s;
+		if(level > 1)
+			level++;
+		level++;
+	}
+	if(c == '-' && level > 1)
+	{
+		if(style == STYLE_man)
+		{
+			about = 1;
+			if(*(s + 1) == '-')
+				s++;
+		}
+		else
+			for(;;)
+			{
+				s = skip(s, 0, 0, 0, 1, level, 0, version);
+				while(*(s = next(s + 1, version)) == '\n')
+					;
+				if(*s == '[')
+				{
+					if((c = *++s) != '-')
+						break;
+				}
+				else if(*s == GO)
+					goto again;
+				else if(*s == OG)
+					return s + 1;
+			}
+	}
+	if(c == '+' || c == '-' && (bump = 3) || c != ' ' && level > 1)
+	{
+		s = skip(t = s + 1, '?', 0, 0, 1, level, 0, version);
+		if(c == '-' && (*t == '?' || isdigit(*t) || *s == '?' && *(s + 1) == '\n'))
+		{
+			if((c = *s) != '?')
+				return skip(s, 0, 0, 0, 1, level, 1, version);
+			w = C("version");
+			par = item(sp, w, about, level, style, ip, version, id, ID, hflags);
+			for(;;)
+			{
+				while(isspace(*(s + 1)))
+					s++;
+				w = s;
+				if(w[1] == '@' && w[2] == '(' && w[3] == '#' && w[4] == ')')
+					s = w + 4;
+				else if(w[1] == '$' && w[2] == 'I' && w[3] == 'd' && w[4] == ':' && w[5] == ' ')
+				{
+					s = w + 5;
+					ident = 1;
+				}
+				else
+					break;
+			}
+		}
+		else
+		{
+			if(isdigit(c) && isdigit(*t))
+			{
+				while(isdigit(*t))
+					t++;
+				if(*t == ':')
+					t++;
+			}
+			else if(isalnum(c) && *t-- == ':')
+			{
+				if(X(catalog) || *t == *(t + 2))
+					t += 2;
+				else
+				{
+					ast_wbuf_printf(ip, "%s", t);
+					if(w = ast_wbuf_use(ip))
+						*((t = w) + 1) = '|';
+				}
+			}
+			par = item(sp, t, about, level, style, ip, version, id, catalog, hflags);
+			c = *s;
+		}
+		if(!about && level)
+			par = 0;
+	}
+	else
+	{
+		if(style >= STYLE_nroff)
+			ast_wbuf_putc(sp, '\n');
+		else if(c == '?')
+			for(n = 0; n < level; n++)
+				ast_wbuf_putc(sp, '\t');
+		par = 0;
+	}
+	if(c == ':')
+		c = *(s = skip(s, '?', 0, 0, 1, 0, 0, version));
+	if((c == ']' || c == '?' && *(s + 1) == ']' && *(s + 2) != ']' && s++) && (c = *(s = next(s + 1, version))) == GO)
+	{
+		s = textout(sp, s, conform, conformlen, style, level + bump + par + 1, 0, ip, version, id, catalog, hflags);
+		if(level > lev && *s && *(s = next(s, version)) == '[')
+		{
+			s++;
+			message((-21, "textout#%d s=%s", __LINE__, show(s)));
+			goto again;
+		}
+	}
+	else if(c == '?' || c == ' ')
+	{
+		s++;
+		if(c == ' ')
+			ast_wbuf_putc(sp, c);
+		else
+		{
+			if(X(catalog) && (tsp = localize(psp, s, NULL, 0, 1, ip, version, id, catalog)))
+			{
+				psp = tsp;
+				s = psp->nb;
+			}
+			if(style < STYLE_nroff)
+				for(n = 0; n < bump + 1; n++)
+					ast_wbuf_putc(sp, '\t');
+		}
+		if(conform)
+		{
+			ast_wbuf_printf(sp, "[%-.*s %s] ", conformlen, conform, T(NULL, ID, "conformance"));
+			conform = 0;
+		}
+		if(*hflags & HELP_index)
+		{
+			*hflags &= ~HELP_index;
+			ast_wbuf_puts(sp, "<!--MAN-INDEX-->");
+		}
+		f = 0;
+		for(;;)
+		{
+			switch(c = *s++)
+			{
+				case 0:
+					if(!(tsp = psp))
+					{
+						if(f)
+							ast_wbuf_puts(sp, font(f, style, 0));
+						return s - 1;
+					}
+					s = psp->ob;
+					psp = psp->next;
+					free(tsp);
+					continue;
+				case ']':
+					if(psp && psp->ch)
+						break;
+					if(*s != ']')
+					{
+						if(f)
+						{
+							ast_wbuf_puts(sp, font(f, style, 0));
+							f = 0;
+						}
+						for(;;)
+						{
+							if((*s == '#' || *s == ':') && level > lev)
+							{
+								char *o;
+								char *v;
+								int j;
+								int m;
+								int ol;
+								int vl;
+
+								a = 0;
+								o = 0;
+								v = 0;
+								if(*++s == '?' || *s == *(s - 1))
+								{
+									s++;
+									a |= OPT_optional;
+								}
+								if(*(s = next(s, version)) == '[')
+								{
+									s = skip(s + 1, ':', '?', 0, 1, 0, 0, version);
+									while(*s == ':')
+									{
+										s = skip(t = s + 1, ':', '?', 0, 1, 0, 0, version);
+										m = s - t;
+										if(*t == '!')
+										{
+											o = t + 1;
+											ol = m - 1;
+										}
+										else if(*t == '=')
+										{
+											v = t + 1;
+											vl = m - 1;
+										}
+										else
+										{
+											for(j = 0; j < elementsof(attrs); j++)
+											{
+												if(strneq(t, attrs[j].name, m))
+												{
+													a |= attrs[j].flag;
+													break;
+												}
+											}
+										}
+									}
+								}
+								if(a & OPT_optional)
+								{
+									if(o)
+									{
+										ast_wbuf_printf(sp, " %s ", T(NULL, ID, "If the option value is omitted then"));
+										ast_wbuf_puts(sp, font(FONT_BOLD, style, 1));
+										t = o + ol;
+										while(o < t)
+										{
+											if(((c = *o++) == ':' || c == '?') && *o == c)
+												o++;
+											ast_wbuf_putc(sp, c);
+										}
+										ast_wbuf_puts(sp, font(FONT_BOLD, style, 0));
+										ast_wbuf_printf(sp, " %s.", T(NULL, ID, "is assumed"));
+									}
+									else
+										ast_wbuf_printf(sp, " %s", T(NULL, ID, "The option value may be omitted."));
+								}
+								if(v)
+								{
+									ast_wbuf_printf(sp, " %s ", T(NULL, ID, "The default value is"));
+									ast_wbuf_puts(sp, font(FONT_BOLD, style, 1));
+									t = v + vl;
+									while(v < t)
+									{
+										if(((c = *v++) == ':' || c == '?') && *v == c)
+											v++;
+										ast_wbuf_putc(sp, c);
+									}
+									ast_wbuf_puts(sp, font(FONT_BOLD, style, 0));
+									ast_wbuf_putc(sp, '.');
+								}
+								s = skip(s, 0, 0, 0, 1, 0, 1, version);
+							}
+							if(*(s = next(s, version)) == GO)
+							{
+								s = textout(sp, s, 0, 0, style, level + bump + !level, 0, ip, version, id, catalog, hflags);
+								if(*s && *(s = next(s, version)) == '[' && !isalnum(*(s + 1)))
+								{
+									s++;
+									message((-21, "textout#%d s=%s", __LINE__, show(s)));
+									goto again;
+								}
+							}
+							else if(*s == '[' && level > lev)
+							{
+								s++;
+								goto again;
+							}
+							else if(*s == '\f')
+							{
+								s++;
+								if(style != STYLE_keys)
+								{
+									psp = info(psp, s, NULL, ip, id);
+									if(psp->nb)
+										s = psp->nb;
+									else
+									{
+										s = psp->ob;
+										psp = psp->next;
+									}
+								}
+							}
+							else if(*s != OG)
+							{
+								if(!(tsp = psp))
+									break;
+								s = psp->ob;
+								psp = psp->next;
+								free(tsp);
+							}
+							else
+							{
+								s++;
+								if((level -= 2) <= lev)
+									break;
+							}
+						}
+						return s;
+					}
+					s++;
+					break;
+				case '\a':
+					a = FONT_ITALIC;
+				setfont:
+					if(f & ~a)
+					{
+						ast_wbuf_puts(sp, font(f, style, 0));
+						f = 0;
+					}
+					if(!f && style == STYLE_html)
+					{
+						for(t = s; *t && !isspace(*t) && !iscntrl(*t); t++)
+							;
+						if(*t == c && *++t == '(')
+						{
+							w = t;
+							if(isdigit(*++t))
+								while(isupper(*++t))
+									;
+							if(*t == ')' && t > w + 1)
+							{
+								ast_wbuf_printf(sp, "<NOBR><A href=\"../man%-.*s/", t - w - 1, w + 1);
+								for(q = s; q < w - 1; q++)
+								{
+									if(*q == ':' && q < w - 2 && *(q + 1) == ':')
+									{
+										ast_wbuf_putc(sp, '-');
+										q++;
+									}
+									else
+										ast_wbuf_putc(sp, *q);
+								}
+								ast_wbuf_printf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>", font(a, style, 1), w - s - 1, s, font(a, style, 0), t - w + 1, w);
+								s = t + 1;
+								continue;
+							}
+						}
+					}
+					ast_wbuf_puts(sp, font(a, style, !!(f ^= a)));
+					continue;
+				case '\b':
+					a = FONT_BOLD;
+					goto setfont;
+				case '\f':
+					if(style != STYLE_keys)
+					{
+						psp = info(psp, s, NULL, ip, id);
+						if(psp->nb)
+							s = psp->nb;
+						else
+						{
+							s = psp->ob;
+							psp = psp->next;
+						}
+					}
+					continue;
+				case '\v':
+					a = FONT_LITERAL;
+					goto setfont;
+				case ' ':
+					if(ident && *s == '$')
+					{
+						while(*++s)
+							if(*s == ']')
+							{
+								if(*(s + 1) != ']')
+									break;
+								s++;
+							}
+						continue;
+					}
+				case '\n':
+				case '\r':
+				case '\t':
+					while(*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n')
+						s++;
+					if(*s == ']' && *(s + 1) != ']' && (!psp || !psp->ch))
+						continue;
+					c = ' ';
+					break;
+				case '<':
+					if(style == STYLE_html)
+					{
+						ast_wbuf_puts(sp, "&lt;");
+						c = 0;
+						for(t = s; *t; t++)
+						{
+							if(!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
+							{
+								if(*t == '@')
+								{
+									if(c)
+										break;
+									c = 1;
+								}
+								else if(*t == '>')
+								{
+									if(c)
+									{
+										ast_wbuf_printf(sp, "<A href=\"mailto:%-.*s\">%-.*s</A>&gt;", t - s, s, t - s, s);
+										s = t + 1;
+									}
+									break;
+								}
+								else
+									break;
+							}
+						}
+						continue;
+					}
+					break;
+				case '>':
+					if(style == STYLE_html)
+					{
+						ast_wbuf_puts(sp, "&gt;");
+						continue;
+					}
+					break;
+				case '&':
+					if(style == STYLE_html)
+					{
+						ast_wbuf_puts(sp, "&amp;");
+						continue;
+					}
+					break;
+				case '-':
+					if(style == STYLE_nroff)
+						ast_wbuf_putc(sp, '\\');
+					break;
+				case '.':
+					if(style == STYLE_nroff)
+					{
+						ast_wbuf_putc(sp, '\\');
+						ast_wbuf_putc(sp, '&');
+					}
+					break;
+				case '\\':
+					if(style == STYLE_nroff)
+					{
+						ast_wbuf_putc(sp, c);
+						c = 'e';
+					}
+					break;
 			}
 			ast_wbuf_putc(sp, c);
 		}
 	}
-	else if (c == '[' && level > lev)
+	else if(c == '[' && level > lev)
 	{
 		s++;
 		goto again;
@@ -2325,13 +2416,13 @@ textout(ast_wbuf_t* sp, char* s, char* conform, int conformlen, int style, int l
  */
 
 static void
-list(ast_wbuf_t* sp, const List_t* lp)
+list(ast_wbuf_t *sp, const List_t *lp)
 {
 	ast_wbuf_printf(sp, "[%c", lp->type);
-	if (lp->name)
+	if(lp->name)
 	{
 		ast_wbuf_printf(sp, "%s", lp->name);
-		if (lp->text)
+		if(lp->text)
 			ast_wbuf_printf(sp, "?%s", lp->text);
 	}
 	ast_wbuf_putc(sp, ']');
@@ -2354,121 +2445,121 @@ list(ast_wbuf_t* sp, const List_t* lp)
  * margin flush pops to previous indent
  */
 
-char*
-opthelp(const char* oopts, const char* what)
+char *
+opthelp(const char *oopts, const char *what)
 {
-	ast_wbuf_t*	sp;
-	ast_wbuf_t*	mp;
-	int		c;
-	char*		p;
-	Indent_t*	ip;
-	char*		t;
-	char*		x;
-	char*		w;
-	char*		u;
-	char*		y;
-	char*		s;
-	char*		d;
-	char*		v;
-	char*		cb = NULL;
-	char*		dt = NULL;
-	char*		ov;
-	char*		pp = NULL;
-	char*		rb;
-	char*		re;
-	int		f;
-	int		i;
-	int		j;
-	int		m;
-	int		n;
-	int		a;
-	int		cl;
-	int		sl;
-	int		vl;
-	int		ol;
-	int		wl;
-	int		xl;
-	int		rm;
-	int		ts;
-	int		co;
-	int		z;
-	int		style;
-	int		head;
-	int		margin;
-	int		mode;
-	int		mutex;
-	int		prefix;
-	int		version;
-	long		tp;
-	char*		id;
-	char*		catalog;
-	Optpass_t*	o;
-	Optpass_t*	q;
-	Optpass_t*	e;
-	Optpass_t	one;
-	Optpass_t	top;
-	Help_t*		hp;
-	Tag_t		ptstk[elementsof(indent) + 2];
-	Tag_t*		pt;
-	ast_wbuf_t*	vp;
-	Push_t*		tsp;
+	ast_wbuf_t *sp;
+	ast_wbuf_t *mp;
+	int c;
+	char *p;
+	Indent_t *ip;
+	char *t;
+	char *x;
+	char *w;
+	char *u;
+	char *y;
+	char *s;
+	char *d;
+	char *v;
+	char *cb = NULL;
+	char *dt = NULL;
+	char *ov;
+	char *pp = NULL;
+	char *rb;
+	char *re;
+	int f;
+	int i;
+	int j;
+	int m;
+	int n;
+	int a;
+	int cl;
+	int sl;
+	int vl;
+	int ol;
+	int wl;
+	int xl;
+	int rm;
+	int ts;
+	int co;
+	int z;
+	int style;
+	int head;
+	int margin;
+	int mode;
+	int mutex;
+	int prefix;
+	int version;
+	long tp;
+	char *id;
+	char *catalog;
+	Optpass_t *o;
+	Optpass_t *q;
+	Optpass_t *e;
+	Optpass_t one;
+	Optpass_t top;
+	Help_t *hp;
+	Tag_t ptstk[elementsof(indent) + 2];
+	Tag_t *pt;
+	ast_wbuf_t *vp;
+	Push_t *tsp;
 
-	char*		opts = (char*)oopts;
-	char*		section = "1";
-	int		flags = 0;
-	int		bflags = 0;
-	int		dflags = 0;
-	int		hflags = 0;
-	int		matched = 0;
-	int		paragraph = 0;
-	Push_t*		psp = 0;
-	ast_wbuf_t	sp_help_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_text_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_plus_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_head_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_body_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_body2_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_info_wb = AST_WBUF_INIT;
-	ast_wbuf_t	sp_misc_wb = AST_WBUF_INIT;
-	ast_wbuf_t*	sp_help = NULL;
-	ast_wbuf_t*	sp_text = NULL;
-	ast_wbuf_t*	sp_plus = NULL;
-	ast_wbuf_t*	sp_head = NULL;
-	ast_wbuf_t*	sp_body = NULL;
-	ast_wbuf_t*	sp_info = NULL;
-	ast_wbuf_t*	sp_misc = NULL;
+	char *opts = (char *)oopts;
+	char *section = "1";
+	int flags = 0;
+	int bflags = 0;
+	int dflags = 0;
+	int hflags = 0;
+	int matched = 0;
+	int paragraph = 0;
+	Push_t *psp = 0;
+	ast_wbuf_t sp_help_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_text_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_plus_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_head_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_body_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_body2_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_info_wb = AST_WBUF_INIT;
+	ast_wbuf_t sp_misc_wb = AST_WBUF_INIT;
+	ast_wbuf_t *sp_help = NULL;
+	ast_wbuf_t *sp_text = NULL;
+	ast_wbuf_t *sp_plus = NULL;
+	ast_wbuf_t *sp_head = NULL;
+	ast_wbuf_t *sp_body = NULL;
+	ast_wbuf_t *sp_info = NULL;
+	ast_wbuf_t *sp_misc = NULL;
 
 	mp = &state.mp;
-	if (!mp->fp && ast_wbuf_open(mp))
+	if(!mp->fp && ast_wbuf_open(mp))
 		goto outofmemory;
-	if (!what)
+	if(!what)
 		style = state.style;
-	else if (!*what)
+	else if(!*what)
 		style = STYLE_options;
-	else if (*what != '?')
+	else if(*what != '?')
 		style = STYLE_match;
-	else if (!*(what + 1))
+	else if(!*(what + 1))
 		style = STYLE_man;
-	else if ((hp = (Help_t*)search(styles, elementsof(styles), sizeof(styles[0]), (char*)what + 1)) && hp->style >= 0)
+	else if((hp = (Help_t *)search(styles, elementsof(styles), sizeof(styles[0]), (char *)what + 1)) && hp->style >= 0)
 	{
 		style = hp->style;
-		if (*hp->name != '?')
+		if(*hp->name != '?')
 			what = hp->name;
 	}
 	else
 	{
-		if ((style = state.force) < STYLE_man)
+		if((style = state.force) < STYLE_man)
 			style = STYLE_man;
 		sp_help = &sp_help_wb;
-		if (ast_wbuf_open(sp_help))
+		if(ast_wbuf_open(sp_help))
 			goto outofmemory;
-		for (i = 0; i < elementsof(help_head); i++)
+		for(i = 0; i < elementsof(help_head); i++)
 			list(sp_help, &help_head[i]);
-		for (i = 0; i < elementsof(styles); i++)
+		for(i = 0; i < elementsof(styles); i++)
 			ast_wbuf_printf(sp_help, "[:%s?%s]", styles[i].match, styles[i].text);
-		for (i = 0; i < elementsof(help_tail); i++)
+		for(i = 0; i < elementsof(help_tail); i++)
 			list(sp_help, &help_tail[i]);
-		if (!(opts = ast_wbuf_use(sp_help)))
+		if(!(opts = ast_wbuf_use(sp_help)))
 			goto outofmemory;
 	}
 
@@ -2480,94 +2571,93 @@ opthelp(const char* oopts, const char* what)
 	 */
 
 	top = state.pass[0];
- again:
-	if (opts)
+again:
+	if(opts)
 	{
-		for (i = 0; i < state.npass; i++)
+		for(i = 0; i < state.npass; i++)
 		{
-			if (state.pass[i].oopts == opts)
+			if(state.pass[i].oopts == opts)
 			{
 				o = &state.pass[i];
 				break;
 			}
 		}
-		if (i >= state.npass)
+		if(i >= state.npass)
 		{
 			o = &one;
-			if (init((char*)opts, o))
+			if(init((char *)opts, o))
 				goto outofmemory;
 		}
 		e = o + 1;
 	}
 	else
 	{
-		if (state.npass > 0)
+		if(state.npass > 0)
 		{
 			o = state.pass;
 			e = o + state.npass;
 		}
-		else if (state.npass < 0)
+		else if(state.npass < 0)
 		{
 			o = &state.cache->pass;
 			e = o + 1;
 		}
 		else
 			return T(NULL, ID, "[* call optget() before opthelp() *]");
-		oopts = (const char*)state.pass[0].oopts;
+		oopts = (const char *)state.pass[0].oopts;
 	}
-	if (style <= STYLE_usage)
+	if(style <= STYLE_usage)
 	{
 		sp_text = &sp_text_wb;
 		sp_info = &sp_info_wb;
-		if (ast_wbuf_open(sp_text) || ast_wbuf_open(sp_info))
+		if(ast_wbuf_open(sp_text) || ast_wbuf_open(sp_info))
 			goto outofmemory;
-		if (style >= STYLE_match && style < STYLE_keys)
+		if(style >= STYLE_match && style < STYLE_keys)
 		{
 			sp_body = &sp_body_wb;
-			if (ast_wbuf_open(sp_body))
+			if(ast_wbuf_open(sp_body))
 				goto outofmemory;
 		}
 	}
-	switch (style)
+	switch(style)
 	{
-	case STYLE_api:
-	case STYLE_html:
-	case STYLE_nroff:
-		state.emphasis = 0;
-		break;
-	case STYLE_usage:
-	case STYLE_keys:
-		for (q = o; q < e; q++)
-			if (!(q->flags & OPT_ignore) && !streq(q->catalog, o->catalog))
-				o = q;
-		/* FALLTHROUGH */
-	case STYLE_posix:
-		ast_wbuf_putc(mp, '\f');
-		break;
-	default:
-		if (!state.emphasis)
-		{
-			if (x = getenv("ERROR_OPTIONS"))
+		case STYLE_api:
+		case STYLE_html:
+		case STYLE_nroff:
+			state.emphasis = 0;
+			break;
+		case STYLE_usage:
+		case STYLE_keys:
+			for(q = o; q < e; q++)
+				if(!(q->flags & OPT_ignore) && !streq(q->catalog, o->catalog))
+					o = q;
+			/* FALLTHROUGH */
+		case STYLE_posix:
+			ast_wbuf_putc(mp, '\f');
+			break;
+		default:
+			if(!state.emphasis)
 			{
-				if (strmatch(x, "*noemphasi*"))
-					break;
-				if (strmatch(x, "*emphasi*"))
+				if(x = getenv("ERROR_OPTIONS"))
 				{
-					state.emphasis = 1;
-					break;
+					if(strmatch(x, "*noemphasi*"))
+						break;
+					if(strmatch(x, "*emphasi*"))
+					{
+						state.emphasis = 1;
+						break;
+					}
 				}
+				if(isatty(fileno(stdout)) && (x = getenv("TERM")) && strmatch(x, "(ansi|cons|dtterm|linux|qansi|rxvt|screen|sun|vt[1-5][0-4][0125]|wsvt|xterm)*"))
+					state.emphasis = 1;
 			}
-			if (isatty(fileno(stdout)) && (x = getenv("TERM"))
-			&& strmatch(x, "(ansi|cons|dtterm|linux|qansi|rxvt|screen|sun|vt[1-5][0-4][0125]|wsvt|xterm)*"))
-				state.emphasis = 1;
-		}
-		break;
+			break;
 	}
 	x = "";
 	xl = 0;
-	for (q = o; q < e; q++)
+	for(q = o; q < e; q++)
 	{
-		if (q->flags & OPT_ignore)
+		if(q->flags & OPT_ignore)
 			continue;
 		section = q->section;
 		flags |= q->flags;
@@ -2576,388 +2666,388 @@ opthelp(const char* oopts, const char* what)
 		version = q->version;
 		id = q->id;
 		catalog = q->catalog;
-		switch (style)
+		switch(style)
 		{
-		case STYLE_usage:
-			if (xl)
-				ast_wbuf_putc(mp, '\n');
-			else
-				xl = 1;
-			psp = 0;
-			for (;;)
-			{
-				switch (c = *p++)
+			case STYLE_usage:
+				if(xl)
+					ast_wbuf_putc(mp, '\n');
+				else
+					xl = 1;
+				psp = 0;
+				for(;;)
 				{
-				case 0:
-					if (!(tsp = psp))
-						goto style_usage;
-					p = psp->ob;
-					psp = psp->next;
-					free(tsp);
-					continue;
-				case '\a':
-					c = 'a';
-					break;
-				case '\b':
-					c = 'b';
-					break;
-				case '\f':
-					psp = info(psp, p, NULL, sp_info, id);
-					if (psp->nb)
-						p = psp->nb;
-					else
+					switch(c = *p++)
 					{
-						p = psp->ob;
-						psp = psp->next;
+						case 0:
+							if(!(tsp = psp))
+								goto style_usage;
+							p = psp->ob;
+							psp = psp->next;
+							free(tsp);
+							continue;
+						case '\a':
+							c = 'a';
+							break;
+						case '\b':
+							c = 'b';
+							break;
+						case '\f':
+							psp = info(psp, p, NULL, sp_info, id);
+							if(psp->nb)
+								p = psp->nb;
+							else
+							{
+								p = psp->ob;
+								psp = psp->next;
+							}
+							continue;
+						case '\n':
+							c = 'n';
+							break;
+						case '\r':
+							c = 'r';
+							break;
+						case '\t':
+							c = 't';
+							break;
+						case '\v':
+							c = 'v';
+							break;
+						case '"':
+							c = '"';
+							break;
+						case '\'':
+							c = '\'';
+							break;
+						case '\\':
+							c = '\\';
+							break;
+						default:
+							ast_wbuf_putc(mp, c);
+							continue;
 					}
-					continue;
-				case '\n':
-					c = 'n';
-					break;
-				case '\r':
-					c = 'r';
-					break;
-				case '\t':
-					c = 't';
-					break;
-				case '\v':
-					c = 'v';
-					break;
-				case '"':
-					c = '"';
-					break;
-				case '\'':
-					c = '\'';
-					break;
-				case '\\':
-					c = '\\';
-					break;
-				default:
+					ast_wbuf_putc(mp, '\\');
 					ast_wbuf_putc(mp, c);
-					continue;
 				}
-				ast_wbuf_putc(mp, '\\');
-				ast_wbuf_putc(mp, c);
-			}
-		style_usage:
-			continue;
-		case STYLE_keys:
-			a = 0;
-			psp = 0;
-			vl = 0;
-			for (;;)
-			{
-				if (!(c = *p++))
+			style_usage:
+				continue;
+			case STYLE_keys:
+				a = 0;
+				psp = 0;
+				vl = 0;
+				for(;;)
 				{
-					if (!(tsp = psp))
-						break;
-					p = psp->ob;
-					psp = psp->next;
-					free(tsp);
-					continue;
-				}
-				if (c == '\f')
-				{
-					psp = info(psp, p, NULL, sp_info, id);
-					if (psp->nb)
-						p = psp->nb;
-					else
+					if(!(c = *p++))
 					{
+						if(!(tsp = psp))
+							break;
 						p = psp->ob;
 						psp = psp->next;
+						free(tsp);
+						continue;
 					}
-					continue;
-				}
-				f = z = 1;
-				t = 0;
-				if (a == 0 && (c == ' ' || c == '\n' && *p == '\n'))
-				{
-					if (c == ' ' && *p == ']')
+					if(c == '\f')
+					{
+						psp = info(psp, p, NULL, sp_info, id);
+						if(psp->nb)
+							p = psp->nb;
+						else
+						{
+							p = psp->ob;
+							psp = psp->next;
+						}
+						continue;
+					}
+					f = z = 1;
+					t = 0;
+					if(a == 0 && (c == ' ' || c == '\n' && *p == '\n'))
+					{
+						if(c == ' ' && *p == ']')
+						{
+							p++;
+							continue;
+						}
+						if(*p == '\n')
+							p++;
+						a = c;
+					}
+					else if(c == '\n')
+					{
+						if(a == ' ')
+							a = -1;
+						else if(a == '\n' || *p == '\n')
+						{
+							a = -1;
+							p++;
+						}
+						continue;
+					}
+					else if((c == ':' || c == '#') && (*p == '[' || *p == '?' && *(p + 1) == '[' && p++))
+						p++;
+					else if(c != '[')
+					{
+						if(c == GO)
+							vl++;
+						else if(c == OG)
+							vl--;
+						continue;
+					}
+					else if(*p == ' ')
 					{
 						p++;
 						continue;
 					}
-					if (*p == '\n')
-						p++;
-					a = c;
-				}
-				else if (c == '\n')
-				{
-					if (a == ' ')
-						a = -1;
-					else if (a == '\n' || *p == '\n')
+					else if(*p == '-')
 					{
-						a = -1;
-						p++;
+						z = 0;
+						if(*++p == '-')
+						{
+							p = skip(p, 0, 0, 0, 1, 0, 1, version);
+							continue;
+						}
 					}
-					continue;
-				}
-				else if ((c == ':' || c == '#') && (*p == '[' || *p == '?' && *(p + 1) == '[' && p++))
-					p++;
-				else if (c != '[')
-				{
-					if (c == GO)
-						vl++;
-					else if (c == OG)
-						vl--;
-					continue;
-				}
-				else if (*p == ' ')
-				{
-					p++;
-					continue;
-				}
-				else if (*p == '-')
-				{
-					z = 0;
-					if (*++p == '-')
+					else if(*p == '+')
 					{
-						p = skip(p, 0, 0, 0, 1, 0, 1, version);
-						continue;
+						p++;
+						if(vl > 0 && *p != '\a')
+						{
+							f = 0;
+							p = skip(p, '?', 0, 0, 1, 0, 0, version);
+							if(*p == '?')
+								p++;
+						}
 					}
-				}
-				else if (*p == '+')
-				{
-					p++;
-					if (vl > 0 && *p != '\a')
+					else
+					{
+						if(*(p + 1) == '\f' && state.vp.fp && (vp = &state.vp))
+							p = expand(p + 2, NULL, &t, vp, id);
+						p = skip(p, ':', '?', 0, 1, 0, 0, version);
+						if(*p == ':')
+							p++;
+					}
+					if(f && *p == '?' && *(p + 1) != '?')
 					{
 						f = 0;
-						p = skip(p, '?', 0, 0, 1, 0, 0, version);
-						if (*p == '?')
+						if(z)
 							p++;
+						else
+							p = skip(p, 0, 0, 0, 1, 0, 0, version);
 					}
-				}
-				else
-				{
-					if (*(p + 1) == '\f' && state.vp.fp && (vp = &state.vp))
-						p = expand(p + 2, NULL, &t, vp, id);
-					p = skip(p, ':', '?', 0, 1, 0, 0, version);
-					if (*p == ':')
+					if(*p == ']' && *(p + 1) != ']')
+					{
 						p++;
-				}
-				if (f && *p == '?' && *(p + 1) != '?')
-				{
-					f = 0;
-					if (z)
-						p++;
-					else
-						p = skip(p, 0, 0, 0, 1, 0, 0, version);
-				}
-				if (*p == ']' && *(p + 1) != ']')
-				{
-					p++;
-					continue;
-				}
-				if (!*p)
-				{
-					if (!t)
-						break;
-					p = t;
-					t = 0;
-				}
-				m = ast_wbuf_tell(mp);
-				ast_wbuf_putc(mp, '"');
-				xl = 1;
-				/*UNDENT...*/
-
-	for (;;)
-	{
-		if (!(c = *p++))
-		{
-			if (t)
-			{
-				p = t;
-				t = 0;
-			}
-			if (!(tsp = psp))
-			{
-				p--;
-				break;
-			}
-			p = psp->ob;
-			psp = psp->next;
-			free(tsp);
-			continue;
-		}
-		if (a > 0)
-		{
-			if (c == '\n')
-			{
-				if (a == ' ')
-				{
-					a = -1;
-					break;
-				}
-				if (a == '\n' || *p == '\n')
-				{
-					a = -1;
-					p++;
-					break;
-				}
-			}
-		}
-		else if (c == ']')
-		{
-			if (*p != ']')
-			{
-				ast_wbuf_putc(mp, 0);
-				y = ast_wbuf_base(mp) + m + 1;
-				if (D(y) || !strmatch(y, KEEP) || strmatch(y, OMIT))
-				{
-					ast_wbuf_seek(mp, m, SEEK_SET);
-					xl = 0;
-				}
-				else
-					ast_wbuf_seek(mp, -1, SEEK_CUR);
-				break;
-			}
-			ast_wbuf_putc(mp, *p++);
-			continue;
-		}
-		switch (c)
-		{
-		case '?':
-			if (f)
-			{
-				if (*p == '?')
-				{
-					p++;
-					ast_wbuf_putc(mp, c);
-				}
-				else
-				{
-					f = 0;
-					ast_wbuf_putc(mp, 0);
-					y = ast_wbuf_base(mp) + m + 1;
-					if (D(y) || !strmatch(y, KEEP) || strmatch(y, OMIT))
-					{
-						ast_wbuf_seek(mp, m, SEEK_SET);
-						xl = 0;
+						continue;
 					}
-					else
-						ast_wbuf_seek(mp, -1, SEEK_CUR);
-					if (z && (*p != ']' || *(p + 1) == ']'))
+					if(!*p)
 					{
-						if (xl)
-						{
-							ast_wbuf_putc(mp, '"');
-							ast_wbuf_putc(mp, '\n');
-						}
-						m = ast_wbuf_tell(mp);
-						ast_wbuf_putc(mp, '"');
-						xl = 1;
+						if(!t)
+							break;
+						p = t;
+						t = 0;
 					}
-					else
-					{
-						p = skip(p, 0, 0, 0, 1, 0, 0, version);
-						if (*p == '?')
-							p++;
-					}
-				}
-			}
-			else
-				ast_wbuf_putc(mp, c);
-			continue;
-		case ':':
-			if (f && *p == ':')
-				p++;
-			ast_wbuf_putc(mp, c);
-			continue;
-		case '\a':
-			c = 'a';
-			break;
-		case '\b':
-			c = 'b';
-			break;
-		case '\f':
-			c = 'f';
-			break;
-		case '\n':
-			c = 'n';
-			break;
-		case '\r':
-			c = 'r';
-			break;
-		case '\t':
-			c = 't';
-			break;
-		case '\v':
-			c = 'v';
-			break;
-		case '"':
-			c = '"';
-			break;
-		case '\\':
-			c = '\\';
-			break;
-		case CC_esc:
-			c = 'E';
-			break;
-		default:
-			ast_wbuf_putc(mp, c);
-			continue;
-		}
-		ast_wbuf_putc(mp, '\\');
-		ast_wbuf_putc(mp, c);
-	}
-
-				/*...INDENT*/
-				if (xl)
-				{
+					m = ast_wbuf_tell(mp);
 					ast_wbuf_putc(mp, '"');
-					ast_wbuf_putc(mp, '\n');
+					xl = 1;
+					/*UNDENT...*/
+
+					for(;;)
+					{
+						if(!(c = *p++))
+						{
+							if(t)
+							{
+								p = t;
+								t = 0;
+							}
+							if(!(tsp = psp))
+							{
+								p--;
+								break;
+							}
+							p = psp->ob;
+							psp = psp->next;
+							free(tsp);
+							continue;
+						}
+						if(a > 0)
+						{
+							if(c == '\n')
+							{
+								if(a == ' ')
+								{
+									a = -1;
+									break;
+								}
+								if(a == '\n' || *p == '\n')
+								{
+									a = -1;
+									p++;
+									break;
+								}
+							}
+						}
+						else if(c == ']')
+						{
+							if(*p != ']')
+							{
+								ast_wbuf_putc(mp, 0);
+								y = ast_wbuf_base(mp) + m + 1;
+								if(D(y) || !strmatch(y, KEEP) || strmatch(y, OMIT))
+								{
+									ast_wbuf_seek(mp, m, SEEK_SET);
+									xl = 0;
+								}
+								else
+									ast_wbuf_seek(mp, -1, SEEK_CUR);
+								break;
+							}
+							ast_wbuf_putc(mp, *p++);
+							continue;
+						}
+						switch(c)
+						{
+							case '?':
+								if(f)
+								{
+									if(*p == '?')
+									{
+										p++;
+										ast_wbuf_putc(mp, c);
+									}
+									else
+									{
+										f = 0;
+										ast_wbuf_putc(mp, 0);
+										y = ast_wbuf_base(mp) + m + 1;
+										if(D(y) || !strmatch(y, KEEP) || strmatch(y, OMIT))
+										{
+											ast_wbuf_seek(mp, m, SEEK_SET);
+											xl = 0;
+										}
+										else
+											ast_wbuf_seek(mp, -1, SEEK_CUR);
+										if(z && (*p != ']' || *(p + 1) == ']'))
+										{
+											if(xl)
+											{
+												ast_wbuf_putc(mp, '"');
+												ast_wbuf_putc(mp, '\n');
+											}
+											m = ast_wbuf_tell(mp);
+											ast_wbuf_putc(mp, '"');
+											xl = 1;
+										}
+										else
+										{
+											p = skip(p, 0, 0, 0, 1, 0, 0, version);
+											if(*p == '?')
+												p++;
+										}
+									}
+								}
+								else
+									ast_wbuf_putc(mp, c);
+								continue;
+							case ':':
+								if(f && *p == ':')
+									p++;
+								ast_wbuf_putc(mp, c);
+								continue;
+							case '\a':
+								c = 'a';
+								break;
+							case '\b':
+								c = 'b';
+								break;
+							case '\f':
+								c = 'f';
+								break;
+							case '\n':
+								c = 'n';
+								break;
+							case '\r':
+								c = 'r';
+								break;
+							case '\t':
+								c = 't';
+								break;
+							case '\v':
+								c = 'v';
+								break;
+							case '"':
+								c = '"';
+								break;
+							case '\\':
+								c = '\\';
+								break;
+							case CC_esc:
+								c = 'E';
+								break;
+							default:
+								ast_wbuf_putc(mp, c);
+								continue;
+						}
+						ast_wbuf_putc(mp, '\\');
+						ast_wbuf_putc(mp, c);
+					}
+
+					/*...INDENT*/
+					if(xl)
+					{
+						ast_wbuf_putc(mp, '"');
+						ast_wbuf_putc(mp, '\n');
+					}
 				}
-			}
-			continue;
+				continue;
 		}
 		z = 0;
 		head = 0;
 		mode = 0;
 		mutex = 0;
-		if (style > STYLE_short && style < STYLE_nroff && version < 1)
+		if(style > STYLE_short && style < STYLE_nroff && version < 1)
 		{
 			style = STYLE_short;
-			if (sp_body)
+			if(sp_body)
 			{
 				ast_wbuf_close(sp_body);
 				sp_body = 0;
 			}
 		}
-		else if (style == STYLE_short && prefix < 2)
+		else if(style == STYLE_short && prefix < 2)
 			style = STYLE_long;
-		if (*p == ':')
+		if(*p == ':')
 			p++;
-		if (*p == '+')
+		if(*p == '+')
 		{
 			p++;
-			if (!(sp = sp_plus))
+			if(!(sp = sp_plus))
 			{
 				sp_plus = &sp_plus_wb;
-				if (ast_wbuf_open(sp_plus))
+				if(ast_wbuf_open(sp_plus))
 					goto outofmemory;
 				sp = sp_plus;
 			}
 		}
-		else if (style >= STYLE_match)
+		else if(style >= STYLE_match)
 			sp = sp_body;
 		else
 			sp = sp_text;
 		psp = 0;
-		for (;;)
+		for(;;)
 		{
-			if (!(*(p = next(p, version))))
+			if(!(*(p = next(p, version))))
 			{
-				if (!(tsp = psp))
+				if(!(tsp = psp))
 					break;
 				p = psp->ob;
 				psp = psp->next;
 				free(tsp);
 				continue;
 			}
-			if (*p == '\f')
+			if(*p == '\f')
 			{
 				psp = info(psp, p + 1, NULL, sp_info, id);
-				if (psp->nb)
+				if(psp->nb)
 					p = psp->nb;
 				else
 				{
@@ -2966,28 +3056,29 @@ opthelp(const char* oopts, const char* what)
 				}
 				continue;
 			}
-			if (*p == '\n' || *p == ' ')
+			if(*p == '\n' || *p == ' ')
 			{
-				if (*(x = p = next(p + 1, version)))
-					while (*++p)
-						if (*p == '\n')
+				if(*(x = p = next(p + 1, version)))
+					while(*++p)
+						if(*p == '\n')
 						{
-							while (*++p == ' ' || *p == '\t' || *p == '\r');
-							if (*p == '\n')
+							while(*++p == ' ' || *p == '\t' || *p == '\r')
+								;
+							if(*p == '\n')
 								break;
 						}
 				xl = p - x;
-				if (!*p)
+				if(!*p)
 					break;
 				continue;
 			}
-			if (*p == OG)
+			if(*p == OG)
 			{
 				p++;
 				continue;
 			}
 			message((-20, "opthelp: opt %s", show(p)));
-			if (z < 0)
+			if(z < 0)
 				z = 0;
 			a = 0;
 			f = 0;
@@ -2998,9 +3089,9 @@ opthelp(const char* oopts, const char* what)
 			sl = 0;
 			vl = 0;
 			cl = 0;
-			if (*p == '[')
+			if(*p == '[')
 			{
-				if ((c = *(p = next(p + 1, version))) == '(')
+				if((c = *(p = next(p + 1, version))) == '(')
 				{
 					p = nest(cb = p);
 					cl = p - cb;
@@ -3008,38 +3099,38 @@ opthelp(const char* oopts, const char* what)
 				}
 				else
 					cb = 0;
-				if (c == '-')
+				if(c == '-')
 				{
-					if (style >= STYLE_man)
+					if(style >= STYLE_man)
 					{
-						if (*(p + 1) != '-')
+						if(*(p + 1) != '-')
 						{
-							if (!sp_misc)
+							if(!sp_misc)
 							{
 								sp_misc = &sp_misc_wb;
-								if (ast_wbuf_open(sp_misc))
+								if(ast_wbuf_open(sp_misc))
 									goto outofmemory;
 							}
 							p = textout(sp_misc, p, cb, cl, style, 1, 3, sp_info, version, id, catalog, &hflags);
 							continue;
 						}
 					}
-					else if (style == STYLE_match && *what == '-')
+					else if(style == STYLE_match && *what == '-')
 					{
-						if (*(p + 1) == '?' || *(s = skip(p + 1, ':', '?', 0, 1, 0, 0, version)) == '?' && isspace(*(s + 1)))
+						if(*(p + 1) == '?' || *(s = skip(p + 1, ':', '?', 0, 1, 0, 0, version)) == '?' && isspace(*(s + 1)))
 							s = C("version");
 						else
 							s = p + 1;
-						w = (char*)what;
-						if (*s != '-' || *(w + 1) == '-')
+						w = (char *)what;
+						if(*s != '-' || *(w + 1) == '-')
 						{
-							if (*s == '-')
+							if(*s == '-')
 								s++;
-							if (*(w + 1) == '-')
+							if(*(w + 1) == '-')
 								w++;
-							if (match(w + 1, s, version, id, catalog))
+							if(match(w + 1, s, version, id, catalog))
 							{
-								if (*(p + 1) == '-')
+								if(*(p + 1) == '-')
 									p++;
 								p = textout(sp, p, cb, cl, style, 1, 3, sp_info, version, id, catalog, &hflags);
 								matched = -1;
@@ -3047,36 +3138,36 @@ opthelp(const char* oopts, const char* what)
 							}
 						}
 					}
-					if (!z)
+					if(!z)
 						z = -1;
 				}
-				else if (c == '+')
+				else if(c == '+')
 				{
-					if (style >= STYLE_man)
+					if(style >= STYLE_man)
 					{
 						p = textout(sp_body, p, cb, cl, style, 0, 0, sp_info, version, id, catalog, &bflags);
-						if (!sp_head)
+						if(!sp_head)
 						{
 							sp_head = sp_body;
 							hflags = dflags = bflags;
 							sp_body = &sp_body2_wb;
-							if (ast_wbuf_open(sp_body))
+							if(ast_wbuf_open(sp_body))
 								goto outofmemory;
 						}
 						continue;
 					}
-					else if (style == STYLE_match && *what == '+')
+					else if(style == STYLE_match && *what == '+')
 					{
-						if (paragraph)
+						if(paragraph)
 						{
-							if (p[1] == '?')
+							if(p[1] == '?')
 							{
 								p = textout(sp, p, cb, cl, style, 1, 3, sp_info, version, id, catalog, &hflags);
 								continue;
 							}
 							paragraph = 0;
 						}
-						if (match((char*)what + 1, p + 1, version, id, catalog))
+						if(match((char *)what + 1, p + 1, version, id, catalog))
 						{
 							p = textout(sp, p, cb, cl, style, 1, 3, sp_info, version, id, catalog, &hflags);
 							matched = -1;
@@ -3084,84 +3175,85 @@ opthelp(const char* oopts, const char* what)
 							continue;
 						}
 					}
-					if (!z)
+					if(!z)
 						z = -1;
 				}
-				else if (c == '[' || version < 1)
+				else if(c == '[' || version < 1)
 				{
 					mutex++;
 					continue;
 				}
 				else
 				{
-					if (c == '!')
+					if(c == '!')
 					{
 						a |= OPT_invert;
 						p++;
 					}
 					rb = p;
-					if (*p != ':')
+					if(*p != ':')
 					{
 						s = p;
-						if (*(p + 1) == '|')
+						if(*(p + 1) == '|')
 						{
-							while (*++p && *p != '=' && *p != '!' && *p != ':' && *p != '?');
-							if ((p - s) > 1)
+							while(*++p && *p != '=' && *p != '!' && *p != ':' && *p != '?')
+								;
+							if((p - s) > 1)
 								sl = p - s;
-							if (*p == '!')
+							if(*p == '!')
 								a |= OPT_invert;
 						}
-						if (*(p + 1) == '\f')
+						if(*(p + 1) == '\f')
 							p++;
 						else
 							p = skip(p, ':', '?', 0, 1, 0, 0, version);
-						if (sl || (p - s) == 1 || *(s + 1) == '=' || *(s + 1) == '!' && (a |= OPT_invert) || *(s + 1) == '|')
+						if(sl || (p - s) == 1 || *(s + 1) == '=' || *(s + 1) == '!' && (a |= OPT_invert) || *(s + 1) == '|')
 							f = *s;
 					}
 					re = p;
-					if (style <= STYLE_short)
+					if(style <= STYLE_short)
 					{
-						if (!z && !f)
+						if(!z && !f)
 							z = -1;
 					}
 					else
 					{
-						if (*p == '\f' && state.vp.fp && (vp = &state.vp))
+						if(*p == '\f' && state.vp.fp && (vp = &state.vp))
 							p = expand(p + 1, NULL, &t, vp, id);
 						else
 							t = 0;
-						if (*p == ':')
+						if(*p == ':')
 						{
 							p = skip(w = p + 1, ':', '?', 0, 1, 0, 0, version);
-							if (!(wl = p - w))
+							if(!(wl = p - w))
 								w = 0;
 						}
 						else
 							wl = 0;
-						if (*p == ':' || *p == '?')
+						if(*p == ':' || *p == '?')
 						{
 							d = p;
 							p = skip(p, 0, 0, 0, 1, 0, 0, version);
 						}
 						else
 							d = 0;
-						if (style == STYLE_match)
+						if(style == STYLE_match)
 						{
-							if (wl && !match((char*)what, w, version, id, catalog))
+							if(wl && !match((char *)what, w, version, id, catalog))
 								wl = 0;
-							if ((!wl || *w == ':' || *w == '?') && (what[1] || sl && !memchr(s, what[0], sl) || !sl && what[0] != f))
+							if((!wl || *w == ':' || *w == '?') && (what[1] || sl && !memchr(s, what[0], sl) || !sl && what[0] != f))
 							{
 								w = 0;
-								if (!z)
+								if(!z)
 									z = -1;
 							}
 							else
 								matched = 1;
 						}
-						if (t)
+						if(t)
 						{
 							p = t;
-							if (*p == ':' || *p == '?')
+							if(*p == ':' || *p == '?')
 							{
 								d = p;
 								p = skip(p, 0, 0, 0, 1, 0, 0, version);
@@ -3170,19 +3262,20 @@ opthelp(const char* oopts, const char* what)
 					}
 				}
 				p = skip(p, 0, 0, 0, 1, 0, 1, version);
-				if (*p == GO)
+				if(*p == GO)
 					p = skip(p + 1, 0, 0, 0, 0, 1, 1, version);
 			}
-			else if (*p == ']')
+			else if(*p == ']')
 			{
-				if (mutex)
+				if(mutex)
 				{
-					if (style >= STYLE_nroff)
-						ast_wbuf_puts(sp_body, "\n.OP - - anyof"); ast_wbuf_putc(sp_body, '\n');
-					if (!(mutex & 1))
+					if(style >= STYLE_nroff)
+						ast_wbuf_puts(sp_body, "\n.OP - - anyof");
+					ast_wbuf_putc(sp_body, '\n');
+					if(!(mutex & 1))
 					{
 						mutex--;
-						if (style <= STYLE_long)
+						if(style <= STYLE_long)
 						{
 							ast_wbuf_putc(sp_body, ' ');
 							ast_wbuf_putc(sp_body, ']');
@@ -3193,17 +3286,17 @@ opthelp(const char* oopts, const char* what)
 				p++;
 				continue;
 			}
-			else if (*p == '?')
+			else if(*p == '?')
 			{
-				if (style < STYLE_match)
+				if(style < STYLE_match)
 					z = 1;
 				mode |= OPT_hidden;
 				p++;
 				continue;
 			}
-			else if (*p == '\\' && style==STYLE_posix)
+			else if(*p == '\\' && style == STYLE_posix)
 			{
-				if (*++p)
+				if(*++p)
 					p++;
 				continue;
 			}
@@ -3211,52 +3304,52 @@ opthelp(const char* oopts, const char* what)
 			{
 				f = *p++;
 				s = 0;
-				if (style == STYLE_match && !z)
+				if(style == STYLE_match && !z)
 					z = -1;
 			}
-			if (!z)
+			if(!z)
 			{
-				if (style == STYLE_long || prefix < 2 || (q->flags & OPT_long))
+				if(style == STYLE_long || prefix < 2 || (q->flags & OPT_long))
 					f = 0;
-				else if (style <= STYLE_short)
+				else if(style <= STYLE_short)
 					w = 0;
-				if (!f && !w)
+				if(!f && !w)
 					z = -1;
 			}
 			ov = 0;
 			u = v = y = 0;
-			if (*p == ':' && (a |= OPT_string) || *p == '#' && (a |= OPT_number))
+			if(*p == ':' && (a |= OPT_string) || *p == '#' && (a |= OPT_number))
 			{
 				message((-21, "opthelp: arg %s", show(p)));
-				if (*++p == '?' || *p == *(p - 1))
+				if(*++p == '?' || *p == *(p - 1))
 				{
 					p++;
 					a |= OPT_optional;
 				}
-				if (*(p = next(p, version)) == '[')
+				if(*(p = next(p, version)) == '[')
 				{
-					if (!z)
+					if(!z)
 					{
 						p = skip(y = p + 1, ':', '?', 0, 1, 0, 0, version);
-						while (*p == ':')
+						while(*p == ':')
 						{
 							p = skip(t = p + 1, ':', '?', 0, 1, 0, 0, version);
 							m = p - t;
-							if (*t == '!')
+							if(*t == '!')
 							{
 								ov = t + 1;
 								ol = m - 1;
 							}
-							else if (*t == '=')
+							else if(*t == '=')
 							{
 								v = t + 1;
 								vl = m - 1;
 							}
 							else
 							{
-								for (j = 0; j < elementsof(attrs); j++)
+								for(j = 0; j < elementsof(attrs); j++)
 								{
-									if (strneq(t, attrs[j].name, m))
+									if(strneq(t, attrs[j].name, m))
 									{
 										a |= attrs[j].flag;
 										break;
@@ -3264,7 +3357,7 @@ opthelp(const char* oopts, const char* what)
 								}
 							}
 						}
-						if (*p == '?')
+						if(*p == '?')
 							u = p;
 						p = skip(p, 0, 0, 0, 1, 0, 1, version);
 					}
@@ -3276,42 +3369,43 @@ opthelp(const char* oopts, const char* what)
 			}
 			else
 				a |= OPT_flag;
-			if (!z)
+			if(!z)
 			{
-				if (style <= STYLE_short && !y && !mutex || style == STYLE_posix)
+				if(style <= STYLE_short && !y && !mutex || style == STYLE_posix)
 				{
-					if (style != STYLE_posix && !ast_wbuf_tell(sp))
+					if(style != STYLE_posix && !ast_wbuf_tell(sp))
 					{
 						ast_wbuf_putc(sp, '[');
-						if (sp == sp_plus)
+						if(sp == sp_plus)
 							ast_wbuf_putc(sp, '+');
 						ast_wbuf_putc(sp, '-');
 					}
-					if (!sl)
+					if(!sl)
 						ast_wbuf_putc(sp, f);
 					else
-						for (c = 0; c < sl; c++)
-							if (s[c] != '|')
+						for(c = 0; c < sl; c++)
+							if(s[c] != '|')
 								ast_wbuf_putc(sp, s[c]);
-					if (style == STYLE_posix && y)
+					if(style == STYLE_posix && y)
 						ast_wbuf_putc(sp, ':');
 				}
 				else
 				{
-					if (style >= STYLE_match)
+					if(style >= STYLE_match)
 					{
 						ast_wbuf_putc(sp_body, '\n');
-						if (!head)
+						if(!head)
 						{
 							head = 1;
 							item(sp_body, (flags & OPT_functions) ? C("FUNCTIONS") : C("OPTIONS"), 0, 0, style, sp_info, version, id, ID, &bflags);
 						}
-						if (style >= STYLE_nroff)
+						if(style >= STYLE_nroff)
 						{
-							if (mutex & 1)
+							if(mutex & 1)
 							{
 								mutex++;
-								ast_wbuf_puts(sp_body, "\n.OP - - oneof"); ast_wbuf_putc(sp_body, '\n');
+								ast_wbuf_puts(sp_body, "\n.OP - - oneof");
+								ast_wbuf_putc(sp_body, '\n');
 							}
 						}
 						else
@@ -3319,17 +3413,17 @@ opthelp(const char* oopts, const char* what)
 					}
 					else
 					{
-						if (sp_body)
+						if(sp_body)
 							ast_wbuf_putc(sp_body, ' ');
 						else
 						{
 							sp_body = &sp_body_wb;
-							if (ast_wbuf_open(sp_body))
+							if(ast_wbuf_open(sp_body))
 								goto outofmemory;
 						}
-						if (mutex)
+						if(mutex)
 						{
-							if (mutex & 1)
+							if(mutex & 1)
 							{
 								mutex++;
 								ast_wbuf_putc(sp_body, '[');
@@ -3341,29 +3435,31 @@ opthelp(const char* oopts, const char* what)
 						else
 							ast_wbuf_putc(sp_body, '[');
 					}
-					if (style >= STYLE_nroff)
+					if(style >= STYLE_nroff)
 					{
-						if (flags & OPT_functions)
+						if(flags & OPT_functions)
 						{
-							ast_wbuf_puts(sp_body, ".FN"); ast_wbuf_putc(sp_body, ' ');
-							if (re > rb)
+							ast_wbuf_puts(sp_body, ".FN");
+							ast_wbuf_putc(sp_body, ' ');
+							if(re > rb)
 								ast_wbuf_write(sp_body, rb, re - rb);
 							else
 								ast_wbuf_puts(sp, "void");
-							if (w)
+							if(w)
 								label(sp_body, ' ', w, 0, -1, 0, style, FONT_BOLD, sp_info, version, id, catalog);
 						}
 						else
 						{
-							ast_wbuf_puts(sp_body, ".OP"); ast_wbuf_putc(sp_body, ' ');
-							if (sl)
+							ast_wbuf_puts(sp_body, ".OP");
+							ast_wbuf_putc(sp_body, ' ');
+							if(sl)
 								ast_wbuf_write(sp_body, s, sl);
 							else
 								ast_wbuf_putc(sp_body, f ? f : '-');
 							ast_wbuf_putc(sp_body, ' ');
-							if (w)
+							if(w)
 							{
-								if (label(sp_body, 0, w, 0, -1, 0, style, 0, sp_info, version, id, catalog))
+								if(label(sp_body, 0, w, 0, -1, 0, style, 0, sp_info, version, id, catalog))
 								{
 									ast_wbuf_putc(sp_body, '|');
 									label(sp_body, 0, w, 0, -1, 0, style, 0, sp_info, version, id, native);
@@ -3373,19 +3469,19 @@ opthelp(const char* oopts, const char* what)
 								ast_wbuf_putc(sp_body, '-');
 							ast_wbuf_putc(sp_body, ' ');
 							m = a & OPT_TYPE;
-							for (j = 0; j < elementsof(attrs); j++)
+							for(j = 0; j < elementsof(attrs); j++)
 							{
-								if (m & attrs[j].flag)
+								if(m & attrs[j].flag)
 								{
 									ast_wbuf_puts(sp_body, attrs[j].name);
 									break;
 								}
 							}
-							if (m = (a & ~m) | mode)
+							if(m = (a & ~m) | mode)
 							{
-								for (j = 0; j < elementsof(attrs); j++)
+								for(j = 0; j < elementsof(attrs); j++)
 								{
-									if (m & attrs[j].flag)
+									if(m & attrs[j].flag)
 									{
 										ast_wbuf_putc(sp_body, ':');
 										ast_wbuf_puts(sp_body, attrs[j].name);
@@ -3393,26 +3489,26 @@ opthelp(const char* oopts, const char* what)
 								}
 							}
 							ast_wbuf_putc(sp_body, ' ');
-							if (y)
+							if(y)
 								label(sp_body, 0, y, 0, -1, 0, style, 0, sp_info, version, id, catalog);
 							else
 								ast_wbuf_putc(sp_body, '-');
-							if (v)
+							if(v)
 								ast_wbuf_printf(sp_body, " %-.*s", vl, v);
 						}
 					}
 					else
 					{
-						if (f)
+						if(f)
 						{
-							if (sp_body == sp_plus)
+							if(sp_body == sp_plus)
 								ast_wbuf_putc(sp_body, '+');
 							ast_wbuf_putc(sp_body, '-');
 							ast_wbuf_puts(sp_body, font(FONT_BOLD, style, 1));
-							if (!sl)
+							if(!sl)
 							{
 								ast_wbuf_putc(sp_body, f);
-								if (f == '-' && y)
+								if(f == '-' && y)
 								{
 									y = 0;
 									ast_wbuf_puts(sp_body, C("long-option[=value]"));
@@ -3421,80 +3517,80 @@ opthelp(const char* oopts, const char* what)
 							else
 								ast_wbuf_write(sp_body, s, sl);
 							ast_wbuf_puts(sp_body, font(FONT_BOLD, style, 0));
-							if (w)
+							if(w)
 							{
 								ast_wbuf_putc(sp_body, ',');
 								ast_wbuf_putc(sp_body, ' ');
 							}
 						}
-						else if ((flags & OPT_functions) && re > rb)
+						else if((flags & OPT_functions) && re > rb)
 						{
 							ast_wbuf_write(sp_body, rb, re - rb);
 							ast_wbuf_putc(sp_body, ' ');
 						}
-						if (w)
+						if(w)
 						{
-							if (prefix > 0)
+							if(prefix > 0)
 							{
 								ast_wbuf_putc(sp_body, '-');
-								if (prefix > 1)
+								if(prefix > 1)
 									ast_wbuf_putc(sp_body, '-');
 							}
-							if (label(sp_body, 0, w, 0, -1, 0, style, FONT_BOLD, sp_info, version, id, catalog))
+							if(label(sp_body, 0, w, 0, -1, 0, style, FONT_BOLD, sp_info, version, id, catalog))
 							{
 								ast_wbuf_putc(sp_body, '|');
 								label(sp_body, 0, w, 0, -1, 0, style, FONT_BOLD, sp_info, version, id, native);
 							}
 						}
-						if (y)
+						if(y)
 						{
-							if (a & OPT_optional)
+							if(a & OPT_optional)
 								ast_wbuf_putc(sp_body, '[');
-							else if (!w)
+							else if(!w)
 								ast_wbuf_putc(sp_body, ' ');
-							if (w)
+							if(w)
 								ast_wbuf_putc(sp_body, prefix == 1 ? ' ' : '=');
 							label(sp_body, 0, y, 0, -1, 0, style, FONT_ITALIC, sp_info, version, id, catalog);
-							if (a & OPT_optional)
+							if(a & OPT_optional)
 								ast_wbuf_putc(sp_body, ']');
 						}
 					}
-					if (style >= STYLE_match)
+					if(style >= STYLE_match)
 					{
-						if (d)
+						if(d)
 						{
 							textout(sp_body, d, cb, cl, style, 0, 3, sp_info, version, id, catalog, &bflags);
 							cb = 0;
 						}
-						if (u)
+						if(u)
 							textout(sp_body, u, cb, cl, style, 0, 3, sp_info, version, id, catalog, &bflags);
-						if ((a & OPT_invert) && w && (d || u))
+						if((a & OPT_invert) && w && (d || u))
 						{
 							u = skip(w, ':', '?', 0, 1, 0, 0, version);
-							if (f)
+							if(f)
 								ast_wbuf_printf(sp_info, " %s; -\b%c\b %s --\bno%-.*s\b.", T(NULL, ID, "On by default"), f, T(NULL, ID, "means"), u - w, w);
 							else
-								ast_wbuf_printf(sp_info, " %s %s\bno%-.*s\b %s.", T(NULL, ID, "On by default; use"), "--"+2-prefix, u - w, w, T(NULL, ID, "to turn off"));
-							if (!(t = ast_wbuf_use(sp_info)))
+								ast_wbuf_printf(sp_info, " %s %s\bno%-.*s\b %s.", T(NULL, ID, "On by default; use"), "--" + 2 - prefix, u - w, w, T(NULL, ID, "to turn off"));
+							if(!(t = ast_wbuf_use(sp_info)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 0, 0, sp_info, version, NULL, NULL, &bflags);
 						}
-						if (*p == GO)
+						if(*p == GO)
 						{
 							p = u ? skip(p + 1, 0, 0, 0, 0, 1, 1, version) : textout(sp_body, p, 0, 0, style, 4, 0, sp_info, version, id, catalog, &bflags);
 							y = "+?";
 						}
 						else
 							y = " ";
-						if (a & OPT_optional)
+						if(a & OPT_optional)
 						{
-							if (ov)
+							if(ov)
 							{
 								ast_wbuf_printf(sp_info, "%s%s \b", y, T(NULL, ID, "If the option value is omitted then"));
 								t = ov + ol;
-								while (ov < t)
+								while(ov < t)
 								{
-									if (((c = *ov++) == ':' || c == '?') && *ov == c)
+									if(((c = *ov++) == ':' || c == '?') && *ov == c)
 										ov++;
 									ast_wbuf_putc(sp_info, c);
 								}
@@ -3502,92 +3598,93 @@ opthelp(const char* oopts, const char* what)
 							}
 							else
 								ast_wbuf_printf(sp_info, "%s%s", y, T(NULL, ID, "The option value may be omitted."));
-							if (!(t = ast_wbuf_use(sp_info)))
+							if(!(t = ast_wbuf_use(sp_info)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
 							y = " ";
 						}
-						if (v)
+						if(v)
 						{
 							ast_wbuf_printf(sp_info, "%s%s \b", y, T(NULL, ID, "The default value is"));
 							t = v + vl;
-							while (v < t)
+							while(v < t)
 							{
-								if (((c = *v++) == ':' || c == '?') && *v == c)
+								if(((c = *v++) == ':' || c == '?') && *v == c)
 									v++;
 								ast_wbuf_putc(sp_info, c);
 							}
 							ast_wbuf_putc(sp_info, '\b');
 							ast_wbuf_putc(sp_info, '.');
-							if (!(t = ast_wbuf_use(sp_info)))
+							if(!(t = ast_wbuf_use(sp_info)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
 						}
 					}
-					else if (!mutex)
+					else if(!mutex)
 						ast_wbuf_putc(sp_body, ']');
 				}
-				if (*p == GO)
+				if(*p == GO)
 				{
-					if (style >= STYLE_match)
+					if(style >= STYLE_match)
 						p = textout(sp_body, p, 0, 0, style, 4, 0, sp_info, version, id, catalog, &bflags);
 					else
 						p = skip(p + 1, 0, 0, 0, 0, 1, 1, version);
 				}
 			}
-			else if (*p == GO)
+			else if(*p == GO)
 				p = skip(p + 1, 0, 0, 0, 0, 1, 1, version);
 		}
 		psp = pop(psp);
-		if (sp_misc)
+		if(sp_misc)
 		{
-			if (!(p = ast_wbuf_use(sp_misc)))
+			if(!(p = ast_wbuf_use(sp_misc)))
 				goto outofmemory;
-			for (t = p; *t == '\t' || *t == '\n'; t++);
-			if (*t)
+			for(t = p; *t == '\t' || *t == '\n'; t++)
+				;
+			if(*t)
 			{
 				item(sp_body, C("IMPLEMENTATION"), 0, 0, style, sp_info, version, id, ID, &bflags);
 				ast_wbuf_puts(sp_body, p);
 			}
 		}
 	}
-	if (oopts != o->oopts && oopts == top.oopts)
+	if(oopts != o->oopts && oopts == top.oopts)
 		state.pass[0] = top;
 	version = o->version;
 	id = o->id;
 	catalog = o->catalog;
-	if (style >= STYLE_keys)
+	if(style >= STYLE_keys)
 	{
-		if (sp_info)
+		if(sp_info)
 			ast_wbuf_close(sp_info);
-		if (style == STYLE_keys && ast_wbuf_tell(mp) > 1)
+		if(style == STYLE_keys && ast_wbuf_tell(mp) > 1)
 			ast_wbuf_seek(mp, -1, SEEK_CUR);
-		if (!(p = ast_wbuf_use(mp)))
+		if(!(p = ast_wbuf_use(mp)))
 			goto outofmemory;
 		return opt_info.msg = p;
 	}
 	sp = sp_text;
-	if (ast_wbuf_tell(sp) && style != STYLE_posix)
+	if(ast_wbuf_tell(sp) && style != STYLE_posix)
 		ast_wbuf_putc(sp, ']');
-	if (style == STYLE_nroff)
+	if(style == STYLE_nroff)
 	{
-		char	rd[64];
-		char	ud[64];
+		char rd[64];
+		char ud[64];
 
 		s = o->id;
 		t = ud;
-		while (t < &ud[sizeof(ud)-2] && (c = *s++))
+		while(t < &ud[sizeof(ud) - 2] && (c = *s++))
 		{
-			if (islower(c))
+			if(islower(c))
 				c = toupper(c);
 			*t++ = c;
 		}
 		*t = 0;
 		t = rd;
-		if (s = o->release)
+		if(s = o->release)
 		{
 			*t++ = ' ';
-			while (t < &rd[sizeof(rd)-2] && (c = *s++) && c != ']')
+			while(t < &rd[sizeof(rd) - 2] && (c = *s++) && c != ']')
 				*t++ = c;
 		}
 		*t = 0;
@@ -3668,74 +3765,75 @@ opthelp(const char* oopts, const char* what)
 .ft R\n\
 .in -3n\n\
 ..\n\
-"
-, ud
-, section
-, rd
-, o->prefix == 2 ? "\\\\-\\\\-" : o->prefix == 1 ? "\\\\-" : ""
-);
+",
+		                ud, section, rd, o->prefix == 2 ? "\\\\-\\\\-" : o->prefix == 1 ? "\\\\-"
+		                                                                                : "");
 	}
-	if (style == STYLE_match)
+	if(style == STYLE_match)
 	{
-		if (!matched)
+		if(!matched)
 		{
-			if (hp = (Help_t*)search(styles, elementsof(styles), sizeof(styles[0]), (char*)what))
+			if(hp = (Help_t *)search(styles, elementsof(styles), sizeof(styles[0]), (char *)what))
 			{
-				if (!sp_help)
+				if(!sp_help)
 				{
 					sp_help = &sp_help_wb;
-					if (ast_wbuf_open(sp_help))
+					if(ast_wbuf_open(sp_help))
 						goto outofmemory;
 				}
 				ast_wbuf_printf(sp_help, "[-][:%s?%s]", hp->match, hp->text);
-				if (!(opts = ast_wbuf_use(sp_help)))
+				if(!(opts = ast_wbuf_use(sp_help)))
 					goto outofmemory;
 				goto again;
 			}
-			s = (char*)unknown;
+			s = (char *)unknown;
 			goto nope;
 		}
-		else if (matched < 0)
+		else if(matched < 0)
 			x = 0;
 	}
-	if (sp_plus)
+	if(sp_plus)
 	{
-		if (ast_wbuf_tell(sp_plus))
+		if(ast_wbuf_tell(sp_plus))
 		{
-			if (ast_wbuf_tell(sp))
+			if(ast_wbuf_tell(sp))
 				ast_wbuf_putc(sp, ' ');
-			if (!(t = ast_wbuf_use(sp_plus)))
+			if(!(t = ast_wbuf_use(sp_plus)))
 				goto outofmemory;
-			ast_wbuf_puts(sp, t); ast_wbuf_putc(sp, ']');
+			ast_wbuf_puts(sp, t);
+			ast_wbuf_putc(sp, ']');
 		}
 		ast_wbuf_close(sp_plus);
 	}
-	if (style >= STYLE_man)
+	if(style >= STYLE_man)
 	{
-		if (sp_head)
+		if(sp_head)
 		{
-			if (!(t = ast_wbuf_use(sp_head)))
+			if(!(t = ast_wbuf_use(sp_head)))
 				goto outofmemory;
-			for (; *t == '\n'; t++);
-			ast_wbuf_puts(sp, t); ast_wbuf_putc(sp, '\n');
+			for(; *t == '\n'; t++)
+				;
+			ast_wbuf_puts(sp, t);
+			ast_wbuf_putc(sp, '\n');
 			ast_wbuf_close(sp_head);
 			sp_head = 0;
 		}
-		if (x)
+		if(x)
 			item(sp, C("SYNOPSIS"), 0, 0, style, sp_info, version, id, ID, &hflags);
 	}
-	if (x)
+	if(x)
 	{
-		for (t = x + xl; t > x && (*(t - 1) == '\n' || *(t - 1) == '\r'); t--);
+		for(t = x + xl; t > x && (*(t - 1) == '\n' || *(t - 1) == '\r'); t--)
+			;
 		xl = t - x;
-		if (style >= STYLE_match)
+		if(style >= STYLE_match)
 		{
 			u = id;
-			if (o->flags & OPT_functions)
+			if(o->flags & OPT_functions)
 				t = 0;
-			else if (t = strchr(u, ':'))
+			else if(t = strchr(u, ':'))
 			{
-				if ((o->flags & OPT_module) && *(t + 1) == ':' && *(t + 2))
+				if((o->flags & OPT_module) && *(t + 1) == ':' && *(t + 2))
 				{
 					u = t + 2;
 					t = 0;
@@ -3744,63 +3842,64 @@ opthelp(const char* oopts, const char* what)
 					*t = 0;
 			}
 			args(sp, x, xl, o->flags, style, sp_info, version, u, catalog);
-			if (t)
+			if(t)
 				*t = ':';
 			x = 0;
 		}
 	}
-	if (sp_body)
+	if(sp_body)
 	{
-		if (ast_wbuf_tell(sp_body))
+		if(ast_wbuf_tell(sp_body))
 		{
-			if (style < STYLE_match && ast_wbuf_tell(sp))
+			if(style < STYLE_match && ast_wbuf_tell(sp))
 				ast_wbuf_putc(sp, ' ');
-			if (!(t = ast_wbuf_use(sp_body)))
+			if(!(t = ast_wbuf_use(sp_body)))
 				goto outofmemory;
-			if (style == STYLE_html && !(dflags & HELP_head) && (bflags & HELP_head))
-				ast_wbuf_puts(sp, "\n</DIV>"); ast_wbuf_putc(sp, '\n');
+			if(style == STYLE_html && !(dflags & HELP_head) && (bflags & HELP_head))
+				ast_wbuf_puts(sp, "\n</DIV>");
+			ast_wbuf_putc(sp, '\n');
 			ast_wbuf_puts(sp, t);
 		}
 		ast_wbuf_close(sp_body);
 		sp_body = 0;
 	}
-	if (x && style != STYLE_posix)
+	if(x && style != STYLE_posix)
 		args(sp, x, xl, flags, style, sp_info, version, id, catalog);
-	if (sp_info)
+	if(sp_info)
 	{
 		ast_wbuf_close(sp_info);
 		sp_info = 0;
 	}
-	if (sp_misc)
+	if(sp_misc)
 	{
 		ast_wbuf_close(sp_misc);
 		sp_misc = 0;
 	}
-	if (!(p = ast_wbuf_use(sp)))
+	if(!(p = ast_wbuf_use(sp)))
 		goto outofmemory;
 	astwinsize(1, NULL, &state.width);
-	if (state.width < 20)
+	if(state.width < 20)
 		state.width = OPT_WIDTH;
 	m = strlen((style <= STYLE_long && error_info.id && !strchr(error_info.id, '/')) ? error_info.id : id) + 1;
 	margin = style == STYLE_api ? (8 * 1024) : (state.width - 1);
-	if (!(state.flags & OPT_preformat))
+	if(!(state.flags & OPT_preformat))
 	{
-		if (style >= STYLE_man || matched < 0)
+		if(style >= STYLE_man || matched < 0)
 		{
 			ast_wbuf_putc(mp, '\f');
 			ts = 0;
 		}
 		else
 			ts = OPT_USAGE + m;
-		if (style == STYLE_html)
+		if(style == STYLE_html)
 		{
-			char	ud[64];
+			char ud[64];
 
 			s = id;
 			t = ud;
-			while (t < &ud[sizeof(ud)-2] && (c = *s++))
+			while(t < &ud[sizeof(ud) - 2] && (c = *s++))
 			{
-				if (islower(c))
+				if(islower(c))
 					c = toupper(c);
 				*t++ = c;
 			}
@@ -3814,18 +3913,18 @@ opthelp(const char* oopts, const char* what)
 		}
 		else
 			co = 0;
-		if ((rm = margin - ts) < OPT_MARGIN)
+		if((rm = margin - ts) < OPT_MARGIN)
 			rm = OPT_MARGIN;
 		ip = indent;
-		ip->stop = (ip+1)->stop = style >= STYLE_html ? 0 : 2;
+		ip->stop = (ip + 1)->stop = style >= STYLE_html ? 0 : 2;
 		tp = 0;
 		n = 0;
 		head = 1;
-		while (*p == '\n')
+		while(*p == '\n')
 			p++;
-		while (c = *p++)
+		while(c = *p++)
 		{
-			if (c == '\n')
+			if(c == '\n')
 			{
 				ip = indent;
 				n = 0;
@@ -3834,34 +3933,35 @@ opthelp(const char* oopts, const char* what)
 				co = 0;
 				rm = margin;
 				ts = ip->stop;
-				if (*p == '\n')
+				if(*p == '\n')
 				{
-					while (*++p == '\n');
-					if ((style == STYLE_man || style == STYLE_html) && (!head || *p != ' ' && *p != '\t'))
+					while(*++p == '\n')
+						;
+					if((style == STYLE_man || style == STYLE_html) && (!head || *p != ' ' && *p != '\t'))
 					{
-						if (style == STYLE_man)
+						if(style == STYLE_man)
 							p--;
 						else
 							ast_wbuf_printf(mp, "<P>\n");
 					}
 				}
 				head = *p != ' ' && *p != '\t';
-				if (style == STYLE_html && (*p != '<' || !strneq(p, "<BR>", 4) && !strneq(p, "<P>", 3)))
+				if(style == STYLE_html && (*p != '<' || !strneq(p, "<BR>", 4) && !strneq(p, "<P>", 3)))
 				{
 					y = p;
-					while (*p == '\t')
+					while(*p == '\t')
 						p++;
-					if (*p == '\n')
+					if(*p == '\n')
 						continue;
 					j = p - y;
-					if (j > pt->level)
+					if(j > pt->level)
 					{
 						pt++;
 						pt->level = j;
 						pt->id = TAG_NONE;
-						for (y = p; *y && *y != '\n'; y++)
+						for(y = p; *y && *y != '\n'; y++)
 						{
-							if (*y == '\t')
+							if(*y == '\t')
 							{
 								pt->id = TAG_DL;
 								ast_wbuf_printf(mp, "<DL>\n");
@@ -3870,12 +3970,12 @@ opthelp(const char* oopts, const char* what)
 						}
 					}
 					else
-						while (j < pt->level && pt > ptstk)
+						while(j < pt->level && pt > ptstk)
 						{
 							ast_wbuf_printf(mp, "%s", end[pt->id]);
 							pt--;
 						}
-					if (pt->id == TAG_DL)
+					if(pt->id == TAG_DL)
 					{
 						dt = p;
 						ast_wbuf_printf(mp, "<DT>");
@@ -3884,69 +3984,69 @@ opthelp(const char* oopts, const char* what)
 						dt = 0;
 				}
 			}
-			else if (c == '\t')
+			else if(c == '\t')
 			{
-				if (style == STYLE_html)
+				if(style == STYLE_html)
 				{
-					while (*p == '\t')
+					while(*p == '\t')
 						p++;
-					if (*p != '\n')
+					if(*p != '\n')
 					{
 						co += ast_wbuf_printf(mp, "<DD>");
-						if (dt)
+						if(dt)
 						{
 							c = 0;
 							m = 0;
-							for (;;)
+							for(;;)
 							{
-								switch (*dt++)
+								switch(*dt++)
 								{
-								case '\t':
-									break;
-								case '<':
-									c = '>';
-									continue;
-								case '>':
-									if (c == '>')
-										c = 0;
-									else
+									case '\t':
+										break;
+									case '<':
+										c = '>';
+										continue;
+									case '>':
+										if(c == '>')
+											c = 0;
+										else
+											m++;
+										continue;
+									case '&':
+										c = ';';
+										continue;
+									case ';':
+										if(c == ';')
+											c = 0;
 										m++;
-									continue;
-								case '&':
-									c = ';';
-									continue;
-								case ';':
-									if (c == ';')
-										c = 0;
-									m++;
-									continue;
-								default:
-									if (!c)
-										m++;
-									continue;
+										continue;
+									default:
+										if(!c)
+											m++;
+										continue;
 								}
 								break;
 							}
-							if (m >= 5)
+							if(m >= 5)
 								co += ast_wbuf_printf(mp, "<BR>");
 						}
 					}
 				}
 				else
 				{
-					if ((ip+1)->stop)
+					if((ip + 1)->stop)
 					{
 						do
 						{
 							ip++;
-							if (*p != '\t')
+							if(*p != '\t')
 								break;
 							p++;
-						} while ((ip+1)->stop);
-						if (*p == '\n')
+						} while((ip + 1)->stop);
+						if(*p == '\n')
 							continue;
 						ts = ip->stop;
-						if (co >= ts)
+						if(co >= ts)
 						{
 							ast_wbuf_putc(mp, '\n');
 							co = 0;
@@ -3954,7 +4054,7 @@ opthelp(const char* oopts, const char* what)
 							ts = ip->stop;
 						}
 					}
-					while (co < ts)
+					while(co < ts)
 					{
 						ast_wbuf_putc(mp, ' ');
 						co++;
@@ -3963,31 +4063,31 @@ opthelp(const char* oopts, const char* what)
 			}
 			else
 			{
-				if (c == ' ' && !n)
+				if(c == ' ' && !n)
 				{
-					if (co >= rm)
+					if(co >= rm)
 						tp = 0;
 					else
 					{
 						tp = ast_wbuf_tell(mp);
 						pp = p;
 					}
-					if (style == STYLE_nroff && !co)
+					if(style == STYLE_nroff && !co)
 						continue;
 				}
-				else if (style == STYLE_html)
+				else if(style == STYLE_html)
 				{
-					if (c == '<')
+					if(c == '<')
 					{
-						if (strneq(p, "NOBR>", 5))
+						if(strneq(p, "NOBR>", 5))
 							n++;
-						else if (n && strneq(p, "/NOBR>", 6) && !--n)
+						else if(n && strneq(p, "/NOBR>", 6) && !--n)
 						{
-							for (y = p += 6; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
+							for(y = p += 6; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
 							{
-								if (c == '[')
+								if(c == '[')
 									ast_wbuf_puts(mp, "&#0091;");
-								else if (c == ']')
+								else if(c == ']')
 									ast_wbuf_puts(mp, "&#0093;");
 								else
 									ast_wbuf_putc(mp, c);
@@ -3997,25 +4097,25 @@ opthelp(const char* oopts, const char* what)
 							co += p - y + 6;
 						}
 					}
-					else if (c == '>' && !n)
+					else if(c == '>' && !n)
 					{
-						for (y = --p; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
+						for(y = --p; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
 						{
-							if (c == '[')
+							if(c == '[')
 								ast_wbuf_puts(mp, "&#0091;");
-							else if (c == ']')
+							else if(c == ']')
 								ast_wbuf_puts(mp, "&#0093;");
 							else
 								ast_wbuf_putc(mp, c);
 						}
 						ast_wbuf_seek(mp, -1, SEEK_CUR);
 						c = ast_wbuf_base(mp)[ast_wbuf_tell(mp)];
-						if (p > y + 1)
+						if(p > y + 1)
 						{
 							tp = 0;
 							co += p - y - 1;
 						}
-						if (co >= rm)
+						if(co >= rm)
 							tp = 0;
 						else
 						{
@@ -4023,27 +4123,27 @@ opthelp(const char* oopts, const char* what)
 							pp = p;
 						}
 					}
-					else if (c == '[')
+					else if(c == '[')
 					{
 						ast_wbuf_puts(mp, "&#0091");
 						c = ';';
 					}
-					else if (c == ']')
+					else if(c == ']')
 					{
 						ast_wbuf_puts(mp, "&#0093");
 						c = ';';
 					}
-					else if (c == 'h')
+					else if(c == 'h')
 					{
 						y = p;
-						if (*y++ == 't' && *y++ == 't' && *y++ == 'p' && (*y == ':' || *y++ == 's' && *y == ':') && *y++ == ':' && *y++ == '/' && *y++ == '/')
+						if(*y++ == 't' && *y++ == 't' && *y++ == 'p' && (*y == ':' || *y++ == 's' && *y == ':') && *y++ == ':' && *y++ == '/' && *y++ == '/')
 						{
-							while (isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.')
+							while(isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.')
 								y++;
-							if (*y == '?')
-								while (isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.' || *y == '?' || *y == '=' || *y == '%' || *y == '&' || *y == ';' || *y == '#')
+							if(*y == '?')
+								while(isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.' || *y == '?' || *y == '=' || *y == '%' || *y == '&' || *y == ';' || *y == '#')
 									y++;
-							if (*(y - 1) == '.')
+							if(*(y - 1) == '.')
 								y--;
 							p--;
 							ast_wbuf_printf(mp, "<A href=\"%-.*s\">%-.*s</A", y - p, p, y - p, p);
@@ -4051,10 +4151,10 @@ opthelp(const char* oopts, const char* what)
 							c = '>';
 						}
 					}
-					else if (c == 'C')
+					else if(c == 'C')
 					{
 						y = p;
-						if (*y++ == 'o' && *y++ == 'p' && *y++ == 'y' && *y++ == 'r' && *y++ == 'i' && *y++ == 'g' && *y++ == 'h' && *y++ == 't' && *y++ == ' ' && *y++ == '(' && (*y++ == 'c' || *(y - 1) == 'C') && *y++ == ')')
+						if(*y++ == 'o' && *y++ == 'p' && *y++ == 'y' && *y++ == 'r' && *y++ == 'i' && *y++ == 'g' && *y++ == 'h' && *y++ == 't' && *y++ == ' ' && *y++ == '(' && (*y++ == 'c' || *(y - 1) == 'C') && *y++ == ')')
 						{
 							ast_wbuf_puts(mp, "Copyright &copy");
 							p = y;
@@ -4062,45 +4162,45 @@ opthelp(const char* oopts, const char* what)
 						}
 					}
 				}
-				else if (c == ']')
+				else if(c == ']')
 				{
-					if (n)
+					if(n)
 						n--;
 				}
-				else if (c == '[')
+				else if(c == '[')
 					n++;
-				if (c == CC_esc)
+				if(c == CC_esc)
 				{
 					ast_wbuf_putc(mp, c);
 					do
 					{
-						if (!(c = *p++))
+						if(!(c = *p++))
 						{
 							p--;
 							break;
 						}
 						ast_wbuf_putc(mp, c);
-					} while (c < 'a' || c > 'z');
+					} while(c < 'a' || c > 'z');
 				}
-				else if (co++ >= rm && !n)
+				else if(co++ >= rm && !n)
 				{
-					if (tp)
+					if(tp)
 					{
 						ast_wbuf_seek(mp, tp, SEEK_SET);
-						if (ast_wbuf_base(mp)[tp] != ' ')
+						if(ast_wbuf_base(mp)[tp] != ' ')
 							ast_wbuf_seek(mp, 1, SEEK_CUR);
 						tp = 0;
 						p = pp;
 						n = 0;
 					}
-					else if (c != ' ' && c != '\n')
+					else if(c != ' ' && c != '\n')
 						ast_wbuf_putc(mp, c);
-					if (*p == ' ')
+					if(*p == ' ')
 						p++;
-					if (*p != '\n')
+					if(*p != '\n')
 					{
 						ast_wbuf_putc(mp, '\n');
-						for (co = 0; co < ts; co++)
+						for(co = 0; co < ts; co++)
 							ast_wbuf_putc(mp, ' ');
 						rm = margin;
 					}
@@ -4109,12 +4209,13 @@ opthelp(const char* oopts, const char* what)
 					ast_wbuf_putc(mp, c);
 			}
 		}
-		for (d = ast_wbuf_base(mp), t = d + ast_wbuf_tell(mp); t > d && ((c = *(t - 1)) == '\n' || c == '\r' || c == ' ' || c == '\t'); t--);
+		for(d = ast_wbuf_base(mp), t = d + ast_wbuf_tell(mp); t > d && ((c = *(t - 1)) == '\n' || c == '\r' || c == ' ' || c == '\t'); t--)
+			;
 		ast_wbuf_seek(mp, t - d, SEEK_SET);
-		if (style == STYLE_html)
+		if(style == STYLE_html)
 		{
 			ast_wbuf_printf(mp, "\n");
-			while (pt > ptstk)
+			while(pt > ptstk)
 			{
 				ast_wbuf_printf(mp, "%s", end[pt->id]);
 				pt--;
@@ -4127,29 +4228,29 @@ opthelp(const char* oopts, const char* what)
 		ast_wbuf_puts(mp, p);
 		ast_wbuf_putc(mp, 0);
 	}
-	if (!(p = ast_wbuf_use(mp)))
+	if(!(p = ast_wbuf_use(mp)))
 		goto outofmemory;
-	if (sp)
+	if(sp)
 		ast_wbuf_close(sp);
 	return opt_info.msg = p;
- outofmemory:
+outofmemory:
 	s = T(NULL, ID, "[* out of memory *]");
- nope:
-	if (psp)
+nope:
+	if(psp)
 		pop(psp);
-	if (sp_help)
+	if(sp_help)
 		ast_wbuf_close(sp_help);
-	if (sp_text)
+	if(sp_text)
 		ast_wbuf_close(sp_text);
-	if (sp_plus)
+	if(sp_plus)
 		ast_wbuf_close(sp_plus);
-	if (sp_info)
+	if(sp_info)
 		ast_wbuf_close(sp_info);
-	if (sp_head)
+	if(sp_head)
 		ast_wbuf_close(sp_head);
-	if (sp_body)
+	if(sp_body)
 		ast_wbuf_close(sp_body);
-	if (sp_misc)
+	if(sp_misc)
 		ast_wbuf_close(sp_misc);
 	return s;
 }
@@ -4158,8 +4259,8 @@ opthelp(const char* oopts, const char* what)
  * compatibility wrapper to opthelp()
  */
 
-char*
-optusage(const char* opts)
+char *
+optusage(const char *opts)
 {
 	return opthelp(opts, NULL);
 }
@@ -4173,22 +4274,22 @@ optusage(const char* opts)
  */
 
 static intmax_t
-optnumber(const char* s, char** t, int* e)
+optnumber(const char *s, char **t, int *e)
 {
-	intmax_t	n;
-	const int	oerrno = errno;
-	char		lastbase = 0;
+	intmax_t n;
+	const int oerrno = errno;
+	char lastbase = 0;
 
 	errno = 0;
 	n = strtonll(s, t, &lastbase, 0);
-	if (lastbase == 8 && *s == '0')
+	if(lastbase == 8 && *s == '0')
 	{
 		/* disable leading-0 octal by reparsing as decimal */
 		lastbase = 10;
 		errno = 0;
 		n = strtonll(s, t, &lastbase, 0);
 	}
-	if (e)
+	if(e)
 		*e = errno;
 	errno = oerrno;
 	return n;
@@ -4201,24 +4302,24 @@ optnumber(const char* s, char** t, int* e)
  */
 
 static int
-opterror(char* p, int err, int version, char* id, char* catalog)
+opterror(char *p, int err, int version, char *id, char *catalog)
 {
-	ast_wbuf_t*	mp;
-	ast_wbuf_t*	tp;
-	char*		s;
-	int		c;
+	ast_wbuf_t *mp;
+	ast_wbuf_t *tp;
+	char *s;
+	int c;
 
-	if (opt_info.num != LONG_MIN)
+	if(opt_info.num != LONG_MIN)
 		opt_info.num = (long)(opt_info.number = 0);
-	if (!p)
+	if(!p)
 		goto outofmemory;
 	mp = &state.mp;
-	if (!mp->fp && ast_wbuf_open(mp))
+	if(!mp->fp && ast_wbuf_open(mp))
 		goto outofmemory;
 	s = *p == '-' ? p : opt_info.name;
-	if (*p == '!')
+	if(*p == '!')
 	{
-		while (*s == '-')
+		while(*s == '-')
 			ast_wbuf_putc(mp, *s++);
 		ast_wbuf_putc(mp, 'n');
 		ast_wbuf_putc(mp, 'o');
@@ -4226,27 +4327,27 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 	ast_wbuf_puts(mp, s);
 	ast_wbuf_putc(mp, ':');
 	ast_wbuf_putc(mp, ' ');
-	if (*p == '#' || *p == ':')
+	if(*p == '#' || *p == ':')
 	{
-		if (*p == '#')
+		if(*p == '#')
 		{
 			s = T(NULL, ID, "numeric");
 			ast_wbuf_puts(mp, s);
 			ast_wbuf_putc(mp, ' ');
 		}
-		if (*(p = next(p + 1, version)) == '[')
+		if(*(p = next(p + 1, version)) == '[')
 		{
 			p = skip(s = p + 1, ':', '?', 0, 1, 0, 0, version);
 			tp = X(catalog) ? &state.xp : mp;
-			while (s < p)
+			while(s < p)
 			{
-				if ((c = *s++) == '?' || c == ']')
+				if((c = *s++) == '?' || c == ']')
 					s++;
 				ast_wbuf_putc(tp, c);
 			}
-			if (!X(catalog))
+			if(!X(catalog))
 				ast_wbuf_putc(mp, ' ');
-			else if (p = ast_wbuf_use(tp))
+			else if(p = ast_wbuf_use(tp))
 			{
 				ast_wbuf_puts(mp, T(id, catalog, p));
 				ast_wbuf_putc(mp, ' ');
@@ -4256,32 +4357,32 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 		}
 		p = opt_info.name[2] ? C("value expected") : C("argument expected");
 	}
-	else if (*p == '*' || *p == '&')
+	else if(*p == '*' || *p == '&')
 	{
 		ast_wbuf_puts(mp, opt_info.arg);
 		ast_wbuf_putc(mp, ':');
 		ast_wbuf_putc(mp, ' ');
 		p = *p == '&' ? C("ambiguous option argument value") : C("unknown option argument value");
 	}
-	else if (*p == '=' || *p == '!')
+	else if(*p == '=' || *p == '!')
 		p = C("value not expected");
-	else if (*p == '?')
+	else if(*p == '?')
 		p = *(p + 1) == '?' ? C("optget: option not supported") : C("ambiguous option");
-	else if (*p == '+')
+	else if(*p == '+')
 		p = C("section not found");
 	else
 	{
-		if (opt_info.option[0] != '?' && opt_info.option[0] != '-' || opt_info.option[1] != '?' && opt_info.option[1] != '-')
+		if(opt_info.option[0] != '?' && opt_info.option[0] != '-' || opt_info.option[1] != '?' && opt_info.option[1] != '-')
 			opt_info.option[0] = 0;
 		p = C("unknown option");
 	}
 	p = T(NULL, ID, p);
 	ast_wbuf_puts(mp, p);
-	if (err)
+	if(err)
 		ast_wbuf_puts(mp, " -- out of range");
-	if (opt_info.arg = ast_wbuf_use(mp))
+	if(opt_info.arg = ast_wbuf_use(mp))
 		return ':';
- outofmemory:
+outofmemory:
 	opt_info.arg = T(NULL, ID, "[* out of memory *]");
 	return ':';
 }
@@ -4326,71 +4427,70 @@ opterror(char* p, int err, int version, char* id, char* catalog)
  * see help_text[] (--???) for more info
  */
 
-int
-optget(char** argv, const char* oopts)
+int optget(char **argv, const char *oopts)
 {
-	int		c;
-	char*		s;
-	char*		a;
-	char*		b;
-	char*		e;
-	char*		f;
-	char*		g;
-	char*		v;
-	char*		w;
-	char*		p;
-	char*		q;
-	char*		t;
-	char*		y;
-	char*		numopt;
-	char*		opts;
-	char*		id;
-	char*		catalog;
-	int		n;
-	int		m;
-	int		k;
-	int		j;
-	int		x;
-	int		err;
-	int		no;
-	int		nov;
-	int		num;
-	int		numchr = 0;
-	int		prefix;
-	int		version;
-	Help_t*		hp;
-	Push_t*		psp;
-	Push_t*		tsp;
-	ast_wbuf_t*	vp;
-	ast_wbuf_t*	xp;
-	Optcache_t*	cache;
-	Optcache_t*	pcache;
-	Optpass_t*	pass;
+	int c;
+	char *s;
+	char *a;
+	char *b;
+	char *e;
+	char *f;
+	char *g;
+	char *v;
+	char *w;
+	char *p;
+	char *q;
+	char *t;
+	char *y;
+	char *numopt;
+	char *opts;
+	char *id;
+	char *catalog;
+	int n;
+	int m;
+	int k;
+	int j;
+	int x;
+	int err;
+	int no;
+	int nov;
+	int num;
+	int numchr = 0;
+	int prefix;
+	int version;
+	Help_t *hp;
+	Push_t *psp;
+	Push_t *tsp;
+	ast_wbuf_t *vp;
+	ast_wbuf_t *xp;
+	Optcache_t *cache;
+	Optcache_t *pcache;
+	Optpass_t *pass;
 
-	if (!oopts)
+	if(!oopts)
 		return 0;
 	state.emphasis = 0;
 	state.pindex = opt_info.index;
 	state.poffset = opt_info.offset;
-	if (!opt_info.index)
+	if(!opt_info.index)
 	{
 		opt_info.index = 1;
 		opt_info.offset = 0;
-		if (state.npass)
+		if(state.npass)
 		{
 			state.npass = 0;
 			state.join = 0;
 		}
 	}
-	if (!argv)
+	if(!argv)
 		cache = 0;
 	else
-		for (pcache = 0, cache = state.cache; cache; pcache = cache, cache = cache->next)
-			if (cache->pass.oopts == (char*)oopts)
+		for(pcache = 0, cache = state.cache; cache; pcache = cache, cache = cache->next)
+			if(cache->pass.oopts == (char *)oopts)
 				break;
-	if (cache)
+	if(cache)
 	{
-		if (pcache)
+		if(pcache)
 		{
 			pcache->next = cache->next;
 			cache->next = state.cache;
@@ -4401,25 +4501,26 @@ optget(char** argv, const char* oopts)
 	}
 	else
 	{
-		if (!argv)
+		if(!argv)
 			n = state.npass ? state.npass : 1;
-		else if ((n = state.join - 1) < 0)
+		else if((n = state.join - 1) < 0)
 			n = 0;
-		if (n >= state.npass || state.pass[n].oopts != (char*)oopts)
+		if(n >= state.npass || state.pass[n].oopts != (char *)oopts)
 		{
-			for (m = 0; m < state.npass && state.pass[m].oopts != (char*)oopts; m++);
-			if (m < state.npass)
+			for(m = 0; m < state.npass && state.pass[m].oopts != (char *)oopts; m++)
+				;
+			if(m < state.npass)
 				n = m;
 			else
 			{
-				if (n >= elementsof(state.pass))
+				if(n >= elementsof(state.pass))
 					n = elementsof(state.pass) - 1;
-				init((char*)oopts, &state.pass[n]);
-				if (state.npass <= n)
+				init((char *)oopts, &state.pass[n]);
+				if(state.npass <= n)
 					state.npass = n + 1;
 			}
 		}
-		if (!argv)
+		if(!argv)
 			return 0;
 		pass = &state.pass[n];
 	}
@@ -4428,11 +4529,11 @@ optget(char** argv, const char* oopts)
 	version = pass->version;
 	id = pass->id;
 	xp = &state.xp;
-	if (!xp->fp || (catalog = pass->catalog) && !X(catalog))
+	if(!xp->fp || (catalog = pass->catalog) && !X(catalog))
 		catalog = 0;
 	else /* if (!error_info.catalog) */
 		error_info.catalog = catalog;
- again:
+again:
 	psp = 0;
 
 	/*
@@ -4444,57 +4545,57 @@ optget(char** argv, const char* oopts)
 	nov = no = num = 1;
 	e = w = v = 0;
 	n = x = 0;
-	for (;;)
+	for(;;)
 	{
-		if (!opt_info.offset)
+		if(!opt_info.offset)
 		{
 			/*
 			 * finished with the previous arg
 			 */
 
-			if (opt_info.index == 1 && opt_info.argv != state.strv)
+			if(opt_info.index == 1 && opt_info.argv != state.strv)
 			{
 				opt_info.argv = 0;
 				state.argv[0] = 0;
-				if (argv[0] && (state.argv[0] = save(argv[0], strlen(argv[0]), 0, 0, 0, 0)))
+				if(argv[0] && (state.argv[0] = save(argv[0], strlen(argv[0]), 0, 0, 0, 0)))
 					opt_info.argv = state.argv;
 				state.style = STYLE_short;
 			}
-			if (!(s = argv[opt_info.index]))
+			if(!(s = argv[opt_info.index]))
 				return 0;
-			if (!prefix)
+			if(!prefix)
 			{
 				/*
 				 * long with no prefix (dd style)
 				 */
 
 				n = 2;
-				if ((c = *s) != '-' && c != '+')
+				if((c = *s) != '-' && c != '+')
 					c = '-';
-				else if (*++s == c)
+				else if(*++s == c)
 				{
-					if (!*++s)
+					if(!*++s)
 					{
 						opt_info.index++;
 						return 0;
 					}
-					else if (*s == c)
+					else if(*s == c)
 						return 0;
 				}
-				else if (*s == '?')
+				else if(*s == '?')
 					n = 1;
 			}
-			else if ((c = *s++) != '-' && (c != '+' || !(pass->flags & OPT_plus) && (!(pass->flags & OPT_numeric) || !isdigit(*s))))
+			else if((c = *s++) != '-' && (c != '+' || !(pass->flags & OPT_plus) && (!(pass->flags & OPT_numeric) || !isdigit(*s))))
 			{
-				if (!(pass->flags & OPT_old) || !isalpha(c))
+				if(!(pass->flags & OPT_old) || !isalpha(c))
 					return 0;
 				s--;
 				n = 1;
 				opt_info.offset--;
 			}
-			else if (*s == c)
+			else if(*s == c)
 			{
-				if (!*++s)
+				if(!*++s)
 				{
 					/*
 					 * -- or ++ end of options
@@ -4503,7 +4604,7 @@ optget(char** argv, const char* oopts)
 					opt_info.index++;
 					return 0;
 				}
-				else if (*s == c)
+				else if(*s == c)
 				{
 					/*
 					 * ---* or +++* are operands
@@ -4511,7 +4612,7 @@ optget(char** argv, const char* oopts)
 
 					return 0;
 				}
-				if (version || *s == '?' || !(pass->flags & OPT_minus))
+				if(version || *s == '?' || !(pass->flags & OPT_minus))
 				{
 					/*
 					 * long with double prefix
@@ -4529,7 +4630,7 @@ optget(char** argv, const char* oopts)
 					n = 1;
 				}
 			}
-			else if (prefix == 1 && *s != '?')
+			else if(prefix == 1 && *s != '?')
 			{
 				/*
 				 * long with single prefix (find style)
@@ -4550,32 +4651,32 @@ optget(char** argv, const char* oopts)
 			 * just a prefix is an option (e.g., `-' == stdin)
 			 */
 
-			if (!*s)
+			if(!*s)
 				return 0;
-			if (c == '+')
+			if(c == '+')
 				opt_info.arg = 0;
-			if (n == 2)
+			if(n == 2)
 			{
 				x = 0;
 				state.style = STYLE_long;
 				opt_info.option[0] = opt_info.name[0] = opt_info.name[1] = c;
 				w = &opt_info.name[prefix];
-				if ((*s == 'n' || *s == 'N') && (*(s + 1) == 'o' || *(s + 1) == 'O') && *(s + 2) && *(s + 2) != '=')
+				if((*s == 'n' || *s == 'N') && (*(s + 1) == 'o' || *(s + 1) == 'O') && *(s + 2) && *(s + 2) != '=')
 					no = *(s + 2) == '-' ? 3 : 2;
 				else
 					no = 0;
-				for (c = *s; *s; s++)
+				for(c = *s; *s; s++)
 				{
-					if (*s == '=')
+					if(*s == '=')
 					{
-						if (*(s + 1) == '=')
+						if(*(s + 1) == '=')
 							s++;
-						if (!isalnum(*(s - 1)) && *(w - 1) == (opt_info.assignment = *(s - 1)))
+						if(!isalnum(*(s - 1)) && *(w - 1) == (opt_info.assignment = *(s - 1)))
 							w--;
 						v = ++s;
 						break;
 					}
-					if (w < &opt_info.name[elementsof(opt_info.name) - 1] && *s != ':' && *s != '|' && *s != '[' && *s != ']')
+					if(w < &opt_info.name[elementsof(opt_info.name) - 1] && *s != ':' && *s != '|' && *s != '[' && *s != ']')
 						*w++ = *s;
 				}
 				*w = 0;
@@ -4587,11 +4688,11 @@ optget(char** argv, const char* oopts)
 			}
 			opt_info.offset++;
 		}
-		if (!argv[opt_info.index])
+		if(!argv[opt_info.index])
 			return 0;
-		if (c = argv[opt_info.index][opt_info.offset++])
+		if(c = argv[opt_info.index][opt_info.offset++])
 		{
-			if ((k = argv[opt_info.index][0]) != '-' && k != '+')
+			if((k = argv[opt_info.index][0]) != '-' && k != '+')
 				k = '-';
 			opt_info.option[0] = opt_info.name[0] = k;
 			opt_info.option[1] = opt_info.name[1] = c;
@@ -4610,19 +4711,19 @@ optget(char** argv, const char* oopts)
 	 *	v	long option value (via =) if w != 0
 	 */
 
-	if (c == '?')
+	if(c == '?')
 	{
 		/*
 		 * ? always triggers internal help
 		 */
 
-		if (!state.msgdict)
+		if(!state.msgdict)
 			initdict();
-		if (w)
+		if(w)
 		{
-			if (!v && (*(w + 1) || !(v = argv[opt_info.index]) || !++opt_info.index))
+			if(!v && (*(w + 1) || !(v = argv[opt_info.index]) || !++opt_info.index))
 				v = w + 1;
-			else if (w[0] != '?' || w[1])
+			else if(w[0] != '?' || w[1])
 			{
 				s = w;
 				w = v;
@@ -4631,14 +4732,14 @@ optget(char** argv, const char* oopts)
 		}
 		opt_info.option[1] = c;
 		opt_info.option[2] = 0;
-		if (!w)
+		if(!w)
 		{
 			opt_info.name[1] = c;
 			opt_info.name[2] = 0;
 		}
 		goto help;
 	}
-	else if (w && !state.msgdict)
+	else if(w && !state.msgdict)
 		initdict();
 	numopt = 0;
 	f = 0;
@@ -4648,21 +4749,21 @@ optget(char** argv, const char* oopts)
 	 * no option can start with these characters
 	 */
 
-	if (c == ':' || c == '#' || c == ' ' || c == '[' || c == ']')
+	if(c == ':' || c == '#' || c == ' ' || c == '[' || c == ']')
 	{
-		if (c != *s)
+		if(c != *s)
 			s = "";
 	}
 	else
 	{
 		a = 0;
-		if (!w && (pass->flags & OPT_cache))
+		if(!w && (pass->flags & OPT_cache))
 		{
-			if (cache)
+			if(cache)
 			{
-				if (c >= 0 && c < sizeof(map) && map[c] && cache->equiv[map[c]])
+				if(c >= 0 && c < sizeof(map) && map[c] && cache->equiv[map[c]])
 					c = cache->equiv[map[c]];
-				if (k = cache->flags[map[c]])
+				if(k = cache->flags[map[c]])
 				{
 					opt_info.arg = 0;
 
@@ -4670,29 +4771,29 @@ optget(char** argv, const char* oopts)
 					 * this is a ksh getopts workaround
 					 */
 
-					if (opt_info.num != LONG_MIN)
+					if(opt_info.num != LONG_MIN)
 						opt_info.num = (long)(opt_info.number = !(k & OPT_cache_invert));
-					if (!(k & (OPT_cache_string|OPT_cache_numeric)))
+					if(!(k & (OPT_cache_string | OPT_cache_numeric)))
 						return c;
-					if (*(opt_info.arg = &argv[opt_info.index++][opt_info.offset]))
+					if(*(opt_info.arg = &argv[opt_info.index++][opt_info.offset]))
 					{
-						if (!(k & OPT_cache_numeric))
+						if(!(k & OPT_cache_numeric))
 						{
 							opt_info.offset = 0;
 							return c;
 						}
 						opt_info.num = (long)(opt_info.number = optnumber(opt_info.arg, &e, &err));
-						if (err || e == opt_info.arg)
+						if(err || e == opt_info.arg)
 						{
 							opt_info.num = (long)(opt_info.number = 0);
-							if (!err && (k & OPT_cache_optional))
+							if(!err && (k & OPT_cache_optional))
 							{
 								opt_info.arg = 0;
 								opt_info.index--;
 								return c;
 							}
 						}
-						else if (*e)
+						else if(*e)
 						{
 							opt_info.offset += e - opt_info.arg;
 							opt_info.index--;
@@ -4704,10 +4805,10 @@ optget(char** argv, const char* oopts)
 							return c;
 						}
 					}
-					else if (opt_info.arg = argv[opt_info.index])
+					else if(opt_info.arg = argv[opt_info.index])
 					{
 						opt_info.index++;
-						if ((k & OPT_cache_optional) && (*opt_info.arg == '-' || (pass->flags & OPT_plus) && *opt_info.arg == '+') && *(opt_info.arg + 1))
+						if((k & OPT_cache_optional) && (*opt_info.arg == '-' || (pass->flags & OPT_plus) && *opt_info.arg == '+') && *(opt_info.arg + 1))
 						{
 							opt_info.arg = 0;
 							opt_info.index--;
@@ -4715,20 +4816,20 @@ optget(char** argv, const char* oopts)
 							opt_info.num = (long)(opt_info.number = 0);
 							return c;
 						}
-						if (k & OPT_cache_string)
+						if(k & OPT_cache_string)
 						{
 							opt_info.offset = 0;
 							return c;
 						}
 						opt_info.num = (long)(opt_info.number = optnumber(opt_info.arg, &e, &err));
-						if (!err)
+						if(!err)
 						{
-							if (!*e)
+							if(!*e)
 							{
 								opt_info.offset = 0;
 								return c;
 							}
-							if (k & OPT_cache_optional)
+							if(k & OPT_cache_optional)
 							{
 								opt_info.arg = 0;
 								opt_info.index--;
@@ -4737,7 +4838,7 @@ optget(char** argv, const char* oopts)
 							}
 						}
 					}
-					else if (k & OPT_cache_optional)
+					else if(k & OPT_cache_optional)
 					{
 						opt_info.offset = 0;
 						return c;
@@ -4746,7 +4847,7 @@ optget(char** argv, const char* oopts)
 				}
 				cache = 0;
 			}
-			else if (cache = newof(0, Optcache_t, 1, 0))
+			else if(cache = newof(0, Optcache_t, 1, 0))
 			{
 				cache->caching = c;
 				c = 0;
@@ -4757,13 +4858,13 @@ optget(char** argv, const char* oopts)
 		}
 		else
 			cache = 0;
-		for (;;)
+		for(;;)
 		{
-			if (!(*(s = next(s, version))) || *s == '\n' || *s == ' ')
+			if(!(*(s = next(s, version))) || *s == '\n' || *s == ' ')
 			{
-				if (!(tsp = psp))
+				if(!(tsp = psp))
 				{
-					if (cache)
+					if(cache)
 					{
 						/*
 						 * the first loop pass
@@ -4780,7 +4881,7 @@ optget(char** argv, const char* oopts)
 						s = opts;
 						continue;
 					}
-					if (!x && catalog)
+					if(!x && catalog)
 					{
 						/*
 						 * the first loop pass
@@ -4803,10 +4904,10 @@ optget(char** argv, const char* oopts)
 				free(tsp);
 				continue;
 			}
-			if (*s == '\f')
+			if(*s == '\f')
 			{
 				psp = info(psp, s + 1, NULL, xp, id);
-				if (psp->nb)
+				if(psp->nb)
 					s = psp->nb;
 				else
 				{
@@ -4816,35 +4917,35 @@ optget(char** argv, const char* oopts)
 				continue;
 			}
 			message((-20, "optget: opt %s  c %c  w %s  num %ld", show(s), c, w, num));
-			if (*s == c && !w)
+			if(*s == c && !w)
 				break;
-			else if (*s == '[')
+			else if(*s == '[')
 			{
 				s = next(s + 1, version);
 				k = *(f = s);
-				if (*s == '(')
+				if(*s == '(')
 				{
 					s = nest(f = s);
-					if (!conformance(f, s - f))
+					if(!conformance(f, s - f))
 						goto disable;
 				}
-				if (k == '+' || k == '-')
+				if(k == '+' || k == '-')
 					/* ignore */;
-				else if (k == '[' || version < 1)
+				else if(k == '[' || version < 1)
 					continue;
-				else if (w && !cache)
+				else if(w && !cache)
 				{
 					nov = no;
-					if (*(s + 1) == '\f' && state.vp.fp && (vp = &state.vp))
+					if(*(s + 1) == '\f' && state.vp.fp && (vp = &state.vp))
 					{
 						ast_wbuf_putc(vp, k);
 						s = expand(s + 2, NULL, &t, vp, id);
-						if (*s)
+						if(*s)
 							*(f = s - 1) = k;
 						else
 						{
 							f = ast_wbuf_base(vp);
-							if (s = strrchr(f, ':'))
+							if(s = strrchr(f, ':'))
 								f = s - 1;
 							else
 								s = f + 1;
@@ -4852,161 +4953,166 @@ optget(char** argv, const char* oopts)
 					}
 					else
 						t = 0;
-					if (*s != ':')
+					if(*s != ':')
 						s = skip(s, ':', '?', 0, 1, 0, 0, version);
-					if (*s == ':')
+					if(*s == ':')
 					{
-						if (catalog)
+						if(catalog)
 						{
 							p = skip(s + 1, '?', 0, 0, 1, 0, 0, version);
 							e = sfprints("%-.*s", p - (s + 1), s + 1);
 							g = T(id, catalog, e);
-							if (g == e)
+							if(g == e)
 								p = 0;
 							else
 							{
 								ast_wbuf_printf(xp, ":%s|%s?", g, e);
-								if (!(s = ast_wbuf_use(xp)))
+								if(!(s = ast_wbuf_use(xp)))
 									goto outofmemory;
 							}
 						}
 						else
 							p = 0;
 						y = w;
-						for (;;)
+						for(;;)
 						{
 							n = m = 0;
 							e = s + 1;
-							while (*++s)
+							while(*++s)
 							{
-								if (*s == '*' || *s == '\a')
+								if(*s == '*' || *s == '\a')
 								{
-									if (*s == '\a')
+									if(*s == '\a')
 										do
 										{
-											if (!*++s)
+											if(!*++s)
 											{
 												s--;
 												break;
 											}
-										} while (*s != '\a');
+										} while(*s != '\a');
 									j = *(s + 1);
-									if (j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
+									if(j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
 									{
-										while (*w)
+										while(*w)
 											w++;
 										m = 0;
 										break;
 									}
 									m = 1;
 								}
-								else if (*s == *w || SEP(*s) && SEP(*w))
+								else if(*s == *w || SEP(*s) && SEP(*w))
 									w++;
-								else if (*w == 0)
+								else if(*w == 0)
 									break;
-								else if (!SEP(*s))
+								else if(!SEP(*s))
 								{
-									if (SEP(*w))
+									if(SEP(*w))
 									{
-										if (*++w == *s)
+										if(*++w == *s)
 										{
 											w++;
 											continue;
 										}
 									}
-									else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+									else if(w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
 										break;
-									for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
-									if (!SEP(*q))
+									for(q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++)
+										;
+									if(!SEP(*q))
 										break;
-									for (s = q; w > y && *w != *(s + 1); w--);
+									for(s = q; w > y && *w != *(s + 1); w--)
+										;
 								}
-								else if (*w != *(s + 1))
+								else if(*w != *(s + 1))
 									break;
 							}
-							if (!*w)
+							if(!*w)
 							{
 								nov = 0;
 								break;
 							}
-							if (n = no)
+							if(n = no)
 							{
 								m = 0;
 								s = e - 1;
 								w = y + n;
-								while (*++s)
+								while(*++s)
 								{
-									if (*s == '*' || *s == '\a')
+									if(*s == '*' || *s == '\a')
 									{
-										if (*s == '\a')
+										if(*s == '\a')
 											do
 											{
-												if (!*++s)
+												if(!*++s)
 												{
 													s--;
 													break;
 												}
-											} while (*s != '\a');
+											} while(*s != '\a');
 										j = *(s + 1);
-										if (j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
+										if(j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
 										{
-											while (*w)
+											while(*w)
 												w++;
 											m = 0;
 											break;
 										}
 										m = 1;
 									}
-									else if (*s == *w || SEP(*s) && SEP(*w))
+									else if(*s == *w || SEP(*s) && SEP(*w))
 										w++;
-									else if (*w == 0)
+									else if(*w == 0)
 										break;
-									else if (!SEP(*s))
+									else if(!SEP(*s))
 									{
-										if (SEP(*w))
+										if(SEP(*w))
 										{
-											if (*++w == *s)
+											if(*++w == *s)
 											{
 												w++;
 												continue;
 											}
 										}
-										else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+										else if(w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
 											break;
-										for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
-										if (!SEP(*q))
+										for(q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++)
+											;
+										if(!SEP(*q))
 											break;
-										for (s = q; w > y && *w != *(s + 1); w--);
+										for(s = q; w > y && *w != *(s + 1); w--)
+											;
 									}
-									else if (*w != *(s + 1))
+									else if(*w != *(s + 1))
 										break;
 								}
-								if (!*w)
+								if(!*w)
 									break;
 							}
-							if (*(s = skip(s, ':', '|', '?', 1, 0, 0, version)) != '|')
+							if(*(s = skip(s, ':', '|', '?', 1, 0, 0, version)) != '|')
 								break;
 							w = y;
 						}
-						if (p)
+						if(p)
 							s = p;
-						if (!*w)
+						if(!*w)
 						{
-							if (n)
+							if(n)
 								num = 0;
-							if (!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']' || *s == 0)) && x)
+							if(!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']' || *s == 0)) && x)
 							{
 								psp = pop(psp);
 								return opterror("?", 0, version, id, catalog);
 							}
-							for (x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2);
-							if (*f == ':')
+							for(x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2)
+								;
+							if(*f == ':')
 							{
 								x = -1;
 								opt_info.option[1] = '-';
 								opt_info.option[2] = 0;
 							}
-							else if (*(f + 1) == ':' || *(f + 1) == '!' && *(f + 2) == ':')
+							else if(*(f + 1) == ':' || *(f + 1) == '!' && *(f + 2) == ':')
 							{
 								opt_info.option[1] = x;
 								opt_info.option[2] = 0;
@@ -5014,29 +5120,29 @@ optget(char** argv, const char* oopts)
 							else
 							{
 								a = f;
-								if (*a == '=')
+								if(*a == '=')
 									a++;
 								else
 								{
-									if (*(a + 1) == '!')
+									if(*(a + 1) == '!')
 										a++;
-									if (*(a + 1) == '=')
+									if(*(a + 1) == '=')
 										a += 2;
 								}
 								x = -strtol(a, &b, 0);
-								if ((b - a) > sizeof(opt_info.option) - 2)
+								if((b - a) > sizeof(opt_info.option) - 2)
 									b = a + sizeof(opt_info.option) - 2;
 								memcpy(&opt_info.option[1], a, b - a);
 								opt_info.option[b - a + 1] = 0;
 							}
 							b = e;
-							if (t)
+							if(t)
 							{
 								s = t;
 								t = 0;
 							}
 							a = s = skip(s, 0, 0, 0, 1, 0, 0, version);
-							if (n)
+							if(n)
 							{
 								w = y;
 								break;
@@ -5044,7 +5150,7 @@ optget(char** argv, const char* oopts)
 						}
 						w = y;
 					}
-					else if (k == c && prefix == 1)
+					else if(k == c && prefix == 1)
 					{
 						w = 0;
 						opt_info.name[1] = c;
@@ -5053,67 +5159,67 @@ optget(char** argv, const char* oopts)
 						opt_info.index--;
 						break;
 					}
-					if (t)
+					if(t)
 					{
 						s = t;
-						if (a)
+						if(a)
 							a = t;
 					}
 				}
 			disable:
 				s = skip(s, 0, 0, 0, 1, 0, 1, version);
-				if (*s == GO)
+				if(*s == GO)
 					s = skip(s + 1, 0, 0, 0, 0, 1, 1, version);
-				if (cache)
+				if(cache)
 				{
 					m = OPT_cache_flag;
 					v = s;
-					if (*v == '#')
+					if(*v == '#')
 					{
 						v++;
 						m |= OPT_cache_numeric;
 					}
-					else if (*v == ':')
+					else if(*v == ':')
 					{
 						v++;
 						m |= OPT_cache_string;
 					}
-					if (*v == '?')
+					if(*v == '?')
 					{
 						v++;
 						m |= OPT_cache_optional;
 					}
-					else if (*v == *(v - 1))
+					else if(*v == *(v - 1))
 						v++;
-					if (*(v = next(v, version)) == '[')
+					if(*(v = next(v, version)) == '[')
 						v = skip(v + 1, 0, 0, 0, 1, 0, 1, version);
-					if (*v != GO)
+					if(*v != GO)
 					{
 						v = f;
-						for (;;)
+						for(;;)
 						{
-							char	eqv;
-							if (isdigit(*f) && isdigit(*(f + 1)))
-								while (isdigit(*(f + 1)))
+							char eqv;
+							if(isdigit(*f) && isdigit(*(f + 1)))
+								while(isdigit(*(f + 1)))
 									f++;
-							else if (*(f + 1) == '=')
+							else if(*(f + 1) == '=')
 								break;
 							else
-								cache->flags[map[*((unsigned char*)f)]] = m;
+								cache->flags[map[*((unsigned char *)f)]] = m;
 							j = 0;
 							/*
 							 * parse and cache short option equivalents,
 							 * e.g. x|y|z means -y and -z yield -x
 							 */
 							eqv = *f;
-							while (*(f + 1) == '|')
+							while(*(f + 1) == '|')
 							{
 								f += 2;
-								if (!(j = *f) || j == '!' || j == '=' || j == ':' || j == '?' || j == ']')
+								if(!(j = *f) || j == '!' || j == '=' || j == ':' || j == '?' || j == ']')
 									break;
 								cache->equiv[map[j]] = eqv;
 							}
-							if (j != '!' || (m & OPT_cache_invert))
+							if(j != '!' || (m & OPT_cache_invert))
 								break;
 							f = v;
 							m |= OPT_cache_invert;
@@ -5123,38 +5229,38 @@ optget(char** argv, const char* oopts)
 				else
 				{
 					m = 0;
-					if (!w)
+					if(!w)
 					{
-						if (isdigit(*f) && isdigit(*(f + 1)))
+						if(isdigit(*f) && isdigit(*(f + 1)))
 							k = -1;
-						if (c == k)
+						if(c == k)
 							m = 1;
-						while (*(f + 1) == '|')
+						while(*(f + 1) == '|')
 						{
 							f += 2;
-							if (!(j = *f))
+							if(!(j = *f))
 							{
 								m = 0;
 								break;
 							}
-							else if (j == c)
+							else if(j == c)
 								m = 1;
-							else if (j == '!' || j == '=' || j == ':' || j == '?' || j == ']')
+							else if(j == '!' || j == '=' || j == ':' || j == '?' || j == ']')
 								break;
 						}
 					}
-					if (m)
+					if(m)
 					{
 						s--;
-						if (*++f == '!')
+						if(*++f == '!')
 						{
 							f++;
 							num = 0;
 						}
-						if (*f == '=')
+						if(*f == '=')
 						{
 							c = -strtol(++f, &b, 0);
-							if ((b - f) > sizeof(opt_info.option) - 2)
+							if((b - f) > sizeof(opt_info.option) - 2)
 								b = f + sizeof(opt_info.option) - 2;
 							memcpy(&opt_info.option[1], f, b - f);
 							opt_info.option[b - f + 1] = 0;
@@ -5164,122 +5270,122 @@ optget(char** argv, const char* oopts)
 						break;
 					}
 				}
-				if (*s == '#')
+				if(*s == '#')
 				{
-					if (!numopt && s > opts)
+					if(!numopt && s > opts)
 					{
 						numopt = s - 1;
 						numchr = k;
-						if (*f == ':')
+						if(*f == ':')
 							numchr = -1;
-						else if (*(f + 1) != ':' && *(f + 1) != '!' && *(f + 1) != ']')
+						else if(*(f + 1) != ':' && *(f + 1) != '!' && *(f + 1) != ']')
 						{
 							a = f;
-							if (*a == '=')
+							if(*a == '=')
 								a++;
 							else
 							{
-								if (*(a + 1) == '!')
+								if(*(a + 1) == '!')
 									a++;
-								if (*(a + 1) == '=')
+								if(*(a + 1) == '=')
 									a += 2;
 							}
 							numchr = -strtol(a, NULL, 0);
 						}
 					}
 				}
-				else if (*s != ':')
+				else if(*s != ':')
 					continue;
 			}
-			else if (*s == ']')
+			else if(*s == ']')
 			{
 				s++;
 				continue;
 			}
-			else if (*s == '#')
+			else if(*s == '#')
 			{
-				if (!numopt && s > opts)
+				if(!numopt && s > opts)
 					numchr = *(numopt = s - 1);
 			}
-			else if (*s != ':')
+			else if(*s != ':')
 			{
-				if (cache)
+				if(cache)
 				{
 					m = OPT_cache_flag;
-					if (*(s + 1) == '#')
+					if(*(s + 1) == '#')
 					{
 						m |= OPT_cache_numeric;
-						if (*(s + 2) == '?')
+						if(*(s + 2) == '?')
 							m |= OPT_cache_optional;
 					}
-					else if (*(s + 1) == ':')
+					else if(*(s + 1) == ':')
 					{
 						m |= OPT_cache_string;
-						if (*(s + 2) == '?')
+						if(*(s + 2) == '?')
 							m |= OPT_cache_optional;
 					}
-					cache->flags[map[*((unsigned char*)s)]] = m;
+					cache->flags[map[*((unsigned char *)s)]] = m;
 				}
 				s++;
 				continue;
 			}
 			message((-21, "optget: opt %s", show(s)));
-			if (*++s == '?' || *s == *(s - 1))
+			if(*++s == '?' || *s == *(s - 1))
 				s++;
-			if (*(s = next(s, version)) == '[')
+			if(*(s = next(s, version)) == '[')
 			{
 				s = skip(s + 1, 0, 0, 0, 1, 0, 1, version);
-				if (*s == GO)
+				if(*s == GO)
 					s = skip(s + 1, 0, 0, 0, 0, 1, 1, version);
 			}
 			message((-21, "optget: opt %s", show(s)));
 		}
-		if (w && x)
+		if(w && x)
 		{
 			s = skip(b, '|', '?', 0, 1, 0, 0, version);
-			if (v && (a == 0 || *a == 0 || *(a + 1) != ':' && *(a + 1) != '#') && (*v == '0' || *v == '1') && !*(v + 1))
+			if(v && (a == 0 || *a == 0 || *(a + 1) != ':' && *(a + 1) != '#') && (*v == '0' || *v == '1') && !*(v + 1))
 			{
-				if (*v == '0')
+				if(*v == '0')
 					num = !num;
 				v = 0;
 			}
-			if ((s - b) >= elementsof(opt_info.name))
+			if((s - b) >= elementsof(opt_info.name))
 				s = b + elementsof(opt_info.name) - 1;
-			for (;;)
+			for(;;)
 			{
-				if (b >= s)
+				if(b >= s)
 				{
 					*w = 0;
 					break;
 				}
-				if (*b == '*')
+				if(*b == '*')
 					break;
 				*w++ = *b++;
 			}
-			if (!num && v)
+			if(!num && v)
 				return opterror(no ? "!" : "=", 0, version, id, catalog);
 			w = &opt_info.name[prefix];
 			c = x;
 			s = a;
 		}
 	}
-	if (!*s)
+	if(!*s)
 	{
-		if (w)
+		if(w)
 		{
-			if (hp = (Help_t*)search(styles, elementsof(styles), sizeof(styles[0]), w))
+			if(hp = (Help_t *)search(styles, elementsof(styles), sizeof(styles[0]), w))
 			{
-				if (!v)
-					v = (char*)hp->name;
+				if(!v)
+					v = (char *)hp->name;
 				goto help;
 			}
-			if (!v)
+			if(!v)
 			{
 				v = opt_info.name;
 				goto help;
 			}
 		}
-		if (w || !isdigit(c) || !numopt || !(pass->flags & OPT_numeric))
+		if(w || !isdigit(c) || !numopt || !(pass->flags & OPT_numeric))
 		{
 			pop(psp);
 			return opterror("", 0, version, id, catalog);
@@ -5294,15 +5400,15 @@ optget(char** argv, const char* oopts)
 	 * this is a ksh getopts workaround
 	 */
 
-	if (opt_info.num != LONG_MIN)
+	if(opt_info.num != LONG_MIN)
 		opt_info.num = (long)(opt_info.number = num);
-	if ((n = *++s == '#') || *s == ':' || w && !nov && v && (optnumber(v, &e, NULL), n = !*e))
+	if((n = *++s == '#') || *s == ':' || w && !nov && v && (optnumber(v, &e, NULL), n = !*e))
 	{
-		if (w)
+		if(w)
 		{
-			if (nov)
+			if(nov)
 			{
-				if (v)
+				if(v)
 				{
 					pop(psp);
 					return opterror("!", 0, version, id, catalog);
@@ -5311,26 +5417,26 @@ optget(char** argv, const char* oopts)
 			}
 			else
 			{
-				if (!v && *(s + 1) != '?' && (v = argv[opt_info.index]))
+				if(!v && *(s + 1) != '?' && (v = argv[opt_info.index]))
 				{
 					opt_info.index++;
 					opt_info.offset = 0;
 				}
-				if (!(opt_info.arg = v) || (*v == '0' || *v == '1') && !*(v + 1))
+				if(!(opt_info.arg = v) || (*v == '0' || *v == '1') && !*(v + 1))
 				{
-					if (*(s + 1) != '?')
+					if(*(s + 1) != '?')
 					{
-						if (!opt_info.arg)
+						if(!opt_info.arg)
 						{
 							pop(psp);
 							return opterror(s, 0, version, id, catalog);
 						}
 					}
-					else if (*(t = next(s + 2, version)) == '[')
-						while (*(t = skip(t, ':', 0, 0, 1, 0, 0, version)) == ':')
-							if (*++t == '!')
+					else if(*(t = next(s + 2, version)) == '[')
+						while(*(t = skip(t, ':', 0, 0, 1, 0, 0, version)) == ':')
+							if(*++t == '!')
 							{
-								if (!v || *v == '1')
+								if(!v || *v == '1')
 								{
 									e = skip(t, ':', '?', ']', 1, 0, 0, version);
 									opt_info.arg = sfprints("%-.*s", e - t - 1, t + 1);
@@ -5343,10 +5449,10 @@ optget(char** argv, const char* oopts)
 								break;
 							}
 				}
-				if (opt_info.arg && n)
+				if(opt_info.arg && n)
 				{
 					opt_info.num = (long)(opt_info.number = optnumber(opt_info.arg, &e, &err));
-					if (err || e == opt_info.arg)
+					if(err || e == opt_info.arg)
 					{
 						pop(psp);
 						return opterror(s, err, version, id, catalog);
@@ -5355,14 +5461,14 @@ optget(char** argv, const char* oopts)
 			}
 			goto optarg;
 		}
-		else if (*(opt_info.arg = &argv[opt_info.index++][opt_info.offset]))
+		else if(*(opt_info.arg = &argv[opt_info.index++][opt_info.offset]))
 		{
-			if (*s == '#')
+			if(*s == '#')
 			{
 				opt_info.num = (long)(opt_info.number = optnumber(opt_info.arg, &e, &err));
-				if (err || e == opt_info.arg)
+				if(err || e == opt_info.arg)
 				{
-					if (!err && *(s + 1) == '?')
+					if(!err && *(s + 1) == '?')
 					{
 						opt_info.arg = 0;
 						opt_info.index--;
@@ -5375,7 +5481,7 @@ optget(char** argv, const char* oopts)
 					pop(psp);
 					return c;
 				}
-				else if (*e)
+				else if(*e)
 				{
 					opt_info.offset += e - opt_info.arg;
 					opt_info.index--;
@@ -5384,21 +5490,21 @@ optget(char** argv, const char* oopts)
 				}
 			}
 		}
-		else if (opt_info.arg = argv[opt_info.index])
+		else if(opt_info.arg = argv[opt_info.index])
 		{
 			opt_info.index++;
-			if (*(s + 1) == '?' && (*opt_info.arg == '-' || (pass->flags & OPT_plus) && *opt_info.arg == '+') && *(opt_info.arg + 1))
+			if(*(s + 1) == '?' && (*opt_info.arg == '-' || (pass->flags & OPT_plus) && *opt_info.arg == '+') && *(opt_info.arg + 1))
 			{
 				opt_info.num = (long)(opt_info.number = 0);
 				opt_info.index--;
 				opt_info.arg = 0;
 			}
-			else if (*s == '#')
+			else if(*s == '#')
 			{
 				opt_info.num = (long)(opt_info.number = optnumber(opt_info.arg, &e, &err));
-				if (err || *e)
+				if(err || *e)
 				{
-					if (!err && *(s + 1) == '?')
+					if(!err && *(s + 1) == '?')
 					{
 						opt_info.arg = 0;
 						opt_info.index--;
@@ -5412,7 +5518,7 @@ optget(char** argv, const char* oopts)
 				}
 			}
 		}
-		else if (*(s + 1) != '?')
+		else if(*(s + 1) != '?')
 		{
 			opt_info.index--;
 			pop(psp);
@@ -5420,146 +5526,149 @@ optget(char** argv, const char* oopts)
 		}
 		opt_info.offset = 0;
 	optarg:
-		if (*s == ':' && *(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == GO && *(s = next(s + 1, version)) == '[' && isalnum(*(s + 1)))
+		if(*s == ':' && *(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == GO && *(s = next(s + 1, version)) == '[' && isalnum(*(s + 1)))
 		{
 			x = 0;
-			if (opt_info.arg)
+			if(opt_info.arg)
 			{
 				do
 				{
 					w = y = opt_info.arg;
 					f = s = next(s + 1, version);
 					k = *f;
-					if (k == *w && isalpha(k) && !*(w + 1))
+					if(k == *w && isalpha(k) && !*(w + 1))
 					{
 						x = k;
 						break;
 					}
-					if (*s == '+' || *s == '-')
+					if(*s == '+' || *s == '-')
 						continue;
-					else if (*s == '[' || version < 1)
+					else if(*s == '[' || version < 1)
 						continue;
 					else
 					{
-						if (*s != ':')
+						if(*s != ':')
 							s = skip(s, ':', '?', 0, 1, 0, 0, version);
-						if (*s == ':')
+						if(*s == ':')
 						{
-							if (catalog)
+							if(catalog)
 							{
 								p = skip(s + 1, '?', 0, 0, 1, 0, 0, version);
 								e = sfprints("%-.*s", p - (s + 1), s + 1);
 								b = T(id, catalog, e);
-								if (b == e)
+								if(b == e)
 									p = 0;
 								else
 								{
 									ast_wbuf_printf(xp, ":%s|%s?", b, e);
-									if (!(s = ast_wbuf_use(xp)))
+									if(!(s = ast_wbuf_use(xp)))
 										goto outofmemory;
 								}
 							}
 							else
 								p = 0;
-							for (;;)
+							for(;;)
 							{
 								n = m = 0;
 								e = s + 1;
-								while (*++s)
+								while(*++s)
 								{
-									if (*s == '*' || *s == '\a')
+									if(*s == '*' || *s == '\a')
 									{
-										if (*s == '\a')
+										if(*s == '\a')
 											do
 											{
-												if (!*++s)
+												if(!*++s)
 												{
 													s--;
 													break;
 												}
-											} while (*s != '\a');
+											} while(*s != '\a');
 										j = *(s + 1);
-										if (j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
+										if(j == ':' || j == '|' || j == '?' || j == ']' || j == 0)
 										{
-											while (*w)
+											while(*w)
 												w++;
 											m = 0;
 											break;
 										}
 										m = 1;
 									}
-									else if (*s == *w || SEP(*s) && SEP(*w))
+									else if(*s == *w || SEP(*s) && SEP(*w))
 										w++;
-									else if (*w == 0)
+									else if(*w == 0)
 										break;
-									else if (!SEP(*s))
+									else if(!SEP(*s))
 									{
-										if (SEP(*w))
+										if(SEP(*w))
 										{
-											if (*++w == *s)
+											if(*++w == *s)
 											{
 												w++;
 												continue;
 											}
 										}
-										else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+										else if(w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
 											break;
-										for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
-										if (!SEP(*q))
+										for(q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++)
+											;
+										if(!SEP(*q))
 											break;
-										for (s = q; w > y && *w != *(s + 1); w--);
+										for(s = q; w > y && *w != *(s + 1); w--)
+											;
 									}
-									else if (*w != *(s + 1))
+									else if(*w != *(s + 1))
 										break;
 								}
-								if (!*w)
+								if(!*w)
 								{
 									nov = 0;
 									break;
 								}
-								if (*(s = skip(s, ':', '|', '?', 1, 0, 0, version)) != '|')
+								if(*(s = skip(s, ':', '|', '?', 1, 0, 0, version)) != '|')
 									break;
 								w = y;
 							}
-							if (p)
+							if(p)
 								s = p;
-							if (!*w)
+							if(!*w)
 							{
-								if (n)
+								if(n)
 									num = 0;
-								if (!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']')) && x)
+								if(!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']')) && x)
 								{
 									pop(psp);
 									return opterror("&", 0, version, id, catalog);
 								}
-								for (x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2);
-								if (*f == ':')
+								for(x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2)
+									;
+								if(*f == ':')
 									x = -1;
-								else if (*(f + 1) == ':' || *(f + 1) == '!' && *(f + 2) == ':')
+								else if(*(f + 1) == ':' || *(f + 1) == '!' && *(f + 2) == ':')
 									/* ok */;
 								else
 								{
 									a = f;
-									if (*a == '=')
+									if(*a == '=')
 										a++;
 									else
 									{
-										if (*(a + 1) == '!')
+										if(*(a + 1) == '!')
 											a++;
-										if (*(a + 1) == '=')
+										if(*(a + 1) == '=')
 											a += 2;
 									}
 									x = -strtol(a, &b, 0);
 								}
 								b = e;
 								a = s = skip(s, 0, 0, 0, 1, 0, 0, version);
-								if (n)
+								if(n)
 									break;
 							}
 						}
 					}
-				} while (*(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == '[');
-				if (!(opt_info.num = (long)(opt_info.number = x)))
+				} while(*(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == '[');
+				if(!(opt_info.num = (long)(opt_info.number = x)))
 				{
 					pop(psp);
 					return opterror("*", 0, version, id, catalog);
@@ -5567,7 +5676,7 @@ optget(char** argv, const char* oopts)
 			}
 		}
 	}
-	else if (w && v)
+	else if(w && v)
 	{
 		pop(psp);
 		return opterror("=", 0, version, id, catalog);
@@ -5575,7 +5684,7 @@ optget(char** argv, const char* oopts)
 	else
 	{
 		opt_info.num = (long)(opt_info.number = num);
-		if (!w && !argv[opt_info.index][opt_info.offset])
+		if(!w && !argv[opt_info.index][opt_info.offset])
 		{
 			opt_info.offset = 0;
 			opt_info.index++;
@@ -5583,20 +5692,20 @@ optget(char** argv, const char* oopts)
 	}
 	pop(psp);
 	return c;
- help:
-	if (v && *v == '?' && *(v + 1) == '?' && *(v + 2))
+help:
+	if(v && *v == '?' && *(v + 1) == '?' && *(v + 2))
 	{
 		s = v + 2;
-		if ((s[0] == 'n' || s[0] == 'N') && (s[1] == 'o' || s[1] == 'O'))
+		if((s[0] == 'n' || s[0] == 'N') && (s[1] == 'o' || s[1] == 'O'))
 		{
 			s += 2;
 			n = -1;
 		}
 		else
 			n = 1;
-		if (hp = (Help_t*)search(styles, elementsof(styles), sizeof(styles[0]), s))
+		if(hp = (Help_t *)search(styles, elementsof(styles), sizeof(styles[0]), s))
 		{
-			if (hp->style < STYLE_man || !(s = argv[opt_info.index]) || s[0] != '-' || s[1] != '-' || !s[2])
+			if(hp->style < STYLE_man || !(s = argv[opt_info.index]) || s[0] != '-' || s[1] != '-' || !s[2])
 			{
 				opt_info.arg = sfprints("\fversion=%d", version);
 				pop(psp);
@@ -5604,29 +5713,29 @@ optget(char** argv, const char* oopts)
 			}
 			state.force = hp->style;
 		}
-		else if (match(s, "CONFORMANCE", -1, ID, NULL))
+		else if(match(s, "CONFORMANCE", -1, ID, NULL))
 		{
 			opt_info.arg = sfprints("\f%s", conformance(w, 0));
 			pop(psp);
 			return '?';
 		}
-		else if (match(s, "ESC", -1, ID, NULL) || match(s, "EMPHASIS", -1, ID, NULL))
+		else if(match(s, "ESC", -1, ID, NULL) || match(s, "EMPHASIS", -1, ID, NULL))
 			state.emphasis = n;
-		else if (match(s, "MAN", -1, ID, NULL))
+		else if(match(s, "MAN", -1, ID, NULL))
 		{
 			opt_info.arg = sfprints("\f%s", secname(*w != '?' ? w : pass->section));
 			pop(psp);
 			return '?';
 		}
-		else if (match(s, "PREFORMAT", -1, ID, NULL))
+		else if(match(s, "PREFORMAT", -1, ID, NULL))
 			state.flags |= OPT_preformat;
-		else if (match(s, "SECTION", -1, ID, NULL))
+		else if(match(s, "SECTION", -1, ID, NULL))
 		{
 			opt_info.arg = sfprints("\f%s", pass->section);
 			pop(psp);
 			return '?';
 		}
-		else if (match(s, "TEST", -1, ID, NULL))
+		else if(match(s, "TEST", -1, ID, NULL))
 		{
 			state.width = OPT_WIDTH;
 			state.emphasis = 1;
@@ -5637,18 +5746,18 @@ optget(char** argv, const char* oopts)
 			return opterror(v, 0, version, id, catalog);
 		}
 		psp = pop(psp);
-		if (argv == state.strv)
+		if(argv == state.strv)
 			return '#';
 		goto again;
 	}
-	if ((opt_info.arg = opthelp(NULL, v)) == (char*)unknown)
+	if((opt_info.arg = opthelp(NULL, v)) == (char *)unknown)
 	{
 		pop(psp);
 		return opterror(v, 0, version, id, catalog);
 	}
 	pop(psp);
 	return '?';
- outofmemory:
+outofmemory:
 	pop(psp);
 	return opterror(NULL, 0, 0, NULL, NULL);
 }
@@ -5674,37 +5783,36 @@ optget(char** argv, const char* oopts)
  *		use previous parsed str
  */
 
-int
-optstr(const char* str, const char* opts)
+int optstr(const char *str, const char *opts)
 {
-	char*		s = (char*)str;
-	ast_wbuf_t*	mp;
-	int		c;
-	int		v;
-	char*		e;
+	char *s = (char *)str;
+	ast_wbuf_t *mp;
+	int c;
+	int v;
+	char *e;
 
- again:
-	if (s)
+again:
+	if(s)
 	{
 		mp = &state.strp;
-		if (!mp->fp && ast_wbuf_open(mp))
+		if(!mp->fp && ast_wbuf_open(mp))
 			return 0;
-		if (state.str != s)
+		if(state.str != s)
 			state.str = s;
-		else if (opt_info.index == 1)
+		else if(opt_info.index == 1)
 			s += opt_info.offset;
-		while (*s == ',' || *s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
+		while(*s == ',' || *s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
 			s++;
-		if (!*s)
+		if(!*s)
 		{
 			state.str = 0;
 			return 0;
 		}
-		if (*s == '-' || *s == '+')
+		if(*s == '-' || *s == '+')
 		{
 			c = *s++;
 			ast_wbuf_putc(mp, c);
-			if (*s == c)
+			if(*s == c)
 			{
 				ast_wbuf_putc(mp, c);
 				s++;
@@ -5715,61 +5823,63 @@ optstr(const char* str, const char* opts)
 			ast_wbuf_putc(mp, '-');
 			ast_wbuf_putc(mp, '-');
 		}
-		if (isdigit(*s) && (v = (int)strtol(s, &e, 10)) > 1 && isspace(*e) && --v <= strlen(s) && (s[v] == 0 || s[v] == '\n'))
+		if(isdigit(*s) && (v = (int)strtol(s, &e, 10)) > 1 && isspace(*e) && --v <= strlen(s) && (s[v] == 0 || s[v] == '\n'))
 		{
 			s += v;
-			while (isspace(*++e));
+			while(isspace(*++e))
+				;
 			ast_wbuf_write(mp, e, s - e);
 		}
 		else
 		{
-			while (*s && *s != ',' && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\r' && *s != '=' && *s != ':')
+			while(*s && *s != ',' && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\r' && *s != '=' && *s != ':')
 				ast_wbuf_putc(mp, *s++);
-			if ((c = *s) == ':' && *(s + 1) != '=')
+			if((c = *s) == ':' && *(s + 1) != '=')
 			{
 				opt_info.index = 1;
-				opt_info.offset = ++s - (char*)str;
-				if (!(s = ast_wbuf_use(mp)))
+				opt_info.offset = ++s - (char *)str;
+				if(!(s = ast_wbuf_use(mp)))
 					goto outofmemory;
 				s += 2;
 				e = opt_info.name;
-				while (e < &opt_info.name[sizeof(opt_info.name)-1] && (*e++ = *s++));
+				while(e < &opt_info.name[sizeof(opt_info.name) - 1] && (*e++ = *s++))
+					;
 				opt_info.arg = 0;
 				opt_info.num = (long)(opt_info.number = 0);
 				opt_info.option[0] = ':';
 				opt_info.option[1] = 0;
 				return '#';
 			}
-			if (c == ':' || c == '=')
+			if(c == ':' || c == '=')
 			{
-				int	ql = 0;
-				int	qr = 0;
-				int	qc = 0;
+				int ql = 0;
+				int qr = 0;
+				int qc = 0;
 				ast_wbuf_putc(mp, c);
-				while (c = *++s)
+				while(c = *++s)
 				{
-					if (c == '\\')
+					if(c == '\\')
 					{
 						ast_wbuf_putc(mp, chresc(s, &e));
 						s = e - 1;
 					}
-					else if (c == qr)
+					else if(c == qr)
 					{
-						if (qr != ql)
+						if(qr != ql)
 							ast_wbuf_putc(mp, c);
-						if (--qc <= 0)
+						if(--qc <= 0)
 							qr = ql = 0;
 					}
-					else if (c == ql)
+					else if(c == ql)
 					{
 						ast_wbuf_putc(mp, c);
 						qc++;
 					}
-					else if (qr)
+					else if(qr)
 						ast_wbuf_putc(mp, c);
-					else if (c == ',' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
+					else if(c == ',' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
 						break;
-					else if (c == '"' || c == '\'')
+					else if(c == '"' || c == '\'')
 					{
 						ql = qr = c;
 						qc = 1;
@@ -5777,13 +5887,13 @@ optstr(const char* str, const char* opts)
 					else
 					{
 						ast_wbuf_putc(mp, c);
-						if (c == GO)
+						if(c == GO)
 						{
 							ql = c;
 							qr = OG;
 							qc = 1;
 						}
-						else if (c == '(')
+						else if(c == '(')
 						{
 							ql = c;
 							qr = ')';
@@ -5795,14 +5905,14 @@ optstr(const char* str, const char* opts)
 		}
 		opt_info.argv = state.strv;
 		state.strv[0] = T(NULL, ID, "option");
-		if (!(state.strv[1] = ast_wbuf_use(mp)))
+		if(!(state.strv[1] = ast_wbuf_use(mp)))
 			goto outofmemory;
 		state.strv[2] = 0;
-		opt_info.offset = s - (char*)str;
+		opt_info.offset = s - (char *)str;
 	}
-	if (opts)
+	if(opts)
 	{
-		if (!state.strv[1])
+		if(!state.strv[1])
 		{
 			state.str = 0;
 			return 0;
@@ -5813,23 +5923,24 @@ optstr(const char* str, const char* opts)
 		c = optget(state.strv, opts);
 		opt_info.index = 1;
 		opt_info.offset = v;
-		if (c == '#')
+		if(c == '#')
 		{
 			s = state.str;
 			goto again;
 		}
-		if ((c == '?' || c == ':') && (opt_info.arg[0] == '-' && opt_info.arg[1] == '-'))
+		if((c == '?' || c == ':') && (opt_info.arg[0] == '-' && opt_info.arg[1] == '-'))
 			opt_info.arg += 2;
 		s = opt_info.name;
-		if (*s++ == '-' && *s++ == '-' && *s)
+		if(*s++ == '-' && *s++ == '-' && *s)
 		{
 			e = opt_info.name;
-			while (*e++ = *s++);
+			while(*e++ = *s++)
+				;
 		}
 	}
 	else
 		c = '-';
 	return c;
- outofmemory:
+outofmemory:
 	return opterror(NULL, 0, 0, NULL, NULL);
 }

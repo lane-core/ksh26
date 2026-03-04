@@ -25,15 +25,15 @@
 
 #include <tmx.h>
 
-static unsigned char	offset[7][3] =
-{
-	{ 7, 6, 6 },
-	{ 1, 7, 7 },
-	{ 2, 1, 8 },
-	{ 3, 2, 9 },
-	{ 4, 3, 10},
-	{ 5, 4, 4 },
-	{ 6, 5, 5 },
+static unsigned char offset[7][3] =
+    {
+        {7, 6, 6},
+        {1, 7, 7},
+        {2, 1, 8},
+        {3, 2, 9},
+        {4, 3, 10},
+        {5, 4, 4},
+        {6, 5, 5},
 };
 
 /*
@@ -47,26 +47,25 @@ static unsigned char	offset[7][3] =
  * and return tm->tm_yday
  */
 
-int
-tmweek(Tm_t* tm, int type, int week, int day)
+int tmweek(Tm_t *tm, int type, int week, int day)
 {
-	int	d;
+	int d;
 
-	if (week < 0)
+	if(week < 0)
 	{
-		if ((day = tm->tm_wday - tm->tm_yday % 7) < 0)
+		if((day = tm->tm_wday - tm->tm_yday % 7) < 0)
 			day += 7;
 		week = (tm->tm_yday + offset[day][type]) / 7;
-		if (type == 2)
+		if(type == 2)
 		{
-			if (!week)
+			if(!week)
 				week = (day > 0 && day < 6 || tmisleapyear(tm->tm_year - 1)) ? 53 : 52;
-			else if (week == 53 && (tm->tm_wday + (31 - tm->tm_mday)) < 4)
+			else if(week == 53 && (tm->tm_wday + (31 - tm->tm_mday)) < 4)
 				week = 1;
 		}
 		return week;
 	}
-	if (day < 0)
+	if(day < 0)
 		day = type != 0;
 	tm->tm_mon = 0;
 	tm->tm_mday = 1;
@@ -74,7 +73,7 @@ tmweek(Tm_t* tm, int type, int week, int day)
 	d = tm->tm_wday;
 	tm->tm_mday = week * 7 - offset[d][type] + ((day || type != 2) ? day : 7);
 	tmfix(tm);
-	if (d = tm->tm_wday - day)
+	if(d = tm->tm_wday - day)
 	{
 		tm->tm_mday -= d;
 		tmfix(tm);

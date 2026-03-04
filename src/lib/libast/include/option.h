@@ -30,60 +30,60 @@
 #include <ast.h>
 #include <ast_wbuf.h>
 
-#define OPT_VERSION	20070319L
+#define OPT_VERSION 20070319L
 
-#define OPT_USER	(1L<<16)	/* first user flag bit		*/
+#define OPT_USER (1L << 16) /* first user flag bit		*/
 
 struct Opt_s;
 struct Optdisc_s;
 
-typedef int (*Optinfo_f)(struct Opt_s*, ast_wbuf_t*, const char*, struct Optdisc_s*);
+typedef int (*Optinfo_f)(struct Opt_s *, ast_wbuf_t *, const char *, struct Optdisc_s *);
 
 typedef struct Optdisc_s
 {
-	unsigned long	version;	/* OPT_VERSION			*/
-	unsigned long	flags;		/* OPT_* flags			*/
-	char*		catalog;	/* error catalog ID		*/
-	Optinfo_f	infof;		/* runtime info function	*/
+	unsigned long version; /* OPT_VERSION			*/
+	unsigned long flags;   /* OPT_* flags			*/
+	char *catalog;         /* error catalog ID		*/
+	Optinfo_f infof;       /* runtime info function	*/
 } Optdisc_t;
 
 /* NOTE: Opt_t member order fixed by a previous binary release */
 
 #ifndef _OPT_PRIVATE_
-#define _OPT_PRIVATE_	\
-	char		pad[3*sizeof(void*)];
+#define _OPT_PRIVATE_ \
+	char pad[3 * sizeof(void *)];
 #endif
 
 typedef struct Opt_s
 {
-	int		again;		/* see optjoin()		*/
-	char*		arg;		/* {:,#} string argument	*/
-	char**		argv;		/* most recent argv		*/
-	int		index;		/* argv index			*/
-	char*		msg;		/* error/usage message buffer	*/
-	long		num;		/* OBSOLETE -- use number	*/
-	int		offset;		/* char offset in argv[index]	*/
-	char		option[8];	/* current flag {-,+} + option  */
-	char		name[64];	/* current long name or flag	*/
-	Optdisc_t*	disc;		/* user discipline		*/
-	intmax_t	number;		/* # numeric argument		*/
-	unsigned char	assignment;	/* option arg assignment op	*/
-	unsigned char	pads[sizeof(void*)-1];
+	int again;                /* see optjoin()		*/
+	char *arg;                /* {:,#} string argument	*/
+	char **argv;              /* most recent argv		*/
+	int index;                /* argv index			*/
+	char *msg;                /* error/usage message buffer	*/
+	long num;                 /* OBSOLETE -- use number	*/
+	int offset;               /* char offset in argv[index]	*/
+	char option[8];           /* current flag {-,+} + option  */
+	char name[64];            /* current long name or flag	*/
+	Optdisc_t *disc;          /* user discipline		*/
+	intmax_t number;          /* # numeric argument		*/
+	unsigned char assignment; /* option arg assignment op	*/
+	unsigned char pads[sizeof(void *) - 1];
 	_OPT_PRIVATE_
 } Opt_t;
 
-extern Opt_t*		_opt_infop_;
+extern Opt_t *_opt_infop_;
 
-#define opt_info	(*_opt_infop_)
+#define opt_info (*_opt_infop_)
 
-#define optinit(d,f)	(memset(d,0,sizeof(*(d))),(d)->version=OPT_VERSION,(d)->infof=(f),opt_info.disc=(d))
+#define optinit(d, f) (memset(d, 0, sizeof(*(d))), (d)->version = OPT_VERSION, (d)->infof = (f), opt_info.disc = (d))
 
-extern int		optget(char**, const char*);
-extern int		optjoin(char**, ...);
-extern char*		opthelp(const char*, const char*);
-extern char*		optusage(const char*);
-extern int		optstr(const char*, const char*);
-extern int		optesc(ast_wbuf_t*, const char*, int);
-extern Opt_t*		optctx(Opt_t*, Opt_t*);
+extern int optget(char **, const char *);
+extern int optjoin(char **, ...);
+extern char *opthelp(const char *, const char *);
+extern char *optusage(const char *);
+extern int optstr(const char *, const char *);
+extern int optesc(ast_wbuf_t *, const char *, int);
+extern Opt_t *optctx(Opt_t *, Opt_t *);
 
 #endif

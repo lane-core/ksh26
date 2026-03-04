@@ -44,23 +44,23 @@
  * 0 returned for no match
  */
 
-Tm_zone_t*
-tmzone(const char* name, char** end, const char* type, int* dst)
+Tm_zone_t *
+tmzone(const char *name, char **end, const char *type, int *dst)
 {
-	Tm_zone_t*		zp;
-	char*			p;
-	char*			e;
-	int			d;
+	Tm_zone_t *zp;
+	char *p;
+	char *e;
+	int d;
 
-	static Tm_zone_t	fixed;
-	static char		off[16];
+	static Tm_zone_t fixed;
+	static char off[16];
 
 	tmset(tm_info.zone, time(NULL), 0);
-	if ((name[0] == '+' || name[0] == '-') && (fixed.west = tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace(*e)))
+	if((name[0] == '+' || name[0] == '-') && (fixed.west = tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace(*e)))
 	{
 		p = fixed.standard = fixed.daylight = off;
 		*p++ = 'Z';
-		if ((d = fixed.west) <= 0)
+		if((d = fixed.west) <= 0)
 		{
 			d = -d;
 			*p++ = 'E';
@@ -68,46 +68,47 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 		else
 			*p++ = 'W';
 		p += snprintf(p, sizeof(off) - 2, "%u", d / 60);
-		if (d = (d % 60) / 15)
+		if(d = (d % 60) / 15)
 			*p++ = 'A' + d - 1;
 		*p = 0;
 		fixed.dst = 0;
-		if (end)
+		if(end)
 			*end = e;
-		if (dst)
+		if(dst)
 			*dst = 0;
 		return &fixed;
 	}
-	else if ((name[0] == 'Z' || name[0] == 'Y') && (name[1] == 'E' || name[1] == 'W') && name[2] >= '0' && name[2] <= '9')
+	else if((name[0] == 'Z' || name[0] == 'Y') && (name[1] == 'E' || name[1] == 'W') && name[2] >= '0' && name[2] <= '9')
 	{
-		e = (char*)name + 2;
+		e = (char *)name + 2;
 		fixed.west = 0;
-		while (*e >= '0' && *e <= '9')
+		while(*e >= '0' && *e <= '9')
 			fixed.west = fixed.west * 10 + (*e++ - '0');
 		fixed.west *= 60;
 		d = 0;
-		switch (*e)
+		switch(*e)
 		{
-		case 'C':
-			d += 15;
-			/* FALLTHROUGH */
-		case 'B':
-			d += 15;
-			/* FALLTHROUGH */
-		case 'A':
-			d += 15;
-			e++;
-			break;
+			case 'C':
+				d += 15;
+				/* FALLTHROUGH */
+			case 'B':
+				d += 15;
+				/* FALLTHROUGH */
+			case 'A':
+				d += 15;
+				e++;
+				break;
 		}
 		fixed.west += d;
-		if (name[1] == 'E')
+		if(name[1] == 'E')
 			fixed.west = -fixed.west;
-		fixed.dst = name[0] == 'Z' ? 0 : d ? -d : TM_DST;
+		fixed.dst = name[0] == 'Z' ? 0 : d ? -d
+		                                   : TM_DST;
 		memcpy(fixed.standard = fixed.daylight = off, name, d);
 		off[d] = 0;
-		if (end)
+		if(end)
 			*end = e;
-		if (dst)
+		if(dst)
 			*dst = 0;
 		return &fixed;
 	}
@@ -115,27 +116,27 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 	p = 0;
 	do
 	{
-		if (zp->type)
+		if(zp->type)
 			p = zp->type;
-		if (!type || type == p || !p)
+		if(!type || type == p || !p)
 		{
-			if (tmword(name, end, zp->standard, NULL, 0))
+			if(tmword(name, end, zp->standard, NULL, 0))
 			{
-				if (dst)
+				if(dst)
 					*dst = 0;
 				return zp;
 			}
-			if (zp->dst && zp->daylight && tmword(name, end, zp->daylight, NULL, 0))
+			if(zp->dst && zp->daylight && tmword(name, end, zp->daylight, NULL, 0))
 			{
-				if (dst)
+				if(dst)
 					*dst = zp->dst;
 				return zp;
 			}
 		}
-		if (zp == tm_info.local)
+		if(zp == tm_info.local)
 			zp = tm_data.zone;
 		else
 			zp++;
-	} while (zp->standard);
+	} while(zp->standard);
 	return NULL;
 }

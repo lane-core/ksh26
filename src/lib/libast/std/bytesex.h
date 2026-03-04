@@ -28,13 +28,13 @@
 
 #undef __BYTE_ORDER
 
-#if ( _ast_intswap & 3 ) == 3
-#define __BYTE_ORDER	__LITTLE_ENDIAN
+#if (_ast_intswap & 3) == 3
+#define __BYTE_ORDER __LITTLE_ENDIAN
 #else
-#if ( _ast_intswap & 3 ) == 1
-#define __BYTE_ORDER	__PDP_ENDIAN
+#if (_ast_intswap & 3) == 1
+#define __BYTE_ORDER __PDP_ENDIAN
 #else
-#define __BYTE_ORDER	__BIG_ENDIAN
+#define __BYTE_ORDER __BIG_ENDIAN
 #endif
 #endif
 

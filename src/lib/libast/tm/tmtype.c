@@ -36,19 +36,21 @@
  * 0 returned for no match
  */
 
-Tm_zone_t*
-tmtype(const char* s, char** e)
+Tm_zone_t *
+tmtype(const char *s, char **e)
 {
-	Tm_zone_t*	zp;
-	char*		t;
+	Tm_zone_t *zp;
+	char *t;
 
 	tmset(tm_info.zone, time(NULL), 0);
 	zp = tm_info.local;
 	do
 	{
-		if ((t = zp->type) && tmword(s, e, t, NULL, 0)) return zp;
-		if (zp == tm_info.local) zp = tm_data.zone;
-		else zp++;
-	} while (zp->standard);
+		if((t = zp->type) && tmword(s, e, t, NULL, 0)) return zp;
+		if(zp == tm_info.local)
+			zp = tm_data.zone;
+		else
+			zp++;
+	} while(zp->standard);
 	return NULL;
 }

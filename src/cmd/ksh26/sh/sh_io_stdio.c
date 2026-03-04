@@ -22,29 +22,29 @@
  * - Stubs for complex operations (filled in by Sessions B–D)
  */
 
-#include	"sh_io.h"
+#include "sh_io.h"
 
 #if !KSH_IO_SFIO
 
-#include	<assert.h>
-#include	<stdarg.h>
-#include	<errno.h>
-#include	<fcntl.h>
-#include	<poll.h>
-#include	<stdint.h>
-#include	<sys/socket.h>
-#include	<sys/stat.h>
+#include <assert.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <stdint.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
 
 /* ── standard streams ───────────────────────────────────────── */
 
-sh_stream_t _sh_stdin  = { NULL, 0, SH_IO_READ  | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL };
-sh_stream_t _sh_stdout = { NULL, 1, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL };
-sh_stream_t _sh_stderr = { NULL, 2, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL };
+sh_stream_t _sh_stdin = {NULL, 0, SH_IO_READ | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
+sh_stream_t _sh_stdout = {NULL, 1, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
+sh_stream_t _sh_stderr = {NULL, 2, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
 
 /* assignable stream pointers — subshell.c redirects these
  * Prefixed _ksh_ to avoid collision with libast's sfextern.c;
  * sh_io.h macros redirect sfstdin → _ksh_sfstdin etc. */
-sh_stream_t *_ksh_sfstdin  = &_sh_stdin;
+sh_stream_t *_ksh_sfstdin = &_sh_stdin;
 sh_stream_t *_ksh_sfstdout = &_sh_stdout;
 sh_stream_t *_ksh_sfstderr = &_sh_stderr;
 
@@ -52,10 +52,9 @@ sh_stream_t *_ksh_sfstderr = &_sh_stderr;
  * Initialize standard stream wrappers. Call once at startup
  * before any I/O. Sets the FILE* pointers to the real stdio streams.
  */
-void
-sh_stream_init(void)
+void sh_stream_init(void)
 {
-	_sh_stdin.fp  = stdin;
+	_sh_stdin.fp = stdin;
 	_sh_stdout.fp = stdout;
 	_sh_stderr.fp = stderr;
 }
@@ -75,8 +74,7 @@ sh_stream_new(FILE *fp, int fd, int flags)
 	return s;
 }
 
-int
-sh_stream_close(sh_stream_t *f)
+int sh_stream_close(sh_stream_t *f)
 {
 	int r;
 	if(!f)
@@ -100,8 +98,7 @@ sh_stream_close(sh_stream_t *f)
 
 /* ── sfset — set/clear stream flags ─────────────────────────── */
 
-int
-sh_stream_set(sh_stream_t *f, int flags, int on)
+int sh_stream_set(sh_stream_t *f, int flags, int on)
 {
 	int old;
 	if(!f)
@@ -162,14 +159,13 @@ sh_strbuf_use(sh_strbuf_t *s)
 		return NULL;
 	fflush(s->stream.fp);
 	/* keep data pointer in sync for sfio compat (out->_data access) */
-	s->stream.data = (unsigned char*)s->buf;
+	s->stream.data = (unsigned char *)s->buf;
 	/* rewind for reuse — next write starts at beginning */
 	rewind(s->stream.fp);
 	return s->buf;
 }
 
-int
-sh_strbuf_close(sh_strbuf_t *s)
+int sh_strbuf_close(sh_strbuf_t *s)
 {
 	if(!s)
 		return -1;
@@ -180,8 +176,7 @@ sh_strbuf_close(sh_strbuf_t *s)
 	return 0;
 }
 
-off_t
-sh_strbuf_seek(sh_strbuf_t *s, off_t offset, int whence)
+off_t sh_strbuf_seek(sh_strbuf_t *s, off_t offset, int whence)
 {
 	if(!s || !s->stream.fp)
 		return (off_t)-1;
@@ -195,8 +190,7 @@ sh_strbuf_seek(sh_strbuf_t *s, off_t offset, int whence)
 	return ftello(s->stream.fp);
 }
 
-off_t
-sh_strbuf_tell(sh_strbuf_t *s)
+off_t sh_strbuf_tell(sh_strbuf_t *s)
 {
 	if(!s || !s->stream.fp)
 		return (off_t)-1;
@@ -209,7 +203,7 @@ sh_strbuf_base(sh_strbuf_t *s)
 	if(!s || !s->stream.fp)
 		return NULL;
 	fflush(s->stream.fp);
-	s->stream.data = (unsigned char*)s->buf;
+	s->stream.data = (unsigned char *)s->buf;
 	return s->buf;
 }
 
@@ -224,7 +218,7 @@ sh_strbuf_size(sh_strbuf_t *s)
 
 /* ── helpers ────────────────────────────────────────────────── */
 
-static void (*_sh_notify_fn)(sh_stream_t*, int, void*);
+static void (*_sh_notify_fn)(sh_stream_t *, int, void *);
 
 /*
  * Map SH_IO flags to an fdopen mode string.
@@ -252,19 +246,24 @@ _sh_ensure_fp(sh_stream_t *f)
 		return;
 	switch(f->fd)
 	{
-	case 0: f->fp = stdin; break;
-	case 1: f->fp = stdout; break;
-	case 2: f->fp = stderr; break;
-	default:
-		f->fp = fdopen(f->fd, _sh_fdmode(f->flags));
-		break;
+		case 0:
+			f->fp = stdin;
+			break;
+		case 1:
+			f->fp = stdout;
+			break;
+		case 2:
+			f->fp = stderr;
+			break;
+		default:
+			f->fp = fdopen(f->fd, _sh_fdmode(f->flags));
+			break;
 	}
 }
 
 /* ── sfnotify — register stream event callback ─────────────── */
 
-int
-sfnotify(void(*func)(sh_stream_t*, int, void*))
+int sfnotify(void (*func)(sh_stream_t *, int, void *))
 {
 	_sh_notify_fn = func;
 	return 0;
@@ -281,14 +280,14 @@ sfsetbuf(sh_stream_t *f, void *buf, size_t size)
 	 * sfsetbuf(f, f, 0): sfio idiom to query current buffer.
 	 * Sets sfvalue(f) to the buffer size and returns the base.
 	 */
-	if(buf == (void*)f)
+	if(buf == (void *)f)
 	{
 		if(f->flags & SH_IO_STRING)
 		{
-			sh_strbuf_t *sb = (sh_strbuf_t*)f;
+			sh_strbuf_t *sb = (sh_strbuf_t *)f;
 			fflush(f->fp);
 			f->val = (ssize_t)sb->len;
-			f->data = (unsigned char*)sb->buf;
+			f->data = (unsigned char *)sb->buf;
 			return sb->buf;
 		}
 		f->val = (ssize_t)f->bufsz;
@@ -347,7 +346,7 @@ sfnew(sh_stream_t *f, void *buf, size_t size, int fd, int flags)
 			mode = "w";
 		if(buf && size > 0)
 			f->fp = fmemopen(buf, size, mode);
-		f->data = (unsigned char*)buf;
+		f->data = (unsigned char *)buf;
 		f->fd = -1;
 	}
 	else
@@ -375,15 +374,23 @@ sfopen(sh_stream_t *f, const char *s, const char *mode)
 	{
 		switch(*m)
 		{
-		case 'r': flags |= SH_IO_READ; break;
-		case 'w': flags |= SH_IO_WRITE; break;
-		case '+': flags |= SH_IO_READ | SH_IO_WRITE; break;
-		case 's': flags |= SH_IO_STRING; break;
+			case 'r':
+				flags |= SH_IO_READ;
+				break;
+			case 'w':
+				flags |= SH_IO_WRITE;
+				break;
+			case '+':
+				flags |= SH_IO_READ | SH_IO_WRITE;
+				break;
+			case 's':
+				flags |= SH_IO_STRING;
+				break;
 		}
 	}
 	/* string mode with no path: create string stream */
 	if((flags & SH_IO_STRING) && !s)
-		return (sh_stream_t*)sh_strbuf_open();
+		return (sh_stream_t *)sh_strbuf_open();
 	if(!s)
 		return NULL;
 	fp = fopen(s, _sh_fdmode(flags));
@@ -470,8 +477,7 @@ sfswap(sh_stream_t *f1, sh_stream_t *f2)
 
 /* ── sfsetfd — change the backing fd of a stream ───────────── */
 
-int
-sfsetfd(sh_stream_t *f, int fd)
+int sfsetfd(sh_stream_t *f, int fd)
 {
 	int old;
 	if(!f)
@@ -495,12 +501,11 @@ sfsetfd(sh_stream_t *f, int fd)
 	if(fd >= 0)
 		_sh_ensure_fp(f);
 	if(_sh_notify_fn)
-		_sh_notify_fn(f, SH_IO_SETFD, (void*)(intptr_t)fd);
+		_sh_notify_fn(f, SH_IO_SETFD, (void *)(intptr_t)fd);
 	return old;
 }
 
-int
-sfsetfd_cloexec(sh_stream_t *f, int fd)
+int sfsetfd_cloexec(sh_stream_t *f, int fd)
 {
 	int r = sfsetfd(f, fd);
 	if(fd >= 0)
@@ -549,8 +554,7 @@ sfpool(sh_stream_t *f1, sh_stream_t *f2, int action)
 
 /* ── sfpurge — discard buffered data ───────────────────────── */
 
-int
-sfpurge(sh_stream_t *f)
+int sfpurge(sh_stream_t *f)
 {
 	if(!f || !f->fp)
 		return -1;
@@ -559,8 +563,7 @@ sfpurge(sh_stream_t *f)
 
 /* ── sfraise — raise exception through discipline chain ────── */
 
-int
-sfraise(sh_stream_t *f, int type, void *data)
+int sfraise(sh_stream_t *f, int type, void *data)
 {
 	sh_disc_t *d;
 	if(!f)
@@ -579,16 +582,14 @@ sfraise(sh_stream_t *f, int type, void *data)
 
 /* ── sfstacked — check if stream has a stack ────────────────── */
 
-int
-sfstacked(sh_stream_t *f)
+int sfstacked(sh_stream_t *f)
 {
 	return f && f->stack != NULL;
 }
 
 /* ── sfclrlock — clear stream lock ─────────────────────────── */
 
-int
-sfclrlock(sh_stream_t *f)
+int sfclrlock(sh_stream_t *f)
 {
 	(void)f;
 	return 0;
@@ -596,8 +597,7 @@ sfclrlock(sh_stream_t *f)
 
 /* ── sfsize — return stream size ───────────────────────────── */
 
-off_t
-sfsize(sh_stream_t *f)
+off_t sfsize(sh_stream_t *f)
 {
 	struct stat st;
 	if(!f || f->fd < 0)
@@ -709,11 +709,11 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 		return NULL;
 	}
 	f->val = (ssize_t)got;
-	f->data = (unsigned char*)f->buf;
+	f->data = (unsigned char *)f->buf;
 	if(type & SH_IO_LOCKR)
 		f->flags |= _SH_IO_RSVLCK;
 	else
-		f->data = NULL;	/* non-LOCKR: consumed on return */
+		f->data = NULL; /* non-LOCKR: consumed on return */
 	return f->buf;
 }
 
@@ -725,7 +725,7 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 sh_stream_t *
 sfstack(sh_stream_t *f1, sh_stream_t *f2)
 {
-	assert(f1 != f2 || f2 == NULL);	/* no self-stacking */
+	assert(f1 != f2 || f2 == NULL); /* no self-stacking */
 	if(!f1)
 		return NULL;
 	if(!f2)
@@ -865,13 +865,13 @@ sfgetr(sh_stream_t *f, int delim, int type)
 	f->getr_buf = p;
 	f->getr_bufsz = cap;
 	f->val = (ssize_t)len;
-	return NULL;	/* no delimiter found — caller must use sfgetr(f,d,-1) */
+	return NULL; /* no delimiter found — caller must use sfgetr(f,d,-1) */
 
 done:
 	/* type==1 (SF_STRING): strip delimiter, NUL-terminate */
 	if(type == 1)
 	{
-		len--;	/* remove delimiter */
+		len--; /* remove delimiter */
 		p[len] = '\0';
 	}
 	else
@@ -895,8 +895,7 @@ done:
  *
  * Returns number of items (bytes or records) moved.
  */
-off_t
-sfmove(sh_stream_t *fr, sh_stream_t *fw, off_t n, int delim)
+off_t sfmove(sh_stream_t *fr, sh_stream_t *fw, off_t n, int delim)
 {
 	off_t moved;
 	if(!fr)
@@ -984,7 +983,7 @@ ssize_t
 sfpkrd(int fd, void *buf, size_t n, int rc, long tm, int action)
 {
 	ssize_t r;
-	char *cbuf = (char*)buf;
+	char *cbuf = (char *)buf;
 	/* fast path: no delimiter, no timeout, no peeking */
 	if(rc < 0 && tm < 0 && action <= 0)
 		return read(fd, buf, n);
@@ -999,7 +998,7 @@ sfpkrd(int fd, void *buf, size_t n, int rc, long tm, int action)
 		if(pr < 0)
 			return -1;
 		if(pr == 0)
-			return -1;	/* timeout */
+			return -1; /* timeout */
 		if(!(pfd.revents & (POLLIN | POLLHUP)))
 			return -1;
 	}
@@ -1025,7 +1024,8 @@ sfpkrd(int fd, void *buf, size_t n, int rc, long tm, int action)
 		if(rc >= 0)
 		{
 			char *sp;
-			int t = (action == 0) ? 1 : (action < 0) ? -action : action;
+			int t = (action == 0) ? 1 : (action < 0) ? -action
+			                                         : action;
 			for(sp = cbuf; sp < cbuf + r; sp++)
 			{
 				if(*sp == rc && --t == 0)
@@ -1092,10 +1092,11 @@ sfrd(sh_stream_t *f, void *buf, size_t n, sh_disc_t *disc)
  * sfpoll: poll multiple streams for readiness.
  * Only 1 call site (mkservice.c, optional feature). Not implemented.
  */
-int
-sfpoll(sh_stream_t **fds, int n, int tm)
+int sfpoll(sh_stream_t **fds, int n, int tm)
 {
-	(void)fds; (void)n; (void)tm;
+	(void)fds;
+	(void)n;
+	(void)tm;
 	return -1;
 }
 
@@ -1109,15 +1110,14 @@ sfpoll(sh_stream_t **fds, int n, int tm)
  * Constants match sfio.h: SFIO_UBITS=7, SFIO_SBITS=6,
  * SFIO_MORE=0x80, SFIO_SIGN=0x40.
  */
-#define _SFIO_UBITS	7
-#define _SFIO_SBITS	6
-#define _SFIO_MORE	0x80
-#define _SFIO_SIGN	0x40
-#define _SFIO_UVALUE(v)	((unsigned long)(v) & (_SFIO_MORE - 1))
-#define _SFIO_SVALUE(v)	((long)(v) & (_SFIO_SIGN - 1))
+#define _SFIO_UBITS 7
+#define _SFIO_SBITS 6
+#define _SFIO_MORE 0x80
+#define _SFIO_SIGN 0x40
+#define _SFIO_UVALUE(v) ((unsigned long)(v) & (_SFIO_MORE - 1))
+#define _SFIO_SVALUE(v) ((long)(v) & (_SFIO_SIGN - 1))
 
-int
-sfputu(sh_stream_t *f, size_t v)
+int sfputu(sh_stream_t *f, size_t v)
 {
 	unsigned char c[2 * sizeof(size_t)];
 	unsigned char *s, *ps;
@@ -1134,8 +1134,7 @@ sfputu(sh_stream_t *f, size_t v)
 	return n;
 }
 
-int
-sfputl(sh_stream_t *f, ssize_t v)
+int sfputl(sh_stream_t *f, ssize_t v)
 {
 	unsigned char c[2 * sizeof(ssize_t)];
 	unsigned char *s, *ps;
@@ -1215,12 +1214,15 @@ sfgetl(sh_stream_t *f)
  * sfkeyprintf: formatted I/O with key lookup.
  * 0 call sites in ksh26. Not implemented.
  */
-int
-sfkeyprintf(sh_stream_t *f, void *handle, const char *fmt,
-	int(*lookup)(void*,sh_stream_t*,off_t,const char*,int,sh_disc_t*,int),
-	int(*convert)(void*,sh_stream_t*,const char*))
+int sfkeyprintf(sh_stream_t *f, void *handle, const char *fmt,
+                int (*lookup)(void *, sh_stream_t *, off_t, const char *, int, sh_disc_t *, int),
+                int (*convert)(void *, sh_stream_t *, const char *))
 {
-	(void)f; (void)handle; (void)fmt; (void)lookup; (void)convert;
+	(void)f;
+	(void)handle;
+	(void)fmt;
+	(void)lookup;
+	(void)convert;
 	return -1;
 }
 

@@ -25,24 +25,24 @@
  */
 typedef struct Vmblock
 {
-	size_t		size;		/* the size of the allocated block	*/
-	struct Vmblock	*prev;		/* previous block in list		*/
-	struct Vmblock	*next;		/* next block in list			*/
+	size_t size;          /* the size of the allocated block	*/
+	struct Vmblock *prev; /* previous block in list		*/
+	struct Vmblock *next; /* next block in list			*/
 #if __STDC_VERSION__ >= 199901L
-	max_align_t	vblock[];	/* the virtual allocated block, aligned	*/
+	max_align_t vblock[]; /* the virtual allocated block, aligned	*/
 #else
-	max_align_t	vblock[1];	/* ...C90 fallback with struct hack	*/
+	max_align_t vblock[1]; /* ...C90 fallback with struct hack	*/
 #endif
 } Vmblock_t;
 
-#define VBLOCKOFFSET	offsetof(Vmblock_t, vblock)
+#define VBLOCKOFFSET offsetof(Vmblock_t, vblock)
 
 /*
  * Helper function for failure handling.
  */
 static void *fail(Vmalloc_t *vm, size_t size)
 {
-	if (vm->outofmemory)
+	if(vm->outofmemory)
 		(*vm->outofmemory)(size); /* may abort or longjmp */
 	return NULL;
 }
@@ -60,17 +60,17 @@ Vmalloc_t *vmopen(void)
  */
 void *vmalloc(Vmalloc_t *vm, size_t size)
 {
-	Vmblock_t	*bp;
+	Vmblock_t *bp;
 
-	if (!(bp = (vm->options & VM_INIT) ? calloc(1, size + VBLOCKOFFSET) : malloc(size + VBLOCKOFFSET)))
+	if(!(bp = (vm->options & VM_INIT) ? calloc(1, size + VBLOCKOFFSET) : malloc(size + VBLOCKOFFSET)))
 		return fail(vm, size);
 	bp->size = size;
 	/* insert at front of list */
 	bp->prev = NULL;
-	if (bp->next = vm->_list_)
+	if(bp->next = vm->_list_)
 		bp->next->prev = bp;
 	vm->_list_ = bp;
-	return (char*)bp + VBLOCKOFFSET;
+	return (char *)bp + VBLOCKOFFSET;
 }
 
 /*
@@ -80,37 +80,37 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
  */
 void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 {
-	Vmblock_t	*bp, *tmp;
+	Vmblock_t *bp, *tmp;
 
-	if (!ap)
+	if(!ap)
 		return vmalloc(vm, size);
-	if (!size)
+	if(!size)
 	{
 		vmfree(vm, ap);
 		return NULL;
 	}
-	bp = (Vmblock_t*)((char*)ap - VBLOCKOFFSET);
+	bp = (Vmblock_t *)((char *)ap - VBLOCKOFFSET);
 	/* Resize block */
-	if (!(tmp = realloc(bp, size + VBLOCKOFFSET)))
+	if(!(tmp = realloc(bp, size + VBLOCKOFFSET)))
 	{
-		if (vm->options & VM_FREEONFAIL)
+		if(vm->options & VM_FREEONFAIL)
 			free(bp);
 		return fail(vm, size);
 	}
-	if (tmp != bp)
+	if(tmp != bp)
 	{
-		if (vm->_list_ == bp)
+		if(vm->_list_ == bp)
 			vm->_list_ = tmp;
 		bp = tmp;
-		ap = (char*)bp + VBLOCKOFFSET;
-		if (bp->prev)
+		ap = (char *)bp + VBLOCKOFFSET;
+		if(bp->prev)
 			bp->prev->next = bp;
-		if (bp->next)
+		if(bp->next)
 			bp->next->prev = bp;
 	}
 	/* Initialize added memory */
-	if ((vm->options & VM_INIT) && (size > bp->size))
-		memset((char*)ap + bp->size, 0, size - bp->size);
+	if((vm->options & VM_INIT) && (size > bp->size))
+		memset((char *)ap + bp->size, 0, size - bp->size);
 	bp->size = size;
 	return ap;
 }
@@ -121,17 +121,16 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
  */
 void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
 {
-	uint32_t	save_opt;
+	uint32_t save_opt;
 
 	save_opt = vm->options;
-	if (init)
+	if(init)
 		vm->options |= VM_INIT;
 	else
 		vm->options &= ~VM_INIT;
 	ap = vmresize(vm, ap, size);
 	vm->options = save_opt;
 	return ap;
-	
 }
 
 /*
@@ -139,18 +138,18 @@ void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
  */
 char *vmstrdup(Vmalloc_t *vm, const char *s)
 {
-	Vmblock_t	*bp;
-	size_t		size;
+	Vmblock_t *bp;
+	size_t size;
 
-	if (!(bp = malloc((size = strlen(s) + 1) + VBLOCKOFFSET)))
+	if(!(bp = malloc((size = strlen(s) + 1) + VBLOCKOFFSET)))
 		return fail(vm, size);
 	bp->size = size;
 	/* insert at front of list */
 	bp->prev = NULL;
-	if (bp->next = vm->_list_)
+	if(bp->next = vm->_list_)
 		bp->next->prev = bp;
 	vm->_list_ = bp;
-	return memcpy((char*)bp + VBLOCKOFFSET, s, size);
+	return memcpy((char *)bp + VBLOCKOFFSET, s, size);
 }
 
 /*
@@ -158,14 +157,14 @@ char *vmstrdup(Vmalloc_t *vm, const char *s)
  */
 void vmfree(Vmalloc_t *vm, void *ap)
 {
-	Vmblock_t	*bp;
+	Vmblock_t *bp;
 
-	bp = (Vmblock_t*)((char*)ap - VBLOCKOFFSET);
-	if (!bp->prev)
+	bp = (Vmblock_t *)((char *)ap - VBLOCKOFFSET);
+	if(!bp->prev)
 		vm->_list_ = bp->next;
 	else
 		bp->prev->next = bp->next;
-	if (bp->next)
+	if(bp->next)
 		bp->next->prev = bp->prev;
 	free(bp);
 }
@@ -175,10 +174,10 @@ void vmfree(Vmalloc_t *vm, void *ap)
  */
 void vmclear(Vmalloc_t *vm)
 {
-	Vmblock_t	*bp, *bpnext;
+	Vmblock_t *bp, *bpnext;
 
 	bpnext = vm->_list_;
-	while (bp = bpnext)
+	while(bp = bpnext)
 	{
 		bpnext = bp->next;
 		free(bp);

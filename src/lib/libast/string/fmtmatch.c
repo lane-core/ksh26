@@ -27,256 +27,258 @@
 
 #include <ast.h>
 
-char*
-fmtmatch(const char* as)
+char *
+fmtmatch(const char *as)
 {
-	char*	s = (char*)as;
-	int	c;
-	char*	t;
-	char**	p;
-	char*	b;
-	char*	x;
-	char*	y;
-	char*	z;
-	int	a;
-	int	e;
-	int	n;
-	char*	buf;
-	char*	stack[32];
+	char *s = (char *)as;
+	int c;
+	char *t;
+	char **p;
+	char *b;
+	char *x;
+	char *y;
+	char *z;
+	int a;
+	int e;
+	int n;
+	char *buf;
+	char *stack[32];
 
 	c = 3 * (strlen(s) + 1);
 	buf = fmtbuf(c);
 	t = b = buf + 3;
 	p = stack;
-	if (a = *s == '^')
+	if(a = *s == '^')
 		s++;
 	e = 0;
-	for (;;)
+	for(;;)
 	{
-		switch (c = *s++)
+		switch(c = *s++)
 		{
-		case 0:
-			break;
-		case '\\':
-			if (!(c = *s++))
-				return NULL;
-			switch (*s)
-			{
-			case '*':
-			case '+':
-			case '?':
-				*t++ = *s++;
-				*t++ = '(';
-				*t++ = '\\';
-				*t++ = c;
-				c = ')';
+			case 0:
 				break;
-			case '|':
-			case '&':
-				if (c == '(')
+			case '\\':
+				if(!(c = *s++))
+					return NULL;
+				switch(*s)
 				{
+					case '*':
+					case '+':
+					case '?':
+						*t++ = *s++;
+						*t++ = '(';
+						*t++ = '\\';
+						*t++ = c;
+						c = ')';
+						break;
+					case '|':
+					case '&':
+						if(c == '(')
+						{
+							*t++ = c;
+							c = *s++;
+							goto logical;
+						}
+						break;
+					case '{':
+					case '}':
+						break;
+					default:
+						*t++ = '\\';
+						break;
+				}
+				*t++ = c;
+				continue;
+			case '[':
+				x = t;
+				*t++ = c;
+				if((c = *s++) == '^')
+				{
+					*t++ = '!';
+					c = *s++;
+				}
+				else if(c == '!')
+				{
+					*t++ = '\\';
 					*t++ = c;
 					c = *s++;
-					goto logical;
 				}
-				break;
-			case '{':
-			case '}':
-				break;
-			default:
-				*t++ = '\\';
-				break;
-			}
-			*t++ = c;
-			continue;
-		case '[':
-			x = t;
-			*t++ = c;
-			if ((c = *s++) == '^')
-			{
-				*t++ = '!';
-				c = *s++;
-			}
-			else if (c == '!')
-			{
-				*t++ = '\\';
-				*t++ = c;
-				c = *s++;
-			}
-			for (;;)
-			{
-				if (!(*t++ = c))
+				for(;;)
+				{
+					if(!(*t++ = c))
+						return NULL;
+					if(c == '\\')
+						*t++ = c;
+					if((c = *s++) == ']')
+					{
+						*t++ = c;
+						break;
+					}
+				}
+				switch(*s)
+				{
+					case '*':
+					case '+':
+					case '?':
+						for(y = t + 2, t--; t >= x; t--)
+							*(t + 2) = *t;
+						*++t = *s++;
+						*++t = '(';
+						t = y;
+						*t++ = ')';
+						break;
+				}
+				continue;
+			case '(':
+				if(p >= &stack[elementsof(stack)])
 					return NULL;
-				if (c == '\\')
-					*t++ = c;
-				if ((c = *s++) == ']')
-				{
-					*t++ = c;
-					break;
-				}
-			}
-			switch (*s)
-			{
-			case '*':
-			case '+':
-			case '?':
-				for (y = t + 2, t--; t >= x; t--)
-					*(t + 2) = *t;
-				*++t = *s++;
-				*++t = '(';
-				t = y;
-				*t++ = ')';
-				break;
-			}
-			continue;
-		case '(':
-			if (p >= &stack[elementsof(stack)])
-				return NULL;
-			*p++ = t;
-			if (*s == '?')
-			{
-				s++;
-				if (*s == 'K' && *(s + 1) == ')')
-				{
-					s += 2;
-					p--;
-					while (*t = *s)
-						t++, s++;
-					continue;
-				}
-				*t++ = '~';
-			}
-			else
-				*t++ = '@';
-			*t++ = '(';
-			continue;
-		case ')':
-			if (p == stack)
-				return NULL;
-			p--;
-			*t++ = c;
-			switch (*s)
-			{
-			case 0:
-				break;
-			case '*':
-			case '+':
-			case '?':
-			case '!':
-				**p = *s++;
-				if (*s == '?')
+				*p++ = t;
+				if(*s == '?')
 				{
 					s++;
-					x = *p + 1;
-					for (y = ++t; y > x; y--)
-						*y = *(y - 1);
-					*x = '-';
+					if(*s == 'K' && *(s + 1) == ')')
+					{
+						s += 2;
+						p--;
+						while(*t = *s)
+							t++, s++;
+						continue;
+					}
+					*t++ = '~';
 				}
-				continue;
-			case '{':
-				for (z = s; *z != '}'; z++)
-					if (!*z)
-						return NULL;
-				n = z - s;
-				if (*++z == '?')
-					n++;
-				x = *p + n;
-				for (y = t += n; y > x; y--)
-					*y = *(y - n);
-				for (x = *p; s < z; *x++ = *s++);
-				if (*s == '?')
-				{
-					s++;
-					*x++ = '-';
-				}
-				continue;
-			default:
-				continue;
-			}
-			break;
-		case '.':
-			switch (*s)
-			{
-			case 0:
-				*t++ = '?';
-				break;
-			case '*':
-				s++;
-				*t++ = '*';
-				e = !*s;
-				continue;
-			case '+':
-				s++;
-				*t++ = '?';
-				*t++ = '*';
-				continue;
-			case '?':
-				s++;
-				*t++ = '?';
+				else
+					*t++ = '@';
 				*t++ = '(';
-				*t++ = '?';
+				continue;
+			case ')':
+				if(p == stack)
+					return NULL;
+				p--;
+				*t++ = c;
+				switch(*s)
+				{
+					case 0:
+						break;
+					case '*':
+					case '+':
+					case '?':
+					case '!':
+						**p = *s++;
+						if(*s == '?')
+						{
+							s++;
+							x = *p + 1;
+							for(y = ++t; y > x; y--)
+								*y = *(y - 1);
+							*x = '-';
+						}
+						continue;
+					case '{':
+						for(z = s; *z != '}'; z++)
+							if(!*z)
+								return NULL;
+						n = z - s;
+						if(*++z == '?')
+							n++;
+						x = *p + n;
+						for(y = t += n; y > x; y--)
+							*y = *(y - n);
+						for(x = *p; s < z; *x++ = *s++)
+							;
+						if(*s == '?')
+						{
+							s++;
+							*x++ = '-';
+						}
+						continue;
+					default:
+						continue;
+				}
+				break;
+			case '.':
+				switch(*s)
+				{
+					case 0:
+						*t++ = '?';
+						break;
+					case '*':
+						s++;
+						*t++ = '*';
+						e = !*s;
+						continue;
+					case '+':
+						s++;
+						*t++ = '?';
+						*t++ = '*';
+						continue;
+					case '?':
+						s++;
+						*t++ = '?';
+						*t++ = '(';
+						*t++ = '?';
+						*t++ = ')';
+						continue;
+					default:
+						*t++ = '?';
+						continue;
+				}
+				break;
+			case '*':
+			case '+':
+			case '?':
+			case '{':
+				n = *(t - 1);
+				if(t == b || n == '(' || n == '|')
+					return NULL;
+				*(t - 1) = c;
+				if(c == '{')
+				{
+					for(z = s; *z != '}'; z++)
+						if(!*z)
+							return NULL;
+					for(; s <= z; *t++ = *s++)
+						;
+				}
+				if(*s == '?')
+				{
+					s++;
+					*t++ = '-';
+				}
+				*t++ = '(';
+				*t++ = n;
 				*t++ = ')';
 				continue;
-			default:
-				*t++ = '?';
+			case '|':
+			case '&':
+				if(t == b || *(t - 1) == '(')
+					return NULL;
+			logical:
+				if(!*s || *s == ')')
+					return NULL;
+				if(p == stack && b == buf + 3)
+				{
+					*--b = '(';
+					*--b = '@';
+				}
+				*t++ = c;
 				continue;
-			}
-			break;
-		case '*':
-		case '+':
-		case '?':
-		case '{':
-			n = *(t - 1);
-			if (t == b || n == '(' || n == '|')
-				return NULL;
-			*(t - 1) = c;
-			if (c == '{')
-			{
-				for (z = s; *z != '}'; z++)
-					if (!*z)
-						return NULL;
-				for (; s <= z; *t++ = *s++);
-			}
-			if (*s == '?')
-			{
-				s++;
-				*t++ = '-';
-			}
-			*t++ = '(';
-			*t++ = n;
-			*t++ = ')';
-			continue;
-		case '|':
-		case '&':
-			if (t == b || *(t - 1) == '(')
-				return NULL;
-		logical:
-			if (!*s || *s == ')')
-				return NULL;
-			if (p == stack && b == buf + 3)
-			{
-				*--b = '(';
-				*--b = '@';
-			}
-			*t++ = c;
-			continue;
-		case '$':
-			if (e = !*s)
-				break;
-			/* FALLTHROUGH */
-		default:
-			*t++ = c;
-			continue;
+			case '$':
+				if(e = !*s)
+					break;
+				/* FALLTHROUGH */
+			default:
+				*t++ = c;
+				continue;
 		}
 		break;
 	}
-	if (p != stack)
+	if(p != stack)
 		return NULL;
-	if (b != buf + 3)
+	if(b != buf + 3)
 		*t++ = ')';
-	if (!a && (*b != '*' || *(b + 1) == '(' || (*(b + 1) == '-' || *(b + 1) == '~') && *(b + 2) == '('))
+	if(!a && (*b != '*' || *(b + 1) == '(' || (*(b + 1) == '-' || *(b + 1) == '~') && *(b + 2) == '('))
 		*--b = '*';
-	if (!e)
+	if(!e)
 		*t++ = '*';
 	*t = 0;
 	return b;

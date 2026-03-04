@@ -38,17 +38,16 @@
 #include <times.h>
 #include <tv.h>
 
-int
-touch(const char* path, time_t at, time_t mt, int flags)
+int touch(const char *path, time_t at, time_t mt, int flags)
 {
-	Tv_t	av;
-	Tv_t	mv;
-	Tv_t*	ap;
-	Tv_t*	mp;
+	Tv_t av;
+	Tv_t mv;
+	Tv_t *ap;
+	Tv_t *mp;
 
-	if (at == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
+	if(at == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
 		ap = TV_TOUCH_RETAIN;
-	else if (!at && !(flags & PATH_TOUCH_VERBATIM))
+	else if(!at && !(flags & PATH_TOUCH_VERBATIM))
 		ap = 0;
 	else
 	{
@@ -56,9 +55,9 @@ touch(const char* path, time_t at, time_t mt, int flags)
 		av.tv_nsec = 0;
 		ap = &av;
 	}
-	if (mt == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
+	if(mt == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
 		mp = TV_TOUCH_RETAIN;
-	else if (!mt && !(flags & PATH_TOUCH_VERBATIM))
+	else if(!mt && !(flags & PATH_TOUCH_VERBATIM))
 		mp = 0;
 	else
 	{

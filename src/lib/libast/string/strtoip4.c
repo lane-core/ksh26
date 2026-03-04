@@ -38,21 +38,20 @@
  * are used to compute the mask
  */
 
-int
-strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
+int strtoip4(const char *s, char **e, uint32_t *paddr, unsigned char *pbits)
 {
-	int		c;
-	unsigned int	n;
-	uint32_t	addr;
-	int		part;
-	unsigned char	bits;
-	uint32_t	z;
-	int		old;
-	int		r;
-	const char*	b;
+	int c;
+	unsigned int n;
+	uint32_t addr;
+	int part;
+	unsigned char bits;
+	uint32_t z;
+	int old;
+	int r;
+	const char *b;
 
 	r = -1;
-	while (isspace(*s))
+	while(isspace(*s))
 		s++;
 	b = s;
 	addr = 0;
@@ -61,18 +60,18 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 	do
 	{
 		n = 0;
-		while ((c = *s++) >= '0' && c <= '9')
+		while((c = *s++) >= '0' && c <= '9')
 			n = n * 10 + (c - '0');
-		if ((c == 'x' || c == 'X') && !part)
+		if((c == 'x' || c == 'X') && !part)
 		{
 			addr = n;
-			for (;;)
+			for(;;)
 			{
-				if ((c = *s++) >= '0' && c <= '9')
+				if((c = *s++) >= '0' && c <= '9')
 					c -= '0';
-				else if (c >= 'a' && c <= 'f')
+				else if(c >= 'a' && c <= 'f')
 					c -= 'a' - 10;
-				else if (c >= 'A' && c <= 'F')
+				else if(c >= 'A' && c <= 'F')
 					c -= 'F' - 10;
 				else
 					break;
@@ -81,66 +80,66 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 			part = 4;
 			break;
 		}
-		if (n > 0xff)
+		if(n > 0xff)
 			goto done;
 		addr = (addr << 8) | n;
 		part++;
-	} while (c == '.');
-	if ((s - b) == 1 && c != '/' || part > 4)
+	} while(c == '.');
+	if((s - b) == 1 && c != '/' || part > 4)
 		goto done;
-	if (old = part < 4)
-		while (part++ < 4)
+	if(old = part < 4)
+		while(part++ < 4)
 			addr <<= 8;
-	if (pbits)
+	if(pbits)
 	{
-		if (c == '/')
+		if(c == '/')
 		{
 			part = 0;
 			z = 0;
-			for (;;)
+			for(;;)
 			{
 				n = 0;
-				while ((c = *s++) >= '0' && c <= '9')
+				while((c = *s++) >= '0' && c <= '9')
 					n = n * 10 + (c - '0');
 				z = (z << 8) | n;
 				part++;
-				if (c != '.')
+				if(c != '.')
 					break;
 				old = 1;
 			}
-			if (part > 4)
+			if(part > 4)
 				goto done;
-			if (z <= 32 && (!old || part < 2))
+			if(z <= 32 && (!old || part < 2))
 				bits = z;
-			else if (z)
+			else if(z)
 			{
-				if (part == 4 && (z & 0x8000001) == 1)
+				if(part == 4 && (z & 0x8000001) == 1)
 					z = ~z;
-				while (!(z & 1))
+				while(!(z & 1))
 					z >>= 1;
-				while (z & 1)
+				while(z & 1)
 				{
 					z >>= 1;
 					bits++;
 				}
 			}
 		}
-		else if ((z = (addr >> 24)) < 128)
+		else if((z = (addr >> 24)) < 128)
 			bits = 8;
-		else if (z < 192)
+		else if(z < 192)
 			bits = 16;
 		else
 			bits = 24;
-		if (*pbits = bits)
-			addr &= ~((((uint32_t)1)<<(32-bits))-1);
+		if(*pbits = bits)
+			addr &= ~((((uint32_t)1) << (32 - bits)) - 1);
 		else
 			addr = 0;
 	}
-	if (paddr)
+	if(paddr)
 		*paddr = addr;
 	r = 0;
- done:
-	if (e)
-		*e = (char*)(s - 1);
+done:
+	if(e)
+		*e = (char *)(s - 1);
 	return r;
 }

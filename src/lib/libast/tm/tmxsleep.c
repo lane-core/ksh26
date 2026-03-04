@@ -26,10 +26,9 @@
 #include <tmx.h>
 #include <tv.h>
 
-int
-tmxsleep(Time_t t)
+int tmxsleep(Time_t t)
 {
-	Tv_t	tv;
+	Tv_t tv;
 
 	tv.tv_sec = tmxsec(t);
 	tv.tv_nsec = tmxnsec(t);

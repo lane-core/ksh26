@@ -16,14 +16,14 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
-#include	<shell.h>
-#include	"FEATURE/externs"
+#include "shopt.h"
+#include <shell.h>
+#include "FEATURE/externs"
 
 #if defined(__sun) && _sys_mman && _lib_memcntl && defined(MHA_MAPSIZE_STACK) && defined(MC_HAT_ADVISE)
-#   include	<sys/mman.h>
+#include <sys/mman.h>
 #else
-#   undef	_lib_memcntl
+#undef _lib_memcntl
 #endif
 
 typedef int (*Shnote_f)(int, long, int);

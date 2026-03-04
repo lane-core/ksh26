@@ -16,58 +16,62 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Write out a character n times
 **
 **	Written by Kiem-Phong Vo.
 */
 
-ssize_t sfnputc(Sfio_t*		f,	/* file to write */
-		int		c,	/* char to be written */
-		size_t		n)	/* number of time to repeat */
+ssize_t sfnputc(Sfio_t *f, /* file to write */
+                int c,     /* char to be written */
+                size_t n)  /* number of time to repeat */
 {
-	uchar*	ps;
-	ssize_t	p, w;
-	uchar	buf[128];
-	int	local;
+	uchar *ps;
+	ssize_t p, w;
+	uchar buf[128];
+	int local;
 
 	if(!f)
 		return -1;
 
-	GETLOCAL(f,local);
-	if(SFMODE(f,local) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,local) < 0)
+	GETLOCAL(f, local);
+	if(SFMODE(f, local) != SFIO_WRITE && _sfmode(f, SFIO_WRITE, local) < 0)
 		return -1;
 
-	SFLOCK(f,local);
+	SFLOCK(f, local);
 
 	/* write into a suitable buffer */
-	if((size_t)(p = (f->endb-(ps = f->next))) < n)
-		{ ps = buf; p = sizeof(buf); }
+	if((size_t)(p = (f->endb - (ps = f->next))) < n)
+	{
+		ps = buf;
+		p = sizeof(buf);
+	}
 	if((size_t)p > n)
 		p = n;
-	MEMSET(ps,c,p);
+	MEMSET(ps, c, p);
 	ps -= p;
 
 	w = n;
 	if(ps == f->next)
-	{	/* simple sfwrite */
+	{ /* simple sfwrite */
 		f->next += p;
 		if(c == '\n')
-			(void)SFFLSBUF(f,-1);
+			(void)SFFLSBUF(f, -1);
 		goto done;
 	}
 
 	for(;;)
-	{	/* hard write of data */
-		if((p = SFWRITE(f,ps,p)) <= 0 || (n -= p) <= 0)
-		{	w -= n;
+	{ /* hard write of data */
+		if((p = SFWRITE(f, ps, p)) <= 0 || (n -= p) <= 0)
+		{
+			w -= n;
 			goto done;
 		}
 		if((size_t)p > n)
 			p = n;
 	}
-done :
-	SFOPEN(f,local);
+done:
+	SFOPEN(f, local);
 	return w;
 }

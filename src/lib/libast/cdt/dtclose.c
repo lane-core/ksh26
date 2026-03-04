@@ -16,39 +16,41 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"dthdr.h"
+#include "dthdr.h"
 
 /*	Close a dictionary
 **
 **	Written by Kiem-Phong Vo (11/15/2010)
 */
-int dtclose(Dt_t* dt)
+int dtclose(Dt_t *dt)
 {
-	int		ev, type;
-	Dt_t		pdt;
-	Dtdisc_t	*disc = dt->disc;
+	int ev, type;
+	Dt_t pdt;
+	Dtdisc_t *disc = dt->disc;
 
-	if(!dt || dt->nview > 0 ) /* can't close if being viewed */
+	if(!dt || dt->nview > 0) /* can't close if being viewed */
 		return -1;
 
 	if(disc && disc->eventf) /* announce closing event */
-		ev = (*disc->eventf)(dt, DT_CLOSE, (void*)1, disc);
-	else	ev = 0;
+		ev = (*disc->eventf)(dt, DT_CLOSE, (void *)1, disc);
+	else
+		ev = 0;
 	if(ev < 0) /* cannot close */
 		return -1;
 
 	if(dt->view) /* turn off viewing at this point */
-		dtview(dt,NULL);
+		dtview(dt, NULL);
 
 	type = dt->data->type; /* save before memory is freed */
 	memcpy(&pdt, dt, sizeof(Dt_t));
 
-	if(ev == 0 ) /* release all allocated data */
-	{	(void)(*(dt->meth->searchf))(dt,NULL,DT_CLEAR);
+	if(ev == 0) /* release all allocated data */
+	{
+		(void)(*(dt->meth->searchf))(dt, NULL, DT_CLEAR);
 		(void)(*dt->meth->eventf)(dt, DT_CLOSE, NULL);
-		/**/DEBUG_ASSERT(!dt->data);
+		/**/ DEBUG_ASSERT(!dt->data);
 	}
-	if(!(type&DT_INDATA) )
+	if(!(type & DT_INDATA))
 		(void)free(dt);
 
 	if(disc && disc->eventf) /* announce end of closing activities */

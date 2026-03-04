@@ -26,25 +26,25 @@
  * only one concurrent buffer with size > sizeof(buf)
  */
 
-static char		buf[16 * 1024];
-static char*		nxt = buf;
+static char buf[16 * 1024];
+static char *nxt = buf;
 
-static char*		big;
-static size_t		bigsiz;
+static char *big;
+static size_t bigsiz;
 
-char*
+char *
 fmtbuf(size_t n)
 {
-	char*	cur;
+	char *cur;
 
-	if (n > (size_t)(&buf[elementsof(buf)] - nxt))
+	if(n > (size_t)(&buf[elementsof(buf)] - nxt))
 	{
-		if (n > elementsof(buf))
+		if(n > elementsof(buf))
 		{
-			if (n > bigsiz)
+			if(n > bigsiz)
 			{
 				bigsiz = roundof(n, 8 * 1024);
-				if (!(big = newof(big, char, bigsiz, 0)))
+				if(!(big = newof(big, char, bigsiz, 0)))
 					return NULL;
 			}
 			return big;

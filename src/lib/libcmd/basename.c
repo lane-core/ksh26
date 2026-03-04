@@ -27,14 +27,14 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: basename (ksh26) 2024-12-05 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?basename - strip directory and suffix from filenames]"
-"[+DESCRIPTION?\bbasename\b removes all leading directory components "
+    "[-?\n@(#)$Id: basename (ksh26) 2024-12-05 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?basename - strip directory and suffix from filenames]"
+    "[+DESCRIPTION?\bbasename\b removes all leading directory components "
     "from the file name defined by \astring\a. If the file name defined by "
     "\astring\a has a suffix that ends in \asuffix\a, it is removed as "
     "well.]"
-"[+?If \astring\a consists solely of \b/\b characters the output will be "
+    "[+?If \astring\a consists solely of \b/\b characters the output will be "
     "a single \b/\b unless \bPATH_LEADING_SLASHES\b returned by "
     "\bgetconf\b(1) is \b1\b and \astring\a consists of multiple \b/\b "
     "characters in which case \b//\b will be output. Otherwise, trailing "
@@ -44,108 +44,108 @@ static const char usage[] =
     "identical the end of \astring\a, these characters are removed. The "
     "characters not removed from \astring\a will be written on a single line "
     "to the standard output.]"
-"[a:all|multiple?All operands are treated as \astring\a and each modified "
+    "[a:all|multiple?All operands are treated as \astring\a and each modified "
     "pathname is printed on a separate line on the standard output.]"
-"[s:suffix?All operands are treated as \astring\a and each modified "
+    "[s:suffix?All operands are treated as \astring\a and each modified "
     "pathname, with \asuffix\a removed if it exists, is printed on a "
     "separate line on the standard output.]:[suffix]"
-"[z:zero?Each line of output is terminated with a NUL character instead "
+    "[z:zero?Each line of output is terminated with a NUL character instead "
     "of a newline.]"
-"\n"
-"\n string [suffix]\n"
-"string ...\n"
-"\n"
-"[+EXIT STATUS?]"
+    "\n"
+    "\n string [suffix]\n"
+    "string ...\n"
+    "\n"
+    "[+EXIT STATUS?]"
     "{"
-	"[+0?Successful completion.]"
-	"[+>0?An error occurred.]"
+    "[+0?Successful completion.]"
+    "[+>0?An error occurred.]"
     "}"
-"[+SEE ALSO?\bdirname\b(1), \bgetconf\b(1), \bbasename\b(3)]"
-;
-
+    "[+SEE ALSO?\bdirname\b(1), \bgetconf\b(1), \bbasename\b(3)]";
 
 #include <cmd.h>
 
 static void namebase(Sfio_t *outfile, char *pathname, char *suffix, char termch)
 {
 	char *first, *last;
-	int n=0;
+	int n = 0;
 	/* go to end of path */
-	for(first=last=pathname; *last; last++);
+	for(first = last = pathname; *last; last++)
+		;
 	/* back over trailing '/' */
-	if(last>first)
-		while(*--last=='/' && last > first);
+	if(last > first)
+		while(*--last == '/' && last > first)
+			;
 	/* only slash(es)? */
-	if(last==first && *last=='/')
+	if(last == first && *last == '/')
 	{
 		/* advance back over first '/' */
 		last++;
 		/* keep leading '//' if PATH_LEADING_SLASHES is set */
-		if(*last=='/' && *astconf("PATH_LEADING_SLASHES",NULL,NULL)=='1')
+		if(*last == '/' && *astconf("PATH_LEADING_SLASHES", NULL, NULL) == '1')
 			last++;
 	}
 	else
 	{
 		/* set to first / from end */
-		for(first=last++;first>pathname && *first!='/';first--);
-		if(*first=='/')
+		for(first = last++; first > pathname && *first != '/'; first--)
+			;
+		if(*first == '/')
 			first++;
 		/* check for trailing suffix */
-		if(suffix && (n=strlen(suffix)) && n<(last-first))
+		if(suffix && (n = strlen(suffix)) && n < (last - first))
 		{
-			if(memcmp(last-n,suffix,n)==0)
-				last -=n;
+			if(memcmp(last - n, suffix, n) == 0)
+				last -= n;
 		}
 	}
-	if(last>first)
-		sfwrite(outfile,first,last-first);
-	sfputc(outfile,termch);
+	if(last > first)
+		sfwrite(outfile, first, last - first);
+	sfputc(outfile, termch);
 }
 
-int
-b_basename(int argc, char** argv, Shbltin_t* context)
+int b_basename(int argc, char **argv, Shbltin_t *context)
 {
-	char*	string;
-	char*	suffix = 0;
-	int	all = 0;
-	char    termch = '\n';
+	char *string;
+	char *suffix = 0;
+	int all = 0;
+	char termch = '\n';
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'a':
-			all = 1;
-			continue;
-		case 's':
-			all = 1;
-			suffix = opt_info.arg;
-			continue;
-		case 'z':
-			termch = '\0';
-			continue;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case 'a':
+				all = 1;
+				continue;
+			case 's':
+				all = 1;
+				suffix = opt_info.arg;
+				continue;
+			case 'z':
+				termch = '\0';
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
-	if (error_info.errors || argc < 1 || !all && argc > 2)
+	if(error_info.errors || argc < 1 || !all && argc > 2)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (!all)
+	if(!all)
 		namebase(sfstdout, argv[0], argv[1], termch);
 	else
-		while (string = *argv++)
+		while(string = *argv++)
 			namebase(sfstdout, string, suffix, termch);
 	return 0;
 }

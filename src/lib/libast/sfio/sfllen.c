@@ -16,7 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Get size of a long value coded in a portable format
 **
@@ -25,7 +25,7 @@
 int _sfllen(Sflong_t v)
 {
 	if(v < 0)
-		v = -(v+1);
+		v = -(v + 1);
 	v = (Sfulong_t)v >> SFIO_SBITS;
 	return 1 + (v > 0 ? sfulen(v) : 0);
 }

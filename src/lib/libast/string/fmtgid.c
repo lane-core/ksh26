@@ -24,56 +24,56 @@
  * cached GID number -> group name
  */
 
-#define getgrgid	______getgrgid
+#define getgrgid ______getgrgid
 
 #include <ast.h>
 #include <cdt.h>
 #include <grp.h>
 
-#undef	getgrgid
+#undef getgrgid
 
-extern struct group*	getgrgid(gid_t);
+extern struct group *getgrgid(gid_t);
 
 typedef struct Id_s
 {
-	Dtlink_t	link;
-	int		id;
-	char		name[1];
+	Dtlink_t link;
+	int id;
+	char name[1];
 } Id_t;
 
 /*
  * return group name for given GID number
  */
 
-char*
+char *
 fmtgid(int gid)
 {
-	Id_t*		ip;
-	char*		name;
-	struct group*	gr;
-	int		z;
+	Id_t *ip;
+	char *name;
+	struct group *gr;
+	int z;
 
-	static Dt_t*		dict;
-	static Dtdisc_t		disc;
+	static Dt_t *dict;
+	static Dtdisc_t disc;
 
-	if (!dict)
+	if(!dict)
 	{
 		disc.key = offsetof(Id_t, id);
 		disc.size = sizeof(int);
 		dict = dtopen(&disc, Dtset);
 	}
-	else if (ip = (Id_t*)dtmatch(dict, &gid))
+	else if(ip = (Id_t *)dtmatch(dict, &gid))
 		return ip->name;
-	if (gr = getgrgid(gid))
+	if(gr = getgrgid(gid))
 		name = gr->gr_name;
-	else if (gid == 0)
+	else if(gid == 0)
 		name = "sys";
 	else
 	{
 		name = fmtbuf(z = sizeof(gid) * 3 + 1);
 		snprintf(name, z, "%jd", (intmax_t)gid);
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if(dict && (ip = newof(0, Id_t, 1, strlen(name))))
 	{
 		ip->id = gid;
 		strcpy(ip->name, name);

@@ -23,7 +23,7 @@
 
 #include <ast.h>
 
-#undef	_def_map_ast
+#undef _def_map_ast
 #include <ast_map.h>
 
 #if _lib_strlcat
@@ -39,33 +39,34 @@ NoN(strlcat)
  */
 
 extern size_t
-strlcat(char* s, const char* t, size_t n)
+strlcat(char *s, const char *t, size_t n)
 {
-	size_t	m;
-	const char*	o = t;
+	size_t m;
+	const char *o = t;
 
-	if (m = n)
+	if(m = n)
 	{
-		while (n && *s)
+		while(n && *s)
 		{
 			n--;
 			s++;
 		}
 		m -= n;
-		if (n)
+		if(n)
 			do
 			{
-				if (!--n)
+				if(!--n)
 				{
 					*s = 0;
 					break;
 				}
-			} while (*s++ = *t++);
+			} while(*s++ = *t++);
 		else
 			*s = 0;
 	}
-	if (!n)
-		while (*t++);
+	if(!n)
+		while(*t++)
+			;
 	return (t - o) + m - 1;
 }
 

@@ -36,43 +36,44 @@
 
 typedef struct Tree_s
 {
-	struct Tree_s*	next;
-	struct Tree_s*	tree;
-	int		mode;
-	char		name[1];
+	struct Tree_s *next;
+	struct Tree_s *tree;
+	int mode;
+	char name[1];
 } Tree_t;
 
-int
-pathexists(char* path, int mode)
+int pathexists(char *path, int mode)
 {
-	char*		s;
-	char*		e;
-	Tree_t*		p;
-	Tree_t*		t;
-	char		c;
-	char*		ee;
-	char		cc;
-	int		x;
-	struct stat	st;
-	int		(*cmp)(const char*, const char*);
+	char *s;
+	char *e;
+	Tree_t *p;
+	Tree_t *t;
+	char c;
+	char *ee;
+	char cc;
+	int x;
+	struct stat st;
+	int (*cmp)(const char *, const char *);
 
-	static Tree_t	tree;
+	static Tree_t tree;
 
 	t = &tree;
 	e = (c = *path) == '/' ? path + 1 : path;
 	cmp = pathicase(path) > 0 ? strcasecmp : strcmp;
-	if ((ast.locale.set & (AST_LC_debug|AST_LC_find)) == (AST_LC_debug|AST_LC_find))
+	if((ast.locale.set & (AST_LC_debug | AST_LC_find)) == (AST_LC_debug | AST_LC_find))
 		fprintf(stderr, "locale test %s\n", path);
-	while (c)
+	while(c)
 	{
 		p = t;
-		for (s = e; *e && *e != '/'; e++);
+		for(s = e; *e && *e != '/'; e++)
+			;
 		c = *e;
 		*e = 0;
-		for (t = p->tree; t && (*cmp)(s, t->name); t = t->next);
-		if (!t)
+		for(t = p->tree; t && (*cmp)(s, t->name); t = t->next)
+			;
+		if(!t)
 		{
-			if (!(t = newof(0, Tree_t, 1, strlen(s))))
+			if(!(t = newof(0, Tree_t, 1, strlen(s))))
 			{
 				*e = c;
 				return 0;
@@ -80,25 +81,26 @@ pathexists(char* path, int mode)
 			strcpy(t->name, s);
 			t->next = p->tree;
 			p->tree = t;
-			if (c)
+			if(c)
 			{
 				*e = c;
-				for (s = ee = e + 1; *ee && *ee != '/'; ee++);
+				for(s = ee = e + 1; *ee && *ee != '/'; ee++)
+					;
 				cc = *ee;
 				*ee = 0;
 			}
 			else
 				ee = 0;
-			if ((ast.locale.set & (AST_LC_debug|AST_LC_find)) == (AST_LC_debug|AST_LC_find))
+			if((ast.locale.set & (AST_LC_debug | AST_LC_find)) == (AST_LC_debug | AST_LC_find))
 				fprintf(stderr, "locale stat %s\n", path);
 			x = stat(path, &st);
-			if (ee)
+			if(ee)
 			{
 				e = ee;
 				c = cc;
-				if (!x || errno == ENOENT)
-					t->mode = PATH_READ|PATH_EXECUTE;
-				if (!(p = newof(0, Tree_t, 1, strlen(s))))
+				if(!x || errno == ENOENT)
+					t->mode = PATH_READ | PATH_EXECUTE;
+				if(!(p = newof(0, Tree_t, 1, strlen(s))))
 				{
 					*e = c;
 					return 0;
@@ -108,24 +110,24 @@ pathexists(char* path, int mode)
 				t->tree = p;
 				t = p;
 			}
-			if (x)
+			if(x)
 			{
 				*e = c;
 				return 0;
 			}
-			if (st.st_mode & (S_IRUSR|S_IRGRP|S_IROTH))
+			if(st.st_mode & (S_IRUSR | S_IRGRP | S_IROTH))
 				t->mode |= PATH_READ;
-			if (st.st_mode & (S_IWUSR|S_IWGRP|S_IWOTH))
+			if(st.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))
 				t->mode |= PATH_WRITE;
-			if (st.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))
+			if(st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))
 				t->mode |= PATH_EXECUTE;
-			if (!S_ISDIR(st.st_mode))
+			if(!S_ISDIR(st.st_mode))
 				t->mode |= PATH_REGULAR;
 		}
 		*e++ = c;
-		if (!t->mode || c && (t->mode & PATH_REGULAR))
+		if(!t->mode || c && (t->mode & PATH_REGULAR))
 			return 0;
 	}
-	mode &= (PATH_READ|PATH_WRITE|PATH_EXECUTE|PATH_REGULAR);
+	mode &= (PATH_READ | PATH_WRITE | PATH_EXECUTE | PATH_REGULAR);
 	return (t->mode & mode) == mode;
 }

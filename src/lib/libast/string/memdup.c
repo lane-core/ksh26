@@ -29,10 +29,10 @@ NoN(memdup)
  * return a copy of s of n chars using malloc
  */
 
-void*
-memdup(const void* s, size_t n)
+void *
+memdup(const void *s, size_t n)
 {
-	void*	t;
+	void *t;
 
 	return (t = newof(0, char, n, 0)) ? memcpy(t, s, n) : 0;
 }

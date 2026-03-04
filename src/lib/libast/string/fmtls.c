@@ -28,7 +28,7 @@
 #include <tm.h>
 
 #ifndef LS_W_MAX
-#define LS_W_MAX	128
+#define LS_W_MAX 128
 #endif
 
 /*
@@ -44,72 +44,74 @@
  *	return	end of formatted buf
  */
 
-char*
-fmtls(char* buf, const char* name, struct stat* st, const char* info, const char* link, int flags)
+char *
+fmtls(char *buf, const char *name, struct stat *st, const char *info, const char *link, int flags)
 {
-	char*		s;
-	time_t			tm;
-	Sfoff_t			n;
+	char *s;
+	time_t tm;
+	Sfoff_t n;
 
 	s = buf;
-	if (flags & LS_INUMBER)
+	if(flags & LS_INUMBER)
 		s += snprintf(s, LS_W_MAX, "%*ju ", LS_W_INUMBER - 1, (uintmax_t)st->st_ino);
-	if (flags & LS_BLOCKS)
+	if(flags & LS_BLOCKS)
 	{
 		n = iblocks(st);
 		s += snprintf(s, LS_W_MAX, "%*ju ", LS_W_BLOCKS - 1, (uintmax_t)n);
 	}
-	if (flags & LS_LONG)
+	if(flags & LS_LONG)
 	{
 		s += snprintf(s, LS_W_MAX, "%s%3u", fmtmode(st->st_mode, flags & LS_EXTERNAL), (unsigned int)st->st_nlink);
-		if (!(flags & LS_NOUSER))
+		if(!(flags & LS_NOUSER))
 		{
-			if (flags & LS_NUMBER)
+			if(flags & LS_NUMBER)
 				s += snprintf(s, LS_W_MAX, " %-*jd", LS_W_NAME - 1, (intmax_t)st->st_uid);
 			else
 				s += snprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtuid(st->st_uid));
 		}
-		if (!(flags & LS_NOGROUP))
+		if(!(flags & LS_NOGROUP))
 		{
-			if (flags & LS_NUMBER)
+			if(flags & LS_NUMBER)
 				s += snprintf(s, LS_W_MAX, " %-*jd", LS_W_NAME - 1, (intmax_t)st->st_gid);
 			else
 				s += snprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtgid(st->st_gid));
 		}
-		if (S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode))
+		if(S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode))
 			s += snprintf(s, LS_W_MAX, "%8s ", fmtdev(st));
 		else
 			s += snprintf(s, LS_W_MAX, "%8ju ", (uintmax_t)st->st_size);
-		tm = (flags & LS_ATIME) ? st->st_atime : (flags & LS_CTIME) ? st->st_ctime : st->st_mtime;
+		tm = (flags & LS_ATIME) ? st->st_atime : (flags & LS_CTIME) ? st->st_ctime
+		                                                            : st->st_mtime;
 		s = tmfmt(s, LS_W_LONG / 2, "%?%QL", &tm);
 		*s++ = ' ';
 	}
-	if (info)
+	if(info)
 	{
-		while (*s = *info++)
+		while(*s = *info++)
 			s++;
 		*s++ = ' ';
 	}
-	while (*s = *name++)
+	while(*s = *name++)
 		s++;
-	if (flags & LS_MARK)
+	if(flags & LS_MARK)
 	{
-		if (S_ISDIR(st->st_mode))
+		if(S_ISDIR(st->st_mode))
 			*s++ = '/';
 #ifdef S_ISLNK
-		else if (S_ISLNK(st->st_mode))
+		else if(S_ISLNK(st->st_mode))
 			*s++ = '@';
 #endif
-		else if (st->st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))
+		else if(st->st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))
 			*s++ = '*';
 	}
-	if (link)
+	if(link)
 	{
 		s += snprintf(s, LS_W_MAX, " %s %s",
 #ifdef S_ISLNK
-			S_ISLNK(st->st_mode) ? "->" :
+		              S_ISLNK(st->st_mode) ? "->" :
 #endif
-				"==", link);
+		                                   "==",
+		              link);
 	}
 	*s = 0;
 	return s;

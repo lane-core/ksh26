@@ -30,10 +30,9 @@
  * return current current time to t
  */
 
-int
-tmxsettime(Time_t t)
+int tmxsettime(Time_t t)
 {
-	Tv_t	tv;
+	Tv_t tv;
 
 	tv.tv_sec = tmxsec(t);
 	tv.tv_nsec = tmxnsec(t);

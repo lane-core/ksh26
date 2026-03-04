@@ -24,88 +24,86 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: comm (AT&T Research) 1999-04-28 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?comm - select or reject lines common to two files]"
-"[+DESCRIPTION?\bcomm\b reads two files \afile1\a and \afile2\a "
-	"which should be ordered in the collating sequence of the "
-	"current locale, and produces three text columns as output:]{"
-	"[+1?Lines only in \afile1\a.]"
-	"[+2?Lines only in \afile2\a.]"
-	"[+3?Lines in both files.]"
-	"}"
-"[+?If lines in either file are not ordered according to the collating "
-	"sequence of the current locale, the results are not specified.]"
-"[+?If either \afile1\a or \afile2\a is \b-\b, \bcomm\b "
-	"uses standard input starting at the current location.]"
+    "[-?\n@(#)$Id: comm (AT&T Research) 1999-04-28 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?comm - select or reject lines common to two files]"
+    "[+DESCRIPTION?\bcomm\b reads two files \afile1\a and \afile2\a "
+    "which should be ordered in the collating sequence of the "
+    "current locale, and produces three text columns as output:]{"
+    "[+1?Lines only in \afile1\a.]"
+    "[+2?Lines only in \afile2\a.]"
+    "[+3?Lines in both files.]"
+    "}"
+    "[+?If lines in either file are not ordered according to the collating "
+    "sequence of the current locale, the results are not specified.]"
+    "[+?If either \afile1\a or \afile2\a is \b-\b, \bcomm\b "
+    "uses standard input starting at the current location.]"
 
-"[1?Suppress the output column of lines unique to \afile1\a.]"
-"[2?Suppress the output column of lines unique to \afile2\a.]"
-"[3?Suppress the output column of lines duplicate in \afile1\a and \afile2\a.]"
-"\n"
-"\nfile1 file2\n"
-"\n"
-"[+EXIT STATUS?]{"
-	"[+0?Both files processed successfully.]"
-	"[+>0?An error occurred.]"
-"}"
-"[+SEE ALSO?\bcmp\b(1), \bdiff\b(1)]"
-;
-
+    "[1?Suppress the output column of lines unique to \afile1\a.]"
+    "[2?Suppress the output column of lines unique to \afile2\a.]"
+    "[3?Suppress the output column of lines duplicate in \afile1\a and \afile2\a.]"
+    "\n"
+    "\nfile1 file2\n"
+    "\n"
+    "[+EXIT STATUS?]{"
+    "[+0?Both files processed successfully.]"
+    "[+>0?An error occurred.]"
+    "}"
+    "[+SEE ALSO?\bcmp\b(1), \bdiff\b(1)]";
 
 #include <cmd.h>
 
-#define C_FILE1		1
-#define C_FILE2		2
-#define C_COMMON	4
-#define C_ALL		(C_FILE1|C_FILE2|C_COMMON)
+#define C_FILE1 1
+#define C_FILE2 2
+#define C_COMMON 4
+#define C_ALL (C_FILE1 | C_FILE2 | C_COMMON)
 
-static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
+static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out, int mode)
 {
 	char *cp1, *cp2;
 	int n1 = 0, n2 = 0, n, comp;
-	if(cp1 = sfgetr(in1,'\n',0))
+	if(cp1 = sfgetr(in1, '\n', 0))
 		n1 = sfvalue(in1);
-	if(cp2 = sfgetr(in2,'\n',0))
+	if(cp2 = sfgetr(in2, '\n', 0))
 		n2 = sfvalue(in2);
 	while(cp1 && cp2)
 	{
-		n=(n1<n2?n1:n2);
-		if((comp=memcmp(cp1,cp2,n-1))==0 && (comp=n1-n2)==0)
+		n = (n1 < n2 ? n1 : n2);
+		if((comp = memcmp(cp1, cp2, n - 1)) == 0 && (comp = n1 - n2) == 0)
 		{
-			if(mode&C_COMMON)
+			if(mode & C_COMMON)
 			{
-				if(mode!=C_COMMON)
+				if(mode != C_COMMON)
 				{
-					sfputc(out,'\t');
-					if(mode==C_ALL)
-						sfputc(out,'\t');
+					sfputc(out, '\t');
+					if(mode == C_ALL)
+						sfputc(out, '\t');
 				}
-				if(sfwrite(out,cp1,n) < 0)
+				if(sfwrite(out, cp1, n) < 0)
 					return -1;
 			}
-			if(cp1 = sfgetr(in1,'\n',0))
+			if(cp1 = sfgetr(in1, '\n', 0))
 				n1 = sfvalue(in1);
-			if(cp2 = sfgetr(in2,'\n',0))
+			if(cp2 = sfgetr(in2, '\n', 0))
 				n2 = sfvalue(in2);
 		}
 		else if(comp > 0)
 		{
-			if(mode&C_FILE2)
+			if(mode & C_FILE2)
 			{
-				if(mode&C_FILE1)
-					sfputc(out,'\t');
-				if(sfwrite(out,cp2,n2) < 0)
+				if(mode & C_FILE1)
+					sfputc(out, '\t');
+				if(sfwrite(out, cp2, n2) < 0)
 					return -1;
 			}
-			if(cp2 = sfgetr(in2,'\n',0))
+			if(cp2 = sfgetr(in2, '\n', 0))
 				n2 = sfvalue(in2);
 		}
 		else
 		{
-			if((mode&C_FILE1) && sfwrite(out,cp1,n1) < 0)
+			if((mode & C_FILE1) && sfwrite(out, cp1, n1) < 0)
 				return -1;
-			if(cp1 = sfgetr(in1,'\n',0))
+			if(cp1 = sfgetr(in1, '\n', 0))
 				n1 = sfvalue(in1);
 		}
 	}
@@ -115,7 +113,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 		cp1 = cp2;
 		in1 = in2;
 		n1 = n2;
-		if(mode&C_FILE1)
+		if(mode & C_FILE1)
 			n = 1;
 		mode &= C_FILE2;
 	}
@@ -123,91 +121,90 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 		mode &= C_FILE1;
 	if(!mode || !cp1)
 	{
-		if(cp1 && in1==sfstdin)
-			sfseek(in1,0,SEEK_END);
+		if(cp1 && in1 == sfstdin)
+			sfseek(in1, 0, SEEK_END);
 		return 0;
 	}
 	/* process the remaining stream */
 	while(1)
 	{
 		if(n)
-			sfputc(out,'\t');
-		if(sfwrite(out,cp1,n1) < 0)
+			sfputc(out, '\t');
+		if(sfwrite(out, cp1, n1) < 0)
 			return -1;
-		if(!(cp1 = sfgetr(in1,'\n',0)))
+		if(!(cp1 = sfgetr(in1, '\n', 0)))
 			return 0;
 		n1 = sfvalue(in1);
 	}
 	UNREACHABLE();
 }
 
-int
-b_comm(int argc, char *argv[], Shbltin_t* context)
+int b_comm(int argc, char *argv[], Shbltin_t *context)
 {
-	int mode = C_FILE1|C_FILE2|C_COMMON;
+	int mode = C_FILE1 | C_FILE2 | C_COMMON;
 	char *cp;
 	Sfio_t *f1, *f2;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
- 		case '1':
-			mode &= ~C_FILE1;
-			continue;
-		case '2':
-			mode &= ~C_FILE2;
-			continue;
-		case '3':
-			mode &= ~C_COMMON;
-			continue;
-		case ':':
-			error(2, "%s",opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case '1':
+				mode &= ~C_FILE1;
+				continue;
+			case '2':
+				mode &= ~C_FILE2;
+				continue;
+			case '3':
+				mode &= ~C_COMMON;
+				continue;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
-	if(error_info.errors || argc!=2)
+	if(error_info.errors || argc != 2)
 	{
-		error(ERROR_usage(2),"%s",optusage(NULL));
+		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
 	cp = *argv++;
-	if(streq(cp,"-"))
+	if(streq(cp, "-"))
 		f1 = sfstdin;
-	else if(!(f1 = sfopen(NULL, cp,"r")))
+	else if(!(f1 = sfopen(NULL, cp, "r")))
 	{
-		error(ERROR_system(1),"%s: cannot open",cp);
+		error(ERROR_system(1), "%s: cannot open", cp);
 		UNREACHABLE();
 	}
 	cp = *argv;
-	if(streq(cp,"-"))
+	if(streq(cp, "-"))
 		f2 = sfstdin;
-	else if(!(f2 = sfopen(NULL, cp,"r")))
+	else if(!(f2 = sfopen(NULL, cp, "r")))
 	{
-		error(ERROR_system(1),"%s: cannot open",cp);
+		error(ERROR_system(1), "%s: cannot open", cp);
 		UNREACHABLE();
 	}
 	if(mode)
 	{
-		if(comm(f1,f2,sfstdout,mode) < 0)
+		if(comm(f1, f2, sfstdout, mode) < 0)
 		{
-			error(ERROR_system(1)," write error");
+			error(ERROR_system(1), " write error");
 			UNREACHABLE();
 		}
 	}
-	else if(f1==sfstdin || f2==sfstdin)
-		sfseek(sfstdin,0,SEEK_END);
-	if(f1!=sfstdin)
+	else if(f1 == sfstdin || f2 == sfstdin)
+		sfseek(sfstdin, 0, SEEK_END);
+	if(f1 != sfstdin)
 		sfclose(f1);
-	if(f2!=sfstdin)
+	if(f2 != sfstdin)
 		sfclose(f2);
 	return error_info.errors;
 }

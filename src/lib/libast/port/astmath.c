@@ -31,22 +31,21 @@
  */
 
 #if N >= 8
-#define _ISOC99_SOURCE	1
+#define _ISOC99_SOURCE 1
 #endif
 
 #include <stdlib.h>
 #include <math.h>
 
-int
-main(void)
+int main(void)
 {
 #if N & 1
-	long double	value = rand();
+	long double value = rand();
 #else
-	double		value = rand();
+	double value = rand();
 #endif
 #if N < 5
-	int		exp = rand();
+	int exp = rand();
 #endif
 
 #if N == 1

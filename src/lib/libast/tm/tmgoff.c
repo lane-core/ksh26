@@ -37,37 +37,36 @@
  * d returned if no offset in s
  */
 
-int
-tmgoff(const char* s, char** e, int d)
+int tmgoff(const char *s, char **e, int d)
 {
-	int		n = d;
-	int		east;
-	const char*	t = s;
+	int n = d;
+	int east;
+	const char *t = s;
 
-	if ((east = *s == '+') || *s == '-')
+	if((east = *s == '+') || *s == '-')
 	{
 		s++;
-		if (isdigit(*s) && isdigit(*(s + 1)))
+		if(isdigit(*s) && isdigit(*(s + 1)))
 		{
 			n = ((*s - '0') * 10 + (*(s + 1) - '0')) * 60;
 			s += 2;
-			if (*s == ':')
+			if(*s == ':')
 				s++;
-			if (isdigit(*s) && isdigit(*(s + 1)))
+			if(isdigit(*s) && isdigit(*(s + 1)))
 			{
 				n += ((*s - '0') * 10 + (*(s + 1) - '0'));
 				s += 2;
-				if (*s == ':')
+				if(*s == ':')
 					s++;
-				if (isdigit(*s) && isdigit(*(s + 1)))
+				if(isdigit(*s) && isdigit(*(s + 1)))
 					s += 2;
 			}
-			if (east)
+			if(east)
 				n = -n;
 			t = s;
 		}
 	}
-	if (e)
-		*e = (char*)t;
+	if(e)
+		*e = (char *)t;
 	return n;
 }

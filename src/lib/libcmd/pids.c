@@ -17,31 +17,30 @@
 *                                                                      *
 ***********************************************************************/
 
-#define FORMAT		"PID=%(pid)d PPID=%(ppid)d PGID=%(pgid)d TID=%(tid)d SID=%(sid)d"
+#define FORMAT "PID=%(pid)d PPID=%(ppid)d PGID=%(pgid)d TID=%(tid)d SID=%(sid)d"
 
 static const char usage[] =
-"[-?\n@(#)$Id: pids (AT&T Research) 2011-08-27 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?pids - list calling shell process IDs]"
-"[+DESCRIPTION?When invoked as a shell builtin, \bpids\b lists one or "
+    "[-?\n@(#)$Id: pids (AT&T Research) 2011-08-27 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?pids - list calling shell process IDs]"
+    "[+DESCRIPTION?When invoked as a shell builtin, \bpids\b lists one or "
     "more of the calling process IDs determined by \bgetpid\b(2), "
     "\bgetppid\b(2), \bgetpgrp\b(2), \btcgetpgrp\b(3) and \bgetsid\b(2). "
     "Unknown or invalid IDs have the value \b-1\b.]"
-"[f:format?List the IDs specified by \aformat\a. \aformat\a follows "
+    "[f:format?List the IDs specified by \aformat\a. \aformat\a follows "
     "\bprintf\b(3) conventions, except that \bsfio\b(3) inline IDs are used "
     "instead of arguments: "
     "%[-+]][\awidth\a[.\aprecis\a[.\abase\a]]]]]](\aid\a)\achar\a. The "
     "supported \aid\as are:]:[format:=" FORMAT "]"
     "{"
-	"[+pid?The process ID.]"
-	"[+pgid?The process group ID.]"
-	"[+ppid?The parent process ID.]"
-	"[+tid|tty?The controlling terminal ID.]"
-	"[+sid?The session ID.]"
+    "[+pid?The process ID.]"
+    "[+pgid?The process group ID.]"
+    "[+ppid?The parent process ID.]"
+    "[+tid|tty?The controlling terminal ID.]"
+    "[+sid?The session ID.]"
     "}"
-"[+SEE ALSO?\bgetpid\b(2), \bgetppid\b(2), \bgetpgrp\b(2), "
-    "\btcgetpgrp\b(3), \bgetsid\b(2)]"
-;
+    "[+SEE ALSO?\bgetpid\b(2), \bgetppid\b(2), \bgetpgrp\b(2), "
+    "\btcgetpgrp\b(3), \bgetsid\b(2)]";
 
 #include <cmd.h>
 #include <ast_tty.h>
@@ -53,34 +52,34 @@ static const char usage[] =
  */
 
 static int
-key(void* handle, Sffmt_t* fp, const char* arg, char** ps, Sflong_t* pn)
+key(void *handle, Sffmt_t *fp, const char *arg, char **ps, Sflong_t *pn)
 {
-	char*	s;
-	int	fd;
-	pid_t	tid;
+	char *s;
+	int fd;
+	pid_t tid;
 
 	NOT_USED(arg);
-	if (!(s = fp->t_str) || streq(s, "pid"))
+	if(!(s = fp->t_str) || streq(s, "pid"))
 		*pn = getpid();
-	else if (streq(s, "pgid"))
+	else if(streq(s, "pgid"))
 		*pn = getpgrp();
-	else if (streq(s, "ppid"))
+	else if(streq(s, "ppid"))
 		*pn = getppid();
-	else if (streq(s, "tid") || streq(s, "tty"))
+	else if(streq(s, "tid") || streq(s, "tty"))
 	{
-		for (fd = 0; fd < 3; fd++)
-			if ((tid = tcgetpgrp(fd)) >= 0)
+		for(fd = 0; fd < 3; fd++)
+			if((tid = tcgetpgrp(fd)) >= 0)
 				break;
 		*pn = tid;
 	}
-	else if (streq(s, "sid"))
+	else if(streq(s, "sid"))
 #if _lib_getsid
 		*pn = getsid(0);
 #else
 		*pn = -1;
 #endif
-	else if (streq(s, "format"))
-		*ps = (char*)handle;
+	else if(streq(s, "format"))
+		*ps = (char *)handle;
 	else
 	{
 		error(2, "%s: unknown format identifier", s);
@@ -89,36 +88,35 @@ key(void* handle, Sffmt_t* fp, const char* arg, char** ps, Sflong_t* pn)
 	return 1;
 }
 
-int
-b_pids(int argc, char** argv, Shbltin_t* context)
+int b_pids(int argc, char **argv, Shbltin_t *context)
 {
-	char*			format = 0;
+	char *format = 0;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case 'f':
-			format = opt_info.arg;
-			continue;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
+			case 'f':
+				format = opt_info.arg;
+				continue;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || *argv)
+	if(error_info.errors || *argv)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (!format)
+	if(!format)
 		format = FORMAT;
 	sfkeyprintf(sfstdout, format, format, key, NULL);
 	sfprintf(sfstdout, "\n");

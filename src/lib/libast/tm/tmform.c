@@ -33,8 +33,8 @@
  * end of buf is returned
  */
 
-char*
-tmform(char* buf, const char* format, time_t* clock)
+char *
+tmform(char *buf, const char *format, time_t *clock)
 {
 	return tmfmt(buf, 256, format, clock);
 }

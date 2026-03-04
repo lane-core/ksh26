@@ -16,14 +16,13 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*
  * for backward compatibility with pre-threaded sfgetl() inline
  */
 
-extern
-Sfulong_t _sfgetu(Sfio_t* f)
+extern Sfulong_t _sfgetu(Sfio_t *f)
 {
 	sfungetc(f, (unsigned char)_SFIO_(f)->val);
 	return sfgetu(f);

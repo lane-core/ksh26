@@ -24,21 +24,20 @@
  *
  */
 
-#include	"shopt.h"
-#include	"defs.h"
-#include	"variables.h"
-#include	"test.h"
-#include	<glob.h>
-#include	<ls.h>
-#include	<ast_dir.h>
-#include	"io.h"
-#include	"path.h"
+#include "shopt.h"
+#include "defs.h"
+#include "variables.h"
+#include "test.h"
+#include <glob.h>
+#include <ls.h>
+#include <ast_dir.h>
+#include "io.h"
+#include "path.h"
 
-#define argbegin	argnxt.cp
-static	const char	*sufstr;
-static	int		suflen;
-static	int		scantree(Dt_t*,const char*, struct argnod**);
-
+#define argbegin argnxt.cp
+static const char *sufstr;
+static int suflen;
+static int scantree(Dt_t *, const char *, struct argnod **);
 
 /*
  * This routine builds a list of files that match a given pathname
@@ -46,12 +45,12 @@ static	int		scantree(Dt_t*,const char*, struct argnod**);
  */
 
 #ifndef GLOB_AUGMENTED
-#   define GLOB_AUGMENTED	0
+#define GLOB_AUGMENTED 0
 #endif
 
 static char *nextdir(glob_t *gp, char *dir)
 {
-	Pathcomp_t *pp = (Pathcomp_t*)gp->gl_handle;
+	Pathcomp_t *pp = (Pathcomp_t *)gp->gl_handle;
 	if(!dir)
 		pp = path_get(Empty);
 	else
@@ -66,11 +65,11 @@ int path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 {
 	glob_t gdata;
 	struct argnod *ap;
-	glob_t *gp= &gdata;
-	int flags,extra=0;
+	glob_t *gp = &gdata;
+	int flags, extra = 0;
 	sh_stats(STAT_GLOBS);
-	memset(gp,0,sizeof(gdata));
-	flags = GLOB_GROUP|GLOB_AUGMENTED|GLOB_NOCHECK|GLOB_NOSORT|GLOB_STACK|GLOB_LIST|GLOB_DISC;
+	memset(gp, 0, sizeof(gdata));
+	flags = GLOB_GROUP | GLOB_AUGMENTED | GLOB_NOCHECK | GLOB_NOSORT | GLOB_STACK | GLOB_LIST | GLOB_DISC;
 	if(sh_isoption(SH_MARKDIRS))
 		flags |= GLOB_MARK;
 	if(sh_isoption(SH_GLOBSTARS))
@@ -79,15 +78,15 @@ int path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 	if(sh_isoption(SH_GLOBCASEDET))
 		flags |= GLOB_DCASE;
 #endif
-	if(sh_isstate(SH_COMPLETE))	/* command completion */
+	if(sh_isstate(SH_COMPLETE)) /* command completion */
 	{
-		extra += scantree(sh.alias_tree,pattern,arghead);
-		extra += scantree(sh.fun_tree,pattern,arghead);
+		extra += scantree(sh.alias_tree, pattern, arghead);
+		extra += scantree(sh.fun_tree, pattern, arghead);
 		gp->gl_nextdir = nextdir;
 		flags |= GLOB_COMPLETE;
 		flags &= ~GLOB_NOCHECK;
 	}
-	if(sh_isstate(SH_FCOMPLETE))	/* file name completion */
+	if(sh_isstate(SH_FCOMPLETE)) /* file name completion */
 		flags |= GLOB_FCOMPLETE;
 	gp->gl_fignore = nv_getval(sh_scoped(FIGNORENOD));
 	if(suflen)
@@ -103,35 +102,35 @@ int path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 	if(musttrim)
 	{
 		char *trimmedpat;
-		sfputr(sh.strbuf,pattern,-1);
+		sfputr(sh.strbuf, pattern, -1);
 		trimmedpat = sfstruse(sh.strbuf);
 		sh_trim(trimmedpat);
-		glob(trimmedpat,flags,0,gp);
+		glob(trimmedpat, flags, 0, gp);
 		/*
 		 * If there is only one result and it is identical to the trimmed pattern, then the pattern didn't
 		 * resolve, and we now need to replace it with the untrimmed pattern to avoid regressions with the
 		 * expansion of unquoted variables. (Note: globlist_t (glob.h) is binary compatible with struct
 		 * argnod (argnod.h); thus, gl_path and argval have the same offset (ARGVAL) in the struct.)
 		 */
-		if((ap = (struct argnod*)gp->gl_list) && !ap->argnxt.ap && strcmp(ap->argval,trimmedpat)==0)
+		if((ap = (struct argnod *)gp->gl_list) && !ap->argnxt.ap && strcmp(ap->argval, trimmedpat) == 0)
 		{
-			gp->gl_list = stkalloc(sh.stk,ARGVAL+strlen(pattern)+1);
-			memcpy(gp->gl_list,ap,ARGVAL);  /* copy fields *before* argval/gl_path */
-			strcpy(gp->gl_list->gl_path,pattern);
+			gp->gl_list = stkalloc(sh.stk, ARGVAL + strlen(pattern) + 1);
+			memcpy(gp->gl_list, ap, ARGVAL); /* copy fields *before* argval/gl_path */
+			strcpy(gp->gl_list->gl_path, pattern);
 		}
 	}
 	else
-		glob(pattern,flags,0,gp);
+		glob(pattern, flags, 0, gp);
 	sh_sigcheck();
-	for(ap= (struct argnod*)gp->gl_list; ap; ap = ap->argnxt.ap)
+	for(ap = (struct argnod *)gp->gl_list; ap; ap = ap->argnxt.ap)
 	{
 		ap->argchn.ap = ap->argnxt.ap;
 		if(!ap->argnxt.ap)
 			ap->argchn.ap = *arghead;
 	}
 	if(gp->gl_list)
-		*arghead = (struct argnod*)gp->gl_list;
-	return gp->gl_pathc+extra;
+		*arghead = (struct argnod *)gp->gl_list;
+	return gp->gl_pathc + extra;
 }
 
 /*
@@ -141,20 +140,20 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
 {
 	Namval_t *np;
 	struct argnod *ap;
-	int nmatch=0;
+	int nmatch = 0;
 	char *cp;
-	for(np=(Namval_t*)dtfirst(tree); np; np=(Namval_t*)dtnext(tree,np))
+	for(np = (Namval_t *)dtfirst(tree); np; np = (Namval_t *)dtnext(tree, np))
 	{
 		if(nv_isnull(np))
 			continue;
-		if(strmatch(cp=nv_name(np),pattern))
+		if(strmatch(cp = nv_name(np), pattern))
 		{
-			stkseek(sh.stk,ARGVAL);
-			stkputs(sh.stk,cp,-1);
-			ap = stkfreeze(sh.stk,1);
+			stkseek(sh.stk, ARGVAL);
+			stkputs(sh.stk, cp, -1);
+			ap = stkfreeze(sh.stk, 1);
 			ap->argbegin = NULL;
 			ap->argchn.ap = *arghead;
-			ap->argflag = ARG_RAW|ARG_MAKE;
+			ap->argflag = ARG_RAW | ARG_MAKE;
 			*arghead = ap;
 			nmatch++;
 		}
@@ -167,16 +166,16 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
  * Generate the list of files found by adding a suffix to end of name
  * The number of matches is returned
  */
-int path_complete(const char *name,const char *suffix, struct argnod **arghead)
+int path_complete(const char *name, const char *suffix, struct argnod **arghead)
 {
 	sufstr = suffix;
 	suflen = strlen(suffix);
-	return path_expand(name,arghead,0);
+	return path_expand(name, arghead, 0);
 }
 
 #if SHOPT_BRACEPAT
 
-static int checkfmt(Sfio_t* sp, void* vp, Sffmt_t* fp)
+static int checkfmt(Sfio_t *sp, void *vp, Sffmt_t *fp)
 {
 	NOT_USED(sp);
 	NOT_USED(vp);
@@ -198,40 +197,41 @@ static int must_disallow_bracepat(char *cp, int withbackslash)
 {
 	int32_t incompat = 0;
 	char change = 0, shellpat = 0, minus = 0, c;
-	if ((withbackslash && *cp++ != '\\') || *cp++ != '(')
+	if((withbackslash && *cp++ != '\\') || *cp++ != '(')
 		return -1;
-	while ((c = *cp++) && c != ':' && c != ')') switch (c)
-	{
-		case 'A':  /* augmented regular expression (AST) */
-		case 'B':  /* basic regular expression */
-		case 'E':  /* extended regular expression */
-		case 'F':  /* fixed pattern */
-		case 'G':  /* basic regular expression */
-		case 'L':  /* fixed pattern */
-		case 'P':  /* Perl regular expression */
-		case 'V':  /* System V regular expression */
-		case 'X':  /* augmented regular expression (AST) */
-			if (!minus)
-			{
-				incompat |= 1 << c - 'A';
-				shellpat = 0;
-			}
-			else
-				incompat &= ~(1 << c - 'A');
-			change = 1;
-			break;
-		case 'K':  /* ksh glob pattern */
-		case 'S':  /* sh glob pattern */
-			shellpat = !minus;
-			change = 1;
-			break;
-		case '-':  /* disable the following options */
-			minus = 1;
-			break;
-		case '+':  /* enable the following options */
-			minus = 0;
-			break;
-	}
+	while((c = *cp++) && c != ':' && c != ')')
+		switch(c)
+		{
+			case 'A': /* augmented regular expression (AST) */
+			case 'B': /* basic regular expression */
+			case 'E': /* extended regular expression */
+			case 'F': /* fixed pattern */
+			case 'G': /* basic regular expression */
+			case 'L': /* fixed pattern */
+			case 'P': /* Perl regular expression */
+			case 'V': /* System V regular expression */
+			case 'X': /* augmented regular expression (AST) */
+				if(!minus)
+				{
+					incompat |= 1 << c - 'A';
+					shellpat = 0;
+				}
+				else
+					incompat &= ~(1 << c - 'A');
+				change = 1;
+				break;
+			case 'K': /* ksh glob pattern */
+			case 'S': /* sh glob pattern */
+				shellpat = !minus;
+				change = 1;
+				break;
+			case '-': /* disable the following options */
+				minus = 1;
+				break;
+			case '+': /* enable the following options */
+				minus = 0;
+				break;
+		}
 	return change ? (c && incompat && !shellpat) : -1;
 }
 
@@ -249,7 +249,7 @@ int path_generate(struct argnod *todo, struct argnod **arghead, int musttrim)
 	struct argnod *apin;
 	char *pat = NULL, *rescan;
 	char *format;
-	char comma, range=0;
+	char comma, range = 0;
 	int first = 0, last = 0, incr = 0, count = 0;
 	char tmp[32], end[1];
 	todo->argchn.ap = 0;
@@ -259,144 +259,145 @@ again:
 	cp = ap->argval;
 	range = comma = brace = 0;
 	/* first search for {...,...} */
-	while(1) switch(*cp++)
-	{
-		case '{':
-			if(!nobracepat && brace++==0)
-				pat = cp;
-			break;
-		case '}':
-			if(!nobracepat && --brace>0)
+	while(1)
+		switch(*cp++)
+		{
+			case '{':
+				if(!nobracepat && brace++ == 0)
+					pat = cp;
 				break;
-			if(brace==0 && comma && *cp!='(')
-				goto endloop1;
-			comma = brace = 0;
-			break;
-		case '.':
-			if(brace==1 && *cp=='.')
-			{
-				char *endc;
-				incr = 1;
-				if(isdigit(*pat) || *pat=='+' || *pat=='-')
+			case '}':
+				if(!nobracepat && --brace > 0)
+					break;
+				if(brace == 0 && comma && *cp != '(')
+					goto endloop1;
+				comma = brace = 0;
+				break;
+			case '.':
+				if(brace == 1 && *cp == '.')
 				{
-					first = strtol(pat,&endc,0);
-					if(endc==(cp-1))
+					char *endc;
+					incr = 1;
+					if(isdigit(*pat) || *pat == '+' || *pat == '-')
 					{
-						last = strtol(cp+1,&endc,0);
-						if(*endc=='.' && endc[1]=='.')
-							incr = strtol(endc+2,&endc,0);
-						else if(last<first)
-							incr = -1;
-						if(incr)
+						first = strtol(pat, &endc, 0);
+						if(endc == (cp - 1))
 						{
-							if(*endc=='%')
+							last = strtol(cp + 1, &endc, 0);
+							if(*endc == '.' && endc[1] == '.')
+								incr = strtol(endc + 2, &endc, 0);
+							else if(last < first)
+								incr = -1;
+							if(incr)
 							{
-								Sffmt_t	fmt;
-								memset(&fmt, 0, sizeof(fmt));
-								fmt.version = SFIO_VERSION;
-								fmt.form = endc;
-								fmt.extf = checkfmt;
-								sfprintf(sfstdout, "%!", &fmt);
-								if(!(fmt.flags&(SFFMT_LLONG|SFFMT_LDOUBLE)))
-									switch (fmt.fmt)
-									{
-									case 'c':
-									case 'd':
-									case 'i':
-									case 'o':
-									case 'u':
-									case 'x':
-									case 'X':
-										format = endc;
-										endc = fmt.form;
-										break;
-									}
-							}
-							else
-								format = "%d";
-							if(*endc=='}')
-							{
-								cp = endc+1;
-								range = 2;
-								goto endloop1;
+								if(*endc == '%')
+								{
+									Sffmt_t fmt;
+									memset(&fmt, 0, sizeof(fmt));
+									fmt.version = SFIO_VERSION;
+									fmt.form = endc;
+									fmt.extf = checkfmt;
+									sfprintf(sfstdout, "%!", &fmt);
+									if(!(fmt.flags & (SFFMT_LLONG | SFFMT_LDOUBLE)))
+										switch(fmt.fmt)
+										{
+											case 'c':
+											case 'd':
+											case 'i':
+											case 'o':
+											case 'u':
+											case 'x':
+											case 'X':
+												format = endc;
+												endc = fmt.form;
+												break;
+										}
+								}
+								else
+									format = "%d";
+								if(*endc == '}')
+								{
+									cp = endc + 1;
+									range = 2;
+									goto endloop1;
+								}
 							}
 						}
 					}
-				}
-				else if((cp[2]=='}' || cp[2]=='.' && cp[3]=='.') && ((*pat>='a'  && *pat<='z' && cp[1]>='a' && cp[1]<='z') || (*pat>='A'  && *pat<='Z' && cp[1]>='A' && cp[1]<='Z')))
-				{
-					first = *pat;
-					last = cp[1];
-					cp += 2;
-					if(*cp=='.')
+					else if((cp[2] == '}' || cp[2] == '.' && cp[3] == '.') && ((*pat >= 'a' && *pat <= 'z' && cp[1] >= 'a' && cp[1] <= 'z') || (*pat >= 'A' && *pat <= 'Z' && cp[1] >= 'A' && cp[1] <= 'Z')))
 					{
-						incr = strtol(cp+2,&endc,0);
-						cp = endc;
+						first = *pat;
+						last = cp[1];
+						cp += 2;
+						if(*cp == '.')
+						{
+							incr = strtol(cp + 2, &endc, 0);
+							cp = endc;
+						}
+						else if(first > last)
+							incr = -1;
+						if(incr && *cp == '}')
+						{
+							cp++;
+							range = 1;
+							goto endloop1;
+						}
 					}
-					else if(first>last)
-						incr = -1;
-					if(incr && *cp=='}')
-					{
-						cp++;
-						range = 1;
-						goto endloop1;
-					}
+					cp++;
 				}
+				break;
+			case ',':
+				if(brace == 1)
+					comma = 1;
+				break;
+			case '\\':
 				cp++;
-			}
-			break;
-		case ',':
-			if(brace==1)
-				comma = 1;
-			break;
-		case '\\':
-			cp++;
-			break;
-		case '~':
-			if(!brace)
-			{
-				int r = must_disallow_bracepat(cp,musttrim);
-				if(r>=0)
-					nobracepat = r;
-			}
-			break;
-		case 0:
-			/* insert on stack */
-			ap->argchn.ap = top;
-			top = ap;
-			if(todo)
-				goto again;
-			for(; ap; ap=apin)
-			{
-				apin = ap->argchn.ap;
-				if(!sh_isoption(SH_NOGLOB) || sh_isstate(SH_COMPLETE) || sh_isstate(SH_FCOMPLETE))
-					brace = path_expand(ap->argval,arghead,musttrim);
-				else
+				break;
+			case '~':
+				if(!brace)
 				{
-					ap->argchn.ap = *arghead;
-					*arghead = ap;
-					brace=1;
+					int r = must_disallow_bracepat(cp, musttrim);
+					if(r >= 0)
+						nobracepat = r;
 				}
-				if(brace)
+				break;
+			case 0:
+				/* insert on stack */
+				ap->argchn.ap = top;
+				top = ap;
+				if(todo)
+					goto again;
+				for(; ap; ap = apin)
 				{
-					count += brace;
-					(*arghead)->argflag |= ARG_MAKE;
+					apin = ap->argchn.ap;
+					if(!sh_isoption(SH_NOGLOB) || sh_isstate(SH_COMPLETE) || sh_isstate(SH_FCOMPLETE))
+						brace = path_expand(ap->argval, arghead, musttrim);
+					else
+					{
+						ap->argchn.ap = *arghead;
+						*arghead = ap;
+						brace = 1;
+					}
+					if(brace)
+					{
+						count += brace;
+						(*arghead)->argflag |= ARG_MAKE;
+					}
 				}
-			}
-			return count;
-	}
+				return count;
+		}
 endloop1:
 	rescan = cp;
 	if(!pat)
 		abort();
-	cp = pat-1;
+	cp = pat - 1;
 	*cp = 0;
 	while(1)
 	{
 		brace = 0;
 		if(range)
 		{
-			if(range==1)
+			if(range == 1)
 			{
 				pat[0] = first;
 				cp = &pat[1];
@@ -404,7 +405,7 @@ endloop1:
 			else
 			{
 				*(rescan - 1) = 0;
-				sfsprintf(pat=tmp,sizeof(tmp),format,first);
+				sfsprintf(pat = tmp, sizeof(tmp), format, first);
 				*(rescan - 1) = '}';
 				*(cp = end) = 0;
 			}
@@ -414,37 +415,39 @@ endloop1:
 				first += incr;
 		}
 		/* generate each pattern and put on the todo list */
-		else while(1) switch(*++cp)
-		{
-			case '\\':
-				cp++;
-				break;
-			case '{':
-				brace++;
-				break;
-			case ',':
-				if(brace==0)
-					goto endloop2;
-				break;
-			case '}':
-				if(--brace<0)
-					goto endloop2;
-		}
+		else
+			while(1)
+				switch(*++cp)
+				{
+					case '\\':
+						cp++;
+						break;
+					case '{':
+						brace++;
+						break;
+					case ',':
+						if(brace == 0)
+							goto endloop2;
+						break;
+					case '}':
+						if(--brace < 0)
+							goto endloop2;
+				}
 	endloop2:
 		brace = *cp;
 		*cp = 0;
 		sh_sigcheck();
-		ap = stkseek(sh.stk,ARGVAL);
+		ap = stkseek(sh.stk, ARGVAL);
 		ap->argflag = ARG_RAW;
 		ap->argchn.ap = todo;
-		stkputs(sh.stk,apin->argval,-1);
-		stkputs(sh.stk,pat,-1);
-		stkputs(sh.stk,rescan,-1);
-		todo = ap = stkfreeze(sh.stk,1);
+		stkputs(sh.stk, apin->argval, -1);
+		stkputs(sh.stk, pat, -1);
+		stkputs(sh.stk, rescan, -1);
+		todo = ap = stkfreeze(sh.stk, 1);
 		if(brace == '}')
 			break;
 		if(!range)
-			pat = cp+1;
+			pat = cp + 1;
 	}
 	goto again;
 }

@@ -30,9 +30,9 @@
 
 #include "FEATURE/lib"
 
-#define getdtablesize	______getdtablesize
-#define getpagesize	______getpagesize
-#define ioctl		______ioctl
+#define getdtablesize ______getdtablesize
+#define getpagesize ______getpagesize
+#define ioctl ______ioctl
 
 #if _hdr_fcntl
 #include <fcntl.h>
@@ -43,18 +43,17 @@
 
 #include "FEATURE/fs"
 
-#undef	getdtablesize
-#undef	getpagesize
-#undef	ioctl
+#undef getdtablesize
+#undef getpagesize
+#undef ioctl
 
 #include "FEATURE/tty"
 
-int
-main(void)
+int main(void)
 {
-	int		f_local = 0;
-	int		f_lck = 0;
-	int		o_local = 2;
+	int f_local = 0;
+	int f_lck = 0;
+	int o_local = 2;
 
 	printf("#include <ast_fs.h>\n");
 	printf("#include <fcntl.h>\n");
@@ -72,67 +71,67 @@ main(void)
 #endif
 
 #ifndef F_DUPFD
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_DUPFD > f_local) f_local = F_DUPFD;
+	if(F_DUPFD > f_local) f_local = F_DUPFD;
 #endif
 #ifndef F_GETFD
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_GETFD > f_local) f_local = F_GETFD;
+	if(F_GETFD > f_local) f_local = F_GETFD;
 #endif
 #ifndef F_GETFL
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_GETFL > f_local) f_local = F_GETFL;
+	if(F_GETFL > f_local) f_local = F_GETFL;
 #endif
 #ifndef F_GETLK
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_GETLK > f_local) f_local = F_GETLK;
+	if(F_GETLK > f_local) f_local = F_GETLK;
 #endif
 #ifndef F_RDLCK
-#define NEED_F	1
-#define NEED_LCK	1
+#define NEED_F 1
+#define NEED_LCK 1
 #else
-	if (F_RDLCK > f_lck) f_lck = F_RDLCK;
+	if(F_RDLCK > f_lck) f_lck = F_RDLCK;
 #endif
 #ifndef F_SETFD
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_SETFD > f_local) f_local = F_SETFD;
+	if(F_SETFD > f_local) f_local = F_SETFD;
 #endif
 #ifndef F_SETFL
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_SETFL > f_local) f_local = F_SETFL;
+	if(F_SETFL > f_local) f_local = F_SETFL;
 #endif
 #ifndef F_SETLK
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_SETLK > f_local) f_local = F_SETLK;
+	if(F_SETLK > f_local) f_local = F_SETLK;
 #endif
 #ifndef F_SETLKW
-#define NEED_F	1
+#define NEED_F 1
 #else
-	if (F_SETLKW > f_local) f_local = F_SETLKW;
+	if(F_SETLKW > f_local) f_local = F_SETLKW;
 #endif
 #ifndef F_UNLCK
-#define NEED_F	1
-#define NEED_LCK	1
+#define NEED_F 1
+#define NEED_LCK 1
 #else
-	if (F_UNLCK > f_lck) f_lck = F_UNLCK;
+	if(F_UNLCK > f_lck) f_lck = F_UNLCK;
 #endif
 #ifndef F_WRLCK
-#define NEED_F	1
-#define NEED_LCK	1
+#define NEED_F 1
+#define NEED_LCK 1
 #else
-	if (F_WRLCK > f_lck) f_lck = F_WRLCK;
+	if(F_WRLCK > f_lck) f_lck = F_WRLCK;
 #endif
 
-#if	NEED_F
+#if NEED_F
 	printf("#define fcntl		_ast_fcntl\n");
-#if	_lib_fcntl
+#if _lib_fcntl
 	printf("#define _lib_fcntl	1\n");
 #endif
 	printf("#define _ast_F_LOCAL	%d\n", f_local + 1);
@@ -160,7 +159,7 @@ main(void)
 #ifndef F_SETLKW
 	printf("#define F_SETLKW	%d\n", ++f_local);
 #endif
-#if	NEED_LCK
+#if NEED_LCK
 	printf("\n");
 #ifndef F_RDLCK
 	printf("#define F_RDLCK		%d\n", f_lck++);
@@ -173,7 +172,7 @@ main(void)
 #endif
 #endif
 	printf("\n");
-	if (f_lck == 3)
+	if(f_lck == 3)
 	{
 		printf("struct flock\n");
 		printf("{\n");
@@ -194,52 +193,52 @@ main(void)
 #endif
 
 #ifndef O_APPEND
-#define NEED_O	1
+#define NEED_O 1
 #else
-	if (O_APPEND > o_local) o_local = O_APPEND;
+	if(O_APPEND > o_local) o_local = O_APPEND;
 #endif
 #ifndef O_CREAT
-#define NEED_O	1
+#define NEED_O 1
 #else
-	if (O_CREAT > o_local) o_local = O_CREAT;
+	if(O_CREAT > o_local) o_local = O_CREAT;
 #endif
 #ifndef O_EXCL
-#define NEED_O	1
+#define NEED_O 1
 #else
-	if (O_EXCL > o_local) o_local = O_EXCL;
+	if(O_EXCL > o_local) o_local = O_EXCL;
 #endif
 #ifndef O_NOCTTY
-#ifdef	TIOCNOTTY
-#define NEED_O	1
+#ifdef TIOCNOTTY
+#define NEED_O 1
 #endif
 #else
-	if (O_NOCTTY > o_local) o_local = O_NOCTTY;
+	if(O_NOCTTY > o_local) o_local = O_NOCTTY;
 #endif
 #ifndef O_NONBLOCK
 #ifndef O_NDELAY
-#define NEED_O	1
+#define NEED_O 1
 #endif
 #else
-	if (O_NONBLOCK > o_local) o_local = O_NONBLOCK;
+	if(O_NONBLOCK > o_local) o_local = O_NONBLOCK;
 #endif
 #ifndef O_RDONLY
-#define NEED_O	1
+#define NEED_O 1
 #endif
 #ifndef O_RDWR
-#define NEED_O	1
+#define NEED_O 1
 #endif
 #ifndef O_TRUNC
-#define NEED_O	1
+#define NEED_O 1
 #else
-	if (O_TRUNC > o_local) o_local = O_TRUNC;
+	if(O_TRUNC > o_local) o_local = O_TRUNC;
 #endif
 #ifndef O_WRONLY
-#define NEED_O	1
+#define NEED_O 1
 #endif
 
-#if	NEED_O
+#if NEED_O
 	printf("#define open			_ast_open\n");
-	printf("#define _ast_O_LOCAL		0%o\n", o_local<<1);
+	printf("#define _ast_O_LOCAL		0%o\n", o_local << 1);
 #ifndef O_RDONLY
 	printf("#define O_RDONLY		0\n");
 #endif
@@ -259,7 +258,7 @@ main(void)
 	printf("#define O_EXCL			0%o\n", o_local <<= 1);
 #endif
 #ifndef O_NOCTTY
-#ifdef	TIOCNOTTY
+#ifdef TIOCNOTTY
 	printf("#define O_NOCTTY		0%o\n", o_local <<= 1);
 #endif
 #endif
@@ -281,14 +280,14 @@ main(void)
 #endif
 #endif
 #ifndef O_NONBLOCK
-#ifdef	O_NDELAY
+#ifdef O_NDELAY
 	printf("#define O_NONBLOCK		O_NDELAY\n");
 #endif
 #endif
 #ifndef O_BINARY
 	printf("#define O_BINARY		0\n");
 #endif
-#ifdef	O_CLOEXEC
+#ifdef O_CLOEXEC
 	printf("#define O_cloexec		O_CLOEXEC\n");
 #else
 	printf("#define O_cloexec		0\n");
@@ -313,12 +312,12 @@ main(void)
 #ifndef O_TEXT
 	printf("#define O_TEXT			0\n");
 #endif
-#if	NEED_F || NEED_O
+#if NEED_F || NEED_O
 	printf("\n");
-#if	NEED_F
+#if NEED_F
 	printf("extern int	fcntl(int, int, ...);\n");
 #endif
-#if	NEED_O
+#if NEED_O
 	printf("extern int	open(const char*, int, ...);\n");
 #endif
 #endif

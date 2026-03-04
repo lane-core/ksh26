@@ -17,14 +17,14 @@
 *                                                                      *
 ***********************************************************************/
 #ifndef _ASOHDR_H
-#define _ASOHDR_H	1
+#define _ASOHDR_H 1
 
-#include	<ast.h>
-#include	<error.h>
-#include	<fnv.h>
-#include	"FEATURE/asometh"
-#include	"aso.h"
+#include <ast.h>
+#include <error.h>
+#include <fnv.h>
+#include "FEATURE/asometh"
+#include "aso.h"
 
-#define HASH(p,z)	((integralof(p)*FNV_MULT)%(z))
+#define HASH(p, z) ((integralof(p) * FNV_MULT) % (z))
 
 #endif

@@ -26,20 +26,20 @@
 #include <ast.h>
 #include <sig.h>
 
-#undef	_def_map_ast
+#undef _def_map_ast
 #include <ast_map.h>
 
 Sig_handler_t
 signal(int sig, Sig_handler_t fun)
 {
-	struct sigaction	na;
-	struct sigaction	oa;
-	int			unblock;
+	struct sigaction na;
+	struct sigaction oa;
+	int unblock;
 #ifdef SIGNO_MASK
-	unsigned int		flags;
+	unsigned int flags;
 #endif
 
-	if (sig < 0)
+	if(sig < 0)
 	{
 		sig = -sig;
 		unblock = 0;
@@ -53,28 +53,28 @@ signal(int sig, Sig_handler_t fun)
 	memzero(&na, sizeof(na));
 	na.sa_handler = fun;
 #if defined(SA_INTERRUPT) || defined(SA_RESTART)
-	switch (sig)
+	switch(sig)
 	{
 #if defined(SIGIO)
-	case SIGIO:
+		case SIGIO:
 #endif
-	case SIGTSTP:
-	case SIGTTIN:
-	case SIGTTOU:
+		case SIGTSTP:
+		case SIGTTIN:
+		case SIGTTOU:
 #if defined(SA_RESTART)
-		na.sa_flags = SA_RESTART;
+			na.sa_flags = SA_RESTART;
 #endif
-		break;
-	default:
+			break;
+		default:
 #if defined(SA_INTERRUPT)
-		na.sa_flags = SA_INTERRUPT;
+			na.sa_flags = SA_INTERRUPT;
 #endif
-		break;
+			break;
 	}
 #endif
-	if (sigaction(sig, &na, &oa))
+	if(sigaction(sig, &na, &oa))
 		return NULL;
-	if (unblock)
+	if(unblock)
 		sigunblock(sig);
 	return oa.sa_handler;
 }

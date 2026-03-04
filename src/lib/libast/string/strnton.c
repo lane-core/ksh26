@@ -20,10 +20,10 @@
  * strnton() implementation
  */
 
-#define S2I_function	strnton
-#define S2I_number	long
-#define S2I_unumber	unsigned long
-#define S2I_multiplier	1
-#define S2I_size	1
+#define S2I_function strnton
+#define S2I_number long
+#define S2I_unumber unsigned long
+#define S2I_multiplier 1
+#define S2I_size 1
 
 #include "strtoi.h"

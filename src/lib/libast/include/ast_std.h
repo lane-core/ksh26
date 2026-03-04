@@ -28,16 +28,16 @@
  */
 
 #ifndef _AST_STD_H
-#define _AST_STD_H		1
-#define _AST_STD_I		1
+#define _AST_STD_H 1
+#define _AST_STD_I 1
 
 #include <ast_standards.h>
 #include <ast_common.h>
 
 #if _BLD_ast
-#define _BLD_aso	1
-#define _BLD_cdt	1
-#define _BLD_sfio	1
+#define _BLD_aso 1
+#define _BLD_cdt 1
+#define _BLD_sfio 1
 #endif
 
 #include <ast_lib.h>
@@ -54,47 +54,47 @@
 
 struct lconv
 {
-	char*	decimal_point;
-	char*	thousands_sep;
-	char*	grouping;
-	char*	int_curr_symbol;
-	char*	currency_symbol;
-	char*	mon_decimal_point;
-	char*	mon_thousands_sep;
-	char*	mon_grouping;
-	char*	positive_sign;
-	char*	negative_sign;
-	char	int_frac_digits;
-	char	frac_digits;
-	char	p_cs_precedes;
-	char	p_sep_by_space;
-	char	n_cs_precedes;
-	char	n_sep_by_space;
-	char	p_sign_posn;
-	char	n_sign_posn;
+	char *decimal_point;
+	char *thousands_sep;
+	char *grouping;
+	char *int_curr_symbol;
+	char *currency_symbol;
+	char *mon_decimal_point;
+	char *mon_thousands_sep;
+	char *mon_grouping;
+	char *positive_sign;
+	char *negative_sign;
+	char int_frac_digits;
+	char frac_digits;
+	char p_cs_precedes;
+	char p_sep_by_space;
+	char n_cs_precedes;
+	char n_sep_by_space;
+	char p_sign_posn;
+	char n_sign_posn;
 };
 
 #endif
 
-#undef	getenv
-#define getenv		_ast_getenv
+#undef getenv
+#define getenv _ast_getenv
 
-#undef	setenviron
-#define setenviron	_ast_setenviron
+#undef setenviron
+#define setenviron _ast_setenviron
 
-extern char*		getenv(const char*);
+extern char *getenv(const char *);
 
-#undef	localeconv
-#define localeconv	_ast_localeconv
+#undef localeconv
+#define localeconv _ast_localeconv
 
-#undef	setlocale
-#define setlocale	_ast_setlocale
+#undef setlocale
+#define setlocale _ast_setlocale
 
-extern struct lconv*	localeconv(void);
-extern char*		setenviron(const char*);
-extern char*		setlocale(int, const char*);
+extern struct lconv *localeconv(void);
+extern char *setenviron(const char *);
+extern char *setlocale(int, const char *);
 
-#define AST_MESSAGE_SET		3	/* see <mc.h> mcindex()		*/
+#define AST_MESSAGE_SET 3 /* see <mc.h> mcindex()		*/
 
 /*
  * maintain this order when adding categories
@@ -103,78 +103,78 @@ extern char*		setlocale(int, const char*);
  * The initializers in port/lc.c must also be kept in sync with this
  */
 
-#define AST_LC_ALL		0
-#define AST_LC_COLLATE		1
-#define AST_LC_CTYPE		2
-#define AST_LC_MESSAGES		3
-#define AST_LC_MONETARY		4
-#define AST_LC_NUMERIC		5
-#define AST_LC_TIME		6
-#define AST_LC_IDENTIFICATION	7
-#define AST_LC_ADDRESS		8
-#define AST_LC_NAME		9
-#define AST_LC_TELEPHONE	10
-#define AST_LC_MEASUREMENT	11
-#define AST_LC_PAPER		12
-#define AST_LC_COUNT		13	/* number of preceding AST_LC_* defines */
-#define AST_LC_LANG		255
+#define AST_LC_ALL 0
+#define AST_LC_COLLATE 1
+#define AST_LC_CTYPE 2
+#define AST_LC_MESSAGES 3
+#define AST_LC_MONETARY 4
+#define AST_LC_NUMERIC 5
+#define AST_LC_TIME 6
+#define AST_LC_IDENTIFICATION 7
+#define AST_LC_ADDRESS 8
+#define AST_LC_NAME 9
+#define AST_LC_TELEPHONE 10
+#define AST_LC_MEASUREMENT 11
+#define AST_LC_PAPER 12
+#define AST_LC_COUNT 13 /* number of preceding AST_LC_* defines */
+#define AST_LC_LANG 255
 
 /* bit flags for ast.locale.set */
-#define AST_LC_internal		1
-#define AST_LC_7bit		(1 << 23)
+#define AST_LC_internal 1
+#define AST_LC_7bit (1 << 23)
 #if AST_NOMULTIBYTE
-#define AST_LC_utf8		0
+#define AST_LC_utf8 0
 #else
-#define AST_LC_utf8		(1 << 24)
+#define AST_LC_utf8 (1 << 24)
 #endif /* AST_NOMULTIBYTE */
-#define AST_LC_test		(1 << 25)
-#define AST_LC_setenv		(1 << 26)
-#define AST_LC_find		(1 << 27)
-#define AST_LC_debug		(1 << 28)
-#define AST_LC_setlocale	(1 << 29)
-#define AST_LC_translate	(1 << 30)
+#define AST_LC_test (1 << 25)
+#define AST_LC_setenv (1 << 26)
+#define AST_LC_find (1 << 27)
+#define AST_LC_debug (1 << 28)
+#define AST_LC_setlocale (1 << 29)
+#define AST_LC_translate (1 << 30)
 
 #ifndef LC_ALL
-#define LC_ALL			(-AST_LC_ALL)
+#define LC_ALL (-AST_LC_ALL)
 #endif
 #ifndef LC_COLLATE
-#define LC_COLLATE		(-AST_LC_COLLATE)
+#define LC_COLLATE (-AST_LC_COLLATE)
 #endif
 #ifndef LC_CTYPE
-#define LC_CTYPE		(-AST_LC_CTYPE)
+#define LC_CTYPE (-AST_LC_CTYPE)
 #endif
 #ifndef LC_MESSAGES
-#define LC_MESSAGES		(-AST_LC_MESSAGES)
+#define LC_MESSAGES (-AST_LC_MESSAGES)
 #endif
 #ifndef LC_MONETARY
-#define LC_MONETARY		(-AST_LC_MONETARY)
+#define LC_MONETARY (-AST_LC_MONETARY)
 #endif
 #ifndef LC_NUMERIC
-#define LC_NUMERIC		(-AST_LC_NUMERIC)
+#define LC_NUMERIC (-AST_LC_NUMERIC)
 #endif
 #ifndef LC_TIME
-#define LC_TIME			(-AST_LC_TIME)
+#define LC_TIME (-AST_LC_TIME)
 #endif
 #ifndef LC_ADDRESS
-#define LC_ADDRESS		(-AST_LC_ADDRESS)
+#define LC_ADDRESS (-AST_LC_ADDRESS)
 #endif
 #ifndef LC_IDENTIFICATION
-#define LC_IDENTIFICATION	(-AST_LC_IDENTIFICATION)
+#define LC_IDENTIFICATION (-AST_LC_IDENTIFICATION)
 #endif
 #ifndef LC_NAME
-#define LC_NAME			(-AST_LC_NAME)
+#define LC_NAME (-AST_LC_NAME)
 #endif
 #ifndef LC_TELEPHONE
-#define LC_TELEPHONE		(-AST_LC_TELEPHONE)
+#define LC_TELEPHONE (-AST_LC_TELEPHONE)
 #endif
 #ifndef LC_MEASUREMENT
-#define LC_MEASUREMENT		(-AST_LC_MEASUREMENT)
+#define LC_MEASUREMENT (-AST_LC_MEASUREMENT)
 #endif
 #ifndef LC_PAPER
-#define LC_PAPER		(-AST_LC_PAPER)
+#define LC_PAPER (-AST_LC_PAPER)
 #endif
 #ifndef LC_LANG
-#define LC_LANG			(-AST_LC_LANG)
+#define LC_LANG (-AST_LC_LANG)
 #endif
 
 /*
@@ -184,50 +184,50 @@ extern char*		setlocale(int, const char*);
  */
 typedef struct
 {
-	char		*id;
-	uint32_t	version;
-	uint32_t	env_serial;	/* increased by setenviron */
+	char *id;
+	uint32_t version;
+	uint32_t env_serial; /* increased by setenviron */
 
-	struct				/* ast.locale.* -- stuff set in setlocale.c */
+	struct /* ast.locale.* -- stuff set in setlocale.c */
 	{
-	int             (*collate)(const char*, const char*);     /* strcoll(3), an alternative, or strcmp(3) for no collation */
-	size_t		(*transform)(char*, const char*, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
-	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
-	uint32_t	serial;
-	uint32_t	set;		/* AST_LC_* bit flags (see above) */
-	}		locale;
+		int (*collate)(const char *, const char *);        /* strcoll(3), an alternative, or strcmp(3) for no collation */
+		size_t (*transform)(char *, const char *, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
+		void *uc2wc;                                       /* iconv descriptor for converting unicode to locale's wide char */
+		uint32_t serial;
+		uint32_t set; /* AST_LC_* bit flags (see above) */
+	} locale;
 
 #if !AST_NOMULTIBYTE
-	struct				/* ast.mb.* -- multibyte encoding/decoding state */
+	struct /* ast.mb.* -- multibyte encoding/decoding state */
 	{
-	int		cur_max;	/* current maximum length in bytes of a character: > 1 == multibyte locale */
-	uint32_t	sync;		/* length of invalid multibyte character */
-	wchar_t		tmp_w;		/* scratch */
-	int		tmp_i;		/* scratch */
-	int		(*alpha)(wchar_t);
-	int		(*conv)(char*, wchar_t);
-	int		(*len)(const char*, size_t);
-	int		(*towc)(wchar_t*, const char*, size_t);
-	int		(*width)(wchar_t);
-	}		mb;
+		int cur_max;   /* current maximum length in bytes of a character: > 1 == multibyte locale */
+		uint32_t sync; /* length of invalid multibyte character */
+		wchar_t tmp_w; /* scratch */
+		int tmp_i;     /* scratch */
+		int (*alpha)(wchar_t);
+		int (*conv)(char *, wchar_t);
+		int (*len)(const char *, size_t);
+		int (*towc)(wchar_t *, const char *, size_t);
+		int (*width)(wchar_t);
+	} mb;
 #endif
 } _Ast_info_t;
 
 /* ast is defined as _ast_info in ast.h */
-extern _Ast_info_t	_ast_info;
+extern _Ast_info_t _ast_info;
 
 /* direct macro access for bsd crossover */
 
 #if !defined(memzero) && !defined(_lib_memzero)
-#define memzero(b,n)	memset(b,0,n)
+#define memzero(b, n) memset(b, 0, n)
 #endif
 
 #if !defined(remove)
-extern int		remove(const char*);
+extern int remove(const char *);
 #endif
 
 #if !defined(rename)
-extern int		rename(const char*, const char*);
+extern int rename(const char *, const char *);
 #endif
 
 /*
@@ -237,10 +237,10 @@ extern int		rename(const char*, const char*);
 
 #include <ast_map.h>
 
-#undef	_AST_STD_I
+#undef _AST_STD_I
 
 #if _REGEX_H < 0
-#undef	_REGEX_H
+#undef _REGEX_H
 #include <regex.h>
 #endif
 

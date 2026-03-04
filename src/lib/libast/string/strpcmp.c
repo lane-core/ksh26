@@ -23,18 +23,17 @@
  * path prefix strcmp(3) -- longest first!
  */
 
-int
-strpcmp(const char* a, const char* b)
+int strpcmp(const char *a, const char *b)
 {
-	while (*a == *b)
+	while(*a == *b)
 	{
-		if (!*a++)
+		if(!*a++)
 			return 0;
 		b++;
 	}
-	if (*a == 0 && *b == '/')
+	if(*a == 0 && *b == '/')
 		return 1;
-	if (*a == '/' && *b == 0)
+	if(*a == '/' && *b == 0)
 		return -1;
 	return (a < b) ? -1 : 1;
 }

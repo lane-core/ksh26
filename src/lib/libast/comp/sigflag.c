@@ -27,14 +27,13 @@ NoN(sigflag)
 
 #include <sig.h>
 
-int
-sigflag(int sig, int flags, int set)
+int sigflag(int sig, int flags, int set)
 {
-	struct sigaction	sa;
+	struct sigaction sa;
 
-	if (sigaction(sig, NULL, &sa))
+	if(sigaction(sig, NULL, &sa))
 		return -1;
-	if (set)
+	if(set)
 		sa.sa_flags |= flags;
 	else
 		sa.sa_flags &= ~flags;

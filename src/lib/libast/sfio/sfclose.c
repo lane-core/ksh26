@@ -17,75 +17,83 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Close a stream. A file stream is synced before closing.
 **
 **	Written by Kiem-Phong Vo
 */
 
-int sfclose(Sfio_t* f)
+int sfclose(Sfio_t *f)
 {
-	int		local, ex, rv;
-	void*		data = NULL;
+	int local, ex, rv;
+	void *data = NULL;
 
 	if(!f)
 		return -1;
 
-	GETLOCAL(f,local);
+	GETLOCAL(f, local);
 
-	if(!(f->mode&SFIO_INIT) &&
-	   SFMODE(f,local) != (f->mode&SFIO_RDWR) &&
-	   SFMODE(f,local) != (f->mode&(SFIO_READ|SFIO_SYNCED)) &&
-	   _sfmode(f,SFIO_SYNCED,local) < 0)
+	if(!(f->mode & SFIO_INIT) &&
+	   SFMODE(f, local) != (f->mode & SFIO_RDWR) &&
+	   SFMODE(f, local) != (f->mode & (SFIO_READ | SFIO_SYNCED)) &&
+	   _sfmode(f, SFIO_SYNCED, local) < 0)
 		return -1;
 
 	/* closing a stack of streams */
 	while(f->push)
-	{	Sfio_t*	pop;
+	{
+		Sfio_t *pop;
 
-		if(!(pop = (*_Sfstack)(f,NULL)) )
+		if(!(pop = (*_Sfstack)(f, NULL)))
 			return -1;
 
 		if(sfclose(pop) < 0)
-		{	(*_Sfstack)(f,pop);
+		{
+			(*_Sfstack)(f, pop);
 			return -1;
 		}
 	}
 
 	rv = 0;
-	if(f->disc == _Sfudisc)	/* closing the ungetc stream */
+	if(f->disc == _Sfudisc) /* closing the ungetc stream */
 		f->disc = NULL;
-	else if(f->file >= 0)	/* sync file pointer */
-	{	f->bits |= SFIO_ENDING;
+	else if(f->file >= 0) /* sync file pointer */
+	{
+		f->bits |= SFIO_ENDING;
 		rv = sfsync(f);
 	}
 
-	SFLOCK(f,0);
+	SFLOCK(f, 0);
 
 	/* raise discipline exceptions */
-	if(f->disc && (ex = SFRAISE(f,local ? SFIO_NEW : SFIO_CLOSING,NULL)) != 0)
+	if(f->disc && (ex = SFRAISE(f, local ? SFIO_NEW : SFIO_CLOSING, NULL)) != 0)
 		return ex;
 
 	if(!local && f->pool)
-	{	/* remove from pool */
+	{ /* remove from pool */
 		if(f->pool == &_Sfpool)
-		{	int	n;
+		{
+			int n;
 
 			for(n = 0; n < _Sfpool.n_sf; ++n)
-			{	if(_Sfpool.sf[n] != f)
+			{
+				if(_Sfpool.sf[n] != f)
 					continue;
 				/* found it */
 				_Sfpool.n_sf -= 1;
 				for(; n < _Sfpool.n_sf; ++n)
-					_Sfpool.sf[n] = _Sfpool.sf[n+1];
+					_Sfpool.sf[n] = _Sfpool.sf[n + 1];
 				break;
 			}
 		}
 		else
-		{	f->mode &= ~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
-			if((*_Sfpmove)(f,-1) < 0)
-			{	SFOPEN(f,0);
+		{
+			f->mode &= ~SFIO_LOCK; /**/
+			ASSERT(_Sfpmove);
+			if((*_Sfpmove)(f, -1) < 0)
+			{
+				SFOPEN(f, 0);
 				return -1;
 			}
 			f->mode |= SFIO_LOCK;
@@ -93,14 +101,14 @@ int sfclose(Sfio_t* f)
 		f->pool = NULL;
 	}
 
-	if(f->data && (!local || (f->flags&SFIO_STRING) || (f->bits&SFIO_MMAP) ) )
-	{	/* free buffer */
+	if(f->data && (!local || (f->flags & SFIO_STRING) || (f->bits & SFIO_MMAP)))
+	{ /* free buffer */
 #ifdef MAP_TYPE
-		if(f->bits&SFIO_MMAP)
-			SFMUNMAP(f,f->data,f->endb-f->data);
+		if(f->bits & SFIO_MMAP)
+			SFMUNMAP(f, f->data, f->endb - f->data);
 		else
 #endif
-		if(f->flags&SFIO_MALLOC)
+		    if(f->flags & SFIO_MALLOC)
 			data = f->data;
 
 		f->data = NULL;
@@ -109,9 +117,10 @@ int sfclose(Sfio_t* f)
 
 	/* zap the file descriptor */
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SFIO_CLOSING, (void*)((long)f->file));
-	if(f->file >= 0 && !(f->flags&SFIO_STRING))
-	{	errno = 0;
+		(*_Sfnotify)(f, SFIO_CLOSING, (void *)((long)f->file));
+	if(f->file >= 0 && !(f->flags & SFIO_STRING))
+	{
+		errno = 0;
 		ast_close(f->file);
 		if(errno)
 			rv = -1;
@@ -126,7 +135,8 @@ int sfclose(Sfio_t* f)
 
 	/* zap any associated auxiliary buffer */
 	if(f->rsrv)
-	{	free(f->rsrv);
+	{
+		free(f->rsrv);
 		f->rsrv = NULL;
 	}
 
@@ -135,15 +145,18 @@ int sfclose(Sfio_t* f)
 		rv = _sfpclose(f);
 
 	if(!local)
-	{	if(f->disc && (ex = SFRAISE(f,SFIO_FINAL,NULL)) != 0 )
-		{	rv = ex;
+	{
+		if(f->disc && (ex = SFRAISE(f, SFIO_FINAL, NULL)) != 0)
+		{
+			rv = ex;
 			goto done;
 		}
 
-		if(!(f->flags&SFIO_STATIC) )
+		if(!(f->flags & SFIO_STATIC))
 			free(f);
 		else
-		{	f->disc = NULL;
+		{
+			f->disc = NULL;
 			f->stdio = NULL;
 			f->mode = SFIO_AVAIL;
 		}

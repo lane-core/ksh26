@@ -27,51 +27,51 @@
 #ifndef _STK_H
 #define _STK_H
 
-#include <stddef.h>	/* size_t */
-#include <sys/types.h>	/* ssize_t */
-#include <stdarg.h>	/* va_list */
+#include <stddef.h>    /* size_t */
+#include <sys/types.h> /* ssize_t */
+#include <stdarg.h>    /* va_list */
 
 typedef struct _stk_s
 {
-	unsigned char	*_data;
-	unsigned char	*_next;
-	unsigned char	*_endb;
+	unsigned char *_data;
+	unsigned char *_next;
+	unsigned char *_endb;
 } Stk_t;
 
-static_assert(sizeof(Stk_t) == 3 * sizeof(void*),
-	"Stk_t must be exactly 3 pointers");
+static_assert(sizeof(Stk_t) == 3 * sizeof(void *),
+              "Stk_t must be exactly 3 pointers");
 
-#define _Stk_data	_Stak_data
-#define stkstd		(&_Stk_data)
+#define _Stk_data _Stak_data
+#define stkstd (&_Stk_data)
 
 /* option bits for stkopen() */
-#define STK_SMALL	1		/* allocate small stack frames	*/
-#define STK_NULL	2		/* return NULL on overflow	*/
+#define STK_SMALL 1 /* allocate small stack frames	*/
+#define STK_NULL 2  /* return NULL on overflow	*/
 
-#define stkptr(sp,n)	((char*)((sp)->_data)+(n))
-#define stktop(sp)	((char*)(sp)->_next)
-#define stktell(sp)	((sp)->_next-(sp)->_data)
-#define stkseek(sp,n)	_stkseek(sp,n)
+#define stkptr(sp, n) ((char *)((sp)->_data) + (n))
+#define stktop(sp) ((char *)(sp)->_next)
+#define stktell(sp) ((sp)->_next - (sp)->_data)
+#define stkseek(sp, n) _stkseek(sp, n)
 
-extern Stk_t		_Stk_data;
+extern Stk_t _Stk_data;
 
-extern Stk_t*		stkopen(int);
-extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));
-extern void		stkoverflow(Stk_t*, void*(*)(size_t));
-extern int		stkclose(Stk_t*);
-extern unsigned int	stklink(Stk_t*);
-extern void*		stkalloc(Stk_t*, size_t);
-extern char*		stkcopy(Stk_t*, const char*);
-extern void*		stkset(Stk_t*, void*, size_t);
-extern void*		_stkseek(Stk_t*, ssize_t);
-extern void*		stkfreeze(Stk_t*, size_t);
+extern Stk_t *stkopen(int);
+extern Stk_t *stkinstall(Stk_t *, char *(*)(size_t));
+extern void stkoverflow(Stk_t *, void *(*)(size_t));
+extern int stkclose(Stk_t *);
+extern unsigned int stklink(Stk_t *);
+extern void *stkalloc(Stk_t *, size_t);
+extern char *stkcopy(Stk_t *, const char *);
+extern void *stkset(Stk_t *, void *, size_t);
+extern void *_stkseek(Stk_t *, ssize_t);
+extern void *stkfreeze(Stk_t *, size_t);
 
-extern int		stkputc(Stk_t*, int);
-extern ssize_t		stkputs(Stk_t*, const char*, int);
-extern ssize_t		stkwrite(Stk_t*, const void*, size_t);
-extern ssize_t		stknputc(Stk_t*, int, size_t);
-extern int		stkprintf(Stk_t*, const char*, ...)
-			__attribute__((format(__printf__, 2, 3)));
-extern int		stkvprintf(Stk_t*, const char*, va_list);
+extern int stkputc(Stk_t *, int);
+extern ssize_t stkputs(Stk_t *, const char *, int);
+extern ssize_t stkwrite(Stk_t *, const void *, size_t);
+extern ssize_t stknputc(Stk_t *, int, size_t);
+extern int stkprintf(Stk_t *, const char *, ...)
+    __attribute__((format(__printf__, 2, 3)));
+extern int stkvprintf(Stk_t *, const char *, va_list);
 
 #endif

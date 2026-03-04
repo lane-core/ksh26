@@ -28,33 +28,33 @@
  */
 
 Time_t
-tmxduration(const char* s, char** e)
+tmxduration(const char *s, char **e)
 {
-	Time_t		ns;
-	Time_t		ts;
-	Time_t		now;
-	char*		last;
-	char*		t;
-	char*		x;
-	ast_wbuf_t	wb = AST_WBUF_INIT;
-	int		i;
+	Time_t ns;
+	Time_t ts;
+	Time_t now;
+	char *last;
+	char *t;
+	char *x;
+	ast_wbuf_t wb = AST_WBUF_INIT;
+	int i;
 
 	now = TMX_NOW;
-	while (isspace(*s))
+	while(isspace(*s))
 		s++;
-	if (*s == 'P' || *s == 'p')
+	if(*s == 'P' || *s == 'p')
 		ns = tmxdate(s, &last, now) - now;
 	else
 	{
 		ns = strtod(s, &last) * TMX_RESOLUTION;
-		if (*last && ast_wbuf_open(&wb) == 0)
+		if(*last && ast_wbuf_open(&wb) == 0)
 		{
 			ast_wbuf_printf(&wb, "exact %s", s);
 			t = ast_wbuf_use(&wb);
 			ts = tmxdate(t, &x, now);
-			if ((i = x - t - 6) > (last - s))
+			if((i = x - t - 6) > (last - s))
 			{
-				last = (char*)s + i;
+				last = (char *)s + i;
 				ns = ts - now;
 			}
 			else
@@ -62,16 +62,16 @@ tmxduration(const char* s, char** e)
 				ast_wbuf_printf(&wb, "p%s", s);
 				t = ast_wbuf_use(&wb);
 				ts = tmxdate(t, &x, now);
-				if ((i = x - t - 1) > (last - s))
+				if((i = x - t - 1) > (last - s))
 				{
-					last = (char*)s + i;
+					last = (char *)s + i;
 					ns = ts - now;
 				}
 			}
 			ast_wbuf_close(&wb);
 		}
 	}
-	if (e)
+	if(e)
 		*e = last;
 	return ns;
 }

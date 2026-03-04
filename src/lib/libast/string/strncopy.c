@@ -25,18 +25,18 @@
  * pointer to the copied 0 returned
  */
 
-char*
-strncopy(char* t, const char* f, size_t n)
+char *
+strncopy(char *t, const char *f, size_t n)
 {
-	char*	e = t + n - 1;
+	char *e = t + n - 1;
 
 	do
 	{
-		if (t >= e)
+		if(t >= e)
 		{
 			*t = 0;
 			return t;
 		}
-	} while (*t++ = *f++);
+	} while(*t++ = *f++);
 	return t - 1;
 }

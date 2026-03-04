@@ -20,20 +20,20 @@
  *
  */
 
-#include	"shopt.h"
-#include	<ast.h>
-#include	<ast_wchar.h>
-#include	"defs.h"
-#include	"shtable.h"
-#include	"lexstates.h"
-#include	"national.h"
+#include "shopt.h"
+#include <ast.h>
+#include <ast_wchar.h>
+#include "defs.h"
+#include "shtable.h"
+#include "lexstates.h"
+#include "national.h"
 
 #if _hdr_wctype
-#   include <wctype.h>
+#include <wctype.h>
 #endif
 
 #if !_lib_iswprint && !defined(iswprint)
-#   define iswprint(c)		(((c)&~0377) || isprint(c))
+#define iswprint(c) (((c) & ~0377) || isprint(c))
 #endif
 
 /*
@@ -42,20 +42,20 @@
  *  This is only used for small tables and is used to save non-shareable memory
  *  NOTE: assumes tables are sorted by sh_name in ASCII order!
  */
-const Shtable_t *sh_locate(const char *sp,const Shtable_t *table,int size)
+const Shtable_t *sh_locate(const char *sp, const Shtable_t *table, int size)
 {
-	int			first;
-	const Shtable_t		*tp;
-	int			c;
-	static const Shtable_t	empty = {0,0};
-	if(sp==0 || (first= *sp)==0)
+	int first;
+	const Shtable_t *tp;
+	int c;
+	static const Shtable_t empty = {0, 0};
+	if(sp == 0 || (first = *sp) == 0)
 		return &empty;
-	tp=table;
+	tp = table;
 	while((c = *tp->sh_name) && c <= first)
 	{
-		if(first == c && strcmp(sp,tp->sh_name)==0)
+		if(first == c && strcmp(sp, tp->sh_name) == 0)
 			return tp;
-		tp = (Shtable_t*)((char*)tp+size);
+		tp = (Shtable_t *)((char *)tp + size);
 	}
 	return &empty;
 }
@@ -70,59 +70,59 @@ const Shtable_t *sh_locate(const char *sp,const Shtable_t *table,int size)
  *  Returns 0 if not found, -1 if multiple found (ambiguous), or the number of the option found.
  */
 
-#define sep(c)		((c)=='-'||(c)=='_')
+#define sep(c) ((c) == '-' || (c) == '_')
 
 int sh_lookopt(const char *sp, int *invert)
 {
-	int			first;
-	const Shtable_t		*tp;
-	int			c;
-	const char		*s, *t, *sw, *tw;
-	int			amb;
-	int			hit;
-	int			inv;
-	int			no;
-	if(sp==0)
+	int first;
+	const Shtable_t *tp;
+	int c;
+	const char *s, *t, *sw, *tw;
+	int amb;
+	int hit;
+	int inv;
+	int no;
+	if(sp == 0)
 		return 0;
-	if(*sp=='n' && *(sp+1)=='o' && (*(sp+2)!='t' || *(sp+3)!='i'))
+	if(*sp == 'n' && *(sp + 1) == 'o' && (*(sp + 2) != 't' || *(sp + 3) != 'i'))
 	{
-		sp+=2;
+		sp += 2;
 		if(sep(*sp))
 			sp++;
 		*invert = !*invert;
 	}
-	if((first= *sp)==0)
+	if((first = *sp) == 0)
 		return 0;
-	tp=shtab_options;
-	amb=hit=0;
+	tp = shtab_options;
+	amb = hit = 0;
 	for(;;)
 	{
-		t=tp->sh_name;
-		if(no = *t=='n' && *(t+1)=='o' && *(t+2)!='t')
-			t+=2;
-		if(!(c= *t))
+		t = tp->sh_name;
+		if(no = *t == 'n' && *(t + 1) == 'o' && *(t + 2) != 't')
+			t += 2;
+		if(!(c = *t))
 			break;
 		if(first == c)
 		{
-			if(strcmp(sp,t)==0)
+			if(strcmp(sp, t) == 0)
 			{
 				*invert ^= no;
 				return tp->sh_number;
 			}
-			s=sw=sp;
-			tw=t;
+			s = sw = sp;
+			tw = t;
 			for(;;)
 			{
-				if(!*s || *s=='=')
+				if(!*s || *s == '=')
 				{
-					if (*s == '=' && !strtol(s+1, NULL, 0))
+					if(*s == '=' && !strtol(s + 1, NULL, 0))
 						no = !no;
-					if (!*t)
+					if(!*t)
 					{
 						*invert ^= no;
 						return tp->sh_number;
 					}
-					if (hit || amb)
+					if(hit || amb)
 					{
 						hit = 0;
 						amb = 1;
@@ -140,16 +140,16 @@ int sh_lookopt(const char *sp, int *invert)
 					sw = ++s;
 				else if(sep(*t))
 					tw = ++t;
-				else if(*s==*t)
+				else if(*s == *t)
 				{
 					s++;
 					t++;
 				}
-				else if(s==sw && t==tw)
+				else if(s == sw && t == tw)
 					break;
 				else
 				{
-					if(t!=tw)
+					if(t != tw)
 					{
 						while(*t && !sep(*t))
 							t++;
@@ -157,12 +157,12 @@ int sh_lookopt(const char *sp, int *invert)
 							break;
 						tw = ++t;
 					}
-					while (s>sw && *s!=*t)
+					while(s > sw && *s != *t)
 						s--;
 				}
 			}
 		}
-		tp = (Shtable_t*)((char*)tp+sizeof(*shtab_options));
+		tp = (Shtable_t *)((char *)tp + sizeof(*shtab_options));
 	}
 	if(hit)
 		*invert ^= inv;
@@ -173,7 +173,7 @@ int sh_lookopt(const char *sp, int *invert)
  * look for the substring <oldsp> in <string> and replace with <newsp>
  * The new string is put on top of the stack
  */
-char *sh_substitute(const char *string,const char *oldsp,char *newsp)
+char *sh_substitute(const char *string, const char *oldsp, char *newsp)
 /*@
 	assume string!=NULL && oldsp!=NULL && newsp!=NULL;
 	return x satisfying x==NULL ||
@@ -183,15 +183,15 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 	const char *sp = string;
 	const char *cp;
 	const char *savesp = 0;
-	stkseek(sh.stk,0);
-	if(*sp==0)
+	stkseek(sh.stk, 0);
+	if(*sp == 0)
 		return NULL;
-	if(*(cp=oldsp) == 0)
+	if(*(cp = oldsp) == 0)
 		goto found;
 	do
 	{
-	/* skip to first character which matches start of oldsp */
-		while(*sp && (savesp==sp || *sp != *cp))
+		/* skip to first character which matches start of oldsp */
+		while(*sp && (savesp == sp || *sp != *cp))
 		{
 #if SHOPT_MULTIBYTE
 			/* skip a whole character at a time */
@@ -200,38 +200,37 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 				sp++;
 			while(c-- > 0)
 #endif /* SHOPT_MULTIBYTE */
-			stkputc(sh.stk,*sp++);
+				stkputc(sh.stk, *sp++);
 		}
 		if(*sp == 0)
 			return NULL;
 		savesp = sp;
-	        for(;*cp;cp++)
+		for(; *cp; cp++)
 		{
 			if(*cp != *sp++)
 				break;
 		}
-		if(*cp==0)
-		/* match found */
+		if(*cp == 0)
+			/* match found */
 			goto found;
 		sp = savesp;
 		cp = oldsp;
-	}
-	while(*sp);
+	} while(*sp);
 	return NULL;
 
 found:
 	/* copy new */
-	stkputs(sh.stk,newsp,-1);
+	stkputs(sh.stk, newsp, -1);
 	/* copy rest of string */
-	stkputs(sh.stk,sp,-1);
-	return stkfreeze(sh.stk,1);
+	stkputs(sh.stk, sp, -1);
+	return stkfreeze(sh.stk, 1);
 }
 
 /*
  * TRIM(sp)
  * Remove escape characters from characters in <sp> and eliminate quoted nulls.
  */
-void	sh_trim(char *sp)
+void sh_trim(char *sp)
 /*@
 	assume sp!=NULL;
 	promise strlen(in sp) <= in strlen(sp);
@@ -242,10 +241,10 @@ void	sh_trim(char *sp)
 	if(sp)
 	{
 		dp = sp;
-		while(c= *sp)
+		while(c = *sp)
 		{
 			int len;
-			if(mbwide() && (len=mbsize(sp))>1)
+			if(mbwide() && (len = mbsize(sp)) > 1)
 			{
 				memmove(dp, sp, len);
 				dp += len;
@@ -265,7 +264,7 @@ void	sh_trim(char *sp)
 /*
  * format string as a csv field
  */
-static char	*sh_fmtcsv(const char *string)
+static char *sh_fmtcsv(const char *string)
 {
 	const char *cp = string;
 	int c;
@@ -273,28 +272,29 @@ static char	*sh_fmtcsv(const char *string)
 	if(!cp)
 		return NULL;
 	offset = stktell(sh.stk);
-	while((c=mbchar(cp)),isaname(c));
-	if(c==0)
-		return (char*)string;
-	stkputc(sh.stk,'"');
-	stkwrite(sh.stk,string,cp-string);
-	if(c=='"')
-		stkputc(sh.stk,'"');
+	while((c = mbchar(cp)), isaname(c))
+		;
+	if(c == 0)
+		return (char *)string;
+	stkputc(sh.stk, '"');
+	stkwrite(sh.stk, string, cp - string);
+	if(c == '"')
+		stkputc(sh.stk, '"');
 	string = cp;
-	while(c=mbchar(cp))
+	while(c = mbchar(cp))
 	{
-		if(c=='"')
+		if(c == '"')
 		{
-			stkwrite(sh.stk,string,cp-string);
+			stkwrite(sh.stk, string, cp - string);
 			string = cp;
-			stkputc(sh.stk,'"');
+			stkputc(sh.stk, '"');
 		}
 	}
-	if(--cp>string)
-		stkwrite(sh.stk,string,cp-string);
-	stkputc(sh.stk,'"');
-	stkputc(sh.stk,0);
-	return stkptr(sh.stk,offset);
+	if(--cp > string)
+		stkwrite(sh.stk, string, cp - string);
+	stkputc(sh.stk, '"');
+	stkputc(sh.stk, 0);
+	return stkptr(sh.stk, offset);
 }
 
 /*
@@ -303,33 +303,33 @@ static char	*sh_fmtcsv(const char *string)
  * generally not possible as the OS-provided iswgraph(3) doesn't support that
  * locale. So do a quick test and do our best with a fallback if necessary.
  */
-static int	sh_isprint(int c)
+static int sh_isprint(int c)
 {
-	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
-		return isprint(c);			/* use plain isprint(3) */
-	else if(!(ast.locale.set & AST_LC_utf8))	/* not in UTF-8 locale? */
-		return iswgraph(c);			/* the test below would not be valid */
-	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
-		return iswgraph(c);			/* use iswgraph(3) */
-	else						/* fallback: */
-		return !(c <= 0x001F ||			/* control characters */
-			c >= 0x007F && c <= 0x009F ||	/* control characters */
-			c == 0x00A0 ||			/* non-breaking space */
-			c == 0x061C ||			/* arabic letter mark */
-			c == 0x1680 ||			/* ogham space mark */
-			c == 0x180E ||			/* mongolian vowel separator */
-			c >= 0x2000 && c <= 0x200F ||	/* spaces and format characters */
-			c >= 0x2028 && c <= 0x202F ||	/* separators and format characters */
-			c >= 0x205F && c <= 0x206F ||	/* various format characters */
-			c == 0x3000 ||			/* ideographic space */
-			c == 0xFEFF);			/* zero-width non-breaking space */
+	if(!mbwide() || c <= 127)                      /* not in multibyte locale, or multibyte but c is ASCII? */
+		return isprint(c);                     /* use plain isprint(3) */
+	else if(!(ast.locale.set & AST_LC_utf8))       /* not in UTF-8 locale? */
+		return iswgraph(c);                    /* the test below would not be valid */
+	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF)) /* can we use iswgraph(3)? */
+		return iswgraph(c);                    /* use iswgraph(3) */
+	else                                           /* fallback: */
+		return !(c <= 0x001F ||                /* control characters */
+		         c >= 0x007F && c <= 0x009F || /* control characters */
+		         c == 0x00A0 ||                /* non-breaking space */
+		         c == 0x061C ||                /* arabic letter mark */
+		         c == 0x1680 ||                /* ogham space mark */
+		         c == 0x180E ||                /* mongolian vowel separator */
+		         c >= 0x2000 && c <= 0x200F || /* spaces and format characters */
+		         c >= 0x2028 && c <= 0x202F || /* separators and format characters */
+		         c >= 0x205F && c <= 0x206F || /* various format characters */
+		         c == 0x3000 ||                /* ideographic space */
+		         c == 0xFEFF);                 /* zero-width non-breaking space */
 }
 
 /*
  * print <str> quoting chars so that it can be read by the shell
  * puts null-terminated result on stack, but doesn't freeze it
  */
-char	*sh_fmtq(const char *string)
+char *sh_fmtq(const char *string)
 {
 	const char *cp = string, *op;
 	int c, state;
@@ -337,114 +337,115 @@ char	*sh_fmtq(const char *string)
 	if(!cp)
 		return NULL;
 	offset = stktell(sh.stk);
-	state = ((c= mbchar(cp))==0);
-	if(isaletter(c) || c=='.')
+	state = ((c = mbchar(cp)) == 0);
+	if(isaletter(c) || c == '.')
 	{
-		while((c=mbchar(cp)), isaname(c) || c=='.')
+		while((c = mbchar(cp)), isaname(c) || c == '.')
 			;
-		if(c==0)
-			return (char*)string;
-		if(c=='=' || c=='+' && *cp=='=')
+		if(c == 0)
+			return (char *)string;
+		if(c == '=' || c == '+' && *cp == '=')
 		{
-			if(*cp==0)
-				return (char*)string;
-			if(*cp=='=')
+			if(*cp == 0)
+				return (char *)string;
+			if(*cp == '=')
 				cp++;
 			c = cp - string;
-			stkwrite(sh.stk,string,c);
+			stkwrite(sh.stk, string, c);
 			string = cp;
 			c = mbchar(cp);
 		}
 	}
-	if(c==0 || c=='#' || c=='~')
+	if(c == 0 || c == '#' || c == '~')
 		state = 1;
-	for(;c;c= mbchar(cp))
+	for(; c; c = mbchar(cp))
 	{
-		if(c=='\'' || !sh_isprint(c))
+		if(c == '\'' || !sh_isprint(c))
 			state = 2;
-		else if(c==']' || c=='=' || (c!=':' && c<=0x7f && (c=sh_lexstates[ST_NORM][c]) && c!=S_EPAT))
-			state |=1;
+		else if(c == ']' || c == '=' || (c != ':' && c <= 0x7f && (c = sh_lexstates[ST_NORM][c]) && c != S_EPAT))
+			state |= 1;
 	}
-	if(state<2)
+	if(state < 2)
 	{
-		if(state==1)
-			stkputc(sh.stk,'\'');
+		if(state == 1)
+			stkputc(sh.stk, '\'');
 		if(c = --cp - string)
-			stkwrite(sh.stk,string,c);
-		if(state==1)
-			stkputc(sh.stk,'\'');
+			stkwrite(sh.stk, string, c);
+		if(state == 1)
+			stkputc(sh.stk, '\'');
 	}
 	else
 	{
-		stkwrite(sh.stk,"$'",2);
+		stkwrite(sh.stk, "$'", 2);
 		cp = string;
-		while(op = cp, c= mbchar(cp))
+		while(op = cp, c = mbchar(cp))
 		{
-			state=1;
+			state = 1;
 			switch(c)
 			{
-			    case '\033':	/* ASCII ESC */
-				c = 'E';
-				break;
-			    case '\n':
-				c = 'n';
-				break;
-			    case '\r':
-				c = 'r';
-				break;
-			    case '\t':
-				c = 't';
-				break;
-			    case '\f':
-				c = 'f';
-				break;
-			    case '\b':
-				c = 'b';
-				break;
-			    case '\a':
-				c = 'a';
-				break;
-			    case '\\':	case '\'':
-				break;
-			    default:
-				if(mbwide())
-				{
-					/* We're in a multibyte locale */
-					if(c<0 || c<128 && !isprint(c))
+				case '\033': /* ASCII ESC */
+					c = 'E';
+					break;
+				case '\n':
+					c = 'n';
+					break;
+				case '\r':
+					c = 'r';
+					break;
+				case '\t':
+					c = 't';
+					break;
+				case '\f':
+					c = 'f';
+					break;
+				case '\b':
+					c = 'b';
+					break;
+				case '\a':
+					c = 'a';
+					break;
+				case '\\':
+				case '\'':
+					break;
+				default:
+					if(mbwide())
 					{
-						/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
-						c = *((unsigned char *)op);
-						cp = op+1;
-						goto quote_one_byte;
+						/* We're in a multibyte locale */
+						if(c < 0 || c < 128 && !isprint(c))
+						{
+							/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
+							c = *((unsigned char *)op);
+							cp = op + 1;
+							goto quote_one_byte;
+						}
+						if(!sh_isprint(c))
+						{
+							/* Unicode hex code */
+							stkprintf(sh.stk, "\\u[%x]", c);
+							continue;
+						}
 					}
-					if(!sh_isprint(c))
+					else if(!isprint(c))
 					{
-						/* Unicode hex code */
-						stkprintf(sh.stk,"\\u[%x]",c);
+					quote_one_byte:
+						stkprintf(sh.stk, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
 						continue;
 					}
-				}
-				else if(!isprint(c))
-				{
-				quote_one_byte:
-					stkprintf(sh.stk, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
-					continue;
-				}
-				state=0;
-				break;
+					state = 0;
+					break;
 			}
 			if(state)
 			{
-				stkputc(sh.stk,'\\');
-				stkputc(sh.stk,c);
+				stkputc(sh.stk, '\\');
+				stkputc(sh.stk, c);
 			}
 			else
-				stkwrite(sh.stk,op, cp-op);
+				stkwrite(sh.stk, op, cp - op);
 		}
-		stkputc(sh.stk,'\'');
+		stkputc(sh.stk, '\'');
 	}
-	stkputc(sh.stk,0);
-	return stkptr(sh.stk,offset);
+	stkputc(sh.stk, 0);
+	return stkptr(sh.stk, offset);
 }
 
 /*
@@ -454,7 +455,7 @@ char	*sh_fmtq(const char *string)
  * fold>0 prints raw newlines and inserts appropriately
  * escaped newlines every (fold-x) chars
  */
-char	*sh_fmtqf(const char *string, int single, int fold)
+char *sh_fmtqf(const char *string, int single, int fold)
 {
 	const char *cp = string;
 	const char *bp;
@@ -465,11 +466,11 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 	int a;
 	int offset;
 
-	if (--fold < 8)
+	if(--fold < 8)
 		fold = 0;
 	if(single)
 		return sh_fmtcsv(cp);
-	if (!cp || !*cp || !fold || fold && strlen(string) < fold)
+	if(!cp || !*cp || !fold || fold && strlen(string) < fold)
 		return sh_fmtq(cp);
 	offset = stktell(sh.stk);
 	single = single ? 1 : 3;
@@ -481,179 +482,179 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 		q = 0;
 		n = fold;
 		bp = cp;
-		while ((!n || n-- > 0) && (c = mbchar(cp)))
+		while((!n || n-- > 0) && (c = mbchar(cp)))
 		{
-			if (a && !isaname(c))
+			if(a && !isaname(c))
 				a = 0;
 #if SHOPT_MULTIBYTE
-			if (c >= 0x200)
+			if(c >= 0x200)
 				continue;
-			if (c == '\'' || !iswprint(c))
+			if(c == '\'' || !iswprint(c))
 #else
-			if (c == '\'' || !isprint(c))
+			if(c == '\'' || !isprint(c))
 #endif /* SHOPT_MULTIBYTE */
 			{
 				q = single;
 				break;
 			}
-			if (c == '\n')
+			if(c == '\n')
 				q = 1;
-			else if (c == a)
+			else if(c == a)
 			{
-				stkwrite(sh.stk,bp, cp - bp);
+				stkwrite(sh.stk, bp, cp - bp);
 				bp = cp;
 				vp = cp + 1;
 				a = 0;
 			}
-			else if ((c == '#' || c == '~') && cp == vp || c == ']' || c != ':' && (c = sh_lexstates[ST_NORM][c]) && c != S_EPAT)
+			else if((c == '#' || c == '~') && cp == vp || c == ']' || c != ':' && (c = sh_lexstates[ST_NORM][c]) && c != S_EPAT)
 				q = 1;
 		}
-		if (q & 2)
+		if(q & 2)
 		{
-			stkputc(sh.stk,'$');
-			stkputc(sh.stk,'\'');
+			stkputc(sh.stk, '$');
+			stkputc(sh.stk, '\'');
 			cp = bp;
 			n = fold - 3;
 			q = 1;
-			while (c = mbchar(cp))
+			while(c = mbchar(cp))
 			{
-				switch (c)
+				switch(c)
 				{
-		    		case '\033':		/* ASCII ESC */
-					c = 'E';
-					break;
-		    		case '\n':
-					q = 0;
-					n = fold - 1;
-					break;
-		    		case '\r':
-					c = 'r';
-					break;
-		    		case '\t':
-					c = 't';
-					break;
-		    		case '\f':
-					c = 'f';
-					break;
-		    		case '\b':
-					c = 'b';
-					break;
-		    		case '\a':
-					c = 'a';
-					break;
-		    		case '\\':
-					if (*cp == 'n')
-					{
-						c = '\n';
+					case '\033': /* ASCII ESC */
+						c = 'E';
+						break;
+					case '\n':
 						q = 0;
 						n = fold - 1;
 						break;
-					}
-				case '\'':
-					break;
-		    		default:
-#if SHOPT_MULTIBYTE
-					if(!iswprint(c))
-#else
-					if(!isprint(c))
-#endif
-					{
-						if ((n -= 4) <= 0)
+					case '\r':
+						c = 'r';
+						break;
+					case '\t':
+						c = 't';
+						break;
+					case '\f':
+						c = 'f';
+						break;
+					case '\b':
+						c = 'b';
+						break;
+					case '\a':
+						c = 'a';
+						break;
+					case '\\':
+						if(*cp == 'n')
 						{
-							stkwrite(sh.stk,"'\\\n$'", 5);
-							n = fold - 7;
+							c = '\n';
+							q = 0;
+							n = fold - 1;
+							break;
 						}
-						stkprintf(sh.stk, "\\%03o", c);
-						continue;
-					}
-					q = 0;
-					break;
+					case '\'':
+						break;
+					default:
+#if SHOPT_MULTIBYTE
+						if(!iswprint(c))
+#else
+						if(!isprint(c))
+#endif
+						{
+							if((n -= 4) <= 0)
+							{
+								stkwrite(sh.stk, "'\\\n$'", 5);
+								n = fold - 7;
+							}
+							stkprintf(sh.stk, "\\%03o", c);
+							continue;
+						}
+						q = 0;
+						break;
 				}
-				if ((n -= q + 1) <= 0)
+				if((n -= q + 1) <= 0)
 				{
-					if (!q)
+					if(!q)
 					{
-						stkputc(sh.stk,'\'');
+						stkputc(sh.stk, '\'');
 						cp = bp;
 						break;
 					}
-					stkwrite(sh.stk,"'\\\n$'", 5);
+					stkwrite(sh.stk, "'\\\n$'", 5);
 					n = fold - 5;
 				}
-				if (q)
-					stkputc(sh.stk,'\\');
+				if(q)
+					stkputc(sh.stk, '\\');
 				else
 					q = 1;
-				stkputc(sh.stk,c);
+				stkputc(sh.stk, c);
 				bp = cp;
 			}
-			if (!c)
-				stkputc(sh.stk,'\'');
+			if(!c)
+				stkputc(sh.stk, '\'');
 		}
-		else if (q & 1)
+		else if(q & 1)
 		{
-			stkputc(sh.stk,'\'');
+			stkputc(sh.stk, '\'');
 			cp = bp;
 			n = fold ? (fold - 2) : 0;
-			while (c = mbchar(cp))
+			while(c = mbchar(cp))
 			{
-				if (c == '\n')
+				if(c == '\n')
 					n = fold - 1;
-				else if (n && --n <= 0)
+				else if(n && --n <= 0)
 				{
 					n = fold - 2;
-					stkwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk, bp, --cp - bp);
 					bp = cp;
-					stkwrite(sh.stk,"'\\\n'", 4);
+					stkwrite(sh.stk, "'\\\n'", 4);
 				}
-				else if (n == 1 && *cp == '\'')
+				else if(n == 1 && *cp == '\'')
 				{
 					n = fold - 5;
-					stkwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk, bp, --cp - bp);
 					bp = cp;
-					stkwrite(sh.stk,"'\\\n\\''", 6);
+					stkwrite(sh.stk, "'\\\n\\''", 6);
 				}
-				else if (c == '\'')
+				else if(c == '\'')
 				{
-					stkwrite(sh.stk,bp, cp - bp - 1);
+					stkwrite(sh.stk, bp, cp - bp - 1);
 					bp = cp;
-					if (n && (n -= 4) <= 0)
+					if(n && (n -= 4) <= 0)
 					{
 						n = fold - 5;
-						stkwrite(sh.stk,"'\\\n\\''", 6);
+						stkwrite(sh.stk, "'\\\n\\''", 6);
 					}
 					else
-						stkwrite(sh.stk,"'\\''", 4);
+						stkwrite(sh.stk, "'\\''", 4);
 				}
 			}
-			stkwrite(sh.stk,bp, cp - bp - 1);
-			stkputc(sh.stk,'\'');
+			stkwrite(sh.stk, bp, cp - bp - 1);
+			stkputc(sh.stk, '\'');
 		}
-		else if (n = fold)
+		else if(n = fold)
 		{
 			cp = bp;
-			while (c = mbchar(cp))
+			while(c = mbchar(cp))
 			{
-				if (--n <= 0)
+				if(--n <= 0)
 				{
 					n = fold;
-					stkwrite(sh.stk,bp, --cp - bp);
+					stkwrite(sh.stk, bp, --cp - bp);
 					bp = cp;
-					stkwrite(sh.stk,"\\\n", 2);
+					stkwrite(sh.stk, "\\\n", 2);
 				}
 			}
-			stkwrite(sh.stk,bp, cp - bp - 1);
+			stkwrite(sh.stk, bp, cp - bp - 1);
 		}
 		else
-			stkwrite(sh.stk,bp, cp - bp);
-		if (c)
+			stkwrite(sh.stk, bp, cp - bp);
+		if(c)
 		{
-			stkputc(sh.stk,'\\');
-			stkputc(sh.stk,'\n');
+			stkputc(sh.stk, '\\');
+			stkputc(sh.stk, '\n');
 		}
-	} while (c);
-	stkputc(sh.stk,0);
-	return stkptr(sh.stk,offset);
+	} while(c);
+	stkputc(sh.stk, 0);
+	return stkptr(sh.stk, offset);
 }
 
 /*
@@ -670,15 +671,15 @@ int sh_strchr(const char *string, const char *dp)
 		d = mbchar(dp);
 		while(c = mbchar(cp))
 		{
-			if(c==d)
-				return cp-string;
+			if(c == d)
+				return cp - string;
 		}
-		if(d==0)
-			return cp-string;
+		if(d == 0)
+			return cp - string;
 		return -1;
 	}
-	cp = strchr(string,*dp);
-	return cp ? cp-string : -1;
+	cp = strchr(string, *dp);
+	return cp ? cp - string : -1;
 }
 
 /*
@@ -687,11 +688,11 @@ int sh_strchr(const char *string, const char *dp)
 int sh_strwidth(const char *s)
 {
 	int w = 0, c, n;
-	while (c = mbchar(s))
+	while(c = mbchar(s))
 	{
-		if (c < 0)				/* invalid multibyte character: count as 1 position */
+		if(c < 0) /* invalid multibyte character: count as 1 position */
 			w++;
-		else if ((n = mbwidth(c)) > 0)		/* don't count control characters (which yield -1) */
+		else if((n = mbwidth(c)) > 0) /* don't count control characters (which yield -1) */
 			w += n;
 	}
 	return w;
@@ -699,7 +700,7 @@ int sh_strwidth(const char *s)
 
 const char *_sh_translate(const char *message)
 {
-	return ERROR_translate(0,0,e_dict,message);
+	return ERROR_translate(0, 0, e_dict, message);
 }
 
 /*
@@ -709,12 +710,13 @@ const char *_sh_translate(const char *message)
  */
 char *sh_checkid(char *str, char *last)
 {
-	unsigned char *cp = (unsigned char*)str;
+	unsigned char *cp = (unsigned char *)str;
 	unsigned char *v = cp;
 	int c;
-	if(c=mbchar(cp),isaletter(c))
-		while(c=mbchar(cp),isaname(c));
-	if(c==']' && (!last || ((char*)cp==last)))
+	if(c = mbchar(cp), isaletter(c))
+		while(c = mbchar(cp), isaname(c))
+			;
+	if(c == ']' && (!last || ((char *)cp == last)))
 	{
 		/* eliminate [ and ] */
 		while(v < cp)
@@ -723,7 +725,7 @@ char *sh_checkid(char *str, char *last)
 			v++;
 		}
 		if(last)
-			last -=2;
+			last -= 2;
 		else
 		{
 			while(*v)
@@ -732,7 +734,7 @@ char *sh_checkid(char *str, char *last)
 				v++;
 			}
 			v[-2] = 0;
-			last = (char*)v;
+			last = (char *)v;
 		}
 	}
 	return last;

@@ -24,26 +24,26 @@
 #include <ast_nl_types.h>
 
 #if !_hdr_langinfo
-#undef	_lib_nl_langinfo
+#undef _lib_nl_langinfo
 #endif
 #if _lib_nl_langinfo
 #include <langinfo.h>
 #endif
 
-char*
+char *
 getcodeset(void)
 {
-	char	*s;
+	char *s;
 
-	if (ast.locale.set & AST_LC_utf8)
+	if(ast.locale.set & AST_LC_utf8)
 		return "UTF-8";
 #if _lib_nl_langinfo
 	s = nl_langinfo(CODESET);
 #else
-	if ((locales[AST_LC_CTYPE]->flags & LC_default) || (s = setlocale(LC_CTYPE, 0)) && (s = strchr(s, '.')) && !*++s)
+	if((locales[AST_LC_CTYPE]->flags & LC_default) || (s = setlocale(LC_CTYPE, 0)) && (s = strchr(s, '.')) && !*++s)
 		s = 0;
 #endif
-	if (!s || strmatch(s, "~(i)@(ansi*3.4*|?(us)*ascii|?(iso)*646*)"))
+	if(!s || strmatch(s, "~(i)@(ansi*3.4*|?(us)*ascii|?(iso)*646*)"))
 		return "US-ASCII";
 	return s;
 }

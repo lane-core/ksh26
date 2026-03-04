@@ -24,21 +24,21 @@
 #include <ast.h>
 #include <hashkey.h>
 
-long
-strkey(const char* s)
+long strkey(const char *s)
 {
-	long	x = 0;
-	int	n = 0;
-	int	c;
+	long x = 0;
+	int n = 0;
+	int c;
 
-	while (n++ < HASHKEYMAX)
+	while(n++ < HASHKEYMAX)
 	{
 		c = *s;
-		if (c >= 'a' && c <= 'z')
+		if(c >= 'a' && c <= 'z')
 			x = HASHKEYPART(x, c);
-		else if (c >= '0' && c <= '9')
+		else if(c >= '0' && c <= '9')
 			x = HASHKEYPART(x, HASHKEYN(c));
-		else break;
+		else
+			break;
 		s++;
 	}
 	return x;

@@ -32,22 +32,28 @@
  */
 
 static const short equiv[] =
-{
-	2006, 2012,
-	2001, 2024,
-	2002, 2008,
-	2003, 2020,
-	2009, 2004,
-	2010, 2016,
-	2005, 2000,
+    {
+        2006,
+        2012,
+        2001,
+        2024,
+        2002,
+        2008,
+        2003,
+        2020,
+        2009,
+        2004,
+        2010,
+        2016,
+        2005,
+        2000,
 };
 
 /*
  * return the circa 2000 equivalent calendar year for tm
  */
 
-int
-tmequiv(Tm_t* tm)
+int tmequiv(Tm_t *tm)
 {
 	return tm->tm_year < (2038 - 1900) ? (tm->tm_year + 1900) : equiv[tm->tm_wday + tmisleapyear(tm->tm_year)];
 }

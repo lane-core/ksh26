@@ -29,17 +29,17 @@
  * by naming this function '_ast_strdup' instead of 'strdup'.
  * https://bugzilla.redhat.com/1221766
  */
-extern char*
-_ast_strdup(const char* s)
+extern char *
+_ast_strdup(const char *s)
 {
-	char*	t;
-	size_t	n;
+	char *t;
+	size_t n;
 
-	if (s)
+	if(s)
 	{
 		n = strlen(s) + 1;
 		t = malloc(n);
-		if (t)
+		if(t)
 			return memcpy(t, s, n);
 	}
 	return NULL;

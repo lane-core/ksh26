@@ -26,16 +26,15 @@
  * ALSO: { 0 } definition required by some dynamic linkers averse to common symbols
  */
 
-Intercepts_t	intercepts
-		= { 0 };
+Intercepts_t intercepts = {0};
 
 /*
  * get name from the environment
  */
 
-extern char*
-getenv(const char* name)
+extern char *
+getenv(const char *name)
 {
-#undef	getenv
+#undef getenv
 	return intercepts.intercept_getenv ? (*intercepts.intercept_getenv)(name) : getenv(name);
 }

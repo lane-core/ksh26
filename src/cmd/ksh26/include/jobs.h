@@ -24,114 +24,115 @@
  *
  */
 
-#define JOBTTY	2
+#define JOBTTY 2
 
-#include	<ast.h>
-#include	"sh_io.h"
+#include <ast.h>
+#include "sh_io.h"
 #ifndef SIGINT
-#   include	<signal.h>
+#include <signal.h>
 #endif /* !SIGINT */
-#include	<aso.h>
-#include	"terminal.h"
+#include <aso.h>
+#include "terminal.h"
 
 #ifndef SIGCHLD
-#   error ksh 93u+m requires SIGCHLD
+#error ksh 93u+m requires SIGCHLD
 #endif
 
 struct process
 {
-	struct process *p_nxtjob;	/* next job structure */
-	struct process *p_nxtproc;	/* next process in current job */
-	int		*p_exitval;	/* place to store the exitval */
-	pid_t		p_pid;		/* process ID */
-	pid_t		p_pgrp;		/* process group */
-	pid_t		p_fgrp;		/* process group when stopped */
-	int		p_job;		/* job number of process */
-	unsigned short	p_exit;		/* exit value or signal number */
-	unsigned short	p_exitmin;	/* minimum exit value for xargs */
-	unsigned short	p_flag;		/* flags - see below */
-	unsigned int	p_env;		/* subshell environment number */
-	off_t		p_name;		/* history file offset for command */
-	struct termios	p_stty;		/* terminal state for job */
+	struct process *p_nxtjob;  /* next job structure */
+	struct process *p_nxtproc; /* next process in current job */
+	int *p_exitval;            /* place to store the exitval */
+	pid_t p_pid;               /* process ID */
+	pid_t p_pgrp;              /* process group */
+	pid_t p_fgrp;              /* process group when stopped */
+	int p_job;                 /* job number of process */
+	unsigned short p_exit;     /* exit value or signal number */
+	unsigned short p_exitmin;  /* minimum exit value for xargs */
+	unsigned short p_flag;     /* flags - see below */
+	unsigned int p_env;        /* subshell environment number */
+	off_t p_name;              /* history file offset for command */
+	struct termios p_stty;     /* terminal state for job */
 };
 
 struct jobs
 {
-	struct process	*pwlist;	/* head of process list */
-	int		*exitval;	/* pipe exit values */
-	pid_t		curpgid;	/* current process GID */
-	pid_t		parent;		/* set by fork() */
-	pid_t		mypid;		/* process ID of shell */
-	pid_t		mypgid;		/* process group ID of shell */
-	pid_t		mytgid;		/* terminal group ID of shell */
-	int		curjobid;
-	unsigned int	in_critical;	/* >0 => in critical region */
-	int		savesig;	/* active signal */
-	int		numpost;	/* number of posted jobs */
+	struct process *pwlist; /* head of process list */
+	int *exitval;           /* pipe exit values */
+	pid_t curpgid;          /* current process GID */
+	pid_t parent;           /* set by fork() */
+	pid_t mypid;            /* process ID of shell */
+	pid_t mypgid;           /* process group ID of shell */
+	pid_t mytgid;           /* terminal group ID of shell */
+	int curjobid;
+	unsigned int in_critical; /* >0 => in critical region */
+	int savesig;              /* active signal */
+	int numpost;              /* number of posted jobs */
 #if SHOPT_BGX
-	int		numbjob;	/* number of background jobs */
-#endif /* SHOPT_BGX */
-	short		fd;		/* tty descriptor number */
-	int		suspend;	/* suspend character */
-	char		jobcontrol;	/* turned on for interactive shell with control of terminal */
-	char		waitsafe;	/* wait will not block */
-	char		waitall;	/* wait for all jobs in pipe */
-	char		toclear;	/* job table needs clearing */
-	unsigned char	*freejobs;	/* free jobs numbers */
+	int numbjob;             /* number of background jobs */
+#endif                           /* SHOPT_BGX */
+	short fd;                /* tty descriptor number */
+	int suspend;             /* suspend character */
+	char jobcontrol;         /* turned on for interactive shell with control of terminal */
+	char waitsafe;           /* wait will not block */
+	char waitall;            /* wait for all jobs in pipe */
+	char toclear;            /* job table needs clearing */
+	unsigned char *freejobs; /* free jobs numbers */
 };
 
 /* flags for joblist */
-#define JOB_LFLAG	1
-#define JOB_NFLAG	2
-#define JOB_PFLAG	4
-#define JOB_NLFLAG	8
+#define JOB_LFLAG 1
+#define JOB_NFLAG 2
+#define JOB_PFLAG 4
+#define JOB_NLFLAG 8
 
 extern struct jobs job;
 
-#define job_lock()	asoincint(&job.in_critical)
-#define job_unlock()	\
-	do { \
-		int	_sig; \
-		if (asogetint(&job.in_critical) == 1 && (_sig = job.savesig)) \
-		    job_reap(_sig); \
-		asodecint(&job.in_critical); \
+#define job_lock() asoincint(&job.in_critical)
+#define job_unlock()                                                         \
+	do                                                                   \
+	{                                                                    \
+		int _sig;                                                    \
+		if(asogetint(&job.in_critical) == 1 && (_sig = job.savesig)) \
+			job_reap(_sig);                                      \
+		asodecint(&job.in_critical);                                 \
 	} while(0)
 
-extern const char	e_jobusage[];
-extern const char	e_done[];
-extern const char	e_running[];
-extern const char	e_coredump[];
-extern const char	e_no_proc[];
-extern const char	e_no_job[];
-extern const char	e_jobsrunning[];
-extern const char	e_nlspace[];
-extern const char	e_access[];
-extern const char	e_terminate[];
-extern const char	e_no_jctl[];
-extern const char	e_signo[];
-extern const char	e_no_start[];
+extern const char e_jobusage[];
+extern const char e_done[];
+extern const char e_running[];
+extern const char e_coredump[];
+extern const char e_no_proc[];
+extern const char e_no_job[];
+extern const char e_jobsrunning[];
+extern const char e_nlspace[];
+extern const char e_access[];
+extern const char e_terminate[];
+extern const char e_no_jctl[];
+extern const char e_signo[];
+extern const char e_no_start[];
 
 /*
  * The following are defined in jobs.c
  */
 
-extern void	job_clear(void);
-extern void	job_bwait(char**);
-extern int	job_walk(sh_stream_t*,int(*)(struct process*,int),int,char*[]);
-extern int	job_kill(struct process*,int);
-extern int	job_wait(pid_t);
-extern int	job_post(pid_t,pid_t);
-extern void	*job_subsave(void);
-extern void	job_subrestore(void*);
+extern void job_clear(void);
+extern void job_bwait(char **);
+extern int job_walk(sh_stream_t *, int (*)(struct process *, int), int, char *[]);
+extern int job_kill(struct process *, int);
+extern int job_wait(pid_t);
+extern int job_post(pid_t, pid_t);
+extern void *job_subsave(void);
+extern void job_subrestore(void *);
 #if SHOPT_BGX
-extern void	job_chldtrap(int);
+extern void job_chldtrap(int);
 #endif /* SHOPT_BGX */
-extern void	job_init(void);
-extern int	job_close(void);
-extern int	job_list(struct process*,int);
-extern int	job_hup(struct process *, int);
-extern int	job_switch(struct process*,int);
-extern void	job_fork(pid_t);
-extern int	job_reap(int);
+extern void job_init(void);
+extern int job_close(void);
+extern int job_list(struct process *, int);
+extern int job_hup(struct process *, int);
+extern int job_switch(struct process *, int);
+extern void job_fork(pid_t);
+extern int job_reap(int);
 
 #endif /* !JOB_NFLAG */

@@ -24,8 +24,8 @@
  * -ltaso intercepts asometh() to prepend ASO_THREAD methods
  */
 
-Asometh_t*
-asometh(int type, void* data)
+Asometh_t *
+asometh(int type, void *data)
 {
 	return _asometh(type, data);
 }

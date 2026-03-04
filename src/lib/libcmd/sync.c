@@ -23,50 +23,48 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: sync (AT&T Research) 2006-10-04 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?sync - schedule file system updates]"
-"[+DESCRIPTION?\bsync\b calls \bsync\b(2), which causes all information "
+    "[-?\n@(#)$Id: sync (AT&T Research) 2006-10-04 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?sync - schedule file system updates]"
+    "[+DESCRIPTION?\bsync\b calls \bsync\b(2), which causes all information "
     "in memory that updates file systems to be scheduled for writing out to "
     "all file systems. The writing, although scheduled, is not necessarily "
     "complete upon return from \bsync\b.]"
-"[+?Since \bsync\b(2) has no failure indication, \bsync\b only fails for "
+    "[+?Since \bsync\b(2) has no failure indication, \bsync\b only fails for "
     "option/operand syntax errors, or when \bsync\b(2) does not return, in "
     "which case \bsync\b also does not return.]"
-"[+?At minimum \bsync\b should be called before halting the system. Most "
+    "[+?At minimum \bsync\b should be called before halting the system. Most "
     "systems provide graceful shutdown procedures that include \bsync\b -- "
     "use them if possible.]"
-"[+EXIT STATUS?]"
+    "[+EXIT STATUS?]"
     "{"
-	"[+0?\bsync\b(2) returned.]"
-	"[+>0?Option/operand syntax error.]"
+    "[+0?\bsync\b(2) returned.]"
+    "[+>0?Option/operand syntax error.]"
     "}"
-"[+SEE ALSO?\bsync\b(2), \bshutdown\b(8)]"
-;
+    "[+SEE ALSO?\bsync\b(2), \bshutdown\b(8)]";
 
 #include <cmd.h>
 #include <ls.h>
 
-int
-b_sync(int argc, char** argv, Shbltin_t* context)
+int b_sync(int argc, char **argv, Shbltin_t *context)
 {
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				break;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (error_info.errors || *argv)
+	if(error_info.errors || *argv)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();

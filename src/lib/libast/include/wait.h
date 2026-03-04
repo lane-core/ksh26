@@ -26,24 +26,24 @@
 
 #include <ast.h>
 
-#define wait		______wait
-#define waitpid		______waitpid
+#define wait ______wait
+#define waitpid ______waitpid
 #include <sys/wait.h>
-#undef	wait
-#undef	waitpid
+#undef wait
+#undef waitpid
 
 /*
  * WCOREDUMP was added in POSIX Issue 8 (2024); AST always had WTERMCORE instead.
  */
 #ifndef WTERMCORE
-#  ifdef WCOREDUMP
-#    define WTERMCORE(x)	WCOREDUMP(x)
-#  else
-#    define WTERMCORE(x)	((x) & 128)
-#  endif
+#ifdef WCOREDUMP
+#define WTERMCORE(x) WCOREDUMP(x)
+#else
+#define WTERMCORE(x) ((x) & 128)
+#endif
 #endif
 
-extern pid_t		wait(int*);
-extern pid_t		waitpid(pid_t, int*, int);
+extern pid_t wait(int *);
+extern pid_t waitpid(pid_t, int *, int);
 
 #endif

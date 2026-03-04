@@ -27,19 +27,18 @@
 
 #include <ast.h>
 
-int
-struniq(char** argv, int n)
+int struniq(char **argv, int n)
 {
-	char**	ao;
-	char**	an;
-	char**	ae;
+	char **ao;
+	char **an;
+	char **ae;
 
 	ao = an = argv;
 	ae = ao + n;
-	while (++an < ae)
+	while(++an < ae)
 	{
-		while (streq(*ao, *an))
-			if (++an >= ae)
+		while(streq(*ao, *an))
+			if(++an >= ae)
 				return ao - argv + 1;
 		*++ao = *an;
 	}

@@ -41,50 +41,49 @@
 static void setup_child(pid_t pgid, int tcfd)
 {
 	sigcritical(0);
-	if (pgid == -1)
+	if(pgid == -1)
 		setsid();
-	else if (pgid)
+	else if(pgid)
 	{
-		if (pgid <= 1)
+		if(pgid <= 1)
 			pgid = getpid();
-		if (setpgid(0, pgid) < 0 && errno == EPERM)
+		if(setpgid(0, pgid) < 0 && errno == EPERM)
 			setpgid(pgid, 0);
 	}
-	if (tcfd >= 0)
+	if(tcfd >= 0)
 	{
-		if (pgid == -1)
+		if(pgid == -1)
 			pgid = getpid();
 		tcsetpgrp(tcfd, pgid);
-		signal(SIGTTIN,SIG_DFL);
-		signal(SIGTTOU,SIG_DFL);
-		signal(SIGTSTP,SIG_DFL);
+		signal(SIGTTIN, SIG_DFL);
+		signal(SIGTTOU, SIG_DFL);
+		signal(SIGTSTP, SIG_DFL);
 	}
 }
 
 static void fork_cleanup(pid_t pid, pid_t pgid, int err)
 {
 	sigcritical(0);
-	if (pid != -1 && pgid > 0)
+	if(pid != -1 && pgid > 0)
 	{
 		/*
 		 * parent and child are in a race here
 		 */
 
-		if (pgid == 1)
+		if(pgid == 1)
 			pgid = pid;
-		if (setpgid(pid, pgid) < 0 && pid != pgid && errno == EPERM)
+		if(setpgid(pid, pgid) < 0 && pid != pgid && errno == EPERM)
 			setpgid(pid, pid);
 	}
 	errno = err;
 }
 
-
 static noreturn void exit_child(void)
 {
-	if (errno == ENOENT)
+	if(errno == ENOENT)
 		_exit(EXIT_NOTFOUND);
 #ifdef ENAMETOOLONG
-	if (errno == ENAMETOOLONG)
+	if(errno == ENAMETOOLONG)
 		_exit(EXIT_NOTFOUND);
 #endif
 	_exit(EXIT_NOEXEC);
@@ -92,7 +91,7 @@ static noreturn void exit_child(void)
 
 #if _lib_clone
 #define _fast_spawnveg 1
-#define STACK_SIZE 1024*64
+#define STACK_SIZE 1024 * 64
 #include <sched.h>
 
 /*
@@ -128,55 +127,55 @@ static noreturn void exit_child(void)
 
 struct cargs
 {
-	const char	*path;
-	char		**argv;
-	char		**envv;
-	volatile int	err;
-	pid_t		pgid;
-	int		tcfd;
+	const char *path;
+	char **argv;
+	char **envv;
+	volatile int err;
+	pid_t pgid;
+	int tcfd;
 };
 
 static noreturn int exec_process(void *data)
 {
-	struct cargs *args = (struct cargs*)data;
+	struct cargs *args = (struct cargs *)data;
 	setup_child(args->pgid, args->tcfd);
 	execve(args->path, args->argv, args->envv);
 	args->err = errno;
 	exit_child();
 }
 
-pid_t
-spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
+pid_t spawnveg_fast(const char *path, char *const argv[], char *const envv[], pid_t pgid, int tcfd)
 {
-	pid_t		pid;
-	char		stack[STACK_SIZE];
-	struct cargs	args;
+	pid_t pid;
+	char stack[STACK_SIZE];
+	struct cargs args;
 #if defined(__MACHINE_STACK_GROWS_UP) || defined(__hppa__) || defined(__metag__)
-	void		*stack_top = stack;
+	void *stack_top = stack;
 #else
-	void		*stack_top = stack+STACK_SIZE;
+	void *stack_top = stack + STACK_SIZE;
 #endif
 
 	args.path = path;
-	args.argv = (char**)argv;
-	args.envv = (char**)(envv ? envv : environ);
+	args.argv = (char **)argv;
+	args.envv = (char **)(envv ? envv : environ);
 	args.err = 0;
 	args.pgid = pgid;
 	args.tcfd = tcfd;
-	sigcritical(SIG_REG_EXEC|SIG_REG_PROC|(tcfd>=0?SIG_REG_TERM:0));
-	pid = clone(exec_process, stack_top, CLONE_VM|CLONE_VFORK|SIGCHLD, &args);
-	if (pid == -1)
+	sigcritical(SIG_REG_EXEC | SIG_REG_PROC | (tcfd >= 0 ? SIG_REG_TERM : 0));
+	pid = clone(exec_process, stack_top, CLONE_VM | CLONE_VFORK | SIGCHLD, &args);
+	if(pid == -1)
 		args.err = errno;
-	else if (args.err)
+	else if(args.err)
 	{
-		while (waitpid(pid, NULL, 0) == -1 && errno == EINTR);
+		while(waitpid(pid, NULL, 0) == -1 && errno == EINTR)
+			;
 		pid = -1;
 	}
 	fork_cleanup(pid, pgid, args.err);
 	return pid;
 }
 
-#elif _lib_posix_spawn > 1	/* reports underlying exec() errors */
+#elif _lib_posix_spawn > 1 /* reports underlying exec() errors */
 #define _fast_spawnveg 1
 
 /*
@@ -187,54 +186,54 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 #include <spawn.h>
 
 static pid_t
-spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
+spawnveg_fast(const char *path, char *const argv[], char *const envv[], pid_t pgid, int tcfd)
 {
-	int				err;
-	short				flags = 0;
-	pid_t				pid;
-	posix_spawnattr_t		attr;
+	int err;
+	short flags = 0;
+	pid_t pid;
+	posix_spawnattr_t attr;
 	NOT_USED(tcfd);
 
-	if (err = posix_spawnattr_init(&attr))
+	if(err = posix_spawnattr_init(&attr))
 		goto nope;
 #ifdef POSIX_SPAWN_SETSID
-	if (pgid == -1)
+	if(pgid == -1)
 		flags |= POSIX_SPAWN_SETSID;
 #endif
-	if (pgid && pgid != -1)
+	if(pgid && pgid != -1)
 		flags |= POSIX_SPAWN_SETPGROUP;
-	if (flags && (err = posix_spawnattr_setflags(&attr, flags)))
+	if(flags && (err = posix_spawnattr_setflags(&attr, flags)))
 		goto bad;
-	if (pgid && pgid != -1)
+	if(pgid && pgid != -1)
 	{
-		if (pgid <= 1)
+		if(pgid <= 1)
 			pgid = 0;
-		if (err = posix_spawnattr_setpgroup(&attr, pgid))
+		if(err = posix_spawnattr_setpgroup(&attr, pgid))
 			goto bad;
 	}
-	if (err = posix_spawn(&pid, path, NULL, &attr, argv, envv ? envv : environ))
+	if(err = posix_spawn(&pid, path, NULL, &attr, argv, envv ? envv : environ))
 	{
-		if ((err != EPERM) || (err = posix_spawn(&pid, path, NULL, NULL, argv, envv ? envv : environ)))
+		if((err != EPERM) || (err = posix_spawn(&pid, path, NULL, NULL, argv, envv ? envv : environ)))
 			goto bad;
 	}
 	posix_spawnattr_destroy(&attr);
 	return pid;
 	/* cleanup for different fail states */
- bad:
+bad:
 	posix_spawnattr_destroy(&attr);
- nope:
+nope:
 	errno = err;
 	return -1;
 }
 
 #else
 #define _fast_spawnveg 0
-#endif  /* _lib_posix_spawn */
+#endif /* _lib_posix_spawn */
 
 #if !_lib_clone
 
 #if _lib_pipe2 && O_cloexec
-#define pipe(a)  pipe2(a,O_cloexec)
+#define pipe(a) pipe2(a, O_cloexec)
 #endif
 
 /*
@@ -242,17 +241,17 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
  */
 
 static pid_t
-spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
+spawnveg_slow(const char *path, char *const argv[], char *const envv[], pid_t pgid, int tcfd)
 {
-	int			n;
-	int			m;
-	pid_t			pid;
-	int			err[2];
+	int n;
+	int m;
+	pid_t pid;
+	int err[2];
 
-	if (!envv)
+	if(!envv)
 		envv = environ;
 	n = errno;
-	if (pipe(err) < 0)
+	if(pipe(err) < 0)
 		err[0] = -1;
 #if !(_lib_pipe2 && O_cloexec)
 	else
@@ -261,36 +260,37 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 		fcntl(err[1], F_SETFD, FD_CLOEXEC);
 	}
 #endif
-	sigcritical(SIG_REG_EXEC|SIG_REG_PROC|(tcfd>=0?SIG_REG_TERM:0));
+	sigcritical(SIG_REG_EXEC | SIG_REG_PROC | (tcfd >= 0 ? SIG_REG_TERM : 0));
 	pid = fork();
-	if (pid == -1)
+	if(pid == -1)
 		n = errno;
-	else if (!pid)
+	else if(!pid)
 	{
 		setup_child(pgid, tcfd);
 		execve(path, argv, envv);
-		if (err[0] != -1)
+		if(err[0] != -1)
 		{
 			m = errno;
 			write(err[1], &m, sizeof(m));
 		}
 		exit_child();
 	}
-	if (err[0] != -1)
+	if(err[0] != -1)
 	{
 		ast_close(err[1]);
-		if (pid != -1)
+		if(pid != -1)
 		{
 			m = 0;
-			while (read(err[0], &m, sizeof(m)) == -1)
-				if (errno != EINTR)
+			while(read(err[0], &m, sizeof(m)) == -1)
+				if(errno != EINTR)
 				{
 					m = errno;
 					break;
 				}
-			if (m)
+			if(m)
 			{
-				while (waitpid(pid, &n, 0) && errno == EINTR);
+				while(waitpid(pid, &n, 0) && errno == EINTR)
+					;
 				pid = -1;
 				n = m;
 			}
@@ -303,15 +303,14 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 
 #endif /* !_lib_clone */
 
-pid_t
-spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
+pid_t spawnveg(const char *path, char *const argv[], char *const envv[], pid_t pgid, int tcfd)
 {
 #if !_lib_clone
-	if (tcfd >= 0)
+	if(tcfd >= 0)
 		return spawnveg_slow(path, argv, envv, pgid, tcfd);
 #endif
 #if !_lib_clone && !defined(POSIX_SPAWN_SETSID)
-	if (pgid == -1)
+	if(pgid == -1)
 		return spawnveg_slow(path, argv, envv, pgid, tcfd);
 #endif
 #if _fast_spawnveg

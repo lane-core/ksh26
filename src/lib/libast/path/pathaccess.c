@@ -28,38 +28,38 @@
  * path returned in path buffer
  */
 
-#define _AST_API_H	1
+#define _AST_API_H 1
 
 #include <ast.h>
 
-char*
-pathaccess(char* path, const char* dirs, const char* a, const char* b, int mode)
+char *
+pathaccess(char *path, const char *dirs, const char *a, const char *b, int mode)
 {
 	return pathaccess_20100601(dirs, a, b, mode, path, PATH_MAX);
 }
 
-#undef	_AST_API_H
+#undef _AST_API_H
 
 #include <ast_api.h>
 
-char*
-pathaccess_20100601(const char* dirs, const char* a, const char* b, int mode, char* path, size_t size)
+char *
+pathaccess_20100601(const char *dirs, const char *a, const char *b, int mode, char *path, size_t size)
 {
-	int		sib = a && a[0] == '.' && a[1] == '.' && a[2] == 0;
-	int		sep = ':';
-	char		cwd[PATH_MAX];
+	int sib = a && a[0] == '.' && a[1] == '.' && a[2] == 0;
+	int sep = ':';
+	char cwd[PATH_MAX];
 
 	do
 	{
 		dirs = pathcat(dirs, sep, a, b, path, size);
 		pathcanon(path, size, 0);
-		if ((!sib || *path == '/') && pathexists(path, mode))
+		if((!sib || *path == '/') && pathexists(path, mode))
 		{
-			if (*path == '/' || !(mode & PATH_ABSOLUTE))
+			if(*path == '/' || !(mode & PATH_ABSOLUTE))
 				return path;
 			dirs = getcwd(cwd, sizeof(cwd));
 			sep = 0;
 		}
-	} while (dirs);
+	} while(dirs);
 	return NULL;
 }

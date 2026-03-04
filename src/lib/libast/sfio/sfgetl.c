@@ -16,44 +16,47 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Read a long value coded in a portable format.
 **
 **	Written by Kiem-Phong Vo
 */
 
-Sflong_t sfgetl(Sfio_t* f)
+Sflong_t sfgetl(Sfio_t *f)
 {
-	Sflong_t	v;
-	uchar		*s, *ends, c;
-	int		p;
+	Sflong_t v;
+	uchar *s, *ends, c;
+	int p;
 
-	if(!f || (f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0))
+	if(!f || (f->mode != SFIO_READ && _sfmode(f, SFIO_READ, 0) < 0))
 		return (Sflong_t)(-1);
-	SFLOCK(f,0);
+	SFLOCK(f, 0);
 
 	for(v = 0;;)
-	{	if(SFRPEEK(f,s,p) <= 0)
-		{	f->flags |= SFIO_ERROR;
+	{
+		if(SFRPEEK(f, s, p) <= 0)
+		{
+			f->flags |= SFIO_ERROR;
 			v = (Sflong_t)(-1);
 			goto done;
 		}
-		for(ends = s+p; s < ends;)
-		{	c = *s++;
-			if(c&SFIO_MORE)
+		for(ends = s + p; s < ends;)
+		{
+			c = *s++;
+			if(c & SFIO_MORE)
 				v = ((Sfulong_t)v << SFIO_UBITS) | SFUVALUE(c);
 			else
-			{	/* special translation for this byte */
+			{ /* special translation for this byte */
 				v = ((Sfulong_t)v << SFIO_SBITS) | SFSVALUE(c);
 				f->next = s;
-				v = (c&SFIO_SIGN) ? -v-1 : v;
+				v = (c & SFIO_SIGN) ? -v - 1 : v;
 				goto done;
 			}
 		}
 		f->next = s;
 	}
-done :
-	SFOPEN(f,0);
+done:
+	SFOPEN(f, 0);
 	return v;
 }

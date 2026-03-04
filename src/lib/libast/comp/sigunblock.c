@@ -32,18 +32,18 @@
  * s==0 unblocks them all
  */
 
-int
-sigunblock(int s)
+int sigunblock(int s)
 {
-	int		op;
-	sigset_t	mask;
+	int op;
+	sigset_t mask;
 
 	sigemptyset(&mask);
-	if (s)
+	if(s)
 	{
 		sigaddset(&mask, s);
 		op = SIG_UNBLOCK;
 	}
-	else op = SIG_SETMASK;
+	else
+		op = SIG_SETMASK;
 	return sigprocmask(op, &mask, NULL);
 }

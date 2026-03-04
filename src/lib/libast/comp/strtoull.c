@@ -21,20 +21,20 @@
  * strtoull() implementation
  */
 
-#define strtoull	______strtoull
+#define strtoull ______strtoull
 
 #include <ast.h>
 
-#undef	strtoull
+#undef strtoull
 
-#undef	_def_map_ast
+#undef _def_map_ast
 
 #include <ast_map.h>
 
-#define S2I_function	strtoull
-#define S2I_number	intmax_t
-#define S2I_unumber	uintmax_t
-#define S2I_unsigned	1
+#define S2I_function strtoull
+#define S2I_number intmax_t
+#define S2I_unumber uintmax_t
+#define S2I_unsigned 1
 
 /* on macOS arm64, long == long long, causing a false-positive "incompatible library declaration" warning on clang */
 #if _ast_intmax_long && __clang__

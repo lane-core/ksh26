@@ -16,42 +16,45 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 /*	Read a portably coded double value
 **
 **	Written by Kiem-Phong Vo
 */
 
-Sfdouble_t sfgetd(Sfio_t* f)
+Sfdouble_t sfgetd(Sfio_t *f)
 {
-	uchar		*s, *ends, c;
-	int		p, sign, exp;
-	Sfdouble_t	v;
+	uchar *s, *ends, c;
+	int p, sign, exp;
+	Sfdouble_t v;
 
 	if(!f || (sign = sfgetc(f)) < 0 || (exp = (int)sfgetu(f)) < 0)
 		return -1.;
 
-	if(f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0)
+	if(f->mode != SFIO_READ && _sfmode(f, SFIO_READ, 0) < 0)
 		return -1.;
 
-	SFLOCK(f,0);
+	SFLOCK(f, 0);
 
 	v = 0.;
 	for(;;)
-	{	/* fast read for data */
-		if(SFRPEEK(f,s,p) <= 0)
-		{	f->flags |= SFIO_ERROR;
+	{ /* fast read for data */
+		if(SFRPEEK(f, s, p) <= 0)
+		{
+			f->flags |= SFIO_ERROR;
 			v = -1.;
 			goto done;
 		}
 
-		for(ends = s+p; s < ends; )
-		{	c = *s++;
+		for(ends = s + p; s < ends;)
+		{
+			c = *s++;
 			v += SFUVALUE(c);
-			v = ldexpl(v,-SFIO_PRECIS);
-			if(!(c&SFIO_MORE))
-			{	f->next = s;
+			v = ldexpl(v, -SFIO_PRECIS);
+			if(!(c & SFIO_MORE))
+			{
+				f->next = s;
 				goto done;
 			}
 		}
@@ -59,10 +62,10 @@ Sfdouble_t sfgetd(Sfio_t* f)
 	}
 
 done:
-	v = ldexpl(v,(sign&02) ? -exp : exp);
-	if(sign&01)
+	v = ldexpl(v, (sign & 02) ? -exp : exp);
+	if(sign & 01)
 		v = -v;
 
-	SFOPEN(f,0);
+	SFOPEN(f, 0);
 	return v;
 }

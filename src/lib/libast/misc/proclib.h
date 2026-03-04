@@ -33,21 +33,21 @@
 
 struct Mods_s;
 
-#define _PROC_PRIVATE_ \
-	struct Mod_s*	mods;		/* process modification state	*/ \
-	long		flags;		/* original PROC_* flags	*/ \
-	sigset_t	mask;		/* original blocked sig mask	*/ \
-	Sig_handler_t	sigint;		/* PROC_FOREGROUND SIG_IGN	*/ \
-	Sig_handler_t	sigquit;	/* PROC_FOREGROUND SIG_IGN	*/
+#define _PROC_PRIVATE_                                          \
+	struct Mod_s *mods;    /* process modification state	*/ \
+	long flags;            /* original PROC_* flags	*/      \
+	sigset_t mask;         /* original blocked sig mask	*/  \
+	Sig_handler_t sigint;  /* PROC_FOREGROUND SIG_IGN	*/    \
+	Sig_handler_t sigquit; /* PROC_FOREGROUND SIG_IGN	*/
 
 #include <proc.h>
 
-#define proc_default	_proc_info_	/* hide external symbol		*/
+#define proc_default _proc_info_ /* hide external symbol		*/
 
-extern Proc_t		proc_default;	/* first proc			*/
+extern Proc_t proc_default; /* first proc			*/
 
 #ifndef errno
-extern int		errno;
+extern int errno;
 #endif
 
 #endif

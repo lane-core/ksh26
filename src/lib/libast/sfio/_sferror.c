@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sferror
 
-int sferror(Sfio_t* f)
+int sferror(Sfio_t *f)
 {
 	return __sf_error(f);
 }

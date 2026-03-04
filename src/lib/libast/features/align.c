@@ -32,44 +32,43 @@
 
 union _u_
 {
-	long			u1;
-	char*			u2;
-	double			u3;
-	char			u4[1024];
-	intmax_t		u5;
-	uintmax_t		u6;
-	_ast_fltmax_t		u7;
-	void*			u8;
-	char*			(*u9)();
-	jmp_buf			u10;
+	long u1;
+	char *u2;
+	double u3;
+	char u4[1024];
+	intmax_t u5;
+	uintmax_t u6;
+	_ast_fltmax_t u7;
+	void *u8;
+	char *(*u9)();
+	jmp_buf u10;
 };
 
 struct _s_
 {
-	char		s1;
-	union _u_	s2;
+	char s1;
+	union _u_ s2;
 };
 
-#define roundof(x,y)	(((x)+((y)-1))&~((y)-1))
+#define roundof(x, y) (((x) + ((y) - 1)) & ~((y) - 1))
 
-static union _u_	u;
-static union _u_	v;
+static union _u_ u;
+static union _u_ v;
 
-int
-main(void)
+int main(void)
 {
-	int		i;
-	int		j;
-	int		k;
+	int i;
+	int j;
+	int k;
 
-	int		align0;
-	int		align1;
-	int		align2;
-	unsigned long	bit1;
-	unsigned long	bit2;
-	unsigned long	bits0;
-	unsigned long	bits1;
-	unsigned long	bits2;
+	int align0;
+	int align1;
+	int align2;
+	unsigned long bit1;
+	unsigned long bit2;
+	unsigned long bits0;
+	unsigned long bits1;
+	unsigned long bits2;
 
 	u.u2 = u.u4;
 	v.u2 = u.u2 + 1;
@@ -79,16 +78,16 @@ main(void)
 	align0 = sizeof(struct _s_) - sizeof(union _u_);
 	bits0 = 0;
 	k = 0;
-	for (j = 0; j < align0; j++)
+	for(j = 0; j < align0; j++)
 	{
 		u.u2 = u.u4 + j;
 		bits1 = 0;
-		for (i = 0; i < align0; i++)
+		for(i = 0; i < align0; i++)
 		{
 			v.u2 = u.u2 + i;
 			bits1 |= u.u1 ^ v.u1;
 		}
-		if (!bits0 || bits1 < bits0)
+		if(!bits0 || bits1 < bits0)
 		{
 			bits0 = bits1;
 			k = j;
@@ -96,34 +95,34 @@ main(void)
 	}
 	align1 = roundof(align0, 2);
 	u.u2 = u.u4 + k;
-	for (bits1 = bits0; i < align1; i++)
+	for(bits1 = bits0; i < align1; i++)
 	{
 		v.u2 = u.u2 + i;
 		bits1 |= u.u1 ^ v.u1;
 	}
 	align2 = roundof(align0, 4);
-	for (bits2 = bits1; i < align2; i++)
+	for(bits2 = bits1; i < align2; i++)
 	{
 		v.u2 = u.u2 + i;
 		bits2 |= u.u1 ^ v.u1;
 	}
 	printf("\n");
-	printf("#define ALIGN_CHUNK		%d\n", sizeof(char*) >= 4 ? 8192 : 1024);
+	printf("#define ALIGN_CHUNK		%d\n", sizeof(char *) >= 4 ? 8192 : 1024);
 	printf("#define ALIGN_INTEGRAL		uintptr_t\n");
 	printf("#define ALIGN_INTEGER(x)	((intptr_t)(x))\n");
 	printf("#define ALIGN_POINTER(x)	((char*)(x))\n");
-	if (bits2 == (align2 - 1))
+	if(bits2 == (align2 - 1))
 		printf("#define ALIGN_ROUND(x,y)	ALIGN_POINTER(ALIGN_INTEGER((x)+(y)-1)&~((y)-1))\n");
 	else
 		printf("#define ALIGN_ROUND(x,y)	ALIGN_POINTER(ALIGN_INTEGER(ALIGN_ALIGN(x)+(((y)+%d)/%d)-1)&~((((y)+%d)/%d)-1))\n", align0, align0, align0, align0);
 	printf("\n");
-	if (align0 == align2)
+	if(align0 == align2)
 	{
 		printf("#define ALIGN_BOUND		ALIGN_BOUND2\n");
 		printf("#define ALIGN_ALIGN(x)		ALIGN_ALIGN2(x)\n");
 		printf("#define ALIGN_TRUNC(x)		ALIGN_TRUNC2(x)\n");
 	}
-	else if (align0 == align1)
+	else if(align0 == align1)
 	{
 		printf("#define ALIGN_BOUND		ALIGN_BOUND1\n");
 		printf("#define ALIGN_ALIGN(x)		ALIGN_ALIGN1(x)\n");
@@ -137,7 +136,7 @@ main(void)
 	}
 	printf("\n");
 	printf("#define ALIGN_BIT1		0x%lx\n", bit1);
-	if (align1 == align2)
+	if(align1 == align2)
 	{
 		printf("#define ALIGN_BOUND1		ALIGN_BOUND2\n");
 		printf("#define ALIGN_ALIGN1(x)		ALIGN_ALIGN2(x)\n");
@@ -147,7 +146,7 @@ main(void)
 	{
 		printf("#define ALIGN_BOUND1		%d\n", align1);
 		printf("#define ALIGN_ALIGN1(x)		ALIGN_TRUNC1((x)+%d)\n", align1 - 1);
-		printf("#define ALIGN_TRUNC1(x)		ALIGN_POINTER(ALIGN_INTEGER((x)+%d)&0x%lx)\n", align1 - 1, ~(bits0|bits1));
+		printf("#define ALIGN_TRUNC1(x)		ALIGN_POINTER(ALIGN_INTEGER((x)+%d)&0x%lx)\n", align1 - 1, ~(bits0 | bits1));
 	}
 #if _X86_ || _X64_
 	printf("#if _X64_\n");
@@ -175,7 +174,7 @@ main(void)
 #else
 	printf("#define ALIGN_BOUND2		%d\n", align2);
 	printf("#define ALIGN_ALIGN2(x)		ALIGN_TRUNC2((x)+%d)\n", align2 - 1);
-	printf("#define ALIGN_TRUNC2(x)		ALIGN_POINTER(ALIGN_INTEGER(x)&0x%lx)\n", ~(bits0|bits1|bits2));
+	printf("#define ALIGN_TRUNC2(x)		ALIGN_POINTER(ALIGN_INTEGER(x)&0x%lx)\n", ~(bits0 | bits1 | bits2));
 #endif
 	printf("#define ALIGN_CLRBIT2(x)	ALIGN_POINTER(ALIGN_INTEGER(x)&0x%lx)\n", ~bit2);
 	printf("#define ALIGN_SETBIT2(x)	ALIGN_POINTER(ALIGN_INTEGER(x)|0x%lx)\n", bit2);

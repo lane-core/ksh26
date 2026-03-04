@@ -16,24 +16,24 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"dthdr.h"
+#include "dthdr.h"
 
 /* Get statistics for a dictionary
 **
 ** Written by Kiem-Phong Vo
 */
 
-ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
+ssize_t dtstat(Dt_t *dt, Dtstat_t *dtst)
 {
-	ssize_t	sz, k, maxk;
-	char	*str;
-	char	*end;
+	ssize_t sz, k, maxk;
+	char *str;
+	char *end;
 
 	sz = (ssize_t)(*dt->meth->searchf)(dt, dtst, DT_STAT);
 
 	str = dtst->mesg;
 	end = &dtst->mesg[sizeof(dtst->mesg)] - 1;
-	str += snprintf(str, end - str, "Objects=%d Levels=%d(Largest:", dtst->size, dtst->mlev+1);
+	str += snprintf(str, end - str, "Objects=%d Levels=%d(Largest:", dtst->size, dtst->mlev + 1);
 
 	/* print top 3 levels */
 	for(k = maxk = 0; k <= dtst->mlev; ++k)
@@ -42,8 +42,8 @@ ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
 	if(maxk > 0)
 		maxk -= 1;
 	for(k = 0; k < 3 && maxk <= dtst->mlev; ++k, ++maxk)
-		str += snprintf(str, end - str, " lev[%d]=%d", maxk, dtst->lsize[maxk] );
-	if (str < end)
+		str += snprintf(str, end - str, " lev[%d]=%d", maxk, dtst->lsize[maxk]);
+	if(str < end)
 		*str++ = ')';
 	*str = 0;
 

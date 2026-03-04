@@ -26,18 +26,17 @@
 
 #include "modelib.h"
 
-int
-strmode(const char* s)
+int strmode(const char *s)
 {
-	int		c;
-	char*		t;
-	struct modeop*	p;
-	int		mode;
+	int c;
+	char *t;
+	struct modeop *p;
+	int mode;
 
 	mode = 0;
-	for (p = modetab; (c = *s++) && p < &modetab[MODELEN]; p++)
-		for (t = p->name; *t; t++)
-			if (*t == c)
+	for(p = modetab; (c = *s++) && p < &modetab[MODELEN]; p++)
+		for(t = p->name; *t; t++)
+			if(*t == c)
 			{
 				c = t - p->name;
 				mode |= (p->mask1 & (c << p->shift1)) | (p->mask2 & (c << p->shift2));

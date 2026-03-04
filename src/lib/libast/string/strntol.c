@@ -20,9 +20,9 @@
  * strntol() implementation
  */
 
-#define S2I_function	strntol
-#define S2I_number	long
-#define S2I_unumber	unsigned long
-#define S2I_size	1
+#define S2I_function strntol
+#define S2I_number long
+#define S2I_unumber unsigned long
+#define S2I_size 1
 
 #include "strtoi.h"

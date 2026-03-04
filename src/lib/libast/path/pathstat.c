@@ -25,13 +25,12 @@
  * physical stat if logical fails
  */
 
-int
-pathstat(const char* path, struct stat* st)
+int pathstat(const char *path, struct stat *st)
 {
-	int	oerrno;
+	int oerrno;
 
 	oerrno = errno;
-	if (!stat(path, st)) return 0;
+	if(!stat(path, st)) return 0;
 	errno = oerrno;
 	return lstat(path, st);
 }

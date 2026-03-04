@@ -30,164 +30,164 @@
 #include <ast.h>
 #include <option.h>
 
-#define ERROR_VERSION	20251007L
+#define ERROR_VERSION 20251007L
 
-#define ERROR_debug(n)	(-(n))
-#define ERROR_exit(n)	((n)+ERROR_ERROR)
-#define ERROR_system(n)	(((n)+ERROR_ERROR)|ERROR_SYSTEM)
-#define ERROR_usage(n)	((((n)?2:0)+ERROR_ERROR)|ERROR_USAGE)
-#define ERROR_warn(n)	(ERROR_WARNING)
+#define ERROR_debug(n) (-(n))
+#define ERROR_exit(n) ((n) + ERROR_ERROR)
+#define ERROR_system(n) (((n) + ERROR_ERROR) | ERROR_SYSTEM)
+#define ERROR_usage(n) ((((n) ? 2 : 0) + ERROR_ERROR) | ERROR_USAGE)
+#define ERROR_warn(n) (ERROR_WARNING)
 
 #ifndef ERROR_catalog
-#define ERROR_catalog(t)		t
+#define ERROR_catalog(t) t
 #endif
 #ifndef ERROR_dictionary
-#define ERROR_dictionary(t)		t
+#define ERROR_dictionary(t) t
 #endif
 
 #ifndef ERROR_translate
-#define ERROR_translating()		(error_info.translate&&(ast.locale.set&(1<<AST_LC_MESSAGES)))
-#define ERROR_translate(l,i,d,m)	(ERROR_translating()?errorx((const char*)(l),(const char*)(i),(const char*)(d),(const char*)(m)):(char*)(m))
+#define ERROR_translating() (error_info.translate && (ast.locale.set & (1 << AST_LC_MESSAGES)))
+#define ERROR_translate(l, i, d, m) (ERROR_translating() ? errorx((const char *)(l), (const char *)(i), (const char *)(d), (const char *)(m)) : (char *)(m))
 #endif
 
-#define ERROR_INFO	0		/* info message -- no err_id	*/
-#define ERROR_WARNING	1		/* warning message		*/
-#define ERROR_ERROR	2		/* error message -- no err_exit	*/
-#define ERROR_FATAL	3		/* error message with err_exit	*/
-#define ERROR_NOEXEC	EXIT_NOEXEC	/* shell convention		*/
-#define ERROR_NOENT	EXIT_NOTFOUND	/* shell convention		*/
-#define ERROR_PANIC	130		/* panic message with err_exit	*/
+#define ERROR_INFO 0              /* info message -- no err_id	*/
+#define ERROR_WARNING 1           /* warning message		*/
+#define ERROR_ERROR 2             /* error message -- no err_exit	*/
+#define ERROR_FATAL 3             /* error message with err_exit	*/
+#define ERROR_NOEXEC EXIT_NOEXEC  /* shell convention		*/
+#define ERROR_NOENT EXIT_NOTFOUND /* shell convention		*/
+#define ERROR_PANIC 130           /* panic message with err_exit	*/
 
-#define ERROR_LEVEL	0x00ff		/* level portion of status	*/
-#define ERROR_SYSTEM	0x0100		/* report system errno message	*/
-#define ERROR_OUTPUT	0x0200		/* next arg is error fd		*/
-#define ERROR_SOURCE	0x0400		/* next 2 args are FILE,LINE	*/
-#define ERROR_USAGE	0x0800		/* usage message		*/
-#define ERROR_PROMPT	0x1000		/* omit trailing newline	*/
-#define ERROR_NOID	0x2000		/* omit err_id			*/
-#define ERROR_LIBRARY	0x4000		/* library routine error	*/
+#define ERROR_LEVEL 0x00ff   /* level portion of status	*/
+#define ERROR_SYSTEM 0x0100  /* report system errno message	*/
+#define ERROR_OUTPUT 0x0200  /* next arg is error fd		*/
+#define ERROR_SOURCE 0x0400  /* next 2 args are FILE,LINE	*/
+#define ERROR_USAGE 0x0800   /* usage message		*/
+#define ERROR_PROMPT 0x1000  /* omit trailing newline	*/
+#define ERROR_NOID 0x2000    /* omit err_id			*/
+#define ERROR_LIBRARY 0x4000 /* library routine error	*/
 
-#define ERROR_INTERACTIVE	0x0001	/* context is interactive	*/
-#define ERROR_SILENT		0x0002	/* context is silent		*/
-#define ERROR_NOTIFY		0x0004	/* main(-sig,0,ctx) on signal	*/
+#define ERROR_INTERACTIVE 0x0001 /* context is interactive	*/
+#define ERROR_SILENT 0x0002      /* context is silent		*/
+#define ERROR_NOTIFY 0x0004      /* main(-sig,0,ctx) on signal	*/
 
 /* for libcmd */
-#define ERROR_CALLBACK		0x0080	/* ERROR_NOTIFY main() callback	*/
+#define ERROR_CALLBACK 0x0080 /* ERROR_NOTIFY main() callback	*/
 
 #ifdef ECONNRESET
-#define ERROR_PIPE(e)		((e)==EPIPE||(e)==ECONNRESET||(e)==EIO)
+#define ERROR_PIPE(e) ((e) == EPIPE || (e) == ECONNRESET || (e) == EIO)
 #else
-#define ERROR_PIPE(e)		((e)==EPIPE||(e)==EIO)
+#define ERROR_PIPE(e) ((e) == EPIPE || (e) == EIO)
 #endif
 
-#define ERROR_CONTEXT_BASE	((Error_context_t*)&error_info.context)
+#define ERROR_CONTEXT_BASE ((Error_context_t *)&error_info.context)
 
-#define errorpush(p,f)	(*(p)=*ERROR_CONTEXT_BASE,*ERROR_CONTEXT_BASE=error_info.empty,error_info.context=(p),error_info.flags=(f))
-#define errorpop(p)	(*ERROR_CONTEXT_BASE=*(p))
+#define errorpush(p, f) (*(p) = *ERROR_CONTEXT_BASE, *ERROR_CONTEXT_BASE = error_info.empty, error_info.context = (p), error_info.flags = (f))
+#define errorpop(p) (*ERROR_CONTEXT_BASE = *(p))
 
 typedef struct Error_info_s Error_info_t;
 typedef struct Error_context_s Error_context_t;
 
-#define ERROR_CONTEXT \
-	Error_context_t* context;	/* prev context stack element	*/ \
-	int	errors;			/* >= ERROR_ERROR count		*/ \
-	int	flags;			/* context flags		*/ \
-	int	line;			/* input|output line number	*/ \
-	int	warnings;		/* ERROR_WARNING count		*/ \
-	char*	file;			/* input|output file name	*/ \
-	char*	id;			/* command ID			*/
+#define ERROR_CONTEXT                                              \
+	Error_context_t *context; /* prev context stack element	*/ \
+	int errors;               /* >= ERROR_ERROR count		*/      \
+	int flags;                /* context flags		*/             \
+	int line;                 /* input|output line number	*/   \
+	int warnings;             /* ERROR_WARNING count		*/       \
+	char *file;               /* input|output file name	*/     \
+	char *id;                 /* command ID			*/
 
-struct Error_context_s			/* context stack element	*/
+struct Error_context_s /* context stack element	*/
 {
 	ERROR_CONTEXT
 };
 
-struct Error_info_s			/* error state			*/
+struct Error_info_s /* error state			*/
 {
-	int	fd;			/* write(2) fd			*/
+	int fd; /* write(2) fd			*/
 
-	void	(*exit)(int);		/* error exit			*/
-	ssize_t	(*write)(int, const void*, size_t); /* error output	*/
+	void (*exit)(int);                           /* error exit			*/
+	ssize_t (*write)(int, const void *, size_t); /* error output	*/
 
 	/* the rest are implicitly initialized				*/
 
-	int	clear;			/* default clear ERROR_* flags	*/
-	int	core;			/* level>=core -> core dump	*/
-	int	indent;			/* debug trace indent level	*/
-	int	init;			/* initialized			*/
-	int	last_errno;		/* last reported errno		*/
-	int	mask;			/* multi level debug trace mask	*/
-	int	set;			/* default set ERROR_* flags	*/
-	int	trace;			/* debug trace level		*/
+	int clear;      /* default clear ERROR_* flags	*/
+	int core;       /* level>=core -> core dump	*/
+	int indent;     /* debug trace indent level	*/
+	int init;       /* initialized			*/
+	int last_errno; /* last reported errno		*/
+	int mask;       /* multi level debug trace mask	*/
+	int set;        /* default set ERROR_* flags	*/
+	int trace;      /* debug trace level		*/
 
-	char*	version;		/* ERROR_SOURCE command version	*/
+	char *version; /* ERROR_SOURCE command version	*/
 
-	int	(*auxiliary)(void*, int, int);	/* aux info to append	*/
+	int (*auxiliary)(void *, int, int); /* aux info to append	*/
 
-	ERROR_CONTEXT			/* top of context stack		*/
+	ERROR_CONTEXT /* top of context stack		*/
 
-	Error_context_t	empty;		/* empty context stack element	*/
+	    Error_context_t empty; /* empty context stack element	*/
 
-	unsigned long	time;		/* debug time trace		*/
+	unsigned long time; /* debug time trace		*/
 
-	char*	(*translate)(const char*, const char*, const char*, const char*);	/* format translator */
+	char *(*translate)(const char *, const char *, const char *, const char *); /* format translator */
 
-	const char*	catalog;	/* message catalog		*/
+	const char *catalog; /* message catalog		*/
 };
 
 #ifndef errno
-extern int	errno;			/* system call error status	*/
+extern int errno; /* system call error status	*/
 #endif
 #ifndef E2BIG
-#define E2BIG	ENOMEM
+#define E2BIG ENOMEM
 #endif
 #ifndef EAGAIN
-#define EAGAIN	11
+#define EAGAIN 11
 #endif
 #ifndef EBADF
-#define EBADF	9
+#define EBADF 9
 #endif
 #ifndef EBUSY
-#define EBUSY	16
+#define EBUSY 16
 #endif
 #ifndef EDEADLK
-#define EDEADLK	45
+#define EDEADLK 45
 #endif
 #ifndef EINTR
-#define EINTR	4
+#define EINTR 4
 #endif
 #ifndef EILSEQ
-#define EILSEQ	EIO
+#define EILSEQ EIO
 #endif
 #ifndef EINVAL
-#define EINVAL	22
+#define EINVAL 22
 #endif
 #ifndef ENOMEM
-#define ENOMEM	12
+#define ENOMEM 12
 #endif
 #ifndef ENOSYS
-#define ENOSYS	EINVAL
+#define ENOSYS EINVAL
 #endif
 #ifndef EPERM
-#define EPERM	1
+#define EPERM 1
 #endif
 #ifndef ERANGE
-#define ERANGE	E2BIG
+#define ERANGE E2BIG
 #endif
 #ifndef ESPIPE
-#define ESPIPE	29
+#define ESPIPE 29
 #endif
 
-extern Error_info_t*	_error_infop_;
+extern Error_info_t *_error_infop_;
 
-#define error_info	(*_error_infop_)
+#define error_info (*_error_infop_)
 
-extern void		error(int, ...);
-extern int		errormsg(const char*, int, ...);
-extern int		errorf(void*, void*, int, ...);
-extern void		errorv(const char*, int, va_list);
+extern void error(int, ...);
+extern int errormsg(const char *, int, ...);
+extern int errorf(void *, void *, int, ...);
+extern void errorv(const char *, int, va_list);
 #ifndef errorx
-extern char*		errorx(const char*, const char*, const char*, const char*);
+extern char *errorx(const char *, const char *, const char *, const char *);
 #endif
 
 #endif

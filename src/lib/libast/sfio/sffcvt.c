@@ -16,15 +16,15 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
-char *sffcvt(double	dval,		/* value to convert */
-	     int	n_digit,	/* number of digits wanted */
-	     int*	decpt,		/* to return decimal point */
-	     int*	sign)		/* to return sign */
+char *sffcvt(double dval, /* value to convert */
+             int n_digit, /* number of digits wanted */
+             int *decpt,  /* to return decimal point */
+             int *sign)   /* to return sign */
 {
-	int		len;
-	static char	buf[SFIO_MAXDIGITS];
+	int len;
+	static char buf[SFIO_MAXDIGITS];
 
-	return _sfcvt(&dval,buf,sizeof(buf),n_digit,decpt,sign,&len,0);
+	return _sfcvt(&dval, buf, sizeof(buf), n_digit, decpt, sign, &len, 0);
 }

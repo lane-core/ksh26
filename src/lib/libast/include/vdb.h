@@ -25,18 +25,18 @@
 
 #ifndef VDB_MAGIC
 
-#define VDB_MAGIC	"vdb"
+#define VDB_MAGIC "vdb"
 
-#define VDB_DIRECTORY	"DIRECTORY"
-#define VDB_UNION	"UNION"
-#define VDB_DATE	"DATE"
-#define VDB_MODE	"MODE"
+#define VDB_DIRECTORY "DIRECTORY"
+#define VDB_UNION "UNION"
+#define VDB_DATE "DATE"
+#define VDB_MODE "MODE"
 
-#define VDB_DELIMITER	';'
-#define VDB_IGNORE	'_'
-#define VDB_FIXED	10
-#define VDB_LENGTH	((int)sizeof(VDB_DIRECTORY)+2*(VDB_FIXED+1))
-#define VDB_OFFSET	((int)sizeof(VDB_DIRECTORY))
-#define VDB_SIZE	(VDB_OFFSET+VDB_FIXED+1)
+#define VDB_DELIMITER ';'
+#define VDB_IGNORE '_'
+#define VDB_FIXED 10
+#define VDB_LENGTH ((int)sizeof(VDB_DIRECTORY) + 2 * (VDB_FIXED + 1))
+#define VDB_OFFSET ((int)sizeof(VDB_DIRECTORY))
+#define VDB_SIZE (VDB_OFFSET + VDB_FIXED + 1)
 
 #endif

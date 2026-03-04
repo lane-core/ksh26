@@ -21,10 +21,9 @@
 
 #include <tv.h>
 
-int
-asorelax(long nsec)
+int asorelax(long nsec)
 {
-	Tv_t		tv;
+	Tv_t tv;
 
 	tv.tv_sec = 0;
 	tv.tv_nsec = nsec;

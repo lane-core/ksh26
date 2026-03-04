@@ -22,35 +22,35 @@
  */
 
 #ifndef _io_h_defined
-#define _io_h_defined	1
+#define _io_h_defined 1
 
-#include	<ast.h>
-#include	"sh_io.h"
-#include	"FEATURE/fchdir"
+#include <ast.h>
+#include "sh_io.h"
+#include "FEATURE/fchdir"
 
 #ifndef IOBSIZE
-#   define  IOBSIZE	(SFIO_BUFSIZE*sizeof(char*))
+#define IOBSIZE (SFIO_BUFSIZE * sizeof(char *))
 #endif /* IOBSIZE */
-#define IOMAXTRY	20
+#define IOMAXTRY 20
 
 /* used for output of shell errors */
-#define ERRIO		2
+#define ERRIO 2
 
-#define IOREAD		001
-#define IOWRITE		002
-#define IODUP 		004
-#define IOSEEK		010
-#define IONOSEEK	020
-#define IOTTY 		040
-#define IOCLEX 		0100
-#define IOCLOSE		(IOSEEK|IONOSEEK)
+#define IOREAD 001
+#define IOWRITE 002
+#define IODUP 004
+#define IOSEEK 010
+#define IONOSEEK 020
+#define IOTTY 040
+#define IOCLEX 0100
+#define IOCLOSE (IOSEEK | IONOSEEK)
 
-#define IOSUBSHELL	0x8000	/* must be larger than any file descriptor */
-#define IOPICKFD	0x10000 /* file descriptor number was selected automatically */
-#define IOHERESTRING	0x20000 /* allow here documents to be string streams */
+#define IOSUBSHELL 0x8000    /* must be larger than any file descriptor */
+#define IOPICKFD 0x10000     /* file descriptor number was selected automatically */
+#define IOHERESTRING 0x20000 /* allow here documents to be string streams */
 
 #ifndef ARG_RAW
-    struct ionod;
+struct ionod;
 #endif /* !ARG_RAW */
 
 /* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
@@ -65,64 +65,64 @@
  * (This is here and not in edit.h because io.h is far more widely included.)
  */
 #if SHOPT_ESH && SHOPT_VSH
-#define sh_editor_active()	(sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
+#define sh_editor_active() (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
 #elif SHOPT_ESH
-#define sh_editor_active()	(sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
+#define sh_editor_active() (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
 #elif SHOPT_VSH
-#define sh_editor_active()	(sh_isoption(SH_VI)!=0)
+#define sh_editor_active() (sh_isoption(SH_VI) != 0)
 #else
-#define sh_editor_active()	0
+#define sh_editor_active() 0
 #endif
 
-extern int	sh_iocheckfd(int);
-extern void 	sh_ioinit(void);
-extern int 	sh_iomovefd(int,int);
-extern int	sh_iorenumber(int,int);
-extern void 	sh_pclose(int[]);
-extern int	sh_rpipe(int[],int);
-extern void 	sh_iorestore(int,int);
-extern sh_stream_t 	*sh_iostream(int);
-extern int	sh_redirect(struct ionod*,int);
-extern void 	sh_iosave(int,int,char*);
-extern int 	sh_iovalidfd(int);
-extern int	sh_iosafefd(int);
-extern int 	sh_inuse(int);
-extern void 	sh_iounsave(void);
-extern void	sh_iounpipe(void);
-extern int	sh_chkopen(const char*);
-extern int	sh_ioaccess(int,int);
-extern int	sh_isdevfd(const char*);
+extern int sh_iocheckfd(int);
+extern void sh_ioinit(void);
+extern int sh_iomovefd(int, int);
+extern int sh_iorenumber(int, int);
+extern void sh_pclose(int[]);
+extern int sh_rpipe(int[], int);
+extern void sh_iorestore(int, int);
+extern sh_stream_t *sh_iostream(int);
+extern int sh_redirect(struct ionod *, int);
+extern void sh_iosave(int, int, char *);
+extern int sh_iovalidfd(int);
+extern int sh_iosafefd(int);
+extern int sh_inuse(int);
+extern void sh_iounsave(void);
+extern void sh_iounpipe(void);
+extern int sh_chkopen(const char *);
+extern int sh_ioaccess(int, int);
+extern int sh_isdevfd(const char *);
 
 /* the following are readonly */
-extern const char	e_copexists[];
-extern const char	e_query[];
-extern const char	e_history[];
-extern const char	e_argtype[];
-extern const char	e_create[];
-extern const char	e_tmpcreate[];
-extern const char	e_exists[];
-extern const char	e_file[];
-extern const char	e_redirect[];
-extern const char	e_formspec[];
-extern const char	e_badregexp[];
-extern const char	e_open[];
-extern const char	e_notseek[];
-extern const char	e_readscript[];
-extern const char	e_noread[];
-extern const char	e_badseek[];
-extern const char	e_badwrite[];
-extern const char	e_badpattern[];
-extern const char	e_toomany[];
-extern const char	e_pipe[];
-extern const char	e_unknown[];
-extern const char	e_devnull[];
-extern const char	e_profile[];
-extern const char	e_sysprofile[];
+extern const char e_copexists[];
+extern const char e_query[];
+extern const char e_history[];
+extern const char e_argtype[];
+extern const char e_create[];
+extern const char e_tmpcreate[];
+extern const char e_exists[];
+extern const char e_file[];
+extern const char e_redirect[];
+extern const char e_formspec[];
+extern const char e_badregexp[];
+extern const char e_open[];
+extern const char e_notseek[];
+extern const char e_readscript[];
+extern const char e_noread[];
+extern const char e_badseek[];
+extern const char e_badwrite[];
+extern const char e_badpattern[];
+extern const char e_toomany[];
+extern const char e_pipe[];
+extern const char e_unknown[];
+extern const char e_devnull[];
+extern const char e_profile[];
+extern const char e_sysprofile[];
 #if SHOPT_SYSRC
-extern const char	e_sysrc[];
+extern const char e_sysrc[];
 #endif
-extern const char	e_stdprompt[];
-extern const char	e_supprompt[];
-extern const char	e_ambiguous[];
+extern const char e_stdprompt[];
+extern const char e_supprompt[];
+extern const char e_ambiguous[];
 
 #endif /* _io_h_defined */

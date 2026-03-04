@@ -26,8 +26,7 @@
 /*
  * unit: create a new write context
  */
-int
-ast_wbuf_open(ast_wbuf_t *w)
+int ast_wbuf_open(ast_wbuf_t *w)
 {
 	assert(w != NULL);
 	w->buf = NULL;
@@ -55,7 +54,7 @@ ast_wbuf_use(ast_wbuf_t *w)
 	assert(w != NULL && w->fp != NULL);
 	end = ftell(w->fp);
 	fputc('\0', w->fp);
-	if (fflush(w->fp) < 0)
+	if(fflush(w->fp) < 0)
 	{
 		fseek(w->fp, 0, SEEK_SET);
 		return NULL;
@@ -83,7 +82,7 @@ ast_wbuf_detach(ast_wbuf_t *w)
 	/* fclose does not free the buffer (open_memstream contract) */
 	fclose(w->fp);
 	result = ok ? w->buf : NULL;
-	if (!ok)
+	if(!ok)
 		free(w->buf);
 	/* moved-from state: assertions catch use-after-detach */
 	w->buf = NULL;
@@ -95,11 +94,10 @@ ast_wbuf_detach(ast_wbuf_t *w)
 /*
  * finalize: close stream and free buffer
  */
-void
-ast_wbuf_close(ast_wbuf_t *w)
+void ast_wbuf_close(ast_wbuf_t *w)
 {
 	assert(w != NULL);
-	if (w->fp)
+	if(w->fp)
 	{
 		fclose(w->fp);
 		free(w->buf);
@@ -111,8 +109,7 @@ ast_wbuf_close(ast_wbuf_t *w)
 
 /* --- tell operations (append) --- */
 
-int
-ast_wbuf_printf(ast_wbuf_t *w, const char *fmt, ...)
+int ast_wbuf_printf(ast_wbuf_t *w, const char *fmt, ...)
 {
 	va_list ap;
 	int r;
@@ -123,15 +120,13 @@ ast_wbuf_printf(ast_wbuf_t *w, const char *fmt, ...)
 	return r;
 }
 
-int
-ast_wbuf_putc(ast_wbuf_t *w, int c)
+int ast_wbuf_putc(ast_wbuf_t *w, int c)
 {
 	assert(w != NULL && w->fp != NULL);
 	return fputc(c, w->fp);
 }
 
-int
-ast_wbuf_puts(ast_wbuf_t *w, const char *s)
+int ast_wbuf_puts(ast_wbuf_t *w, const char *s)
 {
 	assert(w != NULL && w->fp != NULL);
 	return fputs(s, w->fp);
@@ -165,8 +160,7 @@ ast_wbuf_base(ast_wbuf_t *w)
 
 /* --- censor operations (reshape) --- */
 
-int
-ast_wbuf_seek(ast_wbuf_t *w, long pos, int whence)
+int ast_wbuf_seek(ast_wbuf_t *w, long pos, int whence)
 {
 	assert(w != NULL && w->fp != NULL);
 	return fseek(w->fp, pos, whence);

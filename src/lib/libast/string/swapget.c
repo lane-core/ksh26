@@ -31,20 +31,22 @@
  */
 
 intmax_t
-swapget(int op, const void* b, int n)
+swapget(int op, const void *b, int n)
 {
-	unsigned char*	p;
-	unsigned char*	d;
-	intmax_t		v;
-	unsigned char		tmp[sizeof(intmax_t)];
+	unsigned char *p;
+	unsigned char *d;
+	intmax_t v;
+	unsigned char tmp[sizeof(intmax_t)];
 
-	if (n > sizeof(intmax_t))
+	if(n > sizeof(intmax_t))
 		n = sizeof(intmax_t);
-	if (op) swapmem(op, b, d = tmp, n);
-	else d = (unsigned char*)b;
+	if(op)
+		swapmem(op, b, d = tmp, n);
+	else
+		d = (unsigned char *)b;
 	p = d + n;
 	v = 0;
-	while (d < p)
+	while(d < p)
 	{
 		v <<= CHAR_BIT;
 		v |= *d++;

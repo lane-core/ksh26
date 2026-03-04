@@ -25,18 +25,18 @@
  * machine independent binary message catalog implementation
  */
 
-#include "sfhdr.h"	/* for SFCVINIT / _Sfcv36 in mcindex() */
+#include "sfhdr.h" /* for SFCVINIT / _Sfcv36 in mcindex() */
 #include "lclib.h"
 
 #include <ast_wbuf.h>
 #include <iconv.h>
 
-#define _MC_PRIVATE_ \
-	size_t		nstrs; \
-	size_t		nmsgs; \
-	iconv_t		cvt; \
-	ast_wbuf_t	tmp; \
-	Vmalloc_t*	vm;
+#define _MC_PRIVATE_    \
+	size_t nstrs;   \
+	size_t nmsgs;   \
+	iconv_t cvt;    \
+	ast_wbuf_t tmp; \
+	Vmalloc_t *vm;
 
 #include <vmalloc.h>
 #include <error.h>
@@ -49,15 +49,15 @@
  */
 
 static unsigned long
-file_getu(FILE* fp)
+file_getu(FILE *fp)
 {
-	int		c;
-	unsigned long	v;
+	int c;
+	unsigned long v;
 
 	v = 0;
-	while ((c = fgetc(fp)) != EOF)
+	while((c = fgetc(fp)) != EOF)
 	{
-		if (c & 0x80)
+		if(c & 0x80)
 			v = (v << 7) | (c & 0x7f);
 		else
 			return (v << 7) | c;
@@ -69,23 +69,23 @@ file_getu(FILE* fp)
  * read NUL-delimited record from FILE*
  */
 
-static char*
-file_getr_nul(FILE* fp)
+static char *
+file_getr_nul(FILE *fp)
 {
-	static char*	buf;
-	static size_t	cap;
-	size_t		n = 0;
-	int		c;
+	static char *buf;
+	static size_t cap;
+	size_t n = 0;
+	int c;
 
-	while ((c = fgetc(fp)) != EOF && c != '\0')
+	while((c = fgetc(fp)) != EOF && c != '\0')
 	{
-		if (n >= cap)
+		if(n >= cap)
 			buf = realloc(buf, cap = cap ? cap * 2 : 256);
 		buf[n++] = c;
 	}
-	if (c == EOF && n == 0)
+	if(c == EOF && n == 0)
 		return NULL;
-	if (n >= cap)
+	if(n >= cap)
 		buf = realloc(buf, cap = cap ? cap * 2 : 256);
 	buf[n] = '\0';
 	return buf;
@@ -99,144 +99,144 @@ file_getr_nul(FILE* fp)
  * nls!=0 enables NLSPATH+LANG hack (not implemented yet)
  */
 
-char*
-mcfind(const char* locale, const char* catalog, int category, int nls, char* path, size_t size)
+char *
+mcfind(const char *locale, const char *catalog, int category, int nls, char *path, size_t size)
 {
-	int		c;
-	char*		s;
-	char*		e;
-	char*		p;
-	const char*	v = NULL;
-	int		i;
-	int		first;
-	int		next;
-	int		last;
-	int		oerrno;
-	Lc_t*		lc;
-	char		file[PATH_MAX];
-	char*		paths[5];
+	int c;
+	char *s;
+	char *e;
+	char *p;
+	const char *v = NULL;
+	int i;
+	int first;
+	int next;
+	int last;
+	int oerrno;
+	Lc_t *lc;
+	char file[PATH_MAX];
+	char *paths[5];
 
-	static char	lc_messages[] = "LC_MESSAGES";
+	static char lc_messages[] = "LC_MESSAGES";
 
 	NOT_USED(nls);
-	if ((category = lcindex(category, 1)) < 0)
+	if((category = lcindex(category, 1)) < 0)
 		return NULL;
-	if (!(lc = locale ? lcmake(locale) : locales[category]))
+	if(!(lc = locale ? lcmake(locale) : locales[category]))
 		return NULL;
 	oerrno = errno;
-	if (catalog && *catalog == '/')
+	if(catalog && *catalog == '/')
 	{
 		i = eaccess(catalog, R_OK);
 		errno = oerrno;
-		if (i)
+		if(i)
 			return NULL;
 		strlcpy(path, catalog, size);
 		return path;
 	}
 	i = 0;
-	if ((p = getenv("NLSPATH")) && *p)
+	if((p = getenv("NLSPATH")) && *p)
 		paths[i++] = p;
 	paths[i++] = "share/lib/locale/%l/%C/%N";
 	paths[i++] = "share/locale/%l/%C/%N";
 	paths[i++] = "lib/locale/%l/%C/%N";
 	paths[i] = 0;
 	next = 1;
-	for (i = 0; p = paths[i]; i += next)
+	for(i = 0; p = paths[i]; i += next)
 	{
 		first = 1;
 		last = 0;
 		e = &file[elementsof(file) - 1];
-		while (*p)
+		while(*p)
 		{
 			s = file;
-			for (;;)
+			for(;;)
 			{
-				switch (c = *p++)
+				switch(c = *p++)
 				{
-				case 0:
-					p--;
-					break;
-				case ':':
-					break;
-				case '%':
-					if (s < e)
-					{
-						switch (c = *p++)
-						{
-						case 0:
-							p--;
-							continue;
-						case 'N':
-							v = catalog;
-							break;
-						case 'L':
-							if (first)
-							{
-								first = 0;
-								if (next)
-								{
-									v = lc->code;
-									if (lc->code != lc->language->code)
-										next = 0;
-								}
-								else
-								{
-									next = 1;
-									v = lc->language->code;
-								}
-							}
-							break;
-						case 'l':
-							v = lc->language->code;
-							break;
-						case 't':
-							v = lc->territory->code;
-							break;
-						case 'c':
-							v = lc->charset->code;
-							break;
-						case 'C':
-						case_C:
-							if (!catalog)
-								last = 1;
-							v = lc_categories[category].name;
-							break;
-						default:
-							*s++ = c;
-							continue;
-						}
-						if (v)
-							while (*v && s < e)
-								*s++ = *v++;
-					}
-					continue;
-				case '/':
-					if (last)
+					case 0:
+						p--;
 						break;
-					if (category != AST_LC_MESSAGES && strneq(p, lc_messages, sizeof(lc_messages) - 1) && p[sizeof(lc_messages)-1] == '/')
-					{
-						p += sizeof(lc_messages) - 1;
-						goto case_C;
-					}
-					/* FALLTHROUGH */
-				default:
-					if (s < e)
-						*s++ = c;
-					continue;
+					case ':':
+						break;
+					case '%':
+						if(s < e)
+						{
+							switch(c = *p++)
+							{
+								case 0:
+									p--;
+									continue;
+								case 'N':
+									v = catalog;
+									break;
+								case 'L':
+									if(first)
+									{
+										first = 0;
+										if(next)
+										{
+											v = lc->code;
+											if(lc->code != lc->language->code)
+												next = 0;
+										}
+										else
+										{
+											next = 1;
+											v = lc->language->code;
+										}
+									}
+									break;
+								case 'l':
+									v = lc->language->code;
+									break;
+								case 't':
+									v = lc->territory->code;
+									break;
+								case 'c':
+									v = lc->charset->code;
+									break;
+								case 'C':
+								case_C:
+									if(!catalog)
+										last = 1;
+									v = lc_categories[category].name;
+									break;
+								default:
+									*s++ = c;
+									continue;
+							}
+							if(v)
+								while(*v && s < e)
+									*s++ = *v++;
+						}
+						continue;
+					case '/':
+						if(last)
+							break;
+						if(category != AST_LC_MESSAGES && strneq(p, lc_messages, sizeof(lc_messages) - 1) && p[sizeof(lc_messages) - 1] == '/')
+						{
+							p += sizeof(lc_messages) - 1;
+							goto case_C;
+						}
+						/* FALLTHROUGH */
+					default:
+						if(s < e)
+							*s++ = c;
+						continue;
 				}
 				break;
 			}
-			if (s > file)
+			if(s > file)
 				*s = 0;
-			else if (!catalog)
+			else if(!catalog)
 				continue;
 			else
 				strlcpy(file, catalog, elementsof(file));
-			if (ast.locale.set & AST_LC_find)
+			if(ast.locale.set & AST_LC_find)
 				fprintf(stderr, "locale find %s\n", file);
-			if (s = pathpath(file, "", (!catalog && category == AST_LC_MESSAGES) ? PATH_READ : (PATH_REGULAR|PATH_READ|PATH_ABSOLUTE), path, size))
+			if(s = pathpath(file, "", (!catalog && category == AST_LC_MESSAGES) ? PATH_READ : (PATH_REGULAR | PATH_READ | PATH_ABSOLUTE), path, size))
 			{
-				if (ast.locale.set & (AST_LC_find|AST_LC_setlocale))
+				if(ast.locale.set & (AST_LC_find | AST_LC_setlocale))
 					fprintf(stderr, "locale path %s\n", s);
 				errno = oerrno;
 				return s;
@@ -253,33 +253,33 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
  * 0 returned on any error
  */
 
-Mc_t*
-mcopen(FILE* ip)
+Mc_t *
+mcopen(FILE *ip)
 {
-	Mc_t*		mc;
-	char**		mp;
-	char*		sp;
-	Vmalloc_t*	vm;
-	char*		rp;
-	int		i;
-	int		j;
-	int		oerrno;
-	size_t		n;
-	char		buf[MC_MAGIC_SIZE];
+	Mc_t *mc;
+	char **mp;
+	char *sp;
+	Vmalloc_t *vm;
+	char *rp;
+	int i;
+	int j;
+	int oerrno;
+	size_t n;
+	char buf[MC_MAGIC_SIZE];
 
 	oerrno = errno;
-	if (ip)
+	if(ip)
 	{
 		/*
 		 * check the magic
 		 */
 
-		if (fread(buf, 1, MC_MAGIC_SIZE, ip) != MC_MAGIC_SIZE)
+		if(fread(buf, 1, MC_MAGIC_SIZE, ip) != MC_MAGIC_SIZE)
 		{
 			errno = oerrno;
 			return NULL;
 		}
-		if (memcmp(buf, MC_MAGIC, MC_MAGIC_SIZE))
+		if(memcmp(buf, MC_MAGIC, MC_MAGIC_SIZE))
 			return NULL;
 	}
 
@@ -287,20 +287,20 @@ mcopen(FILE* ip)
 	 * allocate the region
 	 */
 
-	if (!(vm = vmopen()) || !(mc = vmnewof(vm, 0, Mc_t, 1, 0)))
+	if(!(vm = vmopen()) || !(mc = vmnewof(vm, 0, Mc_t, 1, 0)))
 	{
 		errno = oerrno;
 		return NULL;
 	}
 	mc->vm = vm;
 	mc->cvt = (iconv_t)(-1);
-	if (ip)
+	if(ip)
 	{
 		/*
 		 * read the translation record
 		 */
 
-		if (!(sp = file_getr_nul(ip)) || !(mc->translation = vmstrdup(vm, sp)))
+		if(!(sp = file_getr_nul(ip)) || !(mc->translation = vmstrdup(vm, sp)))
 			goto bad;
 
 		/*
@@ -309,9 +309,9 @@ mcopen(FILE* ip)
 
 		do
 		{
-			if (!(sp = file_getr_nul(ip)))
+			if(!(sp = file_getr_nul(ip)))
 				goto bad;
-		} while (*sp);
+		} while(*sp);
 
 		/*
 		 * get the component dimensions
@@ -320,32 +320,32 @@ mcopen(FILE* ip)
 		mc->nstrs = file_getu(ip);
 		mc->nmsgs = file_getu(ip);
 		mc->num = file_getu(ip);
-		if (feof(ip))
+		if(feof(ip))
 			goto bad;
 	}
-	else if (!(mc->translation = vmnewof(vm, 0, char, 1, 0)))
+	else if(!(mc->translation = vmnewof(vm, 0, char, 1, 0)))
 		goto bad;
 
 	/*
 	 * allocate the remaining space
 	 */
 
-	if (!(mc->set = vmnewof(vm, 0, Mcset_t, mc->num + 1, 0)))
+	if(!(mc->set = vmnewof(vm, 0, Mcset_t, mc->num + 1, 0)))
 		goto bad;
-	if (!ip)
+	if(!ip)
 		return mc;
-	if (!(mp = vmnewof(vm, 0, char*, mc->nmsgs + mc->num + 1, 0)))
+	if(!(mp = vmnewof(vm, 0, char *, mc->nmsgs + mc->num + 1, 0)))
 		goto bad;
-	if (!(rp = sp = vmalloc(vm, mc->nstrs + 1)))
+	if(!(rp = sp = vmalloc(vm, mc->nstrs + 1)))
 		goto bad;
 
 	/*
 	 * get the set dimensions and initialize the msg pointers
 	 */
 
-	while (i = file_getu(ip))
+	while(i = file_getu(ip))
 	{
-		if (i > mc->num)
+		if(i > mc->num)
 			goto bad;
 		n = file_getu(ip);
 		mc->set[i].num = n;
@@ -357,9 +357,9 @@ mcopen(FILE* ip)
 	 * read the msg sizes and set up the msg pointers
 	 */
 
-	for (i = 1; i <= mc->num; i++)
-		for (j = 1; j <= mc->set[i].num; j++)
-			if (n = file_getu(ip))
+	for(i = 1; i <= mc->num; i++)
+		for(j = 1; j <= mc->set[i].num; j++)
+			if(n = file_getu(ip))
 			{
 				mc->set[i].msg[j] = sp;
 				sp += n;
@@ -369,14 +369,14 @@ mcopen(FILE* ip)
 	 * read the string table
 	 */
 
-	if (fread(rp, 1, mc->nstrs, ip) != mc->nstrs || fgetc(ip) != EOF)
+	if(fread(rp, 1, mc->nstrs, ip) != mc->nstrs || fgetc(ip) != EOF)
 		goto bad;
-	if (ast_wbuf_open(&mc->tmp))
+	if(ast_wbuf_open(&mc->tmp))
 		goto bad;
 	mc->cvt = iconv_open("", "utf");
 	errno = oerrno;
 	return mc;
- bad:
+bad:
 	vmclose(vm);
 	errno = oerrno;
 	return NULL;
@@ -388,15 +388,15 @@ mcopen(FILE* ip)
  * UTF message text converted to UCS
  */
 
-char*
-mcget(Mc_t* mc, int set, int num, const char* msg)
+char *
+mcget(Mc_t *mc, int set, int num, const char *msg)
 {
-	char*		s;
-	size_t		n;
+	char *s;
+	size_t n;
 
-	if (!mc || set < 0 || set > mc->num || num < 1 || num > mc->set[set].num || !(s = mc->set[set].msg[num]))
-		return (char*)msg;
-	if (mc->cvt == (iconv_t)(-1))
+	if(!mc || set < 0 || set > mc->num || num < 1 || num > mc->set[set].num || !(s = mc->set[set].msg[num]))
+		return (char *)msg;
+	if(mc->cvt == (iconv_t)(-1))
 		return s;
 	ast_wbuf_seek(&mc->tmp, 0, SEEK_SET);
 	n = strlen(s) + 1;
@@ -411,28 +411,27 @@ mcget(Mc_t* mc, int set, int num, const char* msg)
  * 0 returned on success, -1 otherwise
  */
 
-int
-mcput(Mc_t* mc, int set, int num, const char* msg)
+int mcput(Mc_t *mc, int set, int num, const char *msg)
 {
-	int		i;
-	char*		s;
-	Mcset_t*	sp;
-	char**		mp;
+	int i;
+	char *s;
+	Mcset_t *sp;
+	char **mp;
 
 	/*
 	 * validate the arguments
 	 */
 
-	if (!mc || set > MC_SET_MAX || num > MC_NUM_MAX)
+	if(!mc || set > MC_SET_MAX || num > MC_NUM_MAX)
 		return -1;
 
 	/*
 	 * deletions don't kick in allocations (duh)
 	 */
 
-	if (!msg)
+	if(!msg)
 	{
-		if (set <= mc->num && num <= mc->set[set].num && (s = mc->set[set].msg[num]))
+		if(set <= mc->num && num <= mc->set[set].num && (s = mc->set[set].msg[num]))
 		{
 			/*
 			 * decrease the string table size
@@ -440,22 +439,24 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 
 			mc->set[set].msg[num] = 0;
 			mc->nstrs -= strlen(s) + 1;
-			if (mc->set[set].num == num)
+			if(mc->set[set].num == num)
 			{
 				/*
 				 * decrease the max msg num
 				 */
 
 				mp = mc->set[set].msg + num;
-				while (num && !mp[--num]);
+				while(num && !mp[--num])
+					;
 				mc->nmsgs -= mc->set[set].num - num;
-				if (!(mc->set[set].num = num) && mc->num == set)
+				if(!(mc->set[set].num = num) && mc->num == set)
 				{
 					/*
 					 * decrease the max set num
 					 */
 
-					while (num && !mc->set[--num].num);
+					while(num && !mc->set[--num].num)
+						;
 					mc->num = num;
 				}
 			}
@@ -467,15 +468,15 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	 * keep track of the highest set and allocate if necessary
 	 */
 
-	if (set > mc->num)
+	if(set > mc->num)
 	{
-		if (set > mc->gen)
+		if(set > mc->gen)
 		{
 			i = MC_SET_MAX;
-			if (!(sp = vmnewof(mc->vm, 0, Mcset_t, i + 1, 0)))
+			if(!(sp = vmnewof(mc->vm, 0, Mcset_t, i + 1, 0)))
 				return -1;
 			mc->gen = i;
-			for (i = 1; i <= mc->num; i++)
+			for(i = 1; i <= mc->num; i++)
 				sp[i] = mc->set[i];
 			mc->set = sp;
 		}
@@ -487,30 +488,30 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	 * keep track of the highest msg and allocate if necessary
 	 */
 
-	if (num > sp->num)
+	if(num > sp->num)
 	{
-		if (num > sp->gen)
+		if(num > sp->gen)
 		{
-			if (!mc->gen)
+			if(!mc->gen)
 			{
 				i = (MC_NUM_MAX + 1) / 32;
-				if (i <= num)
+				if(i <= num)
 					i = 2 * num;
-				if (i > MC_NUM_MAX)
+				if(i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = vmnewof(mc->vm, 0, char*, i + 1, 0)))
+				if(!(mp = vmnewof(mc->vm, 0, char *, i + 1, 0)))
 					return -1;
 				mc->gen = i;
 				sp->msg = mp;
-				for (i = 1; i <= sp->num; i++)
+				for(i = 1; i <= sp->num; i++)
 					mp[i] = sp->msg[i];
 			}
 			else
 			{
 				i = 2 * mc->gen;
-				if (i > MC_NUM_MAX)
+				if(i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = vmnewof(mc->vm, sp->msg, char*, i + 1, 0)))
+				if(!(mp = vmnewof(mc->vm, sp->msg, char *, i + 1, 0)))
 					return -1;
 				sp->gen = i;
 				sp->msg = mp;
@@ -524,13 +525,13 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	 * decrease the string table size
 	 */
 
-	if (s = sp->msg[num])
+	if(s = sp->msg[num])
 	{
 		/*
 		 * no-op if no change
 		 */
 
-		if (streq(s, msg))
+		if(streq(s, msg))
 			return 0;
 		mc->nstrs -= strlen(s) + 1;
 	}
@@ -539,7 +540,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	 * allocate, add and adjust the string table size
 	 */
 
-	if (!(s = vmstrdup(mc->vm, msg)))
+	if(!(s = vmstrdup(mc->vm, msg)))
 		return -1;
 	sp->msg[num] = s;
 	mc->nstrs += strlen(s) + 1;
@@ -561,23 +562,22 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
  *	"sun" : ((((36#s^36#u^36#n)-9)&63)+1) = 13
  */
 
-int
-mcindex(const char* s, char** e, int* set, int* msg)
+int mcindex(const char *s, char **e, int *set, int *msg)
 {
-	int		c;
-	int		m;
-	int		n;
-	int		r;
-	unsigned char*	cv;
-	char*		t;
+	int c;
+	int m;
+	int n;
+	int r;
+	unsigned char *cv;
+	char *t;
 
 	m = 0;
 	n = strtol(s, &t, 0);
-	if (t == (char*)s)
+	if(t == (char *)s)
 	{
 		SFCVINIT();
 		cv = _Sfcv36;
-		for (n = m = 0; (c = cv[*((unsigned char*)s)]) < 36; s++)
+		for(n = m = 0; (c = cv[*((unsigned char *)s)]) < 36; s++)
 		{
 			m++;
 			n ^= c;
@@ -586,15 +586,15 @@ mcindex(const char* s, char** e, int* set, int* msg)
 		n = ((n - 9) & m) + 1;
 	}
 	else
-		s = (const char*)t;
+		s = (const char *)t;
 	r = n;
-	if (*s)
+	if(*s)
 		m = strtol(s + 1, e, 0);
 	else
 	{
-		if (e)
-			*e = (char*)s;
-		if (m)
+		if(e)
+			*e = (char *)s;
+		if(m)
 			m = 0;
 		else
 		{
@@ -602,9 +602,9 @@ mcindex(const char* s, char** e, int* set, int* msg)
 			n = 1;
 		}
 	}
-	if (set)
+	if(set)
 		*set = n;
-	if (msg)
+	if(msg)
 		*msg = m;
 	return r;
 }
@@ -613,13 +613,12 @@ mcindex(const char* s, char** e, int* set, int* msg)
  * close the message catalog mc
  */
 
-int
-mcclose(Mc_t* mc)
+int mcclose(Mc_t *mc)
 {
-	if (!mc)
+	if(!mc)
 		return -1;
 	ast_wbuf_close(&mc->tmp);
-	if (mc->cvt != (iconv_t)(-1))
+	if(mc->cvt != (iconv_t)(-1))
 		iconv_close(mc->cvt);
 	vmclose(mc->vm);
 	return 0;

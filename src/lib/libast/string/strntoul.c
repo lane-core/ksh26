@@ -20,10 +20,10 @@
  * strntoul() implementation
  */
 
-#define S2I_function	strntoul
-#define S2I_number	long
-#define S2I_unumber	unsigned long
-#define S2I_size	1
-#define S2I_unsigned	1
+#define S2I_function strntoul
+#define S2I_number long
+#define S2I_unumber unsigned long
+#define S2I_size 1
+#define S2I_unsigned 1
 
 #include "strtoi.h"

@@ -28,25 +28,26 @@
 
 #if DEBUG
 
-#undef	PATH_MAX
+#undef PATH_MAX
 
-#define PATH_MAX	16
+#define PATH_MAX 16
 
 static int
-vchdir(const char* path)
+vchdir(const char *path)
 {
-	int	n;
+	int n;
 
-	if (strlen(path) >= PATH_MAX)
+	if(strlen(path) >= PATH_MAX)
 	{
 		errno = ENAMETOOLONG;
 		n = -1;
 	}
-	else n = chdir(path);
+	else
+		n = chdir(path);
 	return n;
 }
 
-#define chdir(p)	vchdir(p)
+#define chdir(p) vchdir(p)
 
 #endif
 
@@ -56,33 +57,32 @@ vchdir(const char* path)
  * is called on intermediate chdir errors
  */
 
-int
-pathcd(const char* path, const char* home)
+int pathcd(const char *path, const char *home)
 {
-	char*	p = (char*)path;
-	char*	s;
-	int	n;
-	int	i;
-	int	r;
+	char *p = (char *)path;
+	char *s;
+	int n;
+	int i;
+	int r;
 
 	r = 0;
-	for (;;)
+	for(;;)
 	{
 		/*
 		 * this should work 99% of the time
 		 */
 
-		if (!chdir(p))
+		if(!chdir(p))
 			return r;
 
 		/*
 		 * chdir failed
 		 */
 
-		if ((n = strlen(p)) < PATH_MAX)
+		if((n = strlen(p)) < PATH_MAX)
 			return -1;
 #ifdef ENAMETOOLONG
-		if (errno != ENAMETOOLONG)
+		if(errno != ENAMETOOLONG)
 			return -1;
 #endif
 
@@ -94,15 +94,16 @@ pathcd(const char* path, const char* home)
 		stkputs(stkstd, p, 0);
 		stkseek(stkstd, i);
 		p = stkptr(stkstd, i);
-		for (;;)
+		for(;;)
 		{
 			/*
 			 * get a short prefix component
 			 */
 
 			s = p + PATH_MAX;
-			while (--s >= p && *s != '/');
-			if (s <= p)
+			while(--s >= p && *s != '/')
+				;
+			if(s <= p)
 				break;
 
 			/*
@@ -110,16 +111,16 @@ pathcd(const char* path, const char* home)
 			 */
 
 			*s++ = 0;
-			if (chdir(p))
+			if(chdir(p))
 				break;
 
 			/*
 			 * do the remainder
 			 */
 
-			if ((n -= s - p) < PATH_MAX)
+			if((n -= s - p) < PATH_MAX)
 			{
-				if (chdir(s))
+				if(chdir(s))
 					break;
 				return r;
 			}
@@ -130,7 +131,7 @@ pathcd(const char* path, const char* home)
 		 * try to recover back to home
 		 */
 
-		if (!(p = (char*)home))
+		if(!(p = (char *)home))
 			return -1;
 		home = 0;
 		r = -1;

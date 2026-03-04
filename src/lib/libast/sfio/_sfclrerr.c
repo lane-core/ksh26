@@ -16,11 +16,11 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 
 #undef sfclrerr
 
-int sfclrerr(Sfio_t* f)
+int sfclrerr(Sfio_t *f)
 {
 	return __sf_clrerr(f);
 }

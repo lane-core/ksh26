@@ -26,79 +26,78 @@
  */
 
 static const char usage[] =
-"+[-?\n@(#)$Id: tail (ksh26) 2024-07-31 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?tail - output trailing portion of one or more files ]"
-"[+DESCRIPTION?\btail\b copies one or more input files to standard output "
-	"starting at a designated point for each file.  Copying starts "
-	"at the point indicated by the options and is unlimited in size.]"
-"[+?By default a header of the form \b==> \b\afilename\a\b <==\b "
-	"is output before all but the first file but this can be changed "
-	"with the \b-q\b and \b-v\b options.]"
-"[+?If no \afile\a is given, or if the \afile\a is \b-\b, \btail\b "
-	"copies from standard input. The start of the file is defined "
-	"as the current offset.]"
-"[+?The option argument for \b-n\b and \b-c\b may end in one of the following "
-	"case-insensitive unit suffixes, with an optional trailing \bB\b ignored:]{"
-		"[+b?512 (block)]"
-		"[+k?1000 (kilo)]"
-		"[+Ki?1024 (kibi)]"
-		"[+M?1000*1000 (mega)]"
-		"[+Mi?1024*1024 (mebi)]"
-		"[+G?1000*1000*1000 (giga)]"
-		"[+Gi?1024*1024*1024 (gibi)]"
-		"[+...?and so on for T, Ti, P, Pi, E, and Ei.]"
-	"}"
-"[+?For backward compatibility, \b-\b\anumber\a is equivalent to "
-	"\b-n\b \anumber\a and \b+\b\anumber\a is equivalent to "
-	"\b-n -\b\anumber\a. \anumber\a may also have these option "
-	"suffixes: \bb c f g k l m r\b.]"
+    "+[-?\n@(#)$Id: tail (ksh26) 2024-07-31 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?tail - output trailing portion of one or more files ]"
+    "[+DESCRIPTION?\btail\b copies one or more input files to standard output "
+    "starting at a designated point for each file.  Copying starts "
+    "at the point indicated by the options and is unlimited in size.]"
+    "[+?By default a header of the form \b==> \b\afilename\a\b <==\b "
+    "is output before all but the first file but this can be changed "
+    "with the \b-q\b and \b-v\b options.]"
+    "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \btail\b "
+    "copies from standard input. The start of the file is defined "
+    "as the current offset.]"
+    "[+?The option argument for \b-n\b and \b-c\b may end in one of the following "
+    "case-insensitive unit suffixes, with an optional trailing \bB\b ignored:]{"
+    "[+b?512 (block)]"
+    "[+k?1000 (kilo)]"
+    "[+Ki?1024 (kibi)]"
+    "[+M?1000*1000 (mega)]"
+    "[+Mi?1024*1024 (mebi)]"
+    "[+G?1000*1000*1000 (giga)]"
+    "[+Gi?1024*1024*1024 (gibi)]"
+    "[+...?and so on for T, Ti, P, Pi, E, and Ei.]"
+    "}"
+    "[+?For backward compatibility, \b-\b\anumber\a is equivalent to "
+    "\b-n\b \anumber\a and \b+\b\anumber\a is equivalent to "
+    "\b-n -\b\anumber\a. \anumber\a may also have these option "
+    "suffixes: \bb c f g k l m r\b.]"
 
-"[n:lines]:[lines:=10?Copy \alines\a lines from each file.  A negative value "
-	"for \alines\a indicates an offset from the end of the file.]"
-"[b:blocks?Copy units of 512 bytes.]"
-"[c:bytes]:?[chars?Copy \achars\a bytes from each file.  A negative value "
-	"for \achars\a indicates an offset from the end of the file.]"
-"[f:forever|follow?Loop forever trying to read more characters as the "
-	"end of each file to copy new data. Ignored if reading from a pipe "
-	"or fifo.]"
-"[h!:headers?Output filename headers.]"
-"[l:lines?Copy units of lines. This is the default.]"
-"[L:log?When a \b--forever\b file times out via \b--timeout\b, verify that "
-	"the current file has not been renamed and replaced by another file "
-	"of the same name (a common log file practice) before giving up on "
-	"the file.]"
-"[q:quiet?Don't output filename headers. For GNU compatibility.]"
-"[r:reverse?Output lines in reverse order.]"
-"[s:silent?Don't warn about timeout expiration and log file changes.]"
-"[t:timeout?Stop checking after \atimeout\a elapses with no additional "
-	"\b--forever\b output. A separate elapsed time is maintained for "
-	"each file operand. There is no timeout by default. The default "
-	"\atimeout\a unit is seconds. \atimeout\a may be a catenation of 1 "
-	"or more integers, each followed by a 1 character suffix. The suffix "
-	"may be omitted from the last integer, in which case it is "
-	"interpreted as seconds. The supported suffixes are:]:[timeout]{"
-		"[+s?seconds]"
-		"[+m?minutes]"
-		"[+h?hours]"
-		"[+d?days]"
-		"[+w?weeks]"
-		"[+M?months]"
-		"[+y?years]"
-		"[+S?scores]"
-	"}"
-"[v:verbose?Always output filename headers.]"
+    "[n:lines]:[lines:=10?Copy \alines\a lines from each file.  A negative value "
+    "for \alines\a indicates an offset from the end of the file.]"
+    "[b:blocks?Copy units of 512 bytes.]"
+    "[c:bytes]:?[chars?Copy \achars\a bytes from each file.  A negative value "
+    "for \achars\a indicates an offset from the end of the file.]"
+    "[f:forever|follow?Loop forever trying to read more characters as the "
+    "end of each file to copy new data. Ignored if reading from a pipe "
+    "or fifo.]"
+    "[h!:headers?Output filename headers.]"
+    "[l:lines?Copy units of lines. This is the default.]"
+    "[L:log?When a \b--forever\b file times out via \b--timeout\b, verify that "
+    "the current file has not been renamed and replaced by another file "
+    "of the same name (a common log file practice) before giving up on "
+    "the file.]"
+    "[q:quiet?Don't output filename headers. For GNU compatibility.]"
+    "[r:reverse?Output lines in reverse order.]"
+    "[s:silent?Don't warn about timeout expiration and log file changes.]"
+    "[t:timeout?Stop checking after \atimeout\a elapses with no additional "
+    "\b--forever\b output. A separate elapsed time is maintained for "
+    "each file operand. There is no timeout by default. The default "
+    "\atimeout\a unit is seconds. \atimeout\a may be a catenation of 1 "
+    "or more integers, each followed by a 1 character suffix. The suffix "
+    "may be omitted from the last integer, in which case it is "
+    "interpreted as seconds. The supported suffixes are:]:[timeout]{"
+    "[+s?seconds]"
+    "[+m?minutes]"
+    "[+h?hours]"
+    "[+d?days]"
+    "[+w?weeks]"
+    "[+M?months]"
+    "[+y?years]"
+    "[+S?scores]"
+    "}"
+    "[v:verbose?Always output filename headers.]"
 
-"\n"
-"\n[file ...]\n"
-"\n"
+    "\n"
+    "\n[file ...]\n"
+    "\n"
 
-"[+EXIT STATUS?]{"
-	"[+0?All files copied successfully.]"
-	"[+>0?One or more files did not copy.]"
-"}"
-"[+SEE ALSO?\bcat\b(1), \bhead\b(1), \brev\b(1)]"
-;
+    "[+EXIT STATUS?]{"
+    "[+0?All files copied successfully.]"
+    "[+>0?One or more files did not copy.]"
+    "}"
+    "[+SEE ALSO?\bcat\b(1), \bhead\b(1), \brev\b(1)]";
 
 #include <cmd.h>
 #include <ctype.h>
@@ -107,45 +106,46 @@ static const char usage[] =
 #include <rev.h>
 #include <time.h>
 
-#define COUNT		(1<<0)
-#define ERROR		(1<<1)
-#define FOLLOW		(1<<2)
-#define HEADERS		(1<<3)
-#define LINES		(1<<4)
-#define LOG		(1<<5)
-#define NEGATIVE	(1<<6)
-#define POSITIVE	(1<<7)
-#define REVERSE		(1<<8)
-#define SILENT		(1<<9)
-#define TIMEOUT		(1<<10)
-#define VERBOSE		(1<<11)
+#define COUNT (1 << 0)
+#define ERROR (1 << 1)
+#define FOLLOW (1 << 2)
+#define HEADERS (1 << 3)
+#define LINES (1 << 4)
+#define LOG (1 << 5)
+#define NEGATIVE (1 << 6)
+#define POSITIVE (1 << 7)
+#define REVERSE (1 << 8)
+#define SILENT (1 << 9)
+#define TIMEOUT (1 << 10)
+#define VERBOSE (1 << 11)
 
-#define NOW		(unsigned long)time(NULL)
+#define NOW (unsigned long)time(NULL)
 
-#define DEFAULT		10
+#define DEFAULT 10
 
 #ifdef S_ISSOCK
-#define FIFO(m)		(S_ISFIFO(m)||S_ISSOCK(m))
+#define FIFO(m) (S_ISFIFO(m) || S_ISSOCK(m))
 #else
-#define FIFO(m)		S_ISFIFO(m)
+#define FIFO(m) S_ISFIFO(m)
 #endif
 
-struct Tail_s; typedef struct Tail_s Tail_t;
+struct Tail_s;
+typedef struct Tail_s Tail_t;
 
 struct Tail_s
 {
-	Tail_t*		next;
-	char*		name;
-	Sfio_t*		sp;
-	Sfoff_t		cur;
-	Sfoff_t		end;
-	unsigned long	expire;
-	long		dev;
-	long		ino;
-	int		fifo;
+	Tail_t *next;
+	char *name;
+	Sfio_t *sp;
+	Sfoff_t cur;
+	Sfoff_t end;
+	unsigned long expire;
+	long dev;
+	long ino;
+	int fifo;
 };
 
-static const char	header_fmt[] = "\n==> %s <==\n";
+static const char header_fmt[] = "\n==> %s <==\n";
 
 /*
  * if file is seekable, position file to tail location and return offset
@@ -153,53 +153,53 @@ static const char	header_fmt[] = "\n==> %s <==\n";
  */
 
 static Sfoff_t
-tailpos(Sfio_t* fp, Sfoff_t number, int delim)
+tailpos(Sfio_t *fp, Sfoff_t number, int delim)
 {
-	size_t		n;
-	Sfoff_t	offset;
-	Sfoff_t	first;
-	Sfoff_t	last;
-	char*		s;
-	char*		t;
-	unsigned char		incomplete;
-	struct stat		st;
+	size_t n;
+	Sfoff_t offset;
+	Sfoff_t first;
+	Sfoff_t last;
+	char *s;
+	char *t;
+	unsigned char incomplete;
+	struct stat st;
 
 	last = sfsize(fp);
-	if ((first = sfseek(fp, 0, SEEK_CUR)) < 0)
+	if((first = sfseek(fp, 0, SEEK_CUR)) < 0)
 		return last || fstat(sffileno(fp), &st) || st.st_size || FIFO(st.st_mode) ? -1 : 0;
-	if (delim < 0)
+	if(delim < 0)
 	{
-		if ((offset = last - number) < first)
+		if((offset = last - number) < first)
 			return first;
 		return offset;
 	}
 	incomplete = 1;
-	for (;;)
+	for(;;)
 	{
-		if ((offset = last - SFIO_BUFSIZE) < first)
+		if((offset = last - SFIO_BUFSIZE) < first)
 			offset = first;
 		sfseek(fp, offset, SEEK_SET);
 		n = last - offset;
-		if (!(s = sfreserve(fp, n, SFIO_LOCKR)))
+		if(!(s = sfreserve(fp, n, SFIO_LOCKR)))
 			return -1;
 		t = s + n;
-		if (incomplete)
+		if(incomplete)
 		{
-			if (t > s && *(t - 1) != delim && number-- <= 0)
+			if(t > s && *(t - 1) != delim && number-- <= 0)
 			{
 				sfread(fp, s, 0);
 				return offset + (t - s);
 			}
 			incomplete = 0;
 		}
-		while (t > s)
-			if (*--t == delim && number-- <= 0)
+		while(t > s)
+			if(*--t == delim && number-- <= 0)
 			{
 				sfread(fp, s, 0);
 				return offset + (t - s) + 1;
 			}
 		sfread(fp, s, 0);
-		if (offset == first)
+		if(offset == first)
 			break;
 		last = offset;
 	}
@@ -211,35 +211,35 @@ tailpos(Sfio_t* fp, Sfoff_t number, int delim)
  */
 
 static void
-pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
+pipetail(Sfio_t *infile, Sfio_t *outfile, Sfoff_t number, int delim)
 {
-	Sfio_t*		out;
-	Sfoff_t		n;
-	Sfoff_t		nleft = number;
-	size_t		a = 2 * SFIO_BUFSIZE;
-	int		fno = 0;
-	Sfoff_t		offset[2];
-	Sfio_t*		tmp[2];
+	Sfio_t *out;
+	Sfoff_t n;
+	Sfoff_t nleft = number;
+	size_t a = 2 * SFIO_BUFSIZE;
+	int fno = 0;
+	Sfoff_t offset[2];
+	Sfio_t *tmp[2];
 
-	if (delim < 0 && a > number)
+	if(delim < 0 && a > number)
 		a = number;
 	out = tmp[0] = sftmp(a);
 	tmp[1] = sftmp(a);
 	offset[0] = offset[1] = 0;
-	while ((n = sfmove(infile, out, number, delim)) > 0)
+	while((n = sfmove(infile, out, number, delim)) > 0)
 	{
 		offset[fno] = sftell(out);
-		if ((nleft -= n) <= 0)
+		if((nleft -= n) <= 0)
 		{
-			out = tmp[fno= !fno];
+			out = tmp[fno = !fno];
 			sfseek(out, 0, SEEK_SET);
 			nleft = number;
 		}
 	}
-	if (nleft == number)
+	if(nleft == number)
 	{
 		offset[fno] = 0;
-		fno= !fno;
+		fno = !fno;
 	}
 	sfseek(tmp[0], 0, SEEK_SET);
 
@@ -247,12 +247,12 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	 * see whether both files are needed
 	 */
 
-	if (offset[fno])
+	if(offset[fno])
 	{
 		sfseek(tmp[1], 0, SEEK_SET);
-		if ((n = number - nleft) > 0)
+		if((n = number - nleft) > 0)
 			sfmove(tmp[!fno], NULL, n, delim);
-		if ((n = offset[!fno] - sftell(tmp[!fno])) > 0)
+		if((n = offset[!fno] - sftell(tmp[!fno])) > 0)
 			sfmove(tmp[!fno], outfile, n, -1);
 	}
 	else
@@ -267,38 +267,38 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
  */
 
 static int
-init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
+init(Tail_t *tp, Sfoff_t number, int delim, int flags, const char **format)
 {
-	Sfoff_t		offset;
-	Sfio_t*		op;
-	struct stat	st;
+	Sfoff_t offset;
+	Sfio_t *op;
+	struct stat st;
 
 	tp->fifo = 0;
-	if (tp->sp)
+	if(tp->sp)
 	{
 		offset = 0;
-		if (tp->sp == sfstdin)
+		if(tp->sp == sfstdin)
 			tp->sp = 0;
 	}
 	else
 		offset = 1;
-	if (!tp->name || streq(tp->name, "-"))
+	if(!tp->name || streq(tp->name, "-"))
 	{
 		tp->name = "/dev/stdin";
 		tp->sp = sfstdin;
 	}
-	else if (!(tp->sp = sfopen(tp->sp, tp->name, "r")))
+	else if(!(tp->sp = sfopen(tp->sp, tp->name, "r")))
 	{
 		error(ERROR_system(0), "%s: cannot open", tp->name);
 		return -1;
 	}
 	sfset(tp->sp, SFIO_SHARE, 0);
-	if (offset)
+	if(offset)
 	{
-		if (number < 0 || !number && (flags & POSITIVE))
+		if(number < 0 || !number && (flags & POSITIVE))
 		{
 			sfset(tp->sp, SFIO_SHARE, !(flags & FOLLOW));
-			if (number < -1)
+			if(number < -1)
 			{
 				sfmove(tp->sp, NULL, -number - 1, delim);
 				offset = sfseek(tp->sp, 0, SEEK_CUR);
@@ -306,29 +306,29 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 			else
 				offset = 0;
 		}
-		else if ((offset = tailpos(tp->sp, number, delim)) >= 0)
+		else if((offset = tailpos(tp->sp, number, delim)) >= 0)
 			sfseek(tp->sp, offset, SEEK_SET);
-		else if (fstat(sffileno(tp->sp), &st))
+		else if(fstat(sffileno(tp->sp), &st))
 		{
 			error(ERROR_system(0), "%s: cannot stat", tp->name);
 			goto bad;
 		}
-		else if (!FIFO(st.st_mode))
+		else if(!FIFO(st.st_mode))
 		{
-			error(ERROR_SYSTEM|2, "%s: cannot position file to tail", tp->name);
+			error(ERROR_SYSTEM | 2, "%s: cannot position file to tail", tp->name);
 			goto bad;
 		}
 		else
 		{
 			tp->fifo = 1;
-			if (flags & (HEADERS|VERBOSE))
+			if(flags & (HEADERS | VERBOSE))
 			{
 				sfprintf(sfstdout, *format, tp->name);
 				*format = header_fmt;
 			}
-			op = (flags & REVERSE) ? sftmp(4*SFIO_BUFSIZE) : sfstdout;
+			op = (flags & REVERSE) ? sftmp(4 * SFIO_BUFSIZE) : sfstdout;
 			pipetail(tp->sp ? tp->sp : sfstdin, op, number, delim);
-			if (flags & REVERSE)
+			if(flags & REVERSE)
 			{
 				sfseek(op, 0, SEEK_SET);
 				rev_line(op, sfstdout, 0);
@@ -337,9 +337,9 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 		}
 	}
 	tp->cur = tp->end = offset;
-	if (flags & LOG)
+	if(flags & LOG)
 	{
-		if (fstat(sffileno(tp->sp), &st))
+		if(fstat(sffileno(tp->sp), &st))
 		{
 			error(ERROR_system(0), "%s: cannot stat", tp->name);
 			goto bad;
@@ -348,8 +348,8 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 		tp->ino = st.st_ino;
 	}
 	return 0;
- bad:
-	if (tp->sp != sfstdin)
+bad:
+	if(tp->sp != sfstdin)
 		sfclose(tp->sp);
 	tp->sp = 0;
 	return -1;
@@ -360,20 +360,20 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
  */
 
 static intmax_t
-num(const char* s, char** e, int* f, int o)
+num(const char *s, char **e, int *f, int o)
 {
-	intmax_t	number;
-	char*		t;
-	int		c;
-	char		lastbase;
+	intmax_t number;
+	char *t;
+	int c;
+	char lastbase;
 
-	*f &= ~(ERROR|NEGATIVE|POSITIVE);
-	if ((c = *s) == '-')
+	*f &= ~(ERROR | NEGATIVE | POSITIVE);
+	if((c = *s) == '-')
 	{
 		*f |= NEGATIVE;
 		s++;
 	}
-	else if (c == '+')
+	else if(c == '+')
 	{
 		*f |= POSITIVE;
 		s++;
@@ -381,25 +381,25 @@ num(const char* s, char** e, int* f, int o)
 	lastbase = 0;
 	errno = 0;
 	number = strtonll(s, &t, &lastbase, 0);
-	if (lastbase == 8 && *s == '0')
+	if(lastbase == 8 && *s == '0')
 	{
 		/* disable leading-0 octal by reparsing as decimal */
 		lastbase = 10;
 		errno = 0;
 		number = strtonll(s, &t, &lastbase, 0);
 	}
-	if (t == s)
+	if(t == s)
 		number = DEFAULT;
-	if (o && *t)
+	if(o && *t)
 	{
 		number = 0;
 		*f |= ERROR;
 		error(2, "-%c: %s: invalid numeric argument -- unknown suffix", o, s);
 	}
-	else if (errno)
+	else if(errno)
 	{
 		*f |= ERROR;
-		if (o)
+		if(o)
 			error(2, "-%c: %s: invalid numeric argument -- out of range", o, s);
 		else
 			error(2, "%s: invalid numeric argument -- out of range", s);
@@ -407,239 +407,238 @@ num(const char* s, char** e, int* f, int o)
 	else
 	{
 		*f |= COUNT;
-		if (t > s && isalpha(*(t - 1)))
+		if(t > s && isalpha(*(t - 1)))
 			*f &= ~LINES;
-		if (c == '-')
+		if(c == '-')
 			number = -number;
 	}
-	if (e)
+	if(e)
 		*e = t;
 	return number;
 }
 
-int
-b_tail(int argc, char** argv, Shbltin_t* context)
+int b_tail(int argc, char **argv, Shbltin_t *context)
 {
-	Sfio_t*		ip;
-	int		n;
-	int		i;
-	int		delim;
-	int		flags = HEADERS|LINES;
-	int		blocks = 0;
-	char*		s;
-	char*		t;
-	char*		r;
-	char*		file;
-	Sfoff_t		moved;
-	Sfoff_t		offset;
-	Sfoff_t		number = DEFAULT;
-	unsigned long	timeout = 0;
-	struct stat	st;
-	const char*	format = header_fmt+1;
-	ssize_t		z;
-	ssize_t		w;
-	Sfio_t*		op;
-	Tail_t*		fp;
-	Tail_t*		pp;
-	Tail_t*		hp;
-	Tail_t*		files;
-	Tv_t		tv;
+	Sfio_t *ip;
+	int n;
+	int i;
+	int delim;
+	int flags = HEADERS | LINES;
+	int blocks = 0;
+	char *s;
+	char *t;
+	char *r;
+	char *file;
+	Sfoff_t moved;
+	Sfoff_t offset;
+	Sfoff_t number = DEFAULT;
+	unsigned long timeout = 0;
+	struct stat st;
+	const char *format = header_fmt + 1;
+	ssize_t z;
+	ssize_t w;
+	Sfio_t *op;
+	Tail_t *fp;
+	Tail_t *pp;
+	Tail_t *hp;
+	Tail_t *files;
+	Tv_t tv;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
-	for (;;)
+	for(;;)
 	{
-		switch (n = optget(argv, usage))
+		switch(n = optget(argv, usage))
 		{
-		case 0:
-			if (!(flags & FOLLOW) && argv[opt_info.index] && (argv[opt_info.index][0] == '-' || argv[opt_info.index][0] == '+') && !argv[opt_info.index][1])
-			{
-				number = argv[opt_info.index][0] == '-' ? 10 : -10;
-				flags |= LINES;
-				opt_info.index++;
-				continue;
-			}
-			break;
-		case 'b':
-			blocks = 512;
-			flags &= ~LINES;
-			if (opt_info.option[0] == '+')
-				number = -number;
-			continue;
-		case 'c':
-			flags &= ~LINES;
-			if (opt_info.arg == argv[opt_info.index - 1])
-			{
-				strtol(opt_info.arg, &s, 10);
-				if (*s)
+			case 0:
+				if(!(flags & FOLLOW) && argv[opt_info.index] && (argv[opt_info.index][0] == '-' || argv[opt_info.index][0] == '+') && !argv[opt_info.index][1])
 				{
-					opt_info.index--;
-					t = "";
+					number = argv[opt_info.index][0] == '-' ? 10 : -10;
+					flags |= LINES;
+					opt_info.index++;
+					continue;
+				}
+				break;
+			case 'b':
+				blocks = 512;
+				flags &= ~LINES;
+				if(opt_info.option[0] == '+')
+					number = -number;
+				continue;
+			case 'c':
+				flags &= ~LINES;
+				if(opt_info.arg == argv[opt_info.index - 1])
+				{
+					strtol(opt_info.arg, &s, 10);
+					if(*s)
+					{
+						opt_info.index--;
+						t = "";
+						goto suffix;
+					}
+				}
+				else if(opt_info.arg && isalpha(*opt_info.arg))
+				{
+					t = opt_info.arg;
 					goto suffix;
 				}
-			}
-			else if (opt_info.arg && isalpha(*opt_info.arg))
-			{
-				t = opt_info.arg;
-				goto suffix;
-			}
-			/* FALLTHROUGH */
-		case 'n':
-			flags |= COUNT;
-			if (s = opt_info.arg)
-				number = num(s, &s, &flags, n);
-			else
-			{
-				number = DEFAULT;
-				flags &= ~(ERROR|NEGATIVE|POSITIVE);
-				s = "";
-			}
-			if (n != 'n' && s && isalpha(*s))
-			{
-				t = s;
-				goto suffix;
-			}
-			if (flags & ERROR)
-				continue;
-			if (flags & (NEGATIVE|POSITIVE))
-				number = -number;
-			if (opt_info.option[0]=='+')
-				number = -number;
-			continue;
-		case 'f':
-			flags |= FOLLOW;
-			continue;
-		case 'h':
-			if (opt_info.num)
-				flags |= HEADERS;
-			else
-				flags &= ~HEADERS;
-			continue;
-		case 'l':
-			flags |= LINES;
-			if (opt_info.option[0] == '+')
-				number = -number;
-			continue;
-		case 'L':
-			flags |= LOG;
-			continue;
-		case 'q':
-			flags &= ~HEADERS;
-			continue;
-		case 'r':
-			flags |= REVERSE;
-			continue;
-		case 's':
-			flags |= SILENT;
-			continue;
-		case 't':
-			flags |= TIMEOUT;
-			timeout = strelapsed(opt_info.arg, &s, 1);
-			if (*s)
-			{
-				error(ERROR_exit(1), "%s: invalid elapsed time [%s]", opt_info.arg, s);
-				UNREACHABLE();
-			}
-			continue;
-		case 'v':
-			flags |= VERBOSE;
-			continue;
-		case ':':
-			/* handle old style arguments */
-			if (!(r = argv[opt_info.index]) || !opt_info.offset)
-			{
-				error(2, "%s", opt_info.arg);
-				break;
-			}
-			s = r + opt_info.offset - 1;
-			if (i = *(s - 1) == '-' || *(s - 1) == '+')
-				s--;
-			if ((number = num(s, &t, &flags, 0)) && i)
-				number = -number;
-			goto compatibility;
-		suffix:
-			r = 0;
-			if (opt_info.option[0] == '+')
-				number = -number;
-		compatibility:
-			for (;;)
-			{
-				switch (*t++)
+				/* FALLTHROUGH */
+			case 'n':
+				flags |= COUNT;
+				if(s = opt_info.arg)
+					number = num(s, &s, &flags, n);
+				else
 				{
-				case 0:
-					if (r)
-						opt_info.offset = t - r - 1;
-					break;
-				case 'c':
-					flags &= ~LINES;
+					number = DEFAULT;
+					flags &= ~(ERROR | NEGATIVE | POSITIVE);
+					s = "";
+				}
+				if(n != 'n' && s && isalpha(*s))
+				{
+					t = s;
+					goto suffix;
+				}
+				if(flags & ERROR)
 					continue;
-				case 'f':
-					flags |= FOLLOW;
-					continue;
-				case 'l':
-					flags |= LINES;
-					continue;
-				case 'r':
-					flags |= REVERSE;
-					continue;
-				default:
-					error(2, "%s: invalid suffix", t - 1);
-					if (r)
-						opt_info.offset = strlen(r);
+				if(flags & (NEGATIVE | POSITIVE))
+					number = -number;
+				if(opt_info.option[0] == '+')
+					number = -number;
+				continue;
+			case 'f':
+				flags |= FOLLOW;
+				continue;
+			case 'h':
+				if(opt_info.num)
+					flags |= HEADERS;
+				else
+					flags &= ~HEADERS;
+				continue;
+			case 'l':
+				flags |= LINES;
+				if(opt_info.option[0] == '+')
+					number = -number;
+				continue;
+			case 'L':
+				flags |= LOG;
+				continue;
+			case 'q':
+				flags &= ~HEADERS;
+				continue;
+			case 'r':
+				flags |= REVERSE;
+				continue;
+			case 's':
+				flags |= SILENT;
+				continue;
+			case 't':
+				flags |= TIMEOUT;
+				timeout = strelapsed(opt_info.arg, &s, 1);
+				if(*s)
+				{
+					error(ERROR_exit(1), "%s: invalid elapsed time [%s]", opt_info.arg, s);
+					UNREACHABLE();
+				}
+				continue;
+			case 'v':
+				flags |= VERBOSE;
+				continue;
+			case ':':
+				/* handle old style arguments */
+				if(!(r = argv[opt_info.index]) || !opt_info.offset)
+				{
+					error(2, "%s", opt_info.arg);
 					break;
 				}
-				break;
-			}
-			continue;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+				s = r + opt_info.offset - 1;
+				if(i = *(s - 1) == '-' || *(s - 1) == '+')
+					s--;
+				if((number = num(s, &t, &flags, 0)) && i)
+					number = -number;
+				goto compatibility;
+			suffix:
+				r = 0;
+				if(opt_info.option[0] == '+')
+					number = -number;
+			compatibility:
+				for(;;)
+				{
+					switch(*t++)
+					{
+						case 0:
+							if(r)
+								opt_info.offset = t - r - 1;
+							break;
+						case 'c':
+							flags &= ~LINES;
+							continue;
+						case 'f':
+							flags |= FOLLOW;
+							continue;
+						case 'l':
+							flags |= LINES;
+							continue;
+						case 'r':
+							flags |= REVERSE;
+							continue;
+						default:
+							error(2, "%s: invalid suffix", t - 1);
+							if(r)
+								opt_info.offset = strlen(r);
+							break;
+					}
+					break;
+				}
+				continue;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
 	argv += opt_info.index;
-	if (!*argv)
+	if(!*argv)
 	{
 		flags &= ~HEADERS;
-		if (fstat(0, &st))
+		if(fstat(0, &st))
 			error(ERROR_system(0), "/dev/stdin: cannot stat");
-		else if (FIFO(st.st_mode))
+		else if(FIFO(st.st_mode))
 			flags &= ~FOLLOW;
 	}
-	else if (!*(argv + 1))
+	else if(!*(argv + 1))
 		flags &= ~HEADERS;
 	delim = (flags & LINES) ? '\n' : -1;
-	if (blocks)
+	if(blocks)
 		number *= blocks;
-	if (flags & REVERSE)
+	if(flags & REVERSE)
 	{
-		if (delim < 0)
+		if(delim < 0)
 			error(2, "--reverse requires line mode");
-		if (!(flags & COUNT))
+		if(!(flags & COUNT))
 			number = -1;
 		flags &= ~FOLLOW;
 	}
-	if ((flags & (FOLLOW|TIMEOUT)) == TIMEOUT)
+	if((flags & (FOLLOW | TIMEOUT)) == TIMEOUT)
 	{
 		flags &= ~TIMEOUT;
 		timeout = 0;
 		error(ERROR_warn(0), "--timeout ignored for --noforever");
 	}
-	if ((flags & (LOG|TIMEOUT)) == LOG)
+	if((flags & (LOG | TIMEOUT)) == LOG)
 	{
 		flags &= ~LOG;
 		error(ERROR_warn(0), "--log ignored for --notimeout");
 	}
-	if (error_info.errors)
+	if(error_info.errors)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (flags & FOLLOW)
+	if(flags & FOLLOW)
 	{
-		if (!(fp = stkalloc(stkstd, argc * sizeof(Tail_t))))
+		if(!(fp = stkalloc(stkstd, argc * sizeof(Tail_t))))
 		{
-			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+			error(ERROR_SYSTEM | ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		files = 0;
@@ -648,52 +647,53 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 		{
 			fp->name = s;
 			fp->sp = 0;
-			if (!init(fp, number, delim, flags, &format))
+			if(!init(fp, number, delim, flags, &format))
 			{
 				fp->expire = timeout ? (NOW + timeout + 1) : 0;
-				if (files)
+				if(files)
 					pp->next = fp;
 				else
 					files = fp;
 				pp = fp;
 				fp++;
 			}
-		} while (s && (s = *++argv));
-		if (!files)
+		} while(s && (s = *++argv));
+		if(!files)
 			return error_info.errors != 0;
 		pp->next = 0;
 		hp = 0;
 		n = 1;
 		tv.tv_sec = 1;
 		tv.tv_nsec = 0;
-		while (fp = files)
+		while(fp = files)
 		{
-			if (n)
+			if(n)
 				n = 0;
-			else if (sh_checksig(context) || tvsleep(&tv, NULL) && sh_checksig(context))
+			else if(sh_checksig(context) || tvsleep(&tv, NULL) && sh_checksig(context))
 			{
 				error_info.errors++;
 				break;
 			}
 			pp = 0;
-			while (fp)
+			while(fp)
 			{
-				if (fstat(sffileno(fp->sp), &st))
+				if(fstat(sffileno(fp->sp), &st))
 					error(ERROR_system(0), "%s: cannot stat", fp->name);
-				else if (fp->fifo || fp->end < st.st_size)
+				else if(fp->fifo || fp->end < st.st_size)
 				{
 					n = 1;
-					if (timeout)
+					if(timeout)
 						fp->expire = NOW + timeout;
 					z = fp->fifo ? SFIO_UNBOUND : st.st_size - fp->cur;
 					i = 0;
-					if ((s = sfreserve(fp->sp, z, SFIO_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SFIO_LOCKR)) && (i = 1))
+					if((s = sfreserve(fp->sp, z, SFIO_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SFIO_LOCKR)) && (i = 1))
 					{
 						z = sfvalue(fp->sp);
-						for (r = s + z; r > s && *(r - 1) != '\n'; r--);
-						if ((w = r - s) || i && (w = z))
+						for(r = s + z; r > s && *(r - 1) != '\n'; r--)
+							;
+						if((w = r - s) || i && (w = z))
 						{
-							if ((flags & (HEADERS|VERBOSE)) && hp != fp)
+							if((flags & (HEADERS | VERBOSE)) && hp != fp)
 							{
 								hp = fp;
 								sfprintf(sfstdout, format, fp->name);
@@ -709,35 +709,35 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					}
 					goto next;
 				}
-				else if (!timeout || fp->expire > NOW)
+				else if(!timeout || fp->expire > NOW)
 					goto next;
 				else
 				{
-					if (flags & LOG)
+					if(flags & LOG)
 					{
 						i = 3;
-						while (--i && stat(fp->name, &st))
-							if (sh_checksig(context))
+						while(--i && stat(fp->name, &st))
+							if(sh_checksig(context))
 							{
 								error_info.errors++;
 								goto done;
 							}
 							else
 								tvsleep(&tv, NULL);
-						if (i && (fp->dev != st.st_dev || fp->ino != st.st_ino) && !init(fp, 0, 0, flags, &format))
+						if(i && (fp->dev != st.st_dev || fp->ino != st.st_ino) && !init(fp, 0, 0, flags, &format))
 						{
-							if (!(flags & SILENT))
+							if(!(flags & SILENT))
 								error(ERROR_warn(0), "%s: log file change", fp->name);
 							fp->expire = NOW + timeout;
 							goto next;
 						}
 					}
-					if (!(flags & SILENT))
+					if(!(flags & SILENT))
 						error(ERROR_warn(0), "%s: %s timeout", fp->name, fmtelapsed(timeout, 1));
 				}
-				if (fp->sp && fp->sp != sfstdin)
+				if(fp->sp && fp->sp != sfstdin)
 					sfclose(fp->sp);
-				if (pp)
+				if(pp)
 					pp = pp->next = fp->next;
 				else
 					files = files->next;
@@ -747,44 +747,44 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				pp = fp;
 				fp = fp->next;
 			}
-			if (sfsync(sfstdout))
+			if(sfsync(sfstdout))
 			{
 				error(ERROR_system(1), "write error");
 				UNREACHABLE();
 			}
 		}
 	done:
-		for (fp = files; fp; fp = fp->next)
-			if (fp->sp && fp->sp != sfstdin)
+		for(fp = files; fp; fp = fp->next)
+			if(fp->sp && fp->sp != sfstdin)
 				sfclose(fp->sp);
 	}
 	else
 	{
-		if (file = *argv)
+		if(file = *argv)
 			argv++;
 		do
 		{
-			if (!file || streq(file, "-"))
+			if(!file || streq(file, "-"))
 			{
 				file = "/dev/stdin";
 				ip = sfstdin;
 			}
-			else if (!(ip = sfopen(NULL, file, "r")))
+			else if(!(ip = sfopen(NULL, file, "r")))
 			{
 				error(ERROR_system(0), "%s: cannot open", file);
 				continue;
 			}
-			if (flags & (HEADERS|VERBOSE))
+			if(flags & (HEADERS | VERBOSE))
 			{
 				sfprintf(sfstdout, format, file);
 				format = header_fmt;
 			}
-			if (number < 0 || !number && (flags & POSITIVE))
+			if(number < 0 || !number && (flags & POSITIVE))
 			{
 				sfset(ip, SFIO_SHARE, 1);
-				if (number < -1 && (moved = sfmove(ip, NULL, -(number + 1), delim)) >= 0 && delim >= 0 && moved < -(number + 1))
+				if(number < -1 && (moved = sfmove(ip, NULL, -(number + 1), delim)) >= 0 && delim >= 0 && moved < -(number + 1))
 					(void)sfgetr(ip, delim, SFIO_LASTR);
-				if (flags & REVERSE)
+				if(flags & REVERSE)
 					rev_line(ip, sfstdout, sfseek(ip, 0, SEEK_CUR));
 				else
 					sfmove(ip, sfstdout, SFIO_UNBOUND, -1);
@@ -792,9 +792,9 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			else
 			{
 				sfset(ip, SFIO_SHARE, 0);
-				if ((offset = tailpos(ip, number, delim)) >= 0)
+				if((offset = tailpos(ip, number, delim)) >= 0)
 				{
-					if (flags & REVERSE)
+					if(flags & REVERSE)
 						rev_line(ip, sfstdout, offset);
 					else
 					{
@@ -804,9 +804,9 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				}
 				else
 				{
-					op = (flags & REVERSE) ? sftmp(4*SFIO_BUFSIZE) : sfstdout;
+					op = (flags & REVERSE) ? sftmp(4 * SFIO_BUFSIZE) : sfstdout;
 					pipetail(ip, op, number, delim);
-					if (flags & REVERSE)
+					if(flags & REVERSE)
 					{
 						sfseek(op, 0, SEEK_SET);
 						rev_line(op, sfstdout, 0);
@@ -815,9 +815,9 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					flags = 0;
 				}
 			}
-			if (ip != sfstdin)
+			if(ip != sfstdin)
 				sfclose(ip);
-		} while ((file = *argv++) && !sh_checksig(context));
+		} while((file = *argv++) && !sh_checksig(context));
 	}
 	return error_info.errors != 0;
 }

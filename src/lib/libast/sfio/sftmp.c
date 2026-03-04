@@ -17,12 +17,12 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"sfhdr.h"
+#include "sfhdr.h"
 #if defined(__linux__) && _lib_statfs
-#  include <sys/statfs.h>
-#  ifndef  TMPFS_MAGIC
-#   define TMPFS_MAGIC	0x01021994
-#  endif
+#include <sys/statfs.h>
+#ifndef TMPFS_MAGIC
+#define TMPFS_MAGIC 0x01021994
+#endif
 #endif
 
 /*	Create a temporary stream for read/write.
@@ -47,22 +47,23 @@
 **    that temp files will be removed after the last handle is closed.
 */
 
-typedef struct _file_s		File_t;
+typedef struct _file_s File_t;
 struct _file_s
-{	File_t*	next;		/* link list		*/
-	Sfio_t*	f;		/* associated stream	*/
-	char	name[1];	/* temp file name	*/
+{
+	File_t *next; /* link list		*/
+	Sfio_t *f;    /* associated stream	*/
+	char name[1]; /* temp file name	*/
 };
 
-static File_t*	File;		/* list pf temp files	*/
+static File_t *File; /* list pf temp files	*/
 
-static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
+static int _tmprmfile(Sfio_t *f, int type, void *val, Sfdisc_t *disc)
 {
-	File_t	*ff, *last;
+	File_t *ff, *last;
 
 	NOT_USED(val);
 
-	if(type == SFIO_DPOP)	/* don't allow this to pop */
+	if(type == SFIO_DPOP) /* don't allow this to pop */
 		return -1;
 
 	if(type == SFIO_CLOSING)
@@ -71,12 +72,14 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 			if(ff->f == f)
 				break;
 		if(ff)
-		{	if(!last)
+		{
+			if(!last)
 				File = ff->next;
-			else	last->next = ff->next;
+			else
+				last->next = ff->next;
 
 			if(_Sfnotify)
-				(*_Sfnotify)(f,SFIO_CLOSING,f->file);
+				(*_Sfnotify)(f, SFIO_CLOSING, f->file);
 			ast_close(f->file);
 			f->file = -1;
 			while(remove(ff->name) < 0 && errno == EINTR)
@@ -90,35 +93,37 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 }
 
 static void _rmfiles(void)
-{	File_t	*ff, *next;
+{
+	File_t *ff, *next;
 
 	for(ff = File; ff; ff = next)
-	{	next = ff->next;
+	{
+		next = ff->next;
 		_tmprmfile(ff->f, SFIO_CLOSING, NULL, ff->f->disc);
 	}
 }
 
-static Sfdisc_t	Rmdisc =
-	{ NULL, NULL, NULL, _tmprmfile, NULL };
+static Sfdisc_t Rmdisc =
+    {NULL, NULL, NULL, _tmprmfile, NULL};
 
 #endif /*_tmp_rmfail*/
 
-static int _rmtmp(char* file)
+static int _rmtmp(char *file)
 {
-#if _tmp_rmfail	/* remove only when stream is closed */
-	File_t*	ff;
+#if _tmp_rmfail /* remove only when stream is closed */
+	File_t *ff;
 
 	if(!File)
 		atexit(_rmfiles);
 
-	if(!(ff = (File_t*)malloc(sizeof(File_t)+strlen(file))) )
+	if(!(ff = (File_t *)malloc(sizeof(File_t) + strlen(file))))
 		return -1;
 	ff->f = f;
-	strcpy(ff->name,file);
+	strcpy(ff->name, file);
 	ff->next = File;
 	File = ff;
 
-#else	/* can remove now */
+#else /* can remove now */
 	while(remove(file) < 0 && errno == EINTR)
 		errno = 0;
 #endif
@@ -128,8 +133,8 @@ static int _rmtmp(char* file)
 
 static int _tmpfd(void)
 {
-	char*	file;
-	int	fd;
+	char *file;
+	int fd;
 
 #if defined(__linux__) && _lib_statfs
 	/*
@@ -138,16 +143,16 @@ static int _tmpfd(void)
 	 */
 	static int doshm;
 	static char *shm = "/dev/shm";
-	if (!doshm)
+	if(!doshm)
 	{
 		struct statfs fs;
-		if (statfs(shm, &fs) < 0 || fs.f_type != TMPFS_MAGIC || eaccess(shm, W_OK|X_OK))
+		if(statfs(shm, &fs) < 0 || fs.f_type != TMPFS_MAGIC || eaccess(shm, W_OK | X_OK))
 			shm = NULL;
 		doshm++;
 	}
-	if(!(file = pathtemp(NULL,PATH_MAX,shm,"sf",&fd)))
+	if(!(file = pathtemp(NULL, PATH_MAX, shm, "sf", &fd)))
 #else
-	if(!(file = pathtemp(NULL,PATH_MAX,NULL,"sf",&fd)))
+	if(!(file = pathtemp(NULL, PATH_MAX, NULL, "sf", &fd)))
 #endif
 		return -1;
 	_rmtmp(file);
@@ -155,12 +160,12 @@ static int _tmpfd(void)
 	return fd;
 }
 
-static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
+static int _tmpexcept(Sfio_t *f, int type, void *val, Sfdisc_t *disc)
 {
-	int		fd, m;
-	Sfio_t*		sf;
-	Sfio_t		newf, savf;
-	Sfnotify_f	notify = _Sfnotify;
+	int fd, m;
+	Sfio_t *sf;
+	Sfio_t newf, savf;
+	Sfnotify_f notify = _Sfnotify;
 
 	NOT_USED(val);
 	NOT_USED(disc);
@@ -175,21 +180,21 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	newf.flags = SFIO_STATIC;
 	newf.mode = SFIO_AVAIL;
 
-	if((fd = _tmpfd()) < 0 )
+	if((fd = _tmpfd()) < 0)
 		return -1;
 
 	/* make sure that the notify function won't be called here since
 	   we are only interested in creating the file, not the stream */
 	_Sfnotify = 0;
-	sf = sfnew(&newf,NULL,(size_t)SFIO_UNBOUND,fd,SFIO_READ|SFIO_WRITE);
+	sf = sfnew(&newf, NULL, (size_t)SFIO_UNBOUND, fd, SFIO_READ | SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!sf)
 		return -1;
 
 	/* make sure that new stream has the same mode */
-	if((m = f->flags&(SFIO_READ|SFIO_WRITE)) != (SFIO_READ|SFIO_WRITE))
-		sfset(sf, ((~m)&(SFIO_READ|SFIO_WRITE)), 0);
-	sfset(sf, (f->mode&(SFIO_READ|SFIO_WRITE)), 1);
+	if((m = f->flags & (SFIO_READ | SFIO_WRITE)) != (SFIO_READ | SFIO_WRITE))
+		sfset(sf, ((~m) & (SFIO_READ | SFIO_WRITE)), 0);
+	sfset(sf, (f->mode & (SFIO_READ | SFIO_WRITE)), 1);
 
 	/* now remake the old stream into the new image */
 	memcpy(&savf, f, sizeof(Sfio_t));
@@ -201,24 +206,25 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	f->stdio = savf.stdio;
 
 	/* remove the SFIO_STATIC bit if it was only set above in making newf */
-	if(!(savf.flags&SFIO_STATIC) )
+	if(!(savf.flags & SFIO_STATIC))
 		f->flags &= ~SFIO_STATIC;
 
 	if(savf.data)
-	{	SFSTRSIZE(&savf);
-		if(!(savf.flags&SFIO_MALLOC) )
-			(void)sfsetbuf(f,savf.data,savf.size);
+	{
+		SFSTRSIZE(&savf);
+		if(!(savf.flags & SFIO_MALLOC))
+			(void)sfsetbuf(f, savf.data, savf.size);
 		if(savf.extent > 0)
-			(void)sfwrite(f,savf.data,(size_t)savf.extent);
-		(void)sfseek(f,(Sfoff_t)(savf.next - savf.data),SEEK_SET);
-		if((savf.flags&SFIO_MALLOC) )
+			(void)sfwrite(f, savf.data, (size_t)savf.extent);
+		(void)sfseek(f, (Sfoff_t)(savf.next - savf.data), SEEK_SET);
+		if((savf.flags & SFIO_MALLOC))
 			free(savf.data);
 	}
 
 	/* announce change of status */
 	f->disc = NULL;
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SFIO_SETFD, (void*)((long)f->file));
+		(*_Sfnotify)(f, SFIO_SETFD, (void *)((long)f->file));
 
 	/* erase all traces of newf */
 	newf.data = newf.endb = newf.endr = newf.endw = NULL;
@@ -230,42 +236,44 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	return 1;
 }
 
-Sfio_t* sftmp(size_t s)
+Sfio_t *sftmp(size_t s)
 {
-	Sfio_t		*f;
-	int		rv;
-	Sfnotify_f	notify = _Sfnotify;
-	static Sfdisc_t	Tmpdisc =
-			{ NULL, NULL, NULL, _tmpexcept,
+	Sfio_t *f;
+	int rv;
+	Sfnotify_f notify = _Sfnotify;
+	static Sfdisc_t Tmpdisc =
+	    {NULL, NULL, NULL, _tmpexcept,
 #if _tmp_rmfail
-			  &Rmdisc
+	     &Rmdisc
 #else
-			NULL
+	     NULL
 #endif
-			};
+	    };
 
 	/* start with a memory resident stream */
 	_Sfnotify = 0; /* local computation so no notification */
-	f = sfnew(NULL,NULL,s,-1,SFIO_STRING|SFIO_READ|SFIO_WRITE);
+	f = sfnew(NULL, NULL, s, -1, SFIO_STRING | SFIO_READ | SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!f)
 		return NULL;
 
-	if(s != (size_t)SFIO_UNBOUND)	/* set up a discipline for out-of-bound, etc. */
+	if(s != (size_t)SFIO_UNBOUND) /* set up a discipline for out-of-bound, etc. */
 		f->disc = &Tmpdisc;
 
 	if(s == 0) /* make the file now */
-	{	_Sfnotify = 0; /* local computation so no notification */
-		rv =  _tmpexcept(f,SFIO_DPOP,NULL,f->disc);
+	{
+		_Sfnotify = 0; /* local computation so no notification */
+		rv = _tmpexcept(f, SFIO_DPOP, NULL, f->disc);
 		_Sfnotify = notify;
 		if(rv < 0)
-		{	sfclose(f);
+		{
+			sfclose(f);
 			return NULL;
 		}
 	}
 
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SFIO_NEW, (void*)((long)f->file));
+		(*_Sfnotify)(f, SFIO_NEW, (void *)((long)f->file));
 
 	return f;
 }

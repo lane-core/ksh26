@@ -27,25 +27,24 @@
 
 #include <ast.h>
 
-int
-strexp(char* s, int flags)
+int strexp(char *s, int flags)
 {
-	char*		t;
-	int		c;
-	char*		b;
-	char*		e;
-	int		w;
+	char *t;
+	int c;
+	char *b;
+	char *e;
+	int w;
 
 	b = t = s;
-	while (c = *s++)
+	while(c = *s++)
 	{
-		if (c == '\\')
+		if(c == '\\')
 		{
 			c = chrexp(s - 1, &e, &w, flags);
 			s = e;
-			if (c < 0)
+			if(c < 0)
 				continue;
-			if (w)
+			if(w)
 			{
 				t += mbconv(t, c);
 				continue;
@@ -57,8 +56,7 @@ strexp(char* s, int flags)
 	return t - b;
 }
 
-int
-stresc(char* s)
+int stresc(char *s)
 {
-	return strexp(s, FMT_EXP_CHAR|FMT_EXP_LINE|FMT_EXP_WIDE);
+	return strexp(s, FMT_EXP_CHAR | FMT_EXP_LINE | FMT_EXP_WIDE);
 }

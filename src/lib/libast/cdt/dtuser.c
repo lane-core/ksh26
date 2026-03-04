@@ -16,7 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#include	"dthdr.h"
+#include "dthdr.h"
 
 /* Perform various functions on the user's behalf.
 **
@@ -24,7 +24,7 @@
 */
 
 /* managing the lock dt->data->user.lock */
-int dtuserlock(Dt_t* dt, unsigned int key, int type)
+int dtuserlock(Dt_t *dt, unsigned int key, int type)
 {
 	if(key == 0)
 		return -1;
@@ -32,25 +32,29 @@ int dtuserlock(Dt_t* dt, unsigned int key, int type)
 		return asolock(&dt->data->user.lock, key, ASO_LOCK);
 	else if(type < 0)
 		return asolock(&dt->data->user.lock, key, ASO_UNLOCK);
-	else	return asolock(&dt->data->user.lock, key, ASO_TRYLOCK);
+	else
+		return asolock(&dt->data->user.lock, key, ASO_TRYLOCK);
 }
 
 /* managing the user data slot dt->data->user.data */
-void* dtuserdata(Dt_t* dt, void* data, int set)
+void *dtuserdata(Dt_t *dt, void *data, int set)
 {
 	if(set == 0) /* just return current value */
 		return asogetptr(&dt->data->user.data);
-	else while(1)
-	{	void	*current = dt->data->user.data;
-		if(asocasptr(&dt->data->user.data, current, data) == current)
-			return	current;
-	}
+	else
+		while(1)
+		{
+			void *current = dt->data->user.data;
+			if(asocasptr(&dt->data->user.data, current, data) == current)
+				return current;
+		}
 }
 
 /* announcing an event on the user's behalf */
-int dtuserevent(Dt_t* dt, int flags, void* data)
+int dtuserevent(Dt_t *dt, int flags, void *data)
 {
 	if(!dt->disc->eventf)
 		return 0;
-	else	return (*dt->disc->eventf)(dt, DT_ANNOUNCE|DT_USER|flags, data, dt->disc);
+	else
+		return (*dt->disc->eventf)(dt, DT_ANNOUNCE | DT_USER | flags, data, dt->disc);
 }

@@ -23,28 +23,28 @@
 #ifndef _FTW_H
 #define _FTW_H
 
-#define FTW		FTWALK
+#define FTW FTWALK
 #include <ftwalk.h>
-#undef			FTW
+#undef FTW
 
-#define FTW_SLN		(FTW_SL|FTW_NR)
+#define FTW_SLN (FTW_SL | FTW_NR)
 
-#define FTW_PHYS	(FTW_PHYSICAL)
-#define FTW_CHDIR	(FTW_DOT)
-#define FTW_DEPTH	(FTW_POST)
-#define FTW_OPEN	(0)
+#define FTW_PHYS (FTW_PHYSICAL)
+#define FTW_CHDIR (FTW_DOT)
+#define FTW_DEPTH (FTW_POST)
+#define FTW_OPEN (0)
 
 struct FTW
 {
-	int		quit;
-	int		base;
-	int		level;
+	int quit;
+	int base;
+	int level;
 };
 
-#define FTW_SKD		FTW_SKIP
-#define FTW_PRUNE	FTW_SKIP
+#define FTW_SKD FTW_SKIP
+#define FTW_PRUNE FTW_SKIP
 
-extern int	ftw(const char*, int(*)(const char*, const struct stat*, int), int);
-extern int	nftw(const char*, int(*)(const char*, const struct stat*, int, struct FTW*), int, int);
+extern int ftw(const char *, int (*)(const char *, const struct stat *, int), int);
+extern int nftw(const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int);
 
 #endif

@@ -23,11 +23,12 @@
  * copy t into s, return a pointer to the end of s ('\0')
  */
 
-char*
-strcopy(char* s, const char* t)
+char *
+strcopy(char *s, const char *t)
 {
-	if (!t)
+	if(!t)
 		return s;
-	while (*s++ = *t++);
+	while(*s++ = *t++)
+		;
 	return s - 1;
 }

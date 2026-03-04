@@ -20,7 +20,7 @@
 
 #include <ast.h>
 
-#undef	strcmp
+#undef strcmp
 
 /*
  * Initial ast.* values (really _ast_info.*)
@@ -31,19 +31,21 @@
  * Values not set here are implicitly initialized to zero.
  */
 
-_Ast_info_t	_ast_info =
-{
-	"libast",		/* ast.id */
-	AST_VERSION,		/* ast.version */
-	0,			/* ast.env_serial */
-	{			/* ast.locale */
-		strcmp,		/* ast.locale.collate */
-	},
+_Ast_info_t _ast_info =
+    {
+        "libast",    /* ast.id */
+        AST_VERSION, /* ast.version */
+        0,           /* ast.env_serial */
+        {
+            /* ast.locale */
+            strcmp, /* ast.locale.collate */
+        },
 #if !AST_NOMULTIBYTE
-	{			/* ast.mb */
-		1,		/* ast.mb.cur_max */
-	},
+        {
+            /* ast.mb */
+            1, /* ast.mb.cur_max */
+        },
 #endif
 };
 
-extern _Ast_info_t	_ast_info;
+extern _Ast_info_t _ast_info;

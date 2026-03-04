@@ -19,25 +19,25 @@
 #include <ast_release.h>
 #include "git.h"
 
-#define SH_RELEASE_DATE	"2026-02-24"	/* must be in this format for $((.sh.version)) */
+#define SH_RELEASE_DATE "2026-02-24" /* must be in this format for $((.sh.version)) */
 /*
  * This comment keeps SH_RELEASE_DATE a few lines away from SH_RELEASE_SVER to avoid
  * merge conflicts when cherry-picking dev branch commits onto a release branch.
  */
-#define SH_RELEASE_FORK	"ksh26"		/* forked from ksh 93u+m */
-#define SH_RELEASE_SVER	"0.1.0-alpha"	/* semantic version number: https://semver.org */
-#define SH_RELEASE_CPYR	"(c) 2020-2026 Contributors to ksh 93u+m and ksh26"
+#define SH_RELEASE_FORK "ksh26"       /* forked from ksh 93u+m */
+#define SH_RELEASE_SVER "0.1.0-alpha" /* semantic version number: https://semver.org */
+#define SH_RELEASE_CPYR "(c) 2020-2026 Contributors to ksh 93u+m and ksh26"
 
 /* Scripts sometimes field-split ${.sh.version}, so don't change amount of whitespace. */
 /* Arithmetic $((.sh.version)) uses the last 10 chars, so the date must be at the end. */
 #if _AST_release
-#  define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER " " SH_RELEASE_DATE
+#define SH_RELEASE SH_RELEASE_FORK "/" SH_RELEASE_SVER " " SH_RELEASE_DATE
 #else
-#  ifdef git_commit
-#    define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER "+" git_commit " " SH_RELEASE_DATE
-#  else
-#    define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER "+dev " SH_RELEASE_DATE
-#  endif
+#ifdef git_commit
+#define SH_RELEASE SH_RELEASE_FORK "/" SH_RELEASE_SVER "+" git_commit " " SH_RELEASE_DATE
+#else
+#define SH_RELEASE SH_RELEASE_FORK "/" SH_RELEASE_SVER "+dev " SH_RELEASE_DATE
+#endif
 #endif
 
 /*
@@ -45,4 +45,4 @@
  * Only increase very rarely, i.e.: if incompatible changes are made that
  * cause bytecode from newer versions to fail on older versions of ksh.
  */
-#define SHCOMP_HDR_VERSION	5
+#define SHCOMP_HDR_VERSION 5

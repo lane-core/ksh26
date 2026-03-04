@@ -26,12 +26,11 @@
 
 #include "proclib.h"
 
-int
-procfree(Proc_t* p)
+int procfree(Proc_t *p)
 {
-	if (!p)
+	if(!p)
 		return -1;
-	if (p == &proc_default)
+	if(p == &proc_default)
 		p->pid = -1;
 	else
 		free(p);

@@ -24,54 +24,51 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: logname (AT&T Research) 1999-04-30 $\n]"
-"[--catalog?" ERROR_CATALOG "]"
-"[+NAME?logname - return the user's login name]"
-"[+DESCRIPTION?\blogname\b writes the user's login name to standard "
-	"output.  The login name is the string that is returned by the "
-	"\bgetlogin\b(2) function.  If \bgetlogin\b(2) does not return "
-	"successfully, the name corresponding to the real user ID of the "
-	"calling process is used instead.]"
+    "[-?\n@(#)$Id: logname (AT&T Research) 1999-04-30 $\n]"
+    "[--catalog?" ERROR_CATALOG "]"
+    "[+NAME?logname - return the user's login name]"
+    "[+DESCRIPTION?\blogname\b writes the user's login name to standard "
+    "output.  The login name is the string that is returned by the "
+    "\bgetlogin\b(2) function.  If \bgetlogin\b(2) does not return "
+    "successfully, the name corresponding to the real user ID of the "
+    "calling process is used instead.]"
 
-"\n"
-"\n\n"
-"\n"
-"[+EXIT STATUS?]{"
-	"[+0?Successful completion.]"
-	"[+>0?An error occurred.]"
-"}"
-"[+SEE ALSO?\bgetlogin\b(2)]"
-;
-
+    "\n"
+    "\n\n"
+    "\n"
+    "[+EXIT STATUS?]{"
+    "[+0?Successful completion.]"
+    "[+>0?An error occurred.]"
+    "}"
+    "[+SEE ALSO?\bgetlogin\b(2)]";
 
 #include <cmd.h>
 
-int
-b_logname(int argc, char** argv, Shbltin_t* context)
+int b_logname(int argc, char **argv, Shbltin_t *context)
 {
-	char*	logname;
+	char *logname;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	for (;;)
+	for(;;)
 	{
-		switch (optget(argv, usage))
+		switch(optget(argv, usage))
 		{
-		case ':':
-			error(2, "%s", opt_info.arg);
-			continue;
-		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			case ':':
+				error(2, "%s", opt_info.arg);
+				continue;
+			case '?':
+				/* self-doc: write to standard output */
+				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+				return 0;
 		}
 		break;
 	}
-	if (error_info.errors)
+	if(error_info.errors)
 	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if (!(logname = getlogin()))
+	if(!(logname = getlogin()))
 		logname = fmtuid(getuid());
 	sfputr(sfstdout, logname, '\n');
 	return 0;

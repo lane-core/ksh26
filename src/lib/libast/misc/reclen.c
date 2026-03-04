@@ -27,41 +27,41 @@
 #include <ctype.h>
 
 ssize_t
-reclen(Recfmt_t f, const void* b, size_t n)
+reclen(Recfmt_t f, const void *b, size_t n)
 {
-	unsigned char*	s = (unsigned char*)b;
-	unsigned char*	e;
-	size_t			h;
-	size_t			z;
+	unsigned char *s = (unsigned char *)b;
+	unsigned char *e;
+	size_t h;
+	size_t z;
 
-	switch (RECTYPE(f))
+	switch(RECTYPE(f))
 	{
-	case REC_delimited:
-		if (e = (unsigned char*)memchr(s, REC_D_DELIMITER(f), n))
-			return e - s + 1;
-		return 0;
-	case REC_fixed:
-		return REC_F_SIZE(f);
-	case REC_variable:
-		h = REC_V_HEADER(f);
-		if (n < h)
+		case REC_delimited:
+			if(e = (unsigned char *)memchr(s, REC_D_DELIMITER(f), n))
+				return e - s + 1;
 			return 0;
-		z = 0;
-		s += REC_V_OFFSET(f);
-		e = s + REC_V_LENGTH(f);
-		if (REC_V_LITTLE(f))
-			while (e > s)
-				z = (z<<8)|*--e;
-		else
-			while (s < e)
-				z = (z<<8)|*s++;
-		if (!REC_V_INCLUSIVE(f))
-			z += h;
-		else if (z < h)
-			z = h;
-		return z;
-	case REC_method:
-		return -1;
+		case REC_fixed:
+			return REC_F_SIZE(f);
+		case REC_variable:
+			h = REC_V_HEADER(f);
+			if(n < h)
+				return 0;
+			z = 0;
+			s += REC_V_OFFSET(f);
+			e = s + REC_V_LENGTH(f);
+			if(REC_V_LITTLE(f))
+				while(e > s)
+					z = (z << 8) | *--e;
+			else
+				while(s < e)
+					z = (z << 8) | *s++;
+			if(!REC_V_INCLUSIVE(f))
+				z += h;
+			else if(z < h)
+				z = h;
+			return z;
+		case REC_method:
+			return -1;
 	}
 	return -1;
 }

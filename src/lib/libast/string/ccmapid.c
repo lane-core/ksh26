@@ -29,123 +29,123 @@
 #include <ccode.h>
 #include <ctype.h>
 
-static const Ccmap_t	maps[] =
-{
-	{
-	"ascii",
-	"a|ascii|?(iso)?(-)646|?(iso)?(-)8859|latin",
-	"8 bit ascii",
-	"ISO-8859-%s",
-	"1",
-	CC_ASCII,
-	},
+static const Ccmap_t maps[] =
+    {
+        {
+            "ascii",
+            "a|ascii|?(iso)?(-)646|?(iso)?(-)8859|latin",
+            "8 bit ascii",
+            "ISO-8859-%s",
+            "1",
+            CC_ASCII,
+        },
 
-	{
-	"ebcdic",
-	"e|ebcdic?(-)?([1e])",
-	"X/Open ebcdic",
-	"EBCDIC",
-	0,
-	CC_EBCDIC_E,
-	},
+        {
+            "ebcdic",
+            "e|ebcdic?(-)?([1e])",
+            "X/Open ebcdic",
+            "EBCDIC",
+            0,
+            CC_EBCDIC_E,
+        },
 
-	{
-	"ebcdic-o",
-	"o|ebcdic?(-)[3o]|?(cp|ibm)1047|open?(-)edition",
-	"mvs OpenEdition ebcdic",
-	"EBCDIC-O",
-	0,
-	CC_EBCDIC_O,
-	},
+        {
+            "ebcdic-o",
+            "o|ebcdic?(-)[3o]|?(cp|ibm)1047|open?(-)edition",
+            "mvs OpenEdition ebcdic",
+            "EBCDIC-O",
+            0,
+            CC_EBCDIC_O,
+        },
 
-	{
-	"ebcdic-h",
-	"h|ebcdic?(-)h|?(cp|ibm)?(00)37|[oa]s?(/-)400",
-	"ibm OS/400 AS/400 ebcdic",
-	"EBCDIC-H",
-	0,
-	CC_EBCDIC_H,
-	},
+        {
+            "ebcdic-h",
+            "h|ebcdic?(-)h|?(cp|ibm)?(00)37|[oa]s?(/-)400",
+            "ibm OS/400 AS/400 ebcdic",
+            "EBCDIC-H",
+            0,
+            CC_EBCDIC_H,
+        },
 
-	{
-	"ebcdic-s",
-	"s|ebcdic?(-)s|siemens|posix-bc",
-	"siemens posix-bc ebcdic",
-	"EBCDIC-S",
-	0,
-	CC_EBCDIC_S,
-	},
+        {
+            "ebcdic-s",
+            "s|ebcdic?(-)s|siemens|posix-bc",
+            "siemens posix-bc ebcdic",
+            "EBCDIC-S",
+            0,
+            CC_EBCDIC_S,
+        },
 
-	{
-	"ebcdic-i",
-	"i|ebcdic?(-)[2i]|ibm",
-	"X/Open ibm ebcdic (not idempotent)",
-	"EBCDIC-I",
-	0,
-	CC_EBCDIC_I,
-	},
+        {
+            "ebcdic-i",
+            "i|ebcdic?(-)[2i]|ibm",
+            "X/Open ibm ebcdic (not idempotent)",
+            "EBCDIC-I",
+            0,
+            CC_EBCDIC_I,
+        },
 
-	{
-	"ebcdic-m",
-	"m|ebcdic?(-)m|mvs",
-	"mvs ebcdic",
-	"EBCDIC-M",
-	0,
-	CC_EBCDIC_M,
-	},
+        {
+            "ebcdic-m",
+            "m|ebcdic?(-)m|mvs",
+            "mvs ebcdic",
+            "EBCDIC-M",
+            0,
+            CC_EBCDIC_M,
+        },
 
-	{
-	"ebcdic-u",
-	"u|ebcdic?(-)(u|mf)|microfocus",
-	"microfocus cobol ebcdic",
-	"EBCDIC-U",
-	0,
-	CC_EBCDIC_U,
-	},
+        {
+            "ebcdic-u",
+            "u|ebcdic?(-)(u|mf)|microfocus",
+            "microfocus cobol ebcdic",
+            "EBCDIC-U",
+            0,
+            CC_EBCDIC_U,
+        },
 
-	{
-	"native",
-	"n|native|local",
-	"native code set",
-	0,
-	0,
-	CC_NATIVE,
-	},
+        {
+            "native",
+            "n|native|local",
+            "native code set",
+            0,
+            0,
+            CC_NATIVE,
+        },
 
-	{ 0 },
+        {0},
 };
 
 /*
  * ccode map list iterator
  */
 
-Ccmap_t*
-ccmaplist(Ccmap_t* mp)
+Ccmap_t *
+ccmaplist(Ccmap_t *mp)
 {
-	return !mp ? (Ccmap_t*)maps : (++mp)->name ? mp : NULL;
+	return !mp ? (Ccmap_t *)maps : (++mp)->name ? mp
+	                                            : NULL;
 }
 
 /*
  * return ccode map ID given name
  */
 
-int
-ccmapid(const char* name)
+int ccmapid(const char *name)
 {
-	const Ccmap_t*	mp;
-	int		c;
-	const Ccmap_t*	bp;
-	int		n;
-	ssize_t		sub[2];
+	const Ccmap_t *mp;
+	int c;
+	const Ccmap_t *bp;
+	int n;
+	ssize_t sub[2];
 
 	bp = 0;
 	n = 0;
-	for (mp = maps; mp->name; mp++)
-		if (strgrpmatch(name, mp->match, sub, elementsof(sub) / 2, STR_MAXIMAL|STR_LEFT|STR_ICASE))
+	for(mp = maps; mp->name; mp++)
+		if(strgrpmatch(name, mp->match, sub, elementsof(sub) / 2, STR_MAXIMAL | STR_LEFT | STR_ICASE))
 		{
-			if (!(c = name[sub[1]]))
+			if(!(c = name[sub[1]]))
 				return mp->ccode;
-			if (sub[1] > n && !isalpha(c))
+			if(sub[1] > n && !isalpha(c))
 			{
 				n = sub[1];
 				bp = mp;
@@ -158,13 +158,13 @@ ccmapid(const char* name)
  * return ccode map name given ID
  */
 
-char*
+char *
 ccmapname(int id)
 {
-	const Ccmap_t*	mp;
+	const Ccmap_t *mp;
 
-	for (mp = maps; mp->name; mp++)
-		if (id == mp->ccode)
-			return (char*)mp->name;
+	for(mp = maps; mp->name; mp++)
+		if(id == mp->ccode)
+			return (char *)mp->name;
 	return NULL;
 }

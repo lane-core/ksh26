@@ -28,25 +28,24 @@
  * return 0:ok <0:error
  */
 
-#define COL		16
-#define DOT		17
-#define END		18
-#define PFX		19
+#define COL 16
+#define DOT 17
+#define END 18
+#define PFX 19
 
-int
-strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
+int strtoip6(const char *s, char **e, unsigned char *addr, unsigned char *bits)
 {
-	unsigned char*	b = addr;
-	unsigned char*	x = b + IP6ADDR;
-	unsigned char*	z;
-	int		c;
-	uint32_t	a;
+	unsigned char *b = addr;
+	unsigned char *x = b + IP6ADDR;
+	unsigned char *z;
+	int c;
+	uint32_t a;
 
-	static unsigned char	lex[256];
+	static unsigned char lex[256];
 
-	if (!lex[0])
+	if(!lex[0])
 	{
-		for (c = 0; c < sizeof(lex); ++c)
+		for(c = 0; c < sizeof(lex); ++c)
 			lex[c] = END;
 		lex['0'] = 0;
 		lex['1'] = 1;
@@ -68,120 +67,120 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 		lex['.'] = DOT;
 		lex['/'] = PFX;
 	}
-	while (isspace(*s))
+	while(isspace(*s))
 		s++;
 	z = 0;
 	a = 0;
-	if (*s)
-		for (;;)
+	if(*s)
+		for(;;)
 		{
-			switch (c = lex[*((unsigned char*)s++)])
+			switch(c = lex[*((unsigned char *)s++)])
 			{
-			case END:
-			case PFX:
-				if ((x - b) < 2)
-					break;
-				*b++ = a>>8;
-				*b++ = a;
-				break;
-			case COL:
-				if ((x - b) < 2)
-					break;
-				*b++ = a>>8;
-				*b++ = a;
-				a = 0;
-				if (*s == ':')
-				{
-					if (z)
-					{
-						s--;
+				case END:
+				case PFX:
+					if((x - b) < 2)
 						break;
-					}
-					z = b;
-					if ((c = lex[*((unsigned char*)++s)]) >= 16)
-					{
-						s++;
-						break;
-					}
-				}
-				continue;
-			case DOT:
-				if (b >= x)
-				{
-					s--;
+					*b++ = a >> 8;
+					*b++ = a;
 					break;
-				}
-				*b++ = ((a >> 8) & 0xf) * 100 + ((a >> 4) & 0xf) * 10 + (a & 0xf);
-				a = 0;
-				for (;;)
-				{
-					switch (c = lex[*((unsigned char*)s++)])
-					{
-					case COL:
-					case END:
-					case PFX:
-						if (b < x)
-							*b++ = a;
-						a = 0;
+				case COL:
+					if((x - b) < 2)
 						break;
-					case DOT:
-						if (b >= x)
-							break;
-						*b++ = a;
-						a = 0;
-						continue;
-					default:
-						a = (a * 10) + c;
-						continue;
-					}
-					break;
-				}
-				if (c == COL)
-				{
-					if (*s == ':')
+					*b++ = a >> 8;
+					*b++ = a;
+					a = 0;
+					if(*s == ':')
 					{
-						if (z)
+						if(z)
 						{
 							s--;
 							break;
 						}
 						z = b;
-						if ((c = lex[*((unsigned char*)++s)]) >= 16)
+						if((c = lex[*((unsigned char *)++s)]) >= 16)
 						{
 							s++;
 							break;
 						}
 					}
-					if ((b - addr) == 6 && addr[0] == 0x20 && addr[1] == 0x02)
-						continue;
-				}
-				break;
-			default:
-				a = (a << 4) | c;
-				continue;
+					continue;
+				case DOT:
+					if(b >= x)
+					{
+						s--;
+						break;
+					}
+					*b++ = ((a >> 8) & 0xf) * 100 + ((a >> 4) & 0xf) * 10 + (a & 0xf);
+					a = 0;
+					for(;;)
+					{
+						switch(c = lex[*((unsigned char *)s++)])
+						{
+							case COL:
+							case END:
+							case PFX:
+								if(b < x)
+									*b++ = a;
+								a = 0;
+								break;
+							case DOT:
+								if(b >= x)
+									break;
+								*b++ = a;
+								a = 0;
+								continue;
+							default:
+								a = (a * 10) + c;
+								continue;
+						}
+						break;
+					}
+					if(c == COL)
+					{
+						if(*s == ':')
+						{
+							if(z)
+							{
+								s--;
+								break;
+							}
+							z = b;
+							if((c = lex[*((unsigned char *)++s)]) >= 16)
+							{
+								s++;
+								break;
+							}
+						}
+						if((b - addr) == 6 && addr[0] == 0x20 && addr[1] == 0x02)
+							continue;
+					}
+					break;
+				default:
+					a = (a << 4) | c;
+					continue;
 			}
 			break;
 		}
-	if (b == addr)
+	if(b == addr)
 		c = END + 1;
 	else
 	{
-		if (z)
+		if(z)
 		{
-			while (b > z)
+			while(b > z)
 				*--x = *--b;
-			while (x > z)
+			while(x > z)
 				*--x = 0;
 		}
 		else
-			while (b < x)
+			while(b < x)
 				*b++ = 0;
-		if (bits)
+		if(bits)
 		{
-			if (c == PFX)
+			if(c == PFX)
 			{
 				a = 0;
-				while ((c = lex[*((unsigned char*)s++)]) < 10)
+				while((c = lex[*((unsigned char *)s++)]) < 10)
 					a = a * 10 + c;
 			}
 			else
@@ -189,7 +188,7 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 			*bits = a;
 		}
 	}
-	if (e)
-		*e = (char*)(s - 1);
+	if(e)
+		*e = (char *)(s - 1);
 	return c == END ? 0 : -1;
 }

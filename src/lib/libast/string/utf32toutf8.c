@@ -33,47 +33,51 @@
 
 typedef struct Utf8_s
 {
-	uint32_t	range;
-	unsigned short	prefix;
-	unsigned short	shift;
+	uint32_t range;
+	unsigned short prefix;
+	unsigned short shift;
 } Utf8_t;
 
-static const Utf8_t	ops[] =
-{
-	{ 0x00000080, 0x00,  0 },
-	{ 0x00000800, 0xc0,  6 },
-	{ 0x00010000, 0xe0, 12 },
-	{ 0x00200000, 0xf0, 18 },
-	{ 0x04000000, 0xf8, 24 },
-	{ 0x80000000, 0xfc, 30 }
-};
+static const Utf8_t ops[] =
+    {
+        {0x00000080, 0x00, 0},
+        {0x00000800, 0xc0, 6},
+        {0x00010000, 0xe0, 12},
+        {0x00200000, 0xf0, 18},
+        {0x04000000, 0xf8, 24},
+        {0x80000000, 0xfc, 30}};
 
 size_t
-utf32toutf8(char* s, uint32_t w)
+utf32toutf8(char *s, uint32_t w)
 {
-	int	i;
-	char*	b;
-	char	tmp[UTF8_LEN_MAX];
+	int i;
+	char *b;
+	char tmp[UTF8_LEN_MAX];
 
-	if (!s)
+	if(!s)
 		s = tmp;
-	for (i = 0; i < elementsof(ops); i++)
+	for(i = 0; i < elementsof(ops); i++)
 	{
-		if (w < ops[i].range)
+		if(w < ops[i].range)
 		{
 			b = s;
 			*s++ = ops[i].prefix | (w >> ops[i].shift);
-			switch (ops[i].shift)
+			switch(ops[i].shift)
 			{
-			case 30: *s++ = 0x80 | ((w >> 24) & 0x3f);
-				 /* FALLTHROUGH */
-			case 24: *s++ = 0x80 | ((w >> 18) & 0x3f);
-				 /* FALLTHROUGH */
-			case 18: *s++ = 0x80 | ((w >> 12) & 0x3f);
-				 /* FALLTHROUGH */
-			case 12: *s++ = 0x80 | ((w >>  6) & 0x3f);
-				 /* FALLTHROUGH */
-			case  6: *s++ = 0x80 | (w & 0x3f);
+				case 30:
+					*s++ = 0x80 | ((w >> 24) & 0x3f);
+					/* FALLTHROUGH */
+				case 24:
+					*s++ = 0x80 | ((w >> 18) & 0x3f);
+					/* FALLTHROUGH */
+				case 18:
+					*s++ = 0x80 | ((w >> 12) & 0x3f);
+					/* FALLTHROUGH */
+				case 12:
+					*s++ = 0x80 | ((w >> 6) & 0x3f);
+					/* FALLTHROUGH */
+				case 6:
+					*s++ = 0x80 | (w & 0x3f);
 			}
 			return s - b;
 		}

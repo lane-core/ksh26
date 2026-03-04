@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 #ifndef _terminal_
-#define _terminal_	1
+#define _terminal_ 1
 
 /*
  * terminal interface
@@ -26,18 +26,18 @@
 
 #include <ast_tty.h>
 
-extern int	tty_alt(int);
-extern void	tty_cooked(int);
-extern int	tty_get(int,struct termios*);
-extern int	tty_raw(int,int);
-extern int	tty_check(int);
-extern int	tty_set(int, int, struct termios*);
-extern int	sh_tcgetattr(int,struct termios*);
-extern int	sh_tcsetattr(int,int,struct termios*);
+extern int tty_alt(int);
+extern void tty_cooked(int);
+extern int tty_get(int, struct termios *);
+extern int tty_raw(int, int);
+extern int tty_check(int);
+extern int tty_set(int, int, struct termios *);
+extern int sh_tcgetattr(int, struct termios *);
+extern int sh_tcsetattr(int, int, struct termios *);
 
-#undef	tcgetattr
-#undef	tcsetattr
-#define tcgetattr(a,b)		sh_tcgetattr(a,b)
-#define tcsetattr(a,b,c)	sh_tcsetattr(a,b,c)
+#undef tcgetattr
+#undef tcsetattr
+#define tcgetattr(a, b) sh_tcgetattr(a, b)
+#define tcsetattr(a, b, c) sh_tcsetattr(a, b, c)
 
 #endif /* _terminal_ */

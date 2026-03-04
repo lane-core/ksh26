@@ -22,7 +22,7 @@
 
 #include <ast.h>
 
-#define S2F_function	strtod
-#define S2F_type	1
+#define S2F_function strtod
+#define S2F_type 1
 
 #include "sfstrtof.h"
