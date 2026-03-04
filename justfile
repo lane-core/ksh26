@@ -127,6 +127,10 @@ test-debug: build-debug (_test DEBUGDIR)
 # Run tests against the asan build
 test-asan: build-asan (_test ASANDIR)
 
+# Run iffe regression tests
+test-iffe: _nix-warn
+    sh tests/infra/iffe.sh
+
 # Run tests sequentially via legacy shtests harness
 test-serial: build
     HOSTTYPE={{HOSTTYPE}} \
@@ -219,7 +223,7 @@ debug name locale="C": build
     #!/bin/sh
     export SHELL="{{BUILDDIR}}/bin/ksh"
     export SHCOMP="{{BUILDDIR}}/bin/shcomp"
-    export SHTESTS_COMMON="$PWD/src/cmd/ksh26/tests/_common"
+    export SHTESTS_COMMON="$PWD/tests/shell/_common"
     export ENV=/./dev/null
     . "{{BUILDDIR}}/test-env.sh"
     case "{{locale}}" in
@@ -227,8 +231,8 @@ debug name locale="C": build
     C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
     esac
     case "$(uname -s)" in
-    Darwin) lldb -- "{{BUILDDIR}}/bin/ksh" "src/cmd/ksh26/tests/{{name}}.sh" ;;
-    *)      gdb --args "{{BUILDDIR}}/bin/ksh" "src/cmd/ksh26/tests/{{name}}.sh" ;;
+    Darwin) lldb -- "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
+    *)      gdb --args "{{BUILDDIR}}/bin/ksh" "tests/shell/{{name}}.sh" ;;
     esac
 
 # ── Code tools ───────────────────────────────────────────────────

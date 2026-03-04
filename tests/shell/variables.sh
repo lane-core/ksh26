@@ -1058,7 +1058,7 @@ actual=$(env SHLVL="2#11+x[\$(env echo Exploited vuln CVE-2019-14868 >&2)0]" "$S
 
 # ... to avoid forgetting to keep this script synched with shtab_variables[], read from the source
 set -- $(
-	srcdir=${SHTESTS_COMMON%/tests/*}
+	srcdir=${SHTESTS_COMMON%/tests/*}/src/cmd/ksh26
 	redirect < $srcdir/data/variables.c || exit
 	# skip lines until finding shtab_variables struct
 	while	read -r line || exit

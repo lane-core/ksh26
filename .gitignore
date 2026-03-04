@@ -27,7 +27,6 @@ FEATURE/
 /src/cmd/INIT/crossexec
 /src/cmd/INIT/iffe
 /src/cmd/INIT/mamake
-/src/cmd/INIT/mamprobe
 /src/cmd/INIT/mktest
 /src/cmd/INIT/mprobe
 /src/cmd/INIT/package

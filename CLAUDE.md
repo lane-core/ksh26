@@ -66,12 +66,15 @@ nothing changed.
 | `just configure` | (Re)run feature detection |
 | `just reconfigure` | Force all probes to rerun |
 | `just compile-commands` | Generate `compile_commands.json` for clangd/LSP |
+| `just test-iffe` | Run iffe regression tests (18 test groups) |
 
 ### Adding tests
 
-Tests live in `src/cmd/ksh26/tests/`. Drop a `.sh` file, reconfigure, done —
+Tests live in `tests/shell/`. Drop a `.sh` file, reconfigure, done —
 `configure.sh` discovers all `*.sh` files automatically and generates both
 `C` and `C.UTF-8` locale variants. No manifest to update.
+
+Build infrastructure tests (iffe, etc.) live in `tests/infra/`.
 
 Use the `err_exit` pattern:
 ```ksh
@@ -102,8 +105,8 @@ just check                                   # local system (same as CI)
 nix build .#checks.x86_64-linux.default      # explicit Linux (remote builder)
 ```
 
-The check derivation excludes `sigchld.sh` (signal timing in Nix sandbox) and
-asserts ≥110 test stamps as a regression guard against build.ninja generation bugs.
+The check derivation asserts ≥114 test stamps as a regression guard against
+build.ninja generation bugs.
 
 ## Agent build/test workflow
 
@@ -123,6 +126,7 @@ Named recipes exist for every common operation. Use them.
 | All CI checks | `just check-all` | — |
 | Flaky test? | `just test-repeat NAME` | loop in shell |
 | Debug a test | `just debug NAME` | manual lldb/gdb setup |
+| Iffe tests | `just test-iffe` | — |
 
 Build output is logged to `build/$HOSTTYPE/log/build.log`. Test output is logged
 to `build/$HOSTTYPE/log/test.log`. Per-test failure logs are in

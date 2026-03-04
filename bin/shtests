@@ -74,7 +74,7 @@ KSH=$(CDPATH='' cd -P -- "$(dirname "$KSH")" \
 && KSH=${KSH%X}
 
 # Run the test suite
-CDPATH='' cd -P -- "$PACKAGEROOT/src/cmd/ksh26/tests" || exit
+CDPATH='' cd -P -- "$PACKAGEROOT/tests/shell" || exit
 SHELL=$KSH
 unset -v KSH
 printf '#### Regression-testing %s ####\n' "$SHELL"

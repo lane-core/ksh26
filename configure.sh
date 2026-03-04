@@ -81,77 +81,49 @@ mkdir -p "$BUILDDIR/bin" "$OBJDIR" "$INCDIR" "$LIBDIR" "$FEATDIR" \
 	"$OBJDIR/ksh26"
 
 # ── Compiler probe ────────────────────────────────────────────────────
-# Reuse mamprobe.sh to detect compiler capabilities. mamprobe needs
-# lib/probe/C/make/probe reachable via ${PATH_ENTRY%/bin/*}/lib/...
-# so we create a temporary probe layout.
+# Detect compiler capabilities directly. Replaces the 3,200-line
+# mamprobe.sh + C+probe + make.probe chain that was designed for
+# shared library probing across 1990s Unix variants. ksh26 builds
+# static archives — we only need AR, optimization, and aliasing flags.
 
 CC=${CC:-cc}
 CC_PATH=$(command -v "$CC")
 
-# Bootstrap probe infrastructure
-PROBE_DIR=$BUILDDIR/probe
-mkdir -p "$PROBE_DIR/bin/ok" "$PROBE_DIR/lib/probe/C/make"
-cat src/cmd/INIT/C+probe src/cmd/INIT/make.probe > "$PROBE_DIR/lib/probe/C/make/probe"
-chmod +x "$PROBE_DIR/lib/probe/C/make/probe"
+# Temp file for compile probes (dsymutil chokes on /dev/null with -g)
+_probe_out=$(mktemp "${TMPDIR:-/tmp}/ksh26.probe.XXXXXX") || exit 1
+trap 'rm -f "$_probe_out"' EXIT
 
-# Parse mamprobe 'setv name value' output into shell variables
-parse_probe_output()
-{
-	local varname value
-	while IFS= read -r line; do
-		case $line in
-		setv\ mam_cc_*)
-			line=${line#setv }
-			varname=${line%% *}
-			case $line in
-			*\ *)	value=${line#* } ;;
-			*)	value="" ;;
-			esac
-			case $value in
-			*%\{*) continue ;;
-			esac
-			eval "$varname=\$value"
-			;;
-		esac
-	done
-}
-
-mam_cc_AR= mam_cc_DEBUG= mam_cc_OPTIMIZE= mam_cc_NOSTRICTALIASING=
-mam_cc_TARGET= mam_cc_DLL= mam_cc_PIC= mam_cc_HOSTTYPE=
-mam_cc_SUFFIX_SHARED= mam_cc_SUFFIX_DYNAMIC= mam_cc_PREFIX_DYNAMIC=
-mam_cc_PREFIX_SHARED= mam_cc_LD_STRIP= mam_cc_AR_ARFLAGS=
-mam_cc_WARN=
-
-# Cache: reuse config.probe if compiler binary hasn't changed
-probe_cache=$BUILDDIR/config.probe
-if ! $FORCE && [ -f "$probe_cache" ] && [ -s "$probe_cache" ] \
-   && [ "$probe_cache" -nt "$CC_PATH" ] \
-   && [ "$probe_cache" -nt configure.sh ]; then
-	printf '%s\n' "configure: using cached compiler probe"
-	parse_probe_output < "$probe_cache"
+# AR: prefer co-located with CC, fall back to PATH
+_cc_dir=${CC_PATH%/*}
+if [ -x "$_cc_dir/ar" ]; then
+	AR="$_cc_dir/ar"
 else
-	printf '%s\n' "configure: probing compiler $CC_PATH ..."
-	probe_output=$(PATH="$PACKAGEROOT_ABS/$PROBE_DIR/bin/ok:$PATH" \
-		sh src/cmd/INIT/mamprobe.sh - "$CC_PATH" 2>/dev/null)
-	parse_probe_output <<EOF
-$probe_output
-EOF
-	printf '%s\n' "$probe_output" > "$probe_cache"
+	AR=$(command -v ar)
 fi
 
-# mamprobe may detect a different HOSTTYPE; use ours
-mam_cc_HOSTTYPE=$HOSTTYPE
+# Optimization: -Os if supported, else -O
+_optimize=""
+if printf 'int main(void){return 0;}' | $CC_PATH -Os -x c - -o "$_probe_out" 2>/dev/null; then
+	_optimize="-Os"
+elif printf 'int main(void){return 0;}' | $CC_PATH -O -x c - -o "$_probe_out" 2>/dev/null; then
+	_optimize="-O"
+fi
+
+# Strict aliasing: disable if the flag is accepted
+_nostrictaliasing=""
+if printf 'int main(void){return 0;}' | $CC_PATH -fno-strict-aliasing -x c - -o "$_probe_out" 2>/dev/null; then
+	_nostrictaliasing="-fno-strict-aliasing"
+fi
 
 printf '%s\n' "configure: HOSTTYPE=$HOSTTYPE"
 printf '%s\n' "configure: CC=$CC_PATH"
-printf '%s\n' "configure: AR=${mam_cc_AR:-ar}"
+printf '%s\n' "configure: AR=$AR"
 
 # ── Compiler flags ────────────────────────────────────────────────────
 
 # Debug info (-g) is always included: zero runtime cost, enables
 # useful backtraces. --debug overrides optimization to -O0 for
 # reliable single-stepping. --asan adds sanitizer instrumentation.
-_optimize="${mam_cc_OPTIMIZE:-}"
 LDFLAGS=""
 if $DEBUG; then
 	_optimize="-O0"
@@ -160,9 +132,7 @@ if $ASAN; then
 	_optimize="${_optimize:+$_optimize }-fsanitize=address,undefined -fno-omit-frame-pointer"
 	LDFLAGS="-fsanitize=address,undefined"
 fi
-CFLAGS="-std=c23 ${mam_cc_TARGET:-} ${mam_cc_DEBUG:-} $_optimize ${mam_cc_NOSTRICTALIASING:-} ${CFLAGS:-}"
-AR="${mam_cc_AR:-ar}"
-AR_FLAGS="${mam_cc_AR_ARFLAGS:-}"
+CFLAGS="-std=c23 -g $_optimize $_nostrictaliasing ${CFLAGS:-}"
 
 # ── Cache key ─────────────────────────────────────────────────────────
 # Invalidate all cached probes when compiler or flags change.
@@ -178,7 +148,6 @@ if $FORCE; then
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
 		"$BUILDDIR_ABS"/.utf8proc_cache \
-		"$BUILDDIR_ABS"/config.probe \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
 elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
 	: # cache key matches — individual probes check their own freshness
@@ -198,12 +167,6 @@ printf '%s\n' "$CACHE_KEY" > "$CACHE_KEY_FILE"
 # Detect optional external libraries not always in the default search path.
 # On Nix-based macOS, libiconv is a separate derivation outside the
 # linker's default -L paths. On stock macOS, it's reexported via libSystem.
-#
-# Probe output goes to a temp file, not /dev/null: clang's dsymutil
-# chokes on /dev/null when -g is in CFLAGS.
-
-_probe_out=$(mktemp "${TMPDIR:-/tmp}/ksh26.probe.XXXXXX") || exit 1
-trap 'rm -f "$_probe_out"' EXIT
 
 ICONV_FLAGS=""
 iconv_cache=$BUILDDIR_ABS/.iconv_cache
@@ -579,8 +542,8 @@ run_libast_conf()
 	(
 		cd "$workdir"
 		./conf -v "$srcdir/comp/conf.tab" \
-			"$CC_PATH" ${mam_cc_TARGET:-} ${mam_cc_OPTIMIZE:-} \
-			${mam_cc_NOSTRICTALIASING:-} 2>/dev/null
+			"$CC_PATH" $_optimize \
+			$_nostrictaliasing 2>/dev/null
 	) || true
 
 	# Copy generated conf headers
@@ -1166,7 +1129,7 @@ emit_ninja()
 {
 	local ninja=$BUILDDIR/build.ninja.new
 	local cc=$CC_PATH
-	local ar=${mam_cc_AR:-ar}
+	local ar=$AR
 
 	# Include paths are absolute so they work from samu's -C directory.
 	# ast_std intercepts <stdio.h>, <wchar.h> etc. with AST's wrappers
@@ -1338,7 +1301,7 @@ NINJA
 	# ── Test targets ──────────────────────────────────────────
 
 	local test_runner=$BUILDDIR_ABS/run-test.sh
-	local tests_dir=$src_abs/src/cmd/ksh26/tests
+	local tests_dir=$src_abs/tests/shell
 
 	cat >> "$ninja" <<NINJA
 
@@ -1492,7 +1455,7 @@ unset DISPLAY FIGNORE HISTFILE POSIXLY_CORRECT _AST_FEATURES
 . "${0%/*}/test-env.sh"
 
 export ENV=/./dev/null
-export SHTESTS_COMMON="${PACKAGEROOT}/src/cmd/ksh26/tests/_common"
+export SHTESTS_COMMON="${PACKAGEROOT}/tests/shell/_common"
 export SHELL="${BUILDDIR}/bin/ksh"
 export SHCOMP="${BUILDDIR}/bin/shcomp"
 

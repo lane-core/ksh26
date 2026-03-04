@@ -164,17 +164,11 @@
 
             doCheck = true;
             checkPhase = ''
-              # sigchld.sh is excluded: its SIGCHLD-after-notfound test
-              # depends on signal delivery timing that differs in the
-              # Nix sandbox. All 115 tests pass outside the sandbox.
-              sed -i '/^build test: phony/s| test/sigchld\.[^ ]*\.stamp||g' \
-                build/$HOSTTYPE/build.ninja
-
               # Sanity check: fail if test count drops below expected minimum
               stamp_count=$(grep '^build test: phony' build/$HOSTTYPE/build.ninja \
                 | tr ' ' '\n' | grep -c '\.stamp$' || true)
-              if (( stamp_count < 110 )); then
-                echo "FAIL: expected >=110 test stamps, found $stamp_count" >&2
+              if (( stamp_count < 114 )); then
+                echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
                 exit 1
               fi
 
@@ -208,13 +202,10 @@
 
             doCheck = true;
             checkPhase = ''
-              sed -i '/^build test: phony/s| test/sigchld\.[^ ]*\.stamp||g' \
-                build/$HOSTTYPE-asan/build.ninja
-
               stamp_count=$(grep '^build test: phony' build/$HOSTTYPE-asan/build.ninja \
                 | tr ' ' '\n' | grep -c '\.stamp$' || true)
-              if (( stamp_count < 110 )); then
-                echo "FAIL: expected >=110 test stamps, found $stamp_count" >&2
+              if (( stamp_count < 114 )); then
+                echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
                 exit 1
               fi
 

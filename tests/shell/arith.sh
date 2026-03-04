@@ -859,7 +859,7 @@ got=$(set +x; { var="x\]+b\[\$(uname>&2)"; typeset -A a; ((a["\$var"]++)); types
 # Arithmetic recursion level was not reset on encountering readonly error in combination with a recursive arithmetic expression.
 # (arithmetic array subscripts inside arithmetic expressions are one example of such recursion)
 # https://github.com/ksh93/ksh/pull/239#discussion_r606874442
-srcdir=${SHTESTS_COMMON%/tests/*}
+srcdir=${SHTESTS_COMMON%/tests/*}/src/cmd/ksh26
 integer maxlevel=$(grep $'^#define MAXLEVEL\t' "$srcdir/sh/streval.c" | sed 's/.*MAXLEVEL//')
 if	((!maxlevel))
 then	err_exit "could not get maximum arithmetic recursion level from source code; update this test"

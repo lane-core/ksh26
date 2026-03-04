@@ -110,8 +110,8 @@ then
 fi
 
 {
-got=$( ( sleep .1;print $'\n') | $SHELL -c 'function handler { : ;}
-	trap handler CHLD; sleep .03 & IFS= read; print good')
+got=$( ( sleep .3;print $'\n') | $SHELL -c 'function handler { : ;}
+	trap handler CHLD; sleep .1 & IFS= read; print good')
 } 2> /dev/null
 [[ $got == good ]] || err_exit 'SIGCHLD handler affects read behavior'
 
@@ -146,13 +146,13 @@ done
 trap - CHLD
 
 if((!SHOPT_SCRIPTONLY));then
-x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .05 & sleep .1;jobs')
+x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .05 & sleep .5;jobs')
 [[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound'
-x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .05 & sleep .1;jobs')
+x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .05 & sleep .5;jobs')
 [[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message'
 fi # !SHOPT_SCRIPTONLY
 
-print 'set -o monitor;sleep .05 & sleep .1;jobs' > $tmp/foobar
+print 'set -o monitor;sleep .05 & sleep .5;jobs' > $tmp/foobar
 chmod +x $tmp/foobar
 x=$($SHELL  -c "echo | $tmp/foobar")
 [[ $x == *Done* ]] || err_exit 'SIGCHLD blocked for script at end of pipeline'
