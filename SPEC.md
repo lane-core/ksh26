@@ -89,14 +89,14 @@ variable abstraction x.(T) — is the precise point where non-confluence arises.
 CBV resolves it by restricting the left rule to values; CBN by restricting the
 right rule to covalues.
 
-This critical pair is the formal name for the sh.prefix bugs: a computation
+This critical pair is the structural condition underlying the sh.prefix bugs: a computation
 context (covariable abstraction / DEBUG trap) cut against a value context
 (variable abstraction / compound assignment), with two possible reduction orders
 yielding different results.
 
 **Curien and Munch-Maccagnoni** [8] resolve this via **focalization**: in the
 focused calculus, the critical pair has only one reduction order. This is the
-formal basis for the polarity frame API — see §"The critical pair" for the
+theoretical basis for the polarity frame API — see §"The critical pair" for the
 concrete application.
 
 ### The semantics
@@ -138,8 +138,14 @@ collection. Key insights:
 
 ## The correspondence
 
-The mapping isn't metaphorical. These are structural identifications — the same
-patterns, the same failure modes, the same fix disciplines.
+The mapping isn't metaphorical. These are structural correspondences — at
+varying levels of precision, from formal identifications (the three-sorted AST,
+the continuation stack, the let/control duality) to structural analogies (the
+monadic expansion pipeline, commands as oblique maps). The failure modes and fix
+disciplines are shared across levels; what varies is how much of the formal
+structure carries over. Where the evidence supports a direct identification, the
+text below says "is"; where the correspondence is structural but incomplete, it
+says "has the structure of" or "composes like."
 
 ### Three sorts: producers, consumers, statements
 
@@ -175,6 +181,12 @@ The shift connectives in System L have "reversed introduction rules" — ↑A
 exactly how `$(cmd)` works: a command (negative) is *forced* to produce a value
 (positive) that can be substituted into word position. And `eval` does the
 reverse: a string value (positive) is *forced* into command position (negative).
+
+Most entries in the shift table are formal identifications with the shift
+connectives. The exception is process substitution (`<(cmd)`): the polarity
+shift is genuine — a computation is packaged as a storable value — but the
+process runs eagerly, making it closer to a future than a lazy thunk. The ↓N
+label captures the polarity structure, not the evaluation strategy.
 
 ### The let/control duality
 
@@ -296,6 +308,14 @@ reductions yield different results:
   S{x.(T)/α}    T{(S).α/x}
 ```
 
+In the calculus, this is a pure phenomenon: two reduction strategies yield
+different normal forms, and the system is non-confluent. In an interpreter with
+shared mutable state, the same structural condition — two valid reduction
+orders — manifests as state corruption: which reduction fires first determines
+whether shared state is left in a consistent or corrupted configuration. The
+critical pair identifies the *structural condition*; the shell bug is a specific
+instantiation in a stateful setting.
+
 In ksh93, this critical pair manifests concretely. Consider `typeset` during a
 compound assignment while a DEBUG trap is active:
 
@@ -314,14 +334,21 @@ one reduces first determines whether `sh.prefix` is corrupted.
 
 CBV resolves this by restricting the left reduction rule to **values**: only
 values — not arbitrary computations — may substitute into variable abstractions.
-This is exactly the restriction that shell variables hold word-level data, not
-suspended commands. When the restriction is violated (via eval, traps, or name
-resolution side effects), the critical pair forms and non-confluence appears as
-a bug. Curien and Munch-Maccagnoni [8] show that **focalization** eliminates
-the critical pair: in the focused calculus, there is only one way to reduce
-⟨μα.c₁|μ̃x.c₂⟩. The polarity frame API (`sh_polarity_enter`/`sh_polarity_leave`)
-is the C implementation of this resolution — it forces a deterministic reduction
-order at every boundary crossing.
+The shell is *mostly* CBV: variables hold word-level data, not suspended
+commands, and this restriction normally prevents the critical pair from forming.
+But traps, eval, and name resolution side effects inject computation into value
+contexts, creating a mixed regime. At these boundaries, the CBV restriction
+fails to hold and the critical pair appears — not as a violation of CBV, but as
+evidence that the shell operates in a region where pure CBV discipline doesn't
+fully apply.
+
+Curien and Munch-Maccagnoni [8] show that **focalization** eliminates the
+critical pair syntactically: in the focused calculus, there is only one way to
+reduce ⟨μα.c₁|μ̃x.c₂⟩. The polarity frame API (`sh_polarity_enter`/
+`sh_polarity_leave`) enforces at runtime what focalization guarantees at the
+type level: a deterministic reduction order at every boundary crossing. Both
+resolve the same structural problem; the mechanism differs (syntactic prevention
+vs runtime enforcement), but the resolution strategy is the same.
 
 ### Non-associativity made concrete: the sh.prefix bugs
 
@@ -332,6 +359,25 @@ fails is the (+,−) equation: `(h ○ g) • f ≠ h ○ (g • f)` where • c
 through a positive (value) intermediary and ○ through a negative (computation)
 intermediary [2, 3]. The two bracketings evaluate `f` and `h` in different
 orders — exactly the non-determinism in the critical pair.
+
+Concretely, take the three operations that compose in bug 002:
+
+```
+f: parameter expansion         positive (produces an expanded value)
+g: compound assignment body    positive → negative (sets sh.prefix, enters computation)
+h: DEBUG trap dispatch         negative (computation-mode intrusion)
+
+(h ○ g) • f    f produces a value; g and h compose in computation mode.
+               g's sh.prefix is contained within the (h ○ g) frame —
+               the trap fires with sh.prefix managed by the frame.
+
+h ○ (g • f)    g and f compose through the positive intermediary — f
+               expands within g's sh.prefix context — then h fires
+               around the result, seeing (and corrupting) sh.prefix.
+```
+
+The left bracketing contains `sh.prefix` within the computation frame; the
+right exposes it. Bug 002 is the right bracketing in action.
 
 **Bug 001** (`bugs/001-typeset-compound-assoc-expansion.ksh`): `typeset -i`
 combined with compound-associative array expansion produces "invalid variable
@@ -410,9 +456,11 @@ everywhere via `sh_pushcontext` / `sh_popcontext` (fault.h).
 The duploid [2, 9] integrates two familiar compositional styles: Kleisli
 (monadic/CBV — thread values through effectful steps) and co-Kleisli
 (comonadic/CBN — extract from and extend contexts). Both appear as concrete C
-idioms in ksh93. Commands themselves are "oblique maps" P → N [9, Table 1]:
-they take values and produce computations. Formal definitions stay in the
-references; this section shows what the patterns look like in C.
+idioms in ksh93. Commands have the structure of oblique maps P → N [9, Table 1]:
+they receive values and enter computation, matching the type signature. Whether
+the full composition laws carry over is unverified (structural analogy). Formal
+definitions stay in the references; this section shows what the patterns look
+like in C.
 
 #### The monadic side: value composition (macro.c)
 
@@ -424,10 +472,11 @@ pipeline: `sh_macexpand()` (entry point; takes `argnod*`, accesses `Mac_t` via
 `sh.mac_context`) → `copyto()` → `varsub()` → `comsubst()`.
 
 The implementation is a character-scan event loop (`copyto()` in macro.c:441)
-rather than sequential function calls, but the compositional structure is
-monadic: each expansion event (tilde, parameter, arithmetic) reads from and
-writes to the shared `Mac_t`/`Stk_t` state, and errors propagate via
-`siglongjmp` to a `SH_JMPSUB` checkpoint pushed by `sh_mactry()`.
+rather than sequential function calls, but the expansion pipeline has monadic
+structure: each stage is a Kleisli-shaped step (value in → expanded value +
+effects), with `Mac_t`/`Stk_t` state and `siglongjmp` errors as the implicit
+monad. The stages compose within `copyto()`'s character loop rather than via
+explicit bind — structural analogy, not formal Kleisli composition.
 
 Associativity holds within this pipeline: the stages compose freely because
 they all operate on the same polarity (positive/value). What breaks
@@ -463,7 +512,7 @@ is when a value-mode operation intrudes into the context management — the
 
 #### Oblique maps: where the two sides meet
 
-A shell command is an oblique map P → N [9]: it receives values (arguments,
+A shell command functions as an oblique map P → N [9]: it receives values (arguments,
 redirections — positive/monadic data) and enters computation mode (executes,
 produces side effects, yields an exit status — negative/comonadic context).
 
@@ -499,7 +548,8 @@ results without mode crossing.
 
 ### The taxonomy of boundary violations
 
-Every ksh93 bug we've encountered fits one of these patterns:
+The documented bugs fit two of four boundary violation patterns predicted by the
+framework:
 
 1. **Missing shift** — A computation-mode operation runs in a value-mode context
    without saving/restoring the context markers. (Bugs 001, 002)
@@ -508,10 +558,15 @@ Every ksh93 bug we've encountered fits one of these patterns:
    moved on, causing the restoration to overwrite valid state. (Bugs 003a, 003b)
 
 3. **Scope leak** — A `dtview()` chain is set up but not properly unwound,
-   leaving dangling scope links. (Namespace cleanup issues)
+   leaving dangling scope links. (Predicted — namespace cleanup)
 
 4. **Continuation misfire** — A `siglongjmp` unwinds to the wrong `checkpt`
-   because the push/pop discipline was violated. (Nested eval/trap issues)
+   because the push/pop discipline was violated. (Predicted — nested eval/trap)
+
+Categories 3 and 4 are not yet represented in the documented bug corpus. The
+framework predicts them as the remaining failure modes for scope chains and
+continuations respectively; the parentheticals indicate where we expect to find
+instances.
 
 All four are instances of the same structural problem: **the polarity
 boundary discipline is maintained by convention, not by construction.**
@@ -572,7 +627,7 @@ dispatch in sh_trap, subshell setup). `sh_polarity_lite_enter`/
 `sh_polarity_lite_leave` handle the lightweight case (sh_debug, where trap
 state is managed by the inner sh_trap call). Every place that formerly did
 ad-hoc save/restore of polarity-sensitive state now uses this API, making
-boundary crossings visible and auditable. This is the C equivalent of Binder
+boundary crossings visible and auditable. This is the C analog of Binder
 et al.'s static focusing [7] — lifting subcomputations to positions where
 they can be properly evaluated.
 
