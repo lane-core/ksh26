@@ -48,3 +48,9 @@ See `notes/posix8-deprecations.md` for the full audit.
   - Add proper teardown-before-exit for global state
   - Keep `detect_leaks=0` (current approach) and revisit after
     the vmalloc→malloc migration
+
+## Dead subsystems
+
+- [ ] **Mount chain (mnt.c → fmtfs.c → fts.c)** (low priority)
+  Never called from the shell — only from libast-internal code. Candidate
+  for removal as "unused libast subsystems."
