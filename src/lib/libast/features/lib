@@ -27,7 +27,7 @@ lib	_cleanup
 lib	bcopy,bzero,confstr,dirread
 lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize
-lib	gethostname,getpagesize,getrlimit,getuniverse
+lib	gethostname,getpagesize,getrlimit
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
 lib	mktemp,mktime
@@ -116,10 +116,6 @@ tst	pipe_rw note{ full duplex pipes }end execute{
 	int
 	main(void)
 	{
-	#if defined(__sgi) || defined(_sgi) || defined(sgi)
-		/* boot tuneable pipes force one way for bin compatibility */
-		return 1;
-	#else
 		static char	test[] = "test\n";
 		int		io[2];
 		char		buf[sizeof(test)];
@@ -131,7 +127,6 @@ tst	pipe_rw note{ full duplex pipes }end execute{
 		if (read(io[1], buf, sizeof(test)) != sizeof(test)) return 1;
 		if (strcmp(test, buf)) return 1;
 		return 0;
-	#endif
 	}
 }end
 
@@ -378,7 +373,7 @@ tst	- output{
 	int
 	main(void)
 	{
-	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance || _lib_clone
+	#if _lib_posix_spawn || _lib_clone
 		printf("#if !_AST_no_spawnveg\n");
 		printf("#define _use_spawnveg	1\n");
 		printf("#endif\n");

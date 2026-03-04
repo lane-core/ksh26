@@ -51,15 +51,7 @@ typedef struct
 {
 	Mnt_t	mnt;
 	char	buf[128];
-#if __CYGWIN__
-	char	typ[128];
-	char	opt[128];
-#endif
 } Header_t;
-
-#if __CYGWIN__
-#include <ast_windows.h>
-#endif
 
 static void
 set(Header_t* hp, const char* fs, const char* dir, const char* type, const char* options)
@@ -93,35 +85,6 @@ set(Header_t* hp, const char* fs, const char* dir, const char* type, const char*
 	hp->mnt.dir = (char*)dir;
 	hp->mnt.type = (char*)type;
 	hp->mnt.options = (char*)options;
-#if __CYGWIN__
-	if (streq(type, "system") || streq(type, "user"))
-	{
-		char*	s;
-		int	mode;
-		DWORD	vser;
-		DWORD	flags;
-		DWORD	len;
-		char	drive[4];
-
-		mode = SetErrorMode(SEM_FAILCRITICALERRORS);
-		drive[0] = fs[0];
-		drive[1] = ':';
-		drive[2] = '\\';
-		drive[3] = 0;
-		if (GetVolumeInformation(drive, 0, 0, &vser, &len, &flags, hp->typ, sizeof(hp->typ) - 1))
-			hp->mnt.type = hp->typ;
-		else
-			flags = 0;
-		SetErrorMode(mode);
-		s = strcopy(hp->mnt.options = hp->opt, type);
-		s = strcopy(s, ",ignorecase");
-		if (options)
-		{
-			*s++ = ',';
-			strcpy(s, options);
-		}
-	}
-#endif
 }
 
 #undef	MNT_REMOTE
@@ -315,136 +278,9 @@ mntclose(void* handle)
 
 #else
 
-#if _lib_mntctl && _sys_vmount
-
-/*
- * aix
- */
-
-#include <sys/vmount.h>
-
-#define SIZE		(16 * 1024)
-
-static const char*	type[] =
-{
-	"aix", "aix#1", "nfs", "jfs", "aix#4", "cdrom"
-};
-
-typedef struct
-{
-	Header_t	hdr;
-	long		count;
-	struct vmount*	next;
-	char		remote[128];
-	char		type[16];
-	struct vmount	info[1];
-} Handle_t;
-
-void*
-mntopen(const char* path, const char* mode)
-{
-	Handle_t*	mp;
-
-	FIXARGS(path, mode, 0);
-	if (!(mp = newof(0, Handle_t, 1, SIZE)))
-		return NULL;
-	if ((mp->count = mntctl(MCTL_QUERY, sizeof(Handle_t) + SIZE, &mp->info)) <= 0)
-	{
-		free(mp);
-		return NULL;
-	}
-	mp->next = mp->info;
-	return mp;
-}
-
-Mnt_t*
-mntread(void* handle)
-{
-	Handle_t*	mp = (Handle_t*)handle;
-	char*		s;
-	char*		t;
-	char*		o;
-
-	if (mp->count > 0)
-	{
-		if (vmt2datasize(mp->next, VMT_HOST) && (s = vmt2dataptr(mp->next, VMT_HOST)) && !streq(s, "-"))
-		{
-			snprintf(mp->remote, sizeof(mp->remote) - 1, "%s:%s", s, vmt2dataptr(mp->next, VMT_OBJECT));
-			s = mp->remote;
-		}
-		else
-			s = vmt2dataptr(mp->next, VMT_OBJECT);
-		if (vmt2datasize(mp->next, VMT_ARGS))
-			o = vmt2dataptr(mp->next, VMT_ARGS);
-		else
-			o = NULL;
-		switch (mp->next->vmt_gfstype)
-		{
-#ifdef MNT_AIX
-		case MNT_AIX:
-			t = "aix";
-			break;
-#endif
-#ifdef MNT_NFS
-		case MNT_NFS:
-			t = "nfs";
-			break;
-#endif
-#ifdef MNT_JFS
-		case MNT_JFS:
-			t = "jfs";
-			break;
-#endif
-#ifdef MNT_CDROM
-		case MNT_CDROM:
-			t = "cdrom";
-			break;
-#endif
-#ifdef MNT_SFS
-		case MNT_SFS:
-			t = "sfs";
-			break;
-#endif
-#ifdef MNT_NFS3
-		case MNT_NFS3:
-			t = "nfs3";
-			break;
-#endif
-#ifdef MNT_AUTOFS
-		case MNT_AUTOFS:
-			t = "autofs";
-			break;
-#endif
-		default:
-			snprintf(t = mp->type, sizeof(mp->type), "aix%+d", mp->next->vmt_gfstype);
-			break;
-		}
-		set(&mp->hdr, s, vmt2dataptr(mp->next, VMT_STUB), t, o);
-		if (--mp->count > 0)
-			mp->next = (struct vmount*)((char*)mp->next + mp->next->vmt_length);
-		return &mp->hdr.mnt;
-	}
-	return NULL;
-}
-
-int
-mntclose(void* handle)
-{
-	Handle_t*	mp = (Handle_t*)handle;
-
-	if (!mp)
-		return -1;
-	free(mp);
-	return 0;
-}
-
-#else
-
 #if !_lib_setmntent
 #undef	_lib_getmntent
-#if !_SCO_COFF && !_SCO_ELF && !_UTS
 #undef	_hdr_mnttab
-#endif
 #endif
 
 #if _lib_getmntent && ( _hdr_mntent || _sys_mntent && !_sys_mnttab )
@@ -489,12 +325,6 @@ extern struct mntent*	getmntent(FILE*);
 #define MOUNTED		"/etc/mtab"
 #endif
 #endif
-#endif
-
-#ifdef __Lynx__
-#undef	MOUNTED
-#define MOUNTED		"/etc/fstab"
-#define SEP		':'
 #endif
 
 #if _lib_getmntent
@@ -771,8 +601,6 @@ mntclose(void* handle)
 	free(mp);
 	return 0;
 }
-
-#endif
 
 #endif
 

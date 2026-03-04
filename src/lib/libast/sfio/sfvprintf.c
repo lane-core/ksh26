@@ -70,10 +70,6 @@ static int chr2str(char* buf, int v)
 ** In such a case, the below macro should be defined non-zero so that
 ** some in-lined macros will be made smaller, trading time for space.
 */
-#if !defined(_sffmt_small) && defined(_UTS)
-#define _sffmt_small	1
-#endif
-
 int sfvprintf(Sfio_t*		f,		/* file to print to	*/
 	      const char*	form,		/* format to use	*/
 	      va_list		args)		/* arg list if !argf	*/

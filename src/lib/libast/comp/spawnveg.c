@@ -227,65 +227,11 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 	return -1;
 }
 
-#elif _lib_spawn_mode
-#define _fast_spawnveg 1
-
-#include <process.h>
-
-#ifndef P_NOWAIT
-#define P_NOWAIT	_P_NOWAIT
-#endif
-#if !defined(P_DETACH) && defined(_P_DETACH)
-#define P_DETACH	_P_DETACH
-#endif
-
-static pid_t
-spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
-{
-	NOT_USED(tcfd);
-#if defined(P_DETACH)
-	return spawnve(pgid ? P_DETACH : P_NOWAIT, path, argv, envv ? envv : environ);
-#else
-	return spawnve(P_NOWAIT, path, argv, envv ? envv : environ);
-#endif
-}
-
-#elif _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance
-#define _fast_spawnveg 1
-
-#include <spawn.h>
-
-/*
- * MVS OpenEdition / z/OS fork+exec+(setpgid)
- */
-
-static pid_t
-spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
-{
-	struct inheritance	inherit;
-
-	NOT_USED(tcfd);
-	inherit.flags = 0;
-	if (pgid)
-	{
-		inherit.flags |= SPAWN_SETGROUP;
-		inherit.pgroup = (pgid > 1) ? pgid : SPAWN_NEWPGROUP;
-	}
-	return spawn(path, 0, NULL, &inherit, (const char**)argv, (const char**)envv);
-}
-
 #else
 #define _fast_spawnveg 0
 #endif  /* _lib_posix_spawn */
 
 #if !_lib_clone
-
-#if _lib_spawnve && _hdr_process
-#include <process.h>
-#if defined(P_NOWAIT) || defined(_P_NOWAIT)
-#undef	_lib_spawnve
-#endif
-#endif
 
 #if _lib_pipe2 && O_cloexec
 #define pipe(a)  pipe2(a,O_cloexec)
@@ -305,10 +251,6 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 
 	if (!envv)
 		envv = environ;
-#if _lib_spawnve
-	if (!pgid && tcfd < 0)
-		return spawnve(path, argv, envv);
-#endif /* _lib_spawnve */
 	n = errno;
 	if (pipe(err) < 0)
 		err[0] = -1;
