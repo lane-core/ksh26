@@ -24,6 +24,8 @@
 
 #include <cmd.h>
 
+extern int b_cp(int, char **, Shbltin_t *);
+
 int b_mv(int argc, char **argv, Shbltin_t *context)
 {
 	return b_cp(argc, argv, context);

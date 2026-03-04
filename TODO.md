@@ -51,9 +51,8 @@ See `notes/posix8-deprecations.md` for the full audit.
 
 ## Dead subsystems
 
-- [ ] **Mount chain (mnt.c → fmtfs.c → fts.c)** (low priority)
-  Never called from the shell — only from libast-internal code. Candidate
-  for removal as "unused libast subsystems."
+- [x] **Mount chain (mnt.c → fmtfs.c; fts_local() from fts.c)** — removed in
+  dead code audit along with 34 other dead .c files, 4 headers, 7 man pages.
 
 ## Code quality tooling
 

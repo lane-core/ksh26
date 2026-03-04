@@ -1482,21 +1482,6 @@ int fts_flags(void)
 }
 
 /*
- * return 1 if ent is mounted on a local filesystem
- */
-
-int fts_local(FTSENT *ent)
-{
-#ifdef ST_LOCAL
-	struct statvfs fs;
-
-	return statvfs(ent->fts_path, &fs) || (fs.f_flag & ST_LOCAL);
-#else
-	return !strgrpmatch(fmtfs(ent->fts_statp), "([an]fs|samb)", NULL, 0, STR_LEFT | STR_ICASE);
-#endif
-}
-
-/*
  * close an open fts stream
  */
 

@@ -112,6 +112,17 @@ extern int B_echo(int, char *[], Shbltin_t *);
 
 extern short b_enum_nelem(Namfun_t *);
 
+/* libcmd builtins (registered via CMDLIST in builtins.c) */
+extern int b_basename(int, char *[], Shbltin_t *);
+extern int b_cat(int, char *[], Shbltin_t *);
+extern int b_cp(int, char *[], Shbltin_t *);
+extern int b_cut(int, char *[], Shbltin_t *);
+extern int b_dirname(int, char *[], Shbltin_t *);
+extern int b_getconf(int, char *[], Shbltin_t *);
+extern int b_ln(int, char *[], Shbltin_t *);
+extern int b_mktemp(int, char *[], Shbltin_t *);
+extern int b_mv(int, char *[], Shbltin_t *);
+
 extern const char e_alrm1[];
 extern const char e_alrm2[];
 extern const char e_badfun[];

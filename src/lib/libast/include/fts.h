@@ -141,7 +141,6 @@ struct Fts
 extern FTSENT *fts_children(FTS *, int);
 extern int fts_close(FTS *);
 extern int fts_flags(void);
-extern int fts_local(FTSENT *);
 extern int fts_notify(int (*)(FTS *, FTSENT *, void *), void *);
 extern FTS *fts_open(char *const *, int, int (*)(FTSENT *const *, FTSENT *const *));
 extern FTSENT *fts_read(FTS *);

@@ -113,8 +113,6 @@ _aso_lock_signal(void *data, ssize_t k, void volatile *p)
 }
 
 static Asometh_t _aso_meth_signal = {"signal", ASO_SIGNAL, 0, _aso_lock_signal};
-extern Asometh_t _aso_meth_semaphore;
-extern Asometh_t _aso_meth_fcntl;
 static Asometh_t _aso_meth_intrinsic = {"intrinsic", ASO_INTRINSIC | ASO_PROCESS | ASO_THREAD | ASO_SIGNAL, 0, 0};
 
 static Asometh_t *method[] =
@@ -122,12 +120,6 @@ static Asometh_t *method[] =
         &_aso_meth_signal,
 #if defined(_ast_int8_t) && defined(_aso_cas64) || !defined(_ast_int8_t) && defined(_aso_cas32)
         &_aso_meth_intrinsic,
-#endif
-#if _aso_semaphore
-        &_aso_meth_semaphore,
-#endif
-#if _aso_fcntl
-        &_aso_meth_fcntl,
 #endif
 };
 

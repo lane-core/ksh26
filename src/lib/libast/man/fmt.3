@@ -48,7 +48,6 @@ char*      fmtint(intmax_t \fInumber\fP, int \fIunsign\fP);
 char*      fmtdev(struct stat* \fIst\fP);
 char*      fmtelapsed(unsigned long \fIcount\fP, int \fIpersec\fP)
 char*      fmtesc(const char* \fIstring\fP);
-char*      fmtfs(struct stat* \fIst\fP);
 char*      fmtgid(int \fIgid\fP);
 char*      fmtmatch(const char* \fIre\fP);
 char*      fmtmode(int \fImode\fP, int \fIexternal\fP);
@@ -131,12 +130,6 @@ These sequences are understood by
 .L chresc
 and
 .LR chrtoi .
-.PP
-.L fmtfs
-returns the file system type name corresponding to the
-.L stat
-structure
-.IR st .
 .PP
 .L fmtgid
 returns the group name for

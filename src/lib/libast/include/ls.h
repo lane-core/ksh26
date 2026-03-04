@@ -70,10 +70,7 @@
 #define LS_W_MARK 1    /* LS_MARK field width		*/
 #define LS_W_NAME 9    /* group|user name field width	*/
 
-extern off_t _iblocks(struct stat *);
 extern char *fmtdev(struct stat *);
-extern char *fmtfs(struct stat *);
-extern char *fmtls(char *, const char *, struct stat *, const char *, const char *, int);
 extern int pathstat(const char *, struct stat *);
 
 #endif

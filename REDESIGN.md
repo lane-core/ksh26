@@ -868,7 +868,7 @@ Phase 2 (source-level removal, ~1,500 lines across 41 files):
   expansion, path normalization, drive letters, .exe/.bat fallback,
   locale APIs, spawn modes, path conversion, Administrator→root mappings.
   Deleted `lclang.h`, `ast_windows.h`.
-- AIX (`_lib_mntctl`/`_sys_vmount`): mount enumeration in mnt.c
+- AIX (`_lib_mntctl`/`_sys_vmount`): `mnt.c` removed in dead code audit
 - IRIX (`__sgi`): forced-unidirectional pipe workaround
 - SCO (`_SCO_COFF`/`_SCO_ELF`): mnttab guard, `KERNEL_*` sysconf entries
 - LynxOS (`__Lynx__`): /etc/fstab mount path
