@@ -696,11 +696,20 @@ boundary. Cost: significant refactoring of the largest handlers. Value: makes
 the polarity boundary structural in the code, not just conventional. This is as
 close to syntactic prevention as C gets without custom static analysis tooling.
 
-**Assessment**: Each step is independently valuable and backwards-compatible.
-Step 1 is nearly free and should be early. Step 2 subsumes many manual frame
-sites. Step 3 is the most invasive but produces code where the polarity boundary
-is visible in the function call graph, not just in save/restore patterns within
-a function.
+**Assessment**: Step 1 is nearly free and should be early. Step 3 is the most
+invasive but produces code where the polarity boundary is visible in the
+function call graph, not just in save/restore patterns within a function.
+
+**Step 2 is architecturally unsound** and should not be implemented. Deep
+analysis of the node types shows it would duplicate existing work at the wrong
+abstraction level: COMPUTE nodes (TFORK, TPAR, TFIL, TLST, TAND, TORF, TIF,
+TTIME) don't set `sh.prefix` and are inherently safe — auto-framing is pure
+overhead. MIXED nodes (TCOM, TFOR, TWH, TSETIO, TFUN) already have precise
+internal frames at their actual value→computation boundaries. The fundamental
+issue is that polarity framing is *caller-side* (sh_debug, sh_trap), not
+*callee-side* (node dispatch). The table remains valuable as a classification
+aid and for documentation; activating it at dispatch would add overhead without
+preventing any bugs that the existing internal frames don't already catch.
 
 #### Process substitution: why eagerness is correct
 

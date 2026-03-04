@@ -27,7 +27,6 @@
 
 #include	"shopt.h"
 #include	<ast.h>
-#include	<sfio.h>
 #include	<ls.h>
 #include	<fcin.h>
 #include	"defs.h"

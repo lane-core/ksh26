@@ -7,6 +7,22 @@ why it matters and rough severity.
 
 (none currently)
 
+## Polarity infrastructure
+
+- [ ] **frame_depth counter** (low priority, SPEC.md Step 1)
+  Add a `frame_depth` integer to `Shell_t`. Increment on
+  `sh_polarity_enter`, decrement on `sh_polarity_leave`. Assert
+  proper nesting in debug builds. Catches frame mismatches (enter
+  without leave, double leave) automatically. Cost: one integer,
+  two assertions.
+
+- [ ] **macro.c Degree 2→3 promotion** (low priority, future cleanup)
+  `subcopy` (5 fields) and `copyto` S_BRACT case (3 fields) use
+  field-by-field save/restore instead of full `Mac_t` struct save.
+  Promoting to full-struct save (~5 lines per site) makes the
+  discipline uniform across all recursive expansion paths. Not
+  urgent — current code is correct.
+
 ## Sanitizers
 
 - [ ] **LeakSanitizer false positives** (low priority, future work)

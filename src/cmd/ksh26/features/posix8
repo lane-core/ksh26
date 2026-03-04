@@ -1,0 +1,10 @@
+# POSIX Issue 8 feature detection
+# These primitives enable race-free fd management and improved signal
+# handling. Detection-only; no code paths depend on these yet.
+# Used by the sfio rewrite to select optimal I/O primitives.
+# posix_close and O_CLOFORK omitted: no mainstream implementation ships them yet.
+
+lib	pipe2 unistd.h
+lib	dup3 unistd.h
+lib	ppoll signal.h poll.h
+lib	mkostemp stdlib.h

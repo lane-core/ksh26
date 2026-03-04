@@ -645,6 +645,7 @@ run_ksh26_features()
 	run_iffe "$workdir" "$srcdir/features/cmds" &
 	run_iffe "$workdir" "$srcdir/features/rlimits" &
 	run_iffe "$workdir" "$srcdir/features/poll" &
+	run_iffe "$workdir" "$srcdir/features/posix8" &
 	probe_ksh26_externs "$workdir" "$srcdir" &
 	wait
 

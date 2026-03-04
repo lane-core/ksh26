@@ -1334,7 +1334,7 @@ static char *get_table(Namval_t *np, Namfun_t *fp)
 	sfputc(out,0);
 	if(base)
 		dtview(root,base);
-	return (char*)out->_data;
+	return sfstrbase(out);
 }
 
 static const Namdisc_t table_disc =

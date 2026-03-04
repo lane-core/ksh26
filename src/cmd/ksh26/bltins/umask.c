@@ -26,7 +26,6 @@
 
 #include	"shopt.h"
 #include	<ast.h>
-#include	<sfio.h>
 #include	<error.h>
 #include	<ctype.h>
 #include	<ls.h>

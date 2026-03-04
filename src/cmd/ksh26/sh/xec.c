@@ -837,12 +837,14 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 		}
 		if(sh.var_tree==oroot)
 		{
+			/* navigational: walks viewpath upward during exit — not a final scope identity */
 			sh.var_tree = sh.var_tree->view;
 			oroot = sh.var_base;
 		}
 	}
 	if(nsp)
 	{
+		/* mid-procedure: dtview() below completes the transition */
 		if(sh.var_tree==sh.var_base)
 			sh.var_tree = nv_dict(nsp);
 		else

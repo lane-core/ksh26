@@ -24,7 +24,7 @@ an error.
 ```sh
 # ── Standard workflow (one-shot commands) ────────────────────────
 nix develop -c just build          # build ksh26
-nix develop -c just test           # parallel test suite (115 tests)
+nix develop -c just test           # parallel test suite (117 tests)
 nix develop -c just test-one basic # run a single test
 nix develop -c just configure      # (re)run feature detection
 nix develop -c just reconfigure    # force all probes to rerun
@@ -52,7 +52,7 @@ nothing changed.
 | Recipe | Purpose |
 |--------|---------|
 | `just build` | Build ksh26 (default) |
-| `just test` | Run all 115 tests in parallel (with summary) |
+| `just test` | Run all 117 tests in parallel (with summary) |
 | `just test-one NAME [LOCALE]` | Run a single test (`C` or `C.UTF-8`) |
 | `just errors [DIR]` | Show build errors from log (no re-build) |
 | `just warnings [DIR]` | Show build warnings from log |

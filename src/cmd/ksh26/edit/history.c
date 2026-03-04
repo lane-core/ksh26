@@ -74,7 +74,6 @@
 
 #define hist_ind(hp,c)	((int)((c)&(hp)->histmask))
 
-#include	<sfio.h>
 #include	"FEATURE/time"
 #include	<error.h>
 #include	<ls.h>
