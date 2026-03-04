@@ -58,7 +58,7 @@ int b_umask(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;

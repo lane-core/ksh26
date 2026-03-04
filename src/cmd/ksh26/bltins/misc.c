@@ -99,7 +99,7 @@ int b_exec(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(*argv[0] == 'r' && argv[opt_info.index]) /* 'redirect' supports no args */
@@ -165,7 +165,7 @@ int b_exec(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 		sh_sigreset(2);
 		sh_freeup();
-		path_exec(pname, argv, NULL);
+		path_exec(pname, argv, nullptr);
 	}
 	UNREACHABLE();
 }
@@ -188,7 +188,7 @@ int b_let([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *c
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	while(arg = *argv++)
@@ -212,7 +212,7 @@ int b_eval([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
@@ -252,7 +252,7 @@ int b_dot_cmd(int n, char *argv[], Shbltin_t *context)
 	script = *argv;
 	if(error_info.errors || !script)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(sh.dot_depth >= MAXDEPTH)
@@ -266,7 +266,7 @@ int b_dot_cmd(int n, char *argv[], Shbltin_t *context)
 	{
 		if(!np->nvalue)
 		{
-			path_search(script, NULL, 0);
+			path_search(script, nullptr, 0);
 			if(np->nvalue)
 			{
 				if(nv_isattr(np, NV_FPOSIX))
@@ -324,7 +324,7 @@ int b_dot_cmd(int n, char *argv[], Shbltin_t *context)
 		{
 			/* run the dot script */
 			buffer = sh_malloc(IOBSIZE + 1);
-			iop = sfnew(NULL, buffer, IOBSIZE, fd, SFIO_READ);
+			iop = sfnew(nullptr, buffer, IOBSIZE, fd, SFIO_READ);
 			sh_offstate(SH_NOFORK);
 			sh_eval(iop, sh_isstate(SH_PROFILE) ? SH_FUNEVAL : 0);
 		}
@@ -386,7 +386,7 @@ int b_shift(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
@@ -419,7 +419,7 @@ int b_wait(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
@@ -453,7 +453,7 @@ int b_bg(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
@@ -463,7 +463,7 @@ int b_bg(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		UNREACHABLE();
 	}
 	if(flag == 'd' && *argv == 0)
-		argv = NULL;
+		argv = nullptr;
 	if(job_walk(sfstdout, job_switch, flag, argv))
 	{
 		errormsg(SH_DICT, ERROR_exit(1), e_no_job);
@@ -498,11 +498,11 @@ int b_jobs(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 	argv += opt_info.index;
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(*argv == 0)
-		argv = NULL;
+		argv = nullptr;
 	if(job_walk(sfstdout, job_list, flag, argv))
 	{
 		errormsg(SH_DICT, ERROR_exit(1), e_no_job);
@@ -571,7 +571,7 @@ int b_times(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		{
 			case ':':
 				errormsg(SH_DICT, 2, "%s", opt_info.arg);
-				errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+				errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 				UNREACHABLE();
 			default:
 				errormsg(SH_DICT, ERROR_usage(0), "%s", opt_info.arg);

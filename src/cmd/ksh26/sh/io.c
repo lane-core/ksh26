@@ -342,8 +342,8 @@ static ssize_t tee_write(sh_stream_t *, const void *, size_t, sh_disc_t *);
 static int io_prompt(sh_stream_t *, int);
 static int io_heredoc(struct ionod *, const char *, int);
 static void sftrack(sh_stream_t *, int, void *);
-static const sh_disc_t eval_disc = {NULL, NULL, NULL, eval_exceptf, NULL};
-static sh_disc_t tee_disc = {NULL, tee_write, NULL, NULL, NULL};
+static const sh_disc_t eval_disc = {nullptr, nullptr, nullptr, eval_exceptf, nullptr};
+static sh_disc_t tee_disc = {nullptr, tee_write, nullptr, nullptr, nullptr};
 static sh_stream_t *subopen(sh_stream_t *, off_t, long);
 static const sh_disc_t sub_disc = {subread, 0, 0, subexcept, 0};
 
@@ -473,7 +473,7 @@ void sh_ioinit(void)
 	sh_iostream(0);
 	sh_iostream(1);
 	/* all write streams are in the same pool and share outbuff */
-	sh.outpool = sfopen(NULL, NULL, "sw"); /* pool identifier */
+	sh.outpool = sfopen(nullptr, nullptr, "sw"); /* pool identifier */
 	sh.outbuff = (char *)sh_malloc(IOBSIZE + 4);
 	sh.errbuff = (char *)sh_malloc(IOBSIZE / 4);
 	sfsetbuf(sfstderr, sh.errbuff, IOBSIZE / 4);
@@ -513,7 +513,7 @@ static int outexcept(sh_stream_t *iop, int type, void *data, sh_disc_t *handle)
 					active = 1;
 					((struct checkpt *)sh.jmplist)->mode = SH_JMPNONE;
 					sfpurge(iop);
-					sfpool(iop, NULL, SFIO_WRITE);
+					sfpool(iop, nullptr, SFIO_WRITE);
 					errno = save;
 					/*
 				 * Note: UNREACHABLE() is avoided here because this errormsg() call will return.
@@ -555,7 +555,7 @@ sh_stream_t *sh_iostream(int fd)
 			case 2:
 				return sfstderr;
 		}
-		return NULL;
+		return nullptr;
 	}
 	if(status & IOREAD)
 	{
@@ -575,7 +575,7 @@ sh_stream_t *sh_iostream(int fd)
 		sfsetbuf(iop, bp, IOBSIZE);
 	}
 	else if(!(iop = sfnew((fd <= 2 ? iop : 0), bp, IOBSIZE, fd, flags)))
-		return NULL;
+		return nullptr;
 	dp = sh_newof(0, sh_disc_t, 1, 0);
 	if(status & IOREAD)
 	{
@@ -994,7 +994,7 @@ static size_t pat_line(const regex_t *rp, const char *buff, size_t n)
 	{
 		for(sp = cp; n-- > 0 && *cp++ != '\n';)
 			;
-		if(regnexec(rp, sp, cp - sp, 0, NULL, 0) == 0)
+		if(regnexec(rp, sp, cp - sp, 0, nullptr, 0) == 0)
 			return sp - buff;
 	}
 	return cp - buff;
@@ -1050,9 +1050,9 @@ static sh_off_t file_offset(int fn, char *fname)
 		sfsync(sp);
 	off = sh_strnum(fname, &cp, 0);
 	if(mp)
-		nv_stack(mp, NULL);
+		nv_stack(mp, nullptr);
 	if(pp)
-		nv_stack(pp, NULL);
+		nv_stack(pp, nullptr);
 	return *cp ? (sh_off_t)-1 : off;
 }
 
@@ -1150,7 +1150,7 @@ int sh_redirect(struct ionod *iop, int flag)
 	else
 		dupflags = F_DUPFD;
 	if(iop)
-		traceon = sh_trace(NULL, 0);
+		traceon = sh_trace(nullptr, 0);
 	/*
 	 * A command substitution will hang on exit, writing infinite '\0', if,
 	 * within it, standard output (FD 1) is redirected for a built-in command
@@ -1330,7 +1330,7 @@ int sh_redirect(struct ionod *iop, int flag)
 				else if(toclose >= 0)
 				{
 					if(flag == 0)
-						sh_iosave(toclose, indx, NULL); /* save file descriptor */
+						sh_iosave(toclose, indx, nullptr); /* save file descriptor */
 					sh_close(toclose);
 				}
 			}
@@ -1435,7 +1435,7 @@ int sh_redirect(struct ionod *iop, int flag)
 				}
 				else
 					av += 3;
-				sh_debug(trace, NULL, NULL, av, ARG_NOGLOB);
+				sh_debug(trace, nullptr, nullptr, av, ARG_NOGLOB);
 			}
 			if(iof & IOLSEEK)
 			{
@@ -1749,7 +1749,7 @@ void sh_iosave(int origfd, int oldtop, char *name)
 		if(origfd <= 2)
 		{
 			/* copy standard stream to new stream */
-			sp = sfswap(sp, NULL);
+			sp = sfswap(sp, nullptr);
 			sh.sftable[savefd] = sp;
 		}
 		else
@@ -1808,11 +1808,11 @@ void sh_iorestore(int last, int jmpval)
 		}
 		if(filemap[fd].tname == Empty && sh.exitval == 0)
 		{
-			sfsync(NULL);
+			sfsync(nullptr);
 			ftruncate(origfd, lseek(origfd, 0, SEEK_CUR));
 		}
 		else if(filemap[fd].tname)
-			io_usename(filemap[fd].tname, NULL, origfd, sh.exitval ? 2 : 1);
+			io_usename(filemap[fd].tname, nullptr, origfd, sh.exitval ? 2 : 1);
 		sh_close(origfd);
 		if((savefd = filemap[fd].save_fd) >= 0)
 		{
@@ -2329,7 +2329,7 @@ sh_stream_t *sh_sfeval(char *argv[])
 		cp = "";
 	else
 		cp = argv[0];
-	iop = sfopen(NULL, (char *)cp, "s");
+	iop = sfopen(nullptr, (char *)cp, "s");
 	if(argv[1])
 	{
 		struct eval *ep;
@@ -2388,13 +2388,13 @@ static sh_stream_t *subopen(sh_stream_t *sp, off_t offset, long size)
 {
 	struct subfile *disp;
 	if(sfseek(sp, offset, SEEK_SET) < 0)
-		return NULL;
+		return nullptr;
 	disp = (struct subfile *)sh_malloc(sizeof(struct subfile) + IOBSIZE + 1);
 	disp->disc = sub_disc;
 	disp->oldsp = sp;
 	disp->offset = offset;
 	disp->size = disp->left = size;
-	sp = sfnew(NULL, (char *)(disp + 1), IOBSIZE, PSEUDOFD, SFIO_READ);
+	sp = sfnew(nullptr, (char *)(disp + 1), IOBSIZE, PSEUDOFD, SFIO_READ);
 	sfdisc(sp, &disp->disc);
 	return sp;
 }
@@ -2607,7 +2607,7 @@ mode_t sh_umask(mode_t m)
  * give file descriptor <fd> and <mode>, return an iostream pointer
  * <mode> must be SFIO_READ or SFIO_WRITE
  * <fd> must be a non-negative number ofr SH_IOCOPROCESS or SH_IOHISTFILE.
- * returns NULL on failure and may set errno.
+ * returns nullptr on failure and may set errno.
  */
 sh_stream_t *sh_iogetiop(int fd, int mode)
 {
@@ -2672,7 +2672,7 @@ sh_stream_t *sh_fd2sfio(int fd)
 			flags |= SFIO_READ;
 		if(status & IOWRITE)
 			flags |= SFIO_WRITE;
-		sp = sfnew(NULL, NULL, -1, fd, flags);
+		sp = sfnew(nullptr, nullptr, -1, fd, flags);
 		sh.sftable[fd] = sp;
 	}
 	return sp;
@@ -2682,7 +2682,7 @@ sh_stream_t *sh_pathopen(const char *cp)
 {
 	int n;
 	if((n = path_open(cp, path_get(cp))) < 0)
-		n = path_open(cp, NULL);
+		n = path_open(cp, nullptr);
 	if(n < 0)
 	{
 		errormsg(SH_DICT, ERROR_system(1), e_open, cp);

@@ -344,8 +344,8 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 	}
 done:
 	/* avoid leaving invalid pointers to destroyed automatic variables */
-	Prompt = NULL;
-	virtual = physical = window = vp->U_space = vp->u_space = NULL;
+	Prompt = nullptr;
+	virtual = physical = window = vp->U_space = vp->u_space = nullptr;
 	return r;
 }
 
@@ -1578,7 +1578,7 @@ static int mvcursor(Vi_t *vp, int motion)
 			int nextmotion;
 			int nextc;
 			tcur_virt = cur_virt;
-			while(tcur_virt <= last_virt && strchr(paren_chars, virtual[tcur_virt]) == NULL)
+			while(tcur_virt <= last_virt && strchr(paren_chars, virtual[tcur_virt]) == nullptr)
 				tcur_virt++;
 			if(tcur_virt > last_virt)
 				return 0;
@@ -1921,7 +1921,7 @@ static void save_last(Vi_t *vp)
 {
 	int i;
 
-	if(vp->lastline == NULL)
+	if(vp->lastline == nullptr)
 		return;
 	if((i = cur_virt - first_virt + 1) > 0)
 	{

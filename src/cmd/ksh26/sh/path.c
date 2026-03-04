@@ -52,7 +52,7 @@ static const char *std_path(void)
 	static const char *defpath; /* default path that finds standard utilities */
 	if(!defpath)
 	{
-		if(!(defpath = astconf("PATH", NULL, NULL)))
+		if(!(defpath = astconf("PATH", nullptr, nullptr)))
 			abort();
 		defpath = sh_strdup(defpath); /* the value returned by astconf() is short-lived */
 	}
@@ -316,11 +316,11 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 		if(last)
 			pcomp.len = last - path;
 		memcpy(save, stkptr(sh.stk, PATH_OFFSET + pcomp.len), sizeof(save));
-		if(checkdotpaths(NULL, NULL, &pcomp, PATH_OFFSET))
+		if(checkdotpaths(nullptr, nullptr, &pcomp, PATH_OFFSET))
 			return stkfreeze(sh.stk, 1);
 		memcpy(stkptr(sh.stk, PATH_OFFSET + pcomp.len), save, sizeof(save));
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -406,14 +406,14 @@ Pathcomp_t *path_nextcomp(Pathcomp_t *pp, const char *name, Pathcomp_t *last)
 		if(!(pp->flags & PATH_SKIP))
 			return pp;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static Pathcomp_t *defpath(void)
 {
 	static Pathcomp_t *dp;
 	if(!dp)
-		dp = path_addpath(NULL, std_path(), PATH_PATH);
+		dp = path_addpath(nullptr, std_path(), PATH_PATH);
 	return dp;
 }
 
@@ -439,7 +439,7 @@ Pathcomp_t *path_get(const char *name)
 {
 	Pathcomp_t *pp = 0;
 	if(*name && strchr(name, '/'))
-		return NULL;
+		return nullptr;
 	if(!sh_isstate(SH_DEFPATH))
 	{
 		if(!sh.pathlist)
@@ -583,7 +583,7 @@ static void funload(int fno, const char *name)
 	sh.funload = 1;
 	sh.inlineno = 1;
 	error_info.line = 0;
-	sh_eval(sfnew(NULL, buff, IOBSIZE, fno, SFIO_READ), SH_FUNEVAL);
+	sh_eval(sfnew(nullptr, buff, IOBSIZE, fno, SFIO_READ), SH_FUNEVAL);
 	sh_close(fno);
 	sh.readscript = 0;
 #if SHOPT_NAMESPACE
@@ -616,7 +616,7 @@ static void funload(int fno, const char *name)
  * If flag is >=1, do a regular path search. If it yields an autoloadable function, load it.
  * If flag is 2 or 3, never autoload a function but return 1 if name found on FPATH.
  * If flag is 3, no tracked alias will be set (IOW, the result won't be cached in the hash table).
- * If oldpp is not NULL, it will contain a pointer to the path component
+ * If oldpp is not nullptr, it will contain a pointer to the path component
  *    where it was found.
  *
  * path_search() returns 1/true if:
@@ -671,7 +671,7 @@ int path_search(const char *name, Pathcomp_t **oldpp, int flag)
 			stkputc(sh.stk, 0);
 			return 0;
 		}
-		pp = path_absolute(name, oldpp ? *oldpp : NULL, flag);
+		pp = path_absolute(name, oldpp ? *oldpp : nullptr, flag);
 		if(oldpp)
 			*oldpp = pp;
 		if(!pp && (np = nv_search(name, sh.fun_tree, 0)) && np->nvalue)
@@ -718,7 +718,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 #endif
 	sh.path_err = ENOENT;
 	if(!pp && !(pp = path_get(Empty)))
-		return NULL;
+		return nullptr;
 	sh.path_err = 0;
 	while(1)
 	{
@@ -735,7 +735,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 		if(!oldpp)
 		{
 			sh.path_err = ENOENT;
-			return NULL;
+			return nullptr;
 		}
 		isfun = (oldpp->flags & PATH_FPATH) && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG);
 		if(!isfun && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG))
@@ -753,7 +753,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			stkputs(sh.stk, "b_", -1);
 			stkputs(sh.stk, name, 0);
 			if((addr = sh_getlib(stkptr(sh.stk, n), oldpp)) &&
-			   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, NULL)) &&
+			   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, nullptr)) &&
 			   nv_isattr(np, NV_BLTINOPT))
 			{
 				sh.bltin_dir = 0;
@@ -789,8 +789,8 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 				else
 					cp = stkptr(sh.stk, m);
 				if(!strcmp(cp, LIBCMD) &&
-				   (addr = (Shbltin_f)dlllook(NULL, stkptr(sh.stk, n))) &&
-				   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, NULL)) &&
+				   (addr = (Shbltin_f)dlllook(nullptr, stkptr(sh.stk, n))) &&
+				   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, nullptr)) &&
 				   nv_isattr(np, NV_BLTINOPT))
 				{
 				found:
@@ -799,12 +799,12 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 					sh.bltin_dir = 0;
 					return oldpp;
 				}
-				if(dll = dllplugin(SH_ID, stkptr(sh.stk, m), NULL, SH_PLUGIN_VERSION, NULL, RTLD_LAZY, NULL, 0))
+				if(dll = dllplugin(SH_ID, stkptr(sh.stk, m), nullptr, SH_PLUGIN_VERSION, nullptr, RTLD_LAZY, nullptr, 0))
 					sh_addlib(dll, stkptr(sh.stk, m), oldpp);
 				if(dll &&
 				   (addr = (Shbltin_f)dlllook(dll, stkptr(sh.stk, n))) &&
-				   (!(np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), NULL, NULL)) || funptr(np) != addr) &&
-				   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, NULL)))
+				   (!(np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), nullptr, nullptr)) || funptr(np) != addr) &&
+				   (np = sh_addbuiltin(stkptr(sh.stk, PATH_OFFSET), addr, nullptr)))
 				{
 					np->nvmeta = dll;
 					goto found;
@@ -838,7 +838,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 				funload(f, name);
 			}
 			sh_close(f);
-			return NULL;
+			return nullptr;
 		}
 		else if(f >= 0 && (oldpp->flags & PATH_STD_DIR))
 		{
@@ -862,7 +862,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 	if(f < 0)
 	{
 		sh.path_err = (noexec ? noexec : ENOENT);
-		return NULL;
+		return nullptr;
 	}
 	stkputc(sh.stk, 0);
 	return oldpp;
@@ -955,8 +955,8 @@ char *path_relative(const char *file)
 	else
 		pp = path_get(arg0);
 	sh.path_err = ENOENT;
-	sfsync(NULL);
-	sh_timerdel(NULL);
+	sfsync(nullptr);
+	sh_timerdel(nullptr);
 	/* find first path that has a library component */
 	while(pp && (pp->flags & PATH_SKIP))
 		pp = pp->next;
@@ -1190,7 +1190,7 @@ pid_t path_spawn(const char *opath, char **argv, char **envp, Pathcomp_t *libpat
 				{
 					if((pid = fork()) > 0)
 						return pid;
-				} while(_sh_fork(pid, 0, NULL) < 0);
+				} while(_sh_fork(pid, 0, nullptr) < 0);
 				((struct checkpt *)sh.jmplist)->mode = SH_JMPEXIT;
 			}
 			exscript(path, argv);
@@ -1286,7 +1286,7 @@ pid_t path_spawn(const char *opath, char **argv, char **envp, Pathcomp_t *libpat
 	if(sh.hist_ptr && (path = nv_getval(HISTFILE)) && strcmp(path, sh.hist_ptr->histname))
 	{
 		hist_close(sh.hist_ptr);
-		HISTCUR->nvalue = NULL;
+		HISTCUR->nvalue = nullptr;
 	}
 	sh_offstate(SH_FORKED);
 	if(sh.sigflag[SIGCHLD] == SH_SIGOFF)
@@ -1346,7 +1346,7 @@ void sh_accbegin(const char *cmdname)
 {
 	if(SHACCT)
 	{
-		sabuf.ac_btime = time(NULL);
+		sabuf.ac_btime = time(nullptr);
 		before = times(&buffer);
 		sabuf.ac_uid = sh.userid;
 		sabuf.ac_gid = sh.groupid;
@@ -1431,7 +1431,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old, const char *
 	}
 	for(pp = first, oldpp = 0; pp; oldpp = pp, pp = pp->next)
 		;
-	pp = sh_newof(NULL, Pathcomp_t, 1, len + 1);
+	pp = sh_newof(nullptr, Pathcomp_t, 1, len + 1);
 	pp->refcount = 1;
 	memcpy((char *)(pp + 1), name, len + 1);
 	pp->name = (char *)(pp + 1);
@@ -1542,7 +1542,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path, int type)
 	const char *cp;
 	Pathcomp_t *old = 0;
 	int offset = stktell(sh.stk);
-	char *savptr = NULL;
+	char *savptr = nullptr;
 	if(!path && type != PATH_PATH)
 		return first;
 	if(type != PATH_FPATH)
@@ -1654,7 +1654,7 @@ void path_newdir(Pathcomp_t *first)
 			stkseek(sh.stk, offset);
 			next = pp->next;
 			pp->next = 0;
-			checkdotpaths(first, NULL, pp, offset);
+			checkdotpaths(first, nullptr, pp, offset);
 			if(pp->next)
 				pp = pp->next;
 			pp->next = next;
@@ -1715,7 +1715,7 @@ Pathcomp_t *path_dirfind(Pathcomp_t *first, const char *name, int c)
 			return pp;
 		pp = pp->next;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1726,7 +1726,7 @@ static char *talias_get(Namval_t *np, [[maybe_unused]] Namfun_t *nvp)
 	Pathcomp_t *pp = np->nvalue;
 	char *ptr;
 	if(!pp)
-		return NULL;
+		return nullptr;
 	sh.last_table = 0;
 	path_nextcomp(pp, nv_name(np), pp);
 	ptr = stkfreeze(sh.stk, 0);
@@ -1789,5 +1789,5 @@ Namval_t *path_gettrackedalias(const char *name)
 	Namval_t *np;
 	if(!sh_isstate(SH_DEFPATH) && !sh_isstate(SH_XARG) && !sh_isstate(SH_EXEC) && (np = nv_search(name, sh.track_tree, 0)) && !nv_isattr(np, NV_NOALIAS) && np->nvalue)
 		return np;
-	return NULL;
+	return nullptr;
 }

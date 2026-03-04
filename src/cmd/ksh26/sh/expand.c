@@ -58,7 +58,7 @@ static char *nextdir(glob_t *gp, char *dir)
 	gp->gl_handle = pp;
 	if(pp)
 		return pp->name;
-	return NULL;
+	return nullptr;
 }
 
 int path_expand(const char *pattern, struct argnod **arghead, int musttrim)
@@ -151,7 +151,7 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
 			stkseek(sh.stk, ARGVAL);
 			stkputs(sh.stk, cp, -1);
 			ap = stkfreeze(sh.stk, 1);
-			ap->argbegin = NULL;
+			ap->argbegin = nullptr;
 			ap->argchn.ap = *arghead;
 			ap->argflag = ARG_RAW | ARG_MAKE;
 			*arghead = ap;
@@ -244,7 +244,7 @@ int path_generate(struct argnod *todo, struct argnod **arghead, int musttrim)
 	struct argnod *ap;
 	struct argnod *top = 0;
 	struct argnod *apin;
-	char *pat = NULL, *rescan;
+	char *pat = nullptr, *rescan;
 	char *format;
 	char comma, range = 0;
 	int first = 0, last = 0, incr = 0, count = 0;

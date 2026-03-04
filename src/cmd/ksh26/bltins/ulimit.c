@@ -117,7 +117,7 @@ int b_ulimit(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 	label = (hit & (hit - 1));
 	if(error_info.errors || (limit && label) || argc > opt_info.index + 1)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(mode == 0)
@@ -140,7 +140,7 @@ int b_ulimit(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 				/* an explicit suffix unit overrides the default */
 				if((i = strtol(limit, &last, 0)) != ULIMIT_INFINITY && !*last)
 					i *= unit;
-				else if((i = strton(limit, &last, NULL, 0)) == ULIMIT_INFINITY || *last)
+				else if((i = strton(limit, &last, nullptr, 0)) == ULIMIT_INFINITY || *last)
 				{
 					if((i = sh_strnum(limit, &last, 2)) == ULIMIT_INFINITY || *last)
 					{
@@ -219,7 +219,7 @@ int b_ulimit(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 			}
 			if(nosupport)
 			{
-				if(!tp->conf || !*(conf = astconf(tp->conf, NULL, NULL)))
+				if(!tp->conf || !*(conf = astconf(tp->conf, nullptr, nullptr)))
 					conf = (char *)e_nosupport;
 				sfputr(sfstdout, conf, '\n');
 			}

@@ -90,7 +90,7 @@ static Namval_t *scope(Namval_t *np, struct lval *lvalue, int assign)
 			np = nv_open(cp, sh.var_tree, assign | NV_VARNAME);
 		cp[flag] = c;
 		if(!np)
-			return NULL;
+			return nullptr;
 		root = sh.last_root;
 		if(cp[flag + 1] == '[')
 			flag++;
@@ -119,7 +119,7 @@ static Namval_t *scope(Namval_t *np, struct lval *lvalue, int assign)
 		{
 			Namarr_t *ap = nv_arrayptr(np);
 			ap->nelem = dim;
-			nv_putsub(np, NULL, n);
+			nv_putsub(np, nullptr, n);
 		}
 		else
 #endif /* SHOPT_FIXEDARRAY */
@@ -195,7 +195,7 @@ static Namval_t *scope(Namval_t *np, struct lval *lvalue, int assign)
 		}
 	}
 	else if(nosub > 0)
-		nv_putsub(np, NULL, nosub - 1);
+		nv_putsub(np, nullptr, nosub - 1);
 	return np;
 }
 
@@ -214,12 +214,12 @@ static Math_f sh_mathstdfun(const char *fname, size_t fsize, short *nargs)
 			return tp->fnptr;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 int sh_mathstd(const char *name)
 {
-	return sh_mathstdfun(name, strlen(name), NULL) != 0;
+	return sh_mathstdfun(name, strlen(name), nullptr) != 0;
 }
 
 static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdouble_t n)
@@ -236,7 +236,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			if(lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 			{
 				np = (Namval_t *)lvalue->sub; /* use saved subscript reference instead of last worked value */
-				nv_putsub(np, NULL, lvalue->nosub - 1);
+				nv_putsub(np, nullptr, lvalue->nosub - 1);
 				/* reset nosub and sub for next assignment in a compound arithmetic expression */
 				lvalue->nosub = 0;
 				lvalue->sub = 0;
@@ -300,7 +300,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		{
 			int c = *str;
 			char *xp = str;
-			lvalue->value = NULL;
+			lvalue->value = nullptr;
 			if(c == '.')
 				str++;
 			c = mbchar(str);
@@ -315,7 +315,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 					str = xp;
 					while(c == '[' && dot == NV_NOADD)
 					{
-						str = nv_endsubscript(NULL, str, 0);
+						str = nv_endsubscript(nullptr, str, 0);
 						c = *str;
 					}
 					if(c != '.')
@@ -323,8 +323,8 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 					dot = NV_NOADD;
 					if((c = *++str) != '[')
 						continue;
-					str = nv_endsubscript(NULL, cp = str, 0) - 1;
-					if(sh_checkid(cp + 1, NULL))
+					str = nv_endsubscript(nullptr, cp = str, 0) - 1;
+					if(sh_checkid(cp + 1, nullptr))
 						str -= 2;
 				}
 				if(c == '(')
@@ -559,7 +559,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			return r;
 		}
 		case MESSAGE:
-			sfsync(NULL);
+			sfsync(nullptr);
 			if(lvalue->emode & ARITH_COMP)
 				return -1;
 			errormsg(SH_DICT, ERROR_exit((lvalue->emode & 3) != 0), lvalue->value, *ptr);
@@ -593,7 +593,7 @@ Sfdouble_t sh_strnum(const char *str, char **ptr, int mode)
 			if(*last == sh.radixpoint)
 				d = strtold(str, &last);
 			else
-				d = strtonll(str, &last, NULL, -1);
+				d = strtonll(str, &last, nullptr, -1);
 		}
 		if(*last || errno)
 		{
@@ -625,7 +625,7 @@ Sfdouble_t sh_strnum(const char *str, char **ptr, int mode)
 
 Sfdouble_t sh_arith(const char *str)
 {
-	return sh_strnum(str, NULL, 1);
+	return sh_strnum(str, nullptr, 1);
 }
 
 void *sh_arithcomp(char *str)

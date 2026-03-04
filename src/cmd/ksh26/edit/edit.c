@@ -292,20 +292,20 @@ static void get_tput(char *tp, char **cpp)
 	sh_offoption(SH_RESTRICTED);
 	sh_offoption(SH_VERBOSE);
 	sh_offoption(SH_XTRACE);
-	sh.st.trap[SH_DEBUGTRAP] = NULL;
+	sh.st.trap[SH_DEBUGTRAP] = nullptr;
 	sfprintf(sh.strbuf, ".sh.value=${ \\command -p tput %s 2>/dev/null;}", tp);
 	sh_trap(sfstruse(sh.strbuf), 0);
 	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp, *cpp) != 0))
 	{
 		if(*cpp)
 			free(*cpp);
-		*cpp = *cp ? sh_strdup(cp) : NULL;
+		*cpp = *cp ? sh_strdup(cp) : nullptr;
 	}
 	else
 	{
 		if(*cpp)
 			free(*cpp);
-		*cpp = NULL;
+		*cpp = nullptr;
 	}
 	nv_unset(SH_VALNOD, 0);
 	sh.st.trap[SH_DEBUGTRAP] = d;
@@ -490,7 +490,7 @@ void ed_setup(Edit_t *ep, int fd, int reedit)
 	{
 		static char *oldterm;
 		Namval_t *np = nv_search("TERM", sh.var_tree, 0);
-		char *term = NULL;
+		char *term = nullptr;
 		if(np && nv_isattr(np, NV_EXPORT))
 			term = nv_getval(np);
 		if(!term)

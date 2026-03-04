@@ -65,7 +65,7 @@ int b_trap([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 	argv += opt_info.index;
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(lflag)
@@ -264,7 +264,7 @@ endopts:
 		argv++;
 	if(error_info.errors || flag == (L_FLAG | S_FLAG) || (!(*argv) && !(flag & L_FLAG)))
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	/* just in case we send a kill -9 $$ */
@@ -277,7 +277,7 @@ endopts:
 			while(signame = *argv++)
 			{
 				if(isdigit(*signame))
-					sig_list(((int)strtol(signame, NULL, 10) & 0177) + 1);
+					sig_list(((int)strtol(signame, nullptr, 10) & 0177) + 1);
 				else
 				{
 					if((sig = sig_number(signame)) < 0)
@@ -323,7 +323,7 @@ int b_suspend([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_
 		}
 	if(error_info.errors) /* no options supported (except AST --man, etc.) */
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(argv[opt_info.index]) /* no operands supported */

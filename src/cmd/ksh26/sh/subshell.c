@@ -155,7 +155,7 @@ void sh_subfork(void)
 		sh_subtmpfile();
 	sh.curenv = 0;
 	sh.savesig = -1;
-	if(pid = sh_fork(FSHOWME, NULL))
+	if(pid = sh_fork(FSHOWME, nullptr))
 	{
 		sh.curenv = curenv;
 		/* this is the parent part of the fork */
@@ -179,7 +179,7 @@ void sh_subfork(void)
 		sh.subshell = 0;
 		sh.comsub = 0;
 		sp->subpid = 0;
-		sh.st.trapcom[0] = (comsub == 2 ? NULL : trap);
+		sh.st.trapcom[0] = (comsub == 2 ? nullptr : trap);
 		sh.savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		sh.realsubshell--;
@@ -327,7 +327,7 @@ static void nv_restore(struct subshell *sp)
 		if(nv_isattr(mp, NV_MINIMAL) && !nv_isattr(np, NV_EXPORT))
 			flags |= NV_MINIMAL;
 		if(nv_isarray(mp))
-			nv_putsub(mp, NULL, ARRAY_SCAN);
+			nv_putsub(mp, nullptr, ARRAY_SCAN);
 		nofree = mp->nvfun ? mp->nvfun->nofree : 0;
 		if(np->nvalue == Empty)
 		{
@@ -369,7 +369,7 @@ static void nv_restore(struct subshell *sp)
 			char *name = nv_name(mp);
 			env_change();
 			if(*name == '_' && strcmp(name, "_AST_FEATURES") == 0)
-				astconf(NULL, NULL, NULL);
+				astconf(nullptr, nullptr, nullptr);
 		}
 		else if(nv_isattr(np, NV_EXPORT))
 			env_change();
@@ -517,7 +517,7 @@ void sh_clear_subshell_pwdfd(void)
  * Run command tree <t> in a virtual subshell
  * If comsub is not null, then output will be placed in temp file (or buffer)
  * If comsub is not null, the return value will be a stream consisting of
- * output of command <t>.  Otherwise, NULL will be returned.
+ * output of command <t>.  Otherwise, nullptr will be returned.
  */
 Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 {
@@ -635,7 +635,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				else if(sh.st.trapcom[isig])
 					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
 				else
-					savsig[isig] = NULL;
+					savsig[isig] = nullptr;
 			}
 			/* this is needed for var=$(trap) */
 			sh.st.otrapcom = (char **)savsig;
@@ -664,7 +664,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sh_offstate(SH_MONITOR);
 			sp->pipe = sp;
 			/* save sfstdout and status */
-			sp->saveout = sfswap(sfstdout, NULL);
+			sp->saveout = sfswap(sfstdout, nullptr);
 			sp->fdstatus = sh.fdstatus[1];
 			sp->tmpfd = -1;
 			sp->pipefd = -1;
@@ -753,12 +753,12 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				sh.pipepid = 0;
 			}
 			/* move tmp file to iop and restore sfstdout */
-			iop = sfswap(sfstdout, NULL);
+			iop = sfswap(sfstdout, nullptr);
 			if(!iop)
 			{
 				/* maybe locked try again */
 				sfclrlock(sfstdout);
-				iop = sfswap(sfstdout, NULL);
+				iop = sfswap(sfstdout, nullptr);
 			}
 			if(iop && sffileno(iop) == 1)
 			{
@@ -846,7 +846,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				if(rp->fname && sh.fpathdict && nv_search(rp->fname, sh.fpathdict, 0))
 				{
 					/* Autoloaded function. It must not be freed. */
-					rp->fdict = NULL;
+					rp->fdict = nullptr;
 					nv_delete(np, sp->sfun, NV_FUNCTION | NV_NOFREE);
 				}
 				else
@@ -989,7 +989,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			case 2:
 				/* reinit PWD as it will be wrong */
 				free(sh.pwd);
-				sh.pwd = NULL;
+				sh.pwd = nullptr;
 				path_pwd();
 				errno = saveerrno;
 				errormsg(SH_DICT, ERROR_SYSTEM | ERROR_PANIC, "Failed to restore PWD upon exiting subshell");

@@ -52,7 +52,7 @@ extern int _fcmbget(short *);
 #define fcfirst() ((char *)_Fcin.fcbuff)
 #define fclast() ((char *)_Fcin.fclast)
 #define fcleft() (_Fcin.fclast - _Fcin.fcptr)
-#define fcsopen(s) (_Fcin._fcfile = NULL, _Fcin.fclen = 1, _Fcin.fcbuff = _Fcin.fcptr = (unsigned char *)(s))
+#define fcsopen(s) (_Fcin._fcfile = nullptr, _Fcin.fclen = 1, _Fcin.fcbuff = _Fcin.fcptr = (unsigned char *)(s))
 #define fcsave(x) (*(x) = _Fcin)
 #define fcrestore(x) (_Fcin = *(x))
 extern int fcfill(void);

@@ -115,7 +115,7 @@ int sh_lookopt(const char *sp, int *invert)
 			{
 				if(!*s || *s == '=')
 				{
-					if(*s == '=' && !strtol(s + 1, NULL, 0))
+					if(*s == '=' && !strtol(s + 1, nullptr, 0))
 						no = !no;
 					if(!*t)
 					{
@@ -175,8 +175,8 @@ int sh_lookopt(const char *sp, int *invert)
  */
 char *sh_substitute(const char *string, const char *oldsp, char *newsp)
 /*@
-	assume string!=NULL && oldsp!=NULL && newsp!=NULL;
-	return x satisfying x==NULL ||
+	assume string!=nullptr && oldsp!=nullptr && newsp!=nullptr;
+	return x satisfying x==nullptr ||
 		strlen(x)==(strlen(in string)+strlen(in newsp)-strlen(in oldsp));
 @*/
 {
@@ -185,7 +185,7 @@ char *sh_substitute(const char *string, const char *oldsp, char *newsp)
 	const char *savesp = 0;
 	stkseek(sh.stk, 0);
 	if(*sp == 0)
-		return NULL;
+		return nullptr;
 	if(*(cp = oldsp) == 0)
 		goto found;
 	do
@@ -203,7 +203,7 @@ char *sh_substitute(const char *string, const char *oldsp, char *newsp)
 				stkputc(sh.stk, *sp++);
 		}
 		if(*sp == 0)
-			return NULL;
+			return nullptr;
 		savesp = sp;
 		for(; *cp; cp++)
 		{
@@ -216,7 +216,7 @@ char *sh_substitute(const char *string, const char *oldsp, char *newsp)
 		sp = savesp;
 		cp = oldsp;
 	} while(*sp);
-	return NULL;
+	return nullptr;
 
 found:
 	/* copy new */
@@ -232,7 +232,7 @@ found:
  */
 void sh_trim(char *sp)
 /*@
-	assume sp!=NULL;
+	assume sp!=nullptr;
 	promise strlen(in sp) <= in strlen(sp);
 @*/
 {
@@ -270,7 +270,7 @@ static char *sh_fmtcsv(const char *string)
 	int c;
 	int offset;
 	if(!cp)
-		return NULL;
+		return nullptr;
 	offset = stktell(sh.stk);
 	while((c = mbchar(cp)), isaname(c))
 		;
@@ -335,7 +335,7 @@ char *sh_fmtq(const char *string)
 	int c, state;
 	int offset;
 	if(!cp)
-		return NULL;
+		return nullptr;
 	offset = stktell(sh.stk);
 	state = ((c = mbchar(cp)) == 0);
 	if(isaletter(c) || c == '.')

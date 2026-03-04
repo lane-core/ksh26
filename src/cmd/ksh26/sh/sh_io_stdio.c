@@ -37,9 +37,9 @@
 
 /* ── standard streams ───────────────────────────────────────── */
 
-sh_stream_t _sh_stdin = {NULL, 0, SH_IO_READ | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
-sh_stream_t _sh_stdout = {NULL, 1, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
-sh_stream_t _sh_stderr = {NULL, 2, SH_IO_WRITE | SH_IO_STATIC, 0, NULL, NULL, 0, NULL, 0, NULL, NULL};
+sh_stream_t _sh_stdin = {nullptr, 0, SH_IO_READ | SH_IO_STATIC, 0, nullptr, nullptr, 0, nullptr, 0, nullptr, nullptr};
+sh_stream_t _sh_stdout = {nullptr, 1, SH_IO_WRITE | SH_IO_STATIC, 0, nullptr, nullptr, 0, nullptr, 0, nullptr, nullptr};
+sh_stream_t _sh_stderr = {nullptr, 2, SH_IO_WRITE | SH_IO_STATIC, 0, nullptr, nullptr, 0, nullptr, 0, nullptr, nullptr};
 
 /* assignable stream pointers — subshell.c redirects these
  * Prefixed _ksh_ to avoid collision with libast's sfextern.c;
@@ -67,7 +67,7 @@ sh_stream_new(FILE *fp, int fd, int flags)
 	sh_stream_t *s;
 	s = calloc(1, sizeof(*s));
 	if(!s)
-		return NULL;
+		return nullptr;
 	s->fp = fp;
 	s->fd = fd;
 	s->flags = flags;
@@ -90,7 +90,7 @@ int sh_stream_close(sh_stream_t *f)
 		free(f);
 	else
 	{
-		f->fp = NULL;
+		f->fp = nullptr;
 		f->fd = -1;
 	}
 	return r;
@@ -112,9 +112,9 @@ int sh_stream_set(sh_stream_t *f, int flags, int on)
 	if((flags & SH_IO_LINE) && f->fp)
 	{
 		if(on)
-			setvbuf(f->fp, NULL, _IOLBF, 0);
+			setvbuf(f->fp, nullptr, _IOLBF, 0);
 		else
-			setvbuf(f->fp, NULL, _IOFBF, SH_IO_BUFSIZE);
+			setvbuf(f->fp, nullptr, _IOFBF, SH_IO_BUFSIZE);
 	}
 	return old;
 }
@@ -140,12 +140,12 @@ sh_strbuf_open(void)
 	sh_strbuf_t *s;
 	s = calloc(1, sizeof(*s));
 	if(!s)
-		return NULL;
+		return nullptr;
 	s->stream.fp = open_memstream(&s->buf, &s->len);
 	if(!s->stream.fp)
 	{
 		free(s);
-		return NULL;
+		return nullptr;
 	}
 	s->stream.fd = -1;
 	s->stream.flags = SH_IO_WRITE | SH_IO_STRING | SH_IO_MALLOC;
@@ -156,7 +156,7 @@ char *
 sh_strbuf_use(sh_strbuf_t *s)
 {
 	if(!s || !s->stream.fp)
-		return NULL;
+		return nullptr;
 	fflush(s->stream.fp);
 	/* keep data pointer in sync for sfio compat (out->_data access) */
 	s->stream.data = (unsigned char *)s->buf;
@@ -201,7 +201,7 @@ char *
 sh_strbuf_base(sh_strbuf_t *s)
 {
 	if(!s || !s->stream.fp)
-		return NULL;
+		return nullptr;
 	fflush(s->stream.fp);
 	s->stream.data = (unsigned char *)s->buf;
 	return s->buf;
@@ -275,7 +275,7 @@ void *
 sfsetbuf(sh_stream_t *f, void *buf, size_t size)
 {
 	if(!f)
-		return NULL;
+		return nullptr;
 	/*
 	 * sfsetbuf(f, f, 0): sfio idiom to query current buffer.
 	 * Sets sfvalue(f) to the buffer size and returns the base.
@@ -295,10 +295,10 @@ sfsetbuf(sh_stream_t *f, void *buf, size_t size)
 	}
 	/* string streams: buffer managed by open_memstream */
 	if(f->flags & SH_IO_STRING)
-		return NULL;
+		return nullptr;
 	_sh_ensure_fp(f);
 	if(!f->fp)
-		return NULL;
+		return nullptr;
 	/*
 	 * setvbuf sets the underlying FILE*'s buffer;
 	 * f->buf/bufsz are reserved for sfreserve's read buffer.
@@ -306,8 +306,8 @@ sfsetbuf(sh_stream_t *f, void *buf, size_t size)
 	if(buf && size > 0)
 		setvbuf(f->fp, buf, _IOFBF, size);
 	else if(size > 0)
-		setvbuf(f->fp, NULL, _IOFBF, size);
-	return NULL;
+		setvbuf(f->fp, nullptr, _IOFBF, size);
+	return nullptr;
 }
 
 /* ── sfnew — create or reinitialize a stream around an fd ──── */
@@ -320,16 +320,16 @@ sfnew(sh_stream_t *f, void *buf, size_t size, int fd, int flags)
 		/* reinitialize existing stream wrapper */
 		if(f->fp && !(f->flags & SH_IO_STATIC))
 			fclose(f->fp);
-		f->fp = NULL;
+		f->fp = nullptr;
 		f->fd = fd;
 		f->flags = flags;
 		f->val = 0;
 	}
 	else
 	{
-		f = sh_stream_new(NULL, fd, flags);
+		f = sh_stream_new(nullptr, fd, flags);
 		if(!f)
-			return NULL;
+			return nullptr;
 	}
 	if(flags & SH_IO_STRING)
 	{
@@ -357,7 +357,7 @@ sfnew(sh_stream_t *f, void *buf, size_t size, int fd, int flags)
 			setvbuf(f->fp, buf, _IOFBF, size);
 	}
 	if(_sh_notify_fn)
-		_sh_notify_fn(f, SH_IO_NEW, NULL);
+		_sh_notify_fn(f, SH_IO_NEW, nullptr);
 	return f;
 }
 
@@ -392,10 +392,10 @@ sfopen(sh_stream_t *f, const char *s, const char *mode)
 	if((flags & SH_IO_STRING) && !s)
 		return (sh_stream_t *)sh_strbuf_open();
 	if(!s)
-		return NULL;
+		return nullptr;
 	fp = fopen(s, _sh_fdmode(flags));
 	if(!fp)
-		return NULL;
+		return nullptr;
 	if(f)
 	{
 		if(f->fp)
@@ -410,11 +410,11 @@ sfopen(sh_stream_t *f, const char *s, const char *mode)
 		if(!f)
 		{
 			fclose(fp);
-			return NULL;
+			return nullptr;
 		}
 	}
 	if(_sh_notify_fn)
-		_sh_notify_fn(f, SH_IO_NEW, NULL);
+		_sh_notify_fn(f, SH_IO_NEW, nullptr);
 	return f;
 }
 
@@ -424,23 +424,23 @@ sfopen(sh_stream_t *f, const char *s, const char *mode)
  * sfswap: exchange contents of two stream wrappers.
  *
  * sfswap(f1, f2): swap contents, return f2
- * sfswap(f1, NULL): allocate new stream, move f1 into it, clear f1
+ * sfswap(f1, nullptr): allocate new stream, move f1 into it, clear f1
  *
- * The NULL case is critical for command substitution: subshell.c does
- * saveout = sfswap(sfstdout, NULL) to detach stdout into a saved copy.
+ * The nullptr case is critical for command substitution: subshell.c does
+ * saveout = sfswap(sfstdout, nullptr) to detach stdout into a saved copy.
  */
 sh_stream_t *
 sfswap(sh_stream_t *f1, sh_stream_t *f2)
 {
 	sh_stream_t tmp;
 	if(!f1)
-		return NULL;
+		return nullptr;
 	if(!f2)
 	{
 		/* allocate a new stream and move f1's content into it */
 		f2 = malloc(sizeof(*f2));
 		if(!f2)
-			return NULL;
+			return nullptr;
 		memcpy(f2, f1, sizeof(*f1));
 		/*
 		 * The copy is heap-allocated, not a static global —
@@ -494,10 +494,10 @@ int sfsetfd(sh_stream_t *f, int fd)
 	if(f->fp && !(f->flags & SH_IO_STATIC))
 	{
 		fclose(f->fp);
-		f->fp = NULL;
+		f->fp = nullptr;
 	}
 	else
-		f->fp = NULL;
+		f->fp = nullptr;
 	if(fd >= 0)
 		_sh_ensure_fp(f);
 	if(_sh_notify_fn)
@@ -520,7 +520,7 @@ sfdisc(sh_stream_t *f, sh_disc_t *d)
 {
 	sh_disc_t *old;
 	if(!f)
-		return NULL;
+		return nullptr;
 	if(!d)
 	{
 		/* pop top discipline */
@@ -582,7 +582,7 @@ int sfraise(sh_stream_t *f, int type, void *data)
 
 int sfstacked(sh_stream_t *f)
 {
-	return f && f->stack != NULL;
+	return f && f->stack != nullptr;
 }
 
 /* ── sfclrlock — clear stream lock ─────────────────────────── */
@@ -620,7 +620,7 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 {
 	size_t want, got;
 	if(!f || !f->fp)
-		return NULL;
+		return nullptr;
 	/*
 	 * Buffer consumption discipline — sfio has two modes:
 	 *
@@ -645,14 +645,14 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 		else
 		{
 			/* consumed: next sfreserve reads fresh */
-			f->data = NULL;
+			f->data = nullptr;
 			f->flags &= ~_SH_IO_RSVLCK;
 		}
 		return ret;
 	}
 	/* no cached data — clear stale state */
 	f->val = 0;
-	f->data = NULL;
+	f->data = nullptr;
 	f->flags &= ~_SH_IO_RSVLCK;
 	/* size 0: peek — check if data is available */
 	if(size == 0)
@@ -661,7 +661,7 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 		if(c == EOF)
 		{
 			f->val = 0;
-			return NULL;
+			return nullptr;
 		}
 		ungetc(c, f->fp);
 		if(!f->buf)
@@ -670,7 +670,7 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 			if(!f->buf)
 			{
 				f->val = 0;
-				return NULL;
+				return nullptr;
 			}
 			f->bufsz = SH_IO_BUFSIZE;
 		}
@@ -694,7 +694,7 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 		if(!nb)
 		{
 			f->val = 0;
-			return NULL;
+			return nullptr;
 		}
 		f->buf = nb;
 		f->bufsz = newsz;
@@ -703,28 +703,28 @@ sfreserve(sh_stream_t *f, ssize_t size, int type)
 	if(got == 0)
 	{
 		f->val = 0;
-		return NULL;
+		return nullptr;
 	}
 	f->val = (ssize_t)got;
 	f->data = (unsigned char *)f->buf;
 	if(type & SH_IO_LOCKR)
 		f->flags |= _SH_IO_RSVLCK;
 	else
-		f->data = NULL; /* non-LOCKR: consumed on return */
+		f->data = nullptr; /* non-LOCKR: consumed on return */
 	return f->buf;
 }
 
 /*
  * sfstack — push/pop stream stacking.
- * sfstack(f, NULL): pop top of f's stack, return it
+ * sfstack(f, nullptr): pop top of f's stack, return it
  * sfstack(f, s):    push s onto f's stack, return f
  */
 sh_stream_t *
 sfstack(sh_stream_t *f1, sh_stream_t *f2)
 {
-	assert(f1 != f2 || f2 == NULL); /* no self-stacking */
+	assert(f1 != f2 || f2 == nullptr); /* no self-stacking */
 	if(!f1)
-		return NULL;
+		return nullptr;
 	if(!f2)
 	{
 		/* pop: remove and return the top of f1's stack */
@@ -732,7 +732,7 @@ sfstack(sh_stream_t *f1, sh_stream_t *f2)
 		if(top)
 		{
 			f1->stack = top->stack;
-			top->stack = NULL;
+			top->stack = nullptr;
 		}
 		return top;
 	}
@@ -758,15 +758,15 @@ sftmp([[maybe_unused]] size_t size)
 	sh_stream_t *f;
 	fp = tmpfile();
 	if(!fp)
-		return NULL;
+		return nullptr;
 	f = sh_stream_new(fp, -1, SH_IO_READ | SH_IO_WRITE);
 	if(!f)
 	{
 		fclose(fp);
-		return NULL;
+		return nullptr;
 	}
 	if(_sh_notify_fn)
-		_sh_notify_fn(f, SH_IO_NEW, NULL);
+		_sh_notify_fn(f, SH_IO_NEW, nullptr);
 	return f;
 }
 
@@ -787,7 +787,7 @@ sfgetr(sh_stream_t *f, int delim, int type)
 	char *p;
 	int c;
 	if(!f || !f->fp)
-		return NULL;
+		return nullptr;
 	/*
 	 * type == -1 (SF_LASTR): return previously buffered incomplete
 	 * line from a prior sfgetr call that hit EOF before the delimiter.
@@ -796,7 +796,7 @@ sfgetr(sh_stream_t *f, int delim, int type)
 	{
 		if(f->getr_buf && f->val > 0)
 			return f->getr_buf;
-		return NULL;
+		return nullptr;
 	}
 	/* accumulate into getr_buf */
 	len = 0;
@@ -807,7 +807,7 @@ sfgetr(sh_stream_t *f, int delim, int type)
 		cap = 256;
 		p = malloc(cap);
 		if(!p)
-			return NULL;
+			return nullptr;
 	}
 	/* consume from sfreserve buffer first */
 	while(f->val > 0 && f->data)
@@ -822,7 +822,7 @@ sfgetr(sh_stream_t *f, int delim, int type)
 			{
 				f->getr_buf = p;
 				f->getr_bufsz = cap / 2;
-				return NULL;
+				return nullptr;
 			}
 			p = np;
 		}
@@ -841,7 +841,7 @@ sfgetr(sh_stream_t *f, int delim, int type)
 			{
 				f->getr_buf = p;
 				f->getr_bufsz = cap / 2;
-				return NULL;
+				return nullptr;
 			}
 			p = np;
 		}
@@ -855,13 +855,13 @@ sfgetr(sh_stream_t *f, int delim, int type)
 		f->getr_buf = p;
 		f->getr_bufsz = cap;
 		f->val = 0;
-		return NULL;
+		return nullptr;
 	}
 	p[len] = '\0';
 	f->getr_buf = p;
 	f->getr_bufsz = cap;
 	f->val = (ssize_t)len;
-	return NULL; /* no delimiter found — caller must use sfgetr(f,d,-1) */
+	return nullptr; /* no delimiter found — caller must use sfgetr(f,d,-1) */
 
 done:
 	/* type==1 (SF_STRING): strip delimiter, NUL-terminate */
@@ -887,7 +887,7 @@ done:
  * delim < 0: n is byte count (bulk copy)
  * delim >= 0: n is record count (copy n delimited records)
  * n < 0 (SFIO_UNBOUND): copy until EOF
- * fw == NULL: discard (consume without writing)
+ * fw == nullptr: discard (consume without writing)
  *
  * Returns number of items (bytes or records) moved.
  */

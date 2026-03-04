@@ -63,7 +63,7 @@ typedef int (*Shwait_f)(int, long, int);
 
 #include "shtable.h"
 
-#define NIL(type) NULL /* for backward compatibility */
+#define NIL(type) nullptr /* for backward compatibility */
 
 #define exitset() (sh.savexit = sh.exitval)
 

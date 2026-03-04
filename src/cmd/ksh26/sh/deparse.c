@@ -613,7 +613,7 @@ static void here_body(const struct ionod *iop)
 {
 	Sfio_t *infile;
 	if(iop->iofile & IOSTRG)
-		infile = sfnew(NULL, iop->ioname, iop->iosize, -1, SFIO_STRING | SFIO_READ);
+		infile = sfnew(nullptr, iop->ioname, iop->iosize, -1, SFIO_STRING | SFIO_READ);
 	else
 		sfseek(infile = sh.heredocs, iop->iooffset, SEEK_SET);
 	sfmove(infile, outfile, iop->iosize, -1);

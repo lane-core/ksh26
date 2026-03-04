@@ -219,7 +219,7 @@ void *sh_timeradd(Sfulong_t msec, int flags, void (*action)(void *), void *handl
 	Handler_t fn;
 	t = ((Sfdouble_t)msec) / 1000.;
 	if(t <= 0 || !action)
-		return NULL;
+		return nullptr;
 	if(tp = tpfree)
 		tpfree = tp->next;
 	else
@@ -257,7 +257,7 @@ void *sh_timeradd(Sfulong_t msec, int flags, void (*action)(void *), void *handl
 }
 
 /*
- * delete timer <tp>.  If <tp> is NULL, all timers are deleted
+ * delete timer <tp>.  If <tp> is nullptr, all timers are deleted
  */
 void sh_timerdel(void *handle)
 {

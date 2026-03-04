@@ -85,7 +85,7 @@ int b_getopts(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 	argc -= opt_info.index;
 	if(error_info.errors || argc < 2)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	error_info.context->flags |= ERROR_SILENT;
@@ -165,7 +165,7 @@ int b_getopts(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 				opt_info.index = flag;
 				if(!mode && strchr(options, ' '))
 				{
-					errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+					errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 					UNREACHABLE();
 				}
 			}

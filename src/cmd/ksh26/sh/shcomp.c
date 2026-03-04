@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
 				return 0;
 		}
-	sh_init(argc, argv, NULL);
+	sh_init(argc, argv, nullptr);
 	script_id = error_info.id; /* set by sh_init() */
 	error_info.id = shcomp_id;
 	sh.shcomp = 1;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	}
 	if(error_info.errors || argc > 2)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(cp = *argv)
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 	if(cp = *argv)
 	{
 		struct stat statb;
-		if(!(out = sfopen(NULL, cp, "w")))
+		if(!(out = sfopen(nullptr, cp, "w")))
 		{
 			errormsg(SH_DICT, ERROR_system(1), "%s: cannot create", cp);
 			UNREACHABLE();
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	error_info.id = script_id;
 	while(1)
 	{
-		stkset(sh.stk, NULL, 0);
+		stkset(sh.stk, nullptr, 0);
 		if(t = (Shnode_t *)sh_parse(in, 0))
 		{
 			if((t->tre.tretyp & (COMMSK | COMSCAN)) == 0 && t->com.comnamp && (Namval_t *)t->com.comnamp == SYSALIAS)

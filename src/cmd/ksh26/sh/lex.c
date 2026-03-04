@@ -74,7 +74,7 @@ static int comsub(Lex_t *, int);
 static void nested_here(Lex_t *);
 static int here_copy(Lex_t *, struct ionod *);
 static int stack_grow(void);
-static const Sfdisc_t alias_disc = {NULL, NULL, NULL, alias_exceptf, NULL};
+static const Sfdisc_t alias_disc = {nullptr, nullptr, nullptr, alias_exceptf, nullptr};
 
 /* these were taken out of the Lex_t struct because they should never be saved and restored (see stack_grow()) */
 static int lex_max, *lex_match;
@@ -1427,7 +1427,7 @@ breakloop:
 								break;
 							default:
 #if _AST_release
-								alt = NULL; /* output '(null)' (should never happen) */
+								alt = nullptr; /* output '(null)' (should never happen) */
 #else
 								abort();
 #endif
@@ -2492,11 +2492,11 @@ static void setupalias(Lex_t *lp, const char *string, Namval_t *np)
 	}
 	else
 		ap->nextc = 0;
-	iop = sfopen(NULL, (char *)string, "s");
+	iop = sfopen(nullptr, (char *)string, "s");
 	sfdisc(iop, &ap->disc);
 	lp->lexd.nocopy++;
 	if(!(base = fcfile()))
-		base = sfopen(NULL, fcseek(0), "s");
+		base = sfopen(nullptr, fcseek(0), "s");
 	fcclose();
 	sfstack(base, iop);
 	fcfopen(base);

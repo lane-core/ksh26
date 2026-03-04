@@ -254,7 +254,7 @@ static struct jobsave *jobsave_create(pid_t pid)
 int job_reap(int sig)
 {
 	pid_t pid;
-	struct process *pw = NULL;
+	struct process *pw = nullptr;
 	struct process *px;
 	int flags;
 	struct jobsave *jp;
@@ -667,7 +667,7 @@ static void job_reset(struct process *pw)
 		return;
 	/* force the following tty_get() to do a tcgetattr() unless fg */
 	if(!(pw->p_flag & P_MOVED2FG))
-		tty_set(-1, 0, NULL);
+		tty_set(-1, 0, nullptr);
 	if(pw && (pw->p_flag & P_SIGNALLED) && pw->p_exit != SIGHUP)
 	{
 		if(tty_get(job.fd, &pw->p_stty) == 0)
@@ -864,10 +864,10 @@ static struct process *job_bystring(char *ajob)
 	struct process *pw = job.pwlist;
 	int c;
 	if(*ajob++ != '%' || !pw)
-		return NULL;
+		return nullptr;
 	c = *ajob;
 	if(isdigit(c))
-		pw = job_byjid((int)strtol(ajob, NULL, 10));
+		pw = job_byjid((int)strtol(ajob, nullptr, 10));
 	else if(c == '+' || c == '%')
 		;
 	else if(c == '-')
@@ -879,7 +879,7 @@ static struct process *job_bystring(char *ajob)
 		pw = job_byname(ajob);
 	if(pw && pw->p_flag)
 		return pw;
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -909,7 +909,7 @@ int job_kill(struct process *pw, int sig)
 	if(by_number)
 	{
 		if(pid == 0 && job.jobcontrol)
-			r = job_walk(outfile, job_kill, sig, NULL);
+			r = job_walk(outfile, job_kill, sig, nullptr);
 		if(sig == SIGSTOP && pid == sh.pid && sh_isoption(SH_LOGIN_SHELL))
 		{
 			/* can't stop login shell */
@@ -1020,7 +1020,7 @@ static struct process *job_byname(char *name)
 	char *cp = name;
 	int offset;
 	if(!sh.hist_ptr)
-		return NULL;
+		return nullptr;
 	if(*cp == '?')
 		cp++, flag = &offset;
 	{
@@ -1064,7 +1064,7 @@ void job_clear(void)
 	bck.list = 0;
 	if(njob_savelist < NJOB_SAVELIST)
 		init_savelist();
-	job.pwlist = NULL;
+	job.pwlist = nullptr;
 	job.numpost = 0;
 #if SHOPT_BGX
 	job.numbjob = 0;
@@ -1212,7 +1212,7 @@ static struct process *job_bypid(pid_t pid)
 			if(px->p_pid == pid)
 				return px;
 		}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1430,7 +1430,7 @@ int job_wait(pid_t pid)
 				pw->p_pgrp = pw->p_pid;
 			job_reset(pw);
 		}
-		tty_set(-1, 0, NULL);
+		tty_set(-1, 0, nullptr);
 	}
 done:
 	if(!job.waitall && sh_isoption(SH_PIPEFAIL))
@@ -1540,7 +1540,7 @@ static void job_unstop(struct process *px, int send_sigcont)
 /*
  * remove a job from table
  * If all the processes have not completed, unpost first non-completed process
- * Otherwise the job is removed and job_unpost returns NULL.
+ * Otherwise the job is removed and job_unpost returns nullptr.
  * pwlist is reset if the first job is removed
  * if <notify> is non-zero, then jobs with pending notifications are unposted
  */
@@ -1554,7 +1554,7 @@ static struct process *job_unpost(struct process *pwtop, int notify)
 #endif /* DEBUG */
 	pwtop = pw = job_byjid(pwtop->p_job);
 	if(!pw)
-		return NULL;
+		return nullptr;
 #if SHOPT_BGX
 	if(pw->p_flag & P_BG)
 		return pw;
@@ -1564,7 +1564,7 @@ static struct process *job_unpost(struct process *pwtop, int notify)
 	if(pw)
 		return pw;
 	if(pwtop->p_job == job.curjobid)
-		return NULL;
+		return nullptr;
 	/* all processes complete, unpost job */
 	job_unlink(pwtop);
 	for(pw = pwtop; pw; pw = pw->p_nxtproc)
@@ -1600,7 +1600,7 @@ static struct process *job_unpost(struct process *pwtop, int notify)
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	job_free(pwtop->p_job);
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1756,7 +1756,7 @@ void job_subrestore(void *ptr)
 	struct jobsave *jp;
 	struct back_save *bp = (struct back_save *)ptr;
 	struct process *pw, *px, *pwnext;
-	struct jobsave *end = NULL;
+	struct jobsave *end = nullptr;
 	job_lock();
 	for(jp = bck.list; jp; jp = jp->next)
 	{

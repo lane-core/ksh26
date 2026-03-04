@@ -112,7 +112,7 @@ int b_readonly([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += (opt_info.index - 1);
@@ -180,7 +180,7 @@ int b_alias([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t 
 			}
 		if(error_info.errors)
 		{
-			errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+			errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 			UNREACHABLE();
 		}
 		argv += (opt_info.index - 1);
@@ -201,7 +201,7 @@ int b_alias([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t 
 			tdata.aflag = '-';          /* make setall() treat 'hash' like 'alias -t' */
 		}
 		if(rflag) /* hash -r: clear hash table */
-			nv_scan(troot, nv_rehash, NULL, NV_TAGGED, NV_TAGGED);
+			nv_scan(troot, nv_rehash, nullptr, NV_TAGGED, NV_TAGGED);
 	}
 	return setall(argv, flag, troot, &tdata);
 }
@@ -351,7 +351,7 @@ int b_typeset(int argc, char *argv[], Shbltin_t *context)
 				}
 				break;
 			case 'M':
-				if((tdata.wctname = opt_info.arg) && !nv_mapchar(NULL, tdata.wctname))
+				if((tdata.wctname = opt_info.arg) && !nv_mapchar(nullptr, tdata.wctname))
 				{
 					errormsg(SH_DICT, ERROR_exit(1), e_unknownmap, tdata.wctname);
 					UNREACHABLE();
@@ -493,7 +493,7 @@ endargs:
 	}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(sizeof(char *) < 8 && tdata.argnum > SHRT_MAX)
@@ -654,9 +654,9 @@ static int setall(char **argv, int flag, Dt_t *troot, struct tdata *tp)
 	char *last = 0;
 	int nvflags = (flag & (NV_ARRAY | NV_NOARRAY | NV_VARNAME | NV_IDENT | NV_ASSIGN | NV_STATIC | NV_MOVE));
 	int r = 0, ref = 0, comvar = (flag & NV_COMVAR), iarray = (flag & NV_IARRAY);
-	Dt_t *save_vartree = NULL;
+	Dt_t *save_vartree = nullptr;
 #if SHOPT_NAMESPACE
-	Namval_t *save_namespace = NULL;
+	Namval_t *save_namespace = nullptr;
 #endif
 	if(flag & NV_GLOBAL)
 	{
@@ -664,7 +664,7 @@ static int setall(char **argv, int flag, Dt_t *troot, struct tdata *tp)
 		troot = sh.var_tree = sh.var_base;
 #if SHOPT_NAMESPACE
 		save_namespace = sh.namespace;
-		sh.namespace = NULL;
+		sh.namespace = nullptr;
 #endif
 	}
 	if(!sh.prefix)
@@ -776,7 +776,7 @@ static int setall(char **argv, int flag, Dt_t *troot, struct tdata *tp)
 			{
 				Pathcomp_t *pp;
 				sh_offstate(SH_DEFPATH); /* 'command -p hash foo' should work to create 'foo=/bin/foo' */
-				if(!(pp = path_absolute(name, NULL, 2)))
+				if(!(pp = path_absolute(name, nullptr, 2)))
 					errormsg(SH_DICT, ERROR_exit(0), e_found, name);
 				path_settrackedalias(name, pp);
 				r |= !pp;
@@ -861,7 +861,7 @@ static int setall(char **argv, int flag, Dt_t *troot, struct tdata *tp)
 					{
 						if(ap && comvar)
 							ap->nelem |= ARRAY_TREE;
-						nv_putsub(np, NULL, 0);
+						nv_putsub(np, nullptr, 0);
 					}
 				}
 				else if(nvflags & NV_ARRAY)
@@ -1138,7 +1138,7 @@ int b_builtin([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_
 	memset(&tdata, 0, sizeof(tdata));
 	stkp = sh.stk;
 	if(!sh.pathlist)
-		path_absolute(argv[0], NULL, 0);
+		path_absolute(argv[0], nullptr, 0);
 	while(n = optget(argv, sh_optbuiltin))
 		switch(n)
 		{
@@ -1175,7 +1175,7 @@ int b_builtin([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_
 	argv += opt_info.index;
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(arg || *argv)
@@ -1194,14 +1194,14 @@ int b_builtin([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_
 		unsigned long ver;
 		char path[PATH_MAX];
 		void *library;
-		if(!(library = dllplugin(SH_ID, arg, NULL, SH_PLUGIN_VERSION, &ver, RTLD_LAZY, path, sizeof(path))))
+		if(!(library = dllplugin(SH_ID, arg, nullptr, SH_PLUGIN_VERSION, &ver, RTLD_LAZY, path, sizeof(path))))
 		{
 			errormsg(SH_DICT, ERROR_exit(0), "%s: %s", arg, dllerror(0));
 			return 1;
 		}
 		if(list)
 			sfprintf(sfstdout, "%s %08lu %s\n", arg, ver, path);
-		sh_addlib(library, arg, NULL);
+		sh_addlib(library, arg, nullptr);
 	}
 	else
 #endif /* SHOPT_DYNAMIC */
@@ -1268,7 +1268,7 @@ int b_builtin([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_
 				errmsg = "restricted name";
 			addr = funptr(np);
 		}
-		if(!dlete && !addr && !(np = sh_addbuiltin(arg, NULL, 0)))
+		if(!dlete && !addr && !(np = sh_addbuiltin(arg, nullptr, 0)))
 			errmsg = "not found";
 		if(errmsg)
 		{
@@ -1356,7 +1356,7 @@ static int unall([[maybe_unused]] int argc, char **argv, Dt_t *troot)
 	argv += opt_info.index;
 	if(error_info.errors || (*argv == 0 && !all))
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(!troot)

@@ -48,7 +48,7 @@ int fcfopen(Sfio_t *f)
 		_Fcin.fcchar = 0;
 		_Fcin.fcptr = _Fcin.fcbuff = &_Fcin.fcchar;
 		_Fcin.fclast = 0;
-		_Fcin._fcfile = NULL;
+		_Fcin._fcfile = nullptr;
 		return EOF;
 	}
 	n = sfvalue(f);

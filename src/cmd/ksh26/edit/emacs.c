@@ -627,8 +627,8 @@ process:
 		r = i;
 done:
 	/* avoid leaving invalid pointers to destroyed automatic variables */
-	Prompt = NULL;
-	drawbuff = ep->screen = ep->cursor = NULL;
+	Prompt = nullptr;
+	drawbuff = ep->screen = ep->cursor = nullptr;
 	return r;
 }
 

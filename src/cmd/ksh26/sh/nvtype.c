@@ -205,7 +205,7 @@ static char *name_chtype(Namval_t *np, Namfun_t *fp)
 		sfprintf(sh.strbuf, "%s.%s", cp, np->nvname);
 #if SHOPT_FIXEDARRAY
 	if((ap = nv_arrayptr(np)) && ap->fixed)
-		nv_arrfixed(np, sh.strbuf, 1, NULL);
+		nv_arrfixed(np, sh.strbuf, 1, nullptr);
 #endif /* SHOPT_FIXEDARRAY */
 	sh.last_table = tp;
 	return sfstruse(sh.strbuf);
@@ -241,7 +241,7 @@ static void put_chtype(Namval_t *np, const char *val, int flag, Namfun_t *fp)
 static Namfun_t *clone_chtype([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namval_t *mp, int flags, Namfun_t *fp)
 {
 	if(flags & NV_NODISC)
-		return NULL;
+		return nullptr;
 	return nv_clone_disc(fp, flags);
 }
 
@@ -272,7 +272,7 @@ static Namval_t *findref(void *nodes, int n)
 			return nv_namptr(pp->nodes, n - i - 1);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp, int flag)
@@ -302,7 +302,7 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp, int 
 		{
 			Namval_t *np = nv_namptr(pp->nodes, i);
 			if(nv_isarray(nq))
-				nq->nvalue = NULL;
+				nq->nvalue = nullptr;
 			nq->nvfun = 0;
 			if(nv_isarray(nq) && ((flag & NV_IARRAY) || nv_type(np)))
 				clone_all_disc(np, nq, flag & ~NV_TYPE);
@@ -411,22 +411,22 @@ static Namfun_t *clone_type(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
 				}
 				if(nv_isref(nq))
 					nq = nv_refnode(nq);
-				if((size = nv_datasize(nr, NULL)) && size == nv_datasize(nq, NULL))
+				if((size = nv_datasize(nr, nullptr)) && size == nv_datasize(nq, nullptr))
 					memcpy(nq->nvalue, nr->nvalue, size);
 				else if(ap = nv_arrayptr(nr))
 				{
-					nv_putsub(nr, NULL, ARRAY_SCAN | ARRAY_NOSCOPE);
+					nv_putsub(nr, nullptr, ARRAY_SCAN | ARRAY_NOSCOPE);
 					do
 					{
 						if(array_assoc(ap))
-							cp = (char *)((*ap->fun)(nr, NULL, NV_ANAME));
+							cp = (char *)((*ap->fun)(nr, nullptr, NV_ANAME));
 						else
 							cp = nv_getsub(nr);
 						nv_putsub(nq, cp, ARRAY_ADD | ARRAY_NOSCOPE);
 						if(array_assoc(ap))
 						{
-							Namval_t *mr = (Namval_t *)((*ap->fun)(nr, NULL, NV_ACURRENT));
-							Namval_t *mq = (Namval_t *)((*ap->fun)(nq, NULL, NV_ACURRENT));
+							Namval_t *mr = (Namval_t *)((*ap->fun)(nr, nullptr, NV_ACURRENT));
+							Namval_t *mq = (Namval_t *)((*ap->fun)(nq, nullptr, NV_ACURRENT));
 							nv_clone(mr, mq, NV_MOVE);
 							ap->nelem--;
 							nv_delete(mr, ap->table, 0);
@@ -564,11 +564,11 @@ static Namval_t *next_type(Namval_t *np, Dt_t *root, Namfun_t *fp)
 	{
 		Namarr_t *ap = nv_arrayptr(np);
 		if(ap && (ap->nelem & ARRAY_UNDEF))
-			nv_putsub(np, NULL, ARRAY_SCAN);
+			nv_putsub(np, nullptr, ARRAY_SCAN);
 		dp->current = 0;
 	}
 	else if(++dp->current >= dp->numnodes)
-		return NULL;
+		return nullptr;
 	return nv_namptr(dp->nodes, dp->current);
 }
 
@@ -582,7 +582,7 @@ static Namfun_t *clone_inttype(Namval_t *np, Namval_t *mp, [[maybe_unused]] int 
 	else
 		mp->nvalue = (char *)(fp + 1);
 	if(!nv_isattr(mp, NV_MINIMAL))
-		mp->nvmeta = NULL;
+		mp->nvmeta = nullptr;
 	nv_offattr(mp, NV_RDONLY);
 	return pp;
 }
@@ -627,7 +627,7 @@ static int typeinfo([[maybe_unused]] Opt_t *op, ast_wbuf_t *out, const char *str
 			attr_sp = sfstropen();
 			if(attr_sp)
 			{
-				nv_attribute(np, attr_sp, NULL, 1);
+				nv_attribute(np, attr_sp, nullptr, 1);
 				if((attr_s = sfstruse(attr_sp)))
 					ast_wbuf_puts(out, attr_s);
 				sfstrclose(attr_sp);
@@ -657,7 +657,7 @@ static int typeinfo([[maybe_unused]] Opt_t *op, ast_wbuf_t *out, const char *str
 		return 0;
 	}
 	help = &dp->names[dp->ndisc];
-	sp = sfnew(NULL, buffer, sizeof(buffer), -1, SFIO_STRING | SFIO_WRITE);
+	sp = sfnew(nullptr, buffer, sizeof(buffer), -1, SFIO_STRING | SFIO_WRITE);
 	ast_wbuf_printf(out, "[+?\b%s\b defines the following fields:]{\n", np->nvname);
 	for(i = 0; i < dp->numnodes; i++)
 	{
@@ -672,7 +672,7 @@ static int typeinfo([[maybe_unused]] Opt_t *op, ast_wbuf_t *out, const char *str
 		else
 		{
 			sfseek(sp, 0, SEEK_SET);
-			nv_attribute(nq, sp, NULL, 1);
+			nv_attribute(nq, sp, nullptr, 1);
 			cp = 0;
 			if(!nv_isattr(nq, NV_REF))
 				cp = sh_fmtq(nv_getval(nq));
@@ -773,7 +773,7 @@ found:
 
 void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 {
-	Namdecl_t *cp = sh_newof(NULL, Namdecl_t, 1, optsz);
+	Namdecl_t *cp = sh_newof(nullptr, Namdecl_t, 1, optsz);
 	Optdisc_t *dp = (Optdisc_t *)(cp + 1);
 	Namval_t *bp;
 	char *name;
@@ -850,7 +850,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		np = nodes[i];
 		if(is_afunction(np))
 		{
-			if(!std_disc(np, NULL))
+			if(!std_disc(np, nullptr))
 			{
 				size += strlen(np->nvname + m) + 1;
 				if(strncmp(np->nvname, NV_CLASS, sizeof(NV_CLASS) - 1) == 0)
@@ -909,7 +909,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 	offset = roundof(offset, sizeof(char *));
 	nv_setsize(mp, offset);
 	k = roundof(sizeof(Namtype_t), sizeof(Sfdouble_t)) - sizeof(Namtype_t);
-	pp = sh_newof(NULL, Namtype_t, 1, nnodes * NV_MINSZ + offset + size + (nnodes + nd) * sizeof(char *) + iref * sizeof(struct Namref) + k);
+	pp = sh_newof(nullptr, Namtype_t, 1, nnodes * NV_MINSZ + offset + size + (nnodes + nd) * sizeof(char *) + iref * sizeof(struct Namref) + k);
 	pp->fun.dsize = sizeof(Namtype_t) + nnodes * NV_MINSZ + offset + k;
 	pp->fun.type = mp;
 	pp->parent = nv_lastdict();
@@ -930,7 +930,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 	pp->strsize = size;
 	cp = (char *)&pp->names[nd + nnodes];
 	if(qp)
-		mnodes = sh_newof(NULL, Namval_t *, nd + 1, 0);
+		mnodes = sh_newof(nullptr, Namval_t *, nd + 1, 0);
 	nd = 0;
 	nq = nv_namptr(pp->nodes, 0);
 	nq->nvname = cp;
@@ -1011,7 +1011,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				if(!nv_isattr(nr, NV_REF) && !nv_hasdisc(nr, &type_disc))
 				{
 					if(nr->nvsize)
-						memcpy(nq->nvalue, nr->nvalue, size = nv_datasize(nr, NULL));
+						memcpy(nq->nvalue, nr->nvalue, size = nv_datasize(nr, nullptr));
 					else
 					{
 						nq->nvalue = nr->nvalue;
@@ -1042,7 +1042,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			if(islower(j))
 				*help[k] = toupper(j);
 			*cp++ = 0;
-			np->nvmeta = NULL;
+			np->nvmeta = nullptr;
 		}
 		nq->nvname = cp;
 		if(name && strncmp(name, &np->nvname[m], n) == 0 && np->nvname[m + n] == '.')
@@ -1153,7 +1153,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				else
 					nq->nvalue = Empty;
 			}
-			np->nvalue = NULL;
+			np->nvalue = nullptr;
 			offset += (dsize ? dsize : 4);
 		}
 		k++;
@@ -1196,7 +1196,7 @@ Namval_t *nv_mkinttype(char *name, size_t size, int sign, const char *help, Namd
 	mp = nv_open(stkptr(sh.stk, offset), sh.var_tree, NV_VARNAME);
 	stkseek(sh.stk, offset);
 	offset = size + sizeof(Namdisc_t);
-	fp = sh_newof(NULL, Namfun_t, 1, offset);
+	fp = sh_newof(nullptr, Namfun_t, 1, offset);
 	fp->type = mp;
 	fp->nofree |= 1;
 	fp->dsize = sizeof(Namfun_t) + size;
@@ -1251,7 +1251,7 @@ Namval_t *nv_type(Namval_t *np)
 		if(fp->disc && fp->disc->typef && (np = (*fp->disc->typef)(np, fp)))
 			return np;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1268,10 +1268,10 @@ static void type_init(Namval_t *np)
 	{
 		nq = nv_namptr(pp->nodes, i);
 		if((dp = (Namtype_t *)nv_hasdisc(nq, &type_disc)) && dp->cp)
-			sh_fun(dp->cp, nq, NULL);
+			sh_fun(dp->cp, nq, nullptr);
 	}
 	if(pp->cp)
-		sh_fun(pp->cp, np, NULL);
+		sh_fun(pp->cp, np, nullptr);
 }
 
 /*
@@ -1298,7 +1298,7 @@ int nv_settype(Namval_t *np, Namval_t *tp, int flags)
 		sh_subfork();
 	if((ap = nv_arrayptr(np)) && ap->nelem > 0)
 	{
-		nv_putsub(np, NULL, ARRAY_SCAN);
+		nv_putsub(np, nullptr, ARRAY_SCAN);
 		ap->hdr.type = tp;
 		do
 		{
@@ -1334,11 +1334,11 @@ int nv_settype(Namval_t *np, Namval_t *tp, int flags)
 	{
 		int nofree;
 		nv_disc(np, &ap->hdr, NV_POP);
-		np->nvalue = NULL;
+		np->nvalue = nullptr;
 		nv_clone(tp, np, flags | NV_NOFREE);
 		if(np->nvalue && np->nvalue != Empty && !nv_isattr(np, NV_NOFREE))
 			free(np->nvalue);
-		np->nvalue = NULL;
+		np->nvalue = nullptr;
 		nofree = ap->hdr.nofree;
 		ap->hdr.nofree = 0;
 		ap->hdr.type = tp;
@@ -1406,8 +1406,8 @@ int sh_outtype(Sfio_t *out)
 	if(!(mp = nv_open(nvtype, sh.var_base, NV_NOADD | NV_VARNAME)))
 		return 0;
 	memcpy(&node, L_ARGNOD, sizeof(node));
-	L_ARGNOD->nvfun = NULL;
-	L_ARGNOD->nvalue = NULL;
+	L_ARGNOD->nvfun = nullptr;
+	L_ARGNOD->nvalue = nullptr;
 	dp = nv_dict(mp);
 	if(indent == 0)
 		for(tp = (Namval_t *)dtfirst(dp); tp; tp = (Namval_t *)dtnext(dp, tp))
@@ -1436,7 +1436,7 @@ int sh_outtype(Sfio_t *out)
 		else
 			sfprintf(out, "%.*s", strlen(cp) - 1, cp);
 		nv_unset(L_ARGNOD, NV_RDONLY);
-		for(sp = 0; sp = nv_setdisc(tp, NULL, (Namval_t *)sp, (Namfun_t *)tp);)
+		for(sp = 0; sp = nv_setdisc(tp, nullptr, (Namval_t *)sp, (Namfun_t *)tp);)
 		{
 			mp = (Namval_t *)nv_setdisc(tp, sp, tp, (Namfun_t *)tp);
 			if(!mp || mp == tp)
@@ -1489,5 +1489,5 @@ Namval_t *nv_typeparent(Namval_t *np)
 		return fp->ptype->parent;
 	if(tp = (Namtype_t *)nv_hasdisc(np, &type_disc))
 		return tp->parent;
-	return NULL;
+	return nullptr;
 }

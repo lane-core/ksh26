@@ -97,7 +97,7 @@ int b_read(int argc, char *argv[], Shbltin_t *context)
 				flags |= C_FLAG;
 				break;
 			case 't':
-				sec = sh_strnum(opt_info.arg, NULL, 1);
+				sec = sh_strnum(opt_info.arg, nullptr, 1);
 				timeout = sec ? 1000 * sec : 1;
 				break;
 			case 'd':
@@ -152,7 +152,7 @@ int b_read(int argc, char *argv[], Shbltin_t *context)
 	argv += opt_info.index;
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(!((r = sh.fdstatus[fd]) & IOREAD) || !(r & (IOSEEK | IONOSEEK)))
@@ -169,7 +169,7 @@ int b_read(int argc, char *argv[], Shbltin_t *context)
 		r = 0;
 	if(argc == fixargs)
 	{
-		rp = sh_newof(NULL, struct read_save, 1, 0);
+		rp = sh_newof(nullptr, struct read_save, 1, 0);
 		context->data = (void *)rp;
 		rp->fd = fd;
 		rp->flags = flags;
@@ -276,7 +276,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			nv_unset(np, 0);
 			if((ap = nv_arrayptr(np)) && !ap->fun)
 				ap->nelem--;
-			nv_putsub(np, NULL, 0L);
+			nv_putsub(np, nullptr, 0L);
 		}
 		else if(flags & C_FLAG)
 		{
@@ -821,7 +821,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		}
 		if(array_index)
 		{
-			nv_putsub(np, NULL, array_index++);
+			nv_putsub(np, nullptr, array_index++);
 			if(c != S_NL)
 				continue;
 			name = *++names;

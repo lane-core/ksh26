@@ -119,7 +119,7 @@ int sh_argopts(int argc, char *argv[])
 	Shopt_t newflags;
 	int defaultflag = 0, setflag = 0, action = 0, trace = (int)sh_isoption(SH_XTRACE);
 	int invalidate_ifs = 0;
-	Namval_t *np = NULL;
+	Namval_t *np = nullptr;
 	const char *cp;
 	int verbose, f;
 	Optdisc_t disc;
@@ -276,7 +276,7 @@ int sh_argopts(int argc, char *argv[])
 	}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	/* check for '-' or '+' argument */
@@ -316,7 +316,7 @@ int sh_argopts(int argc, char *argv[])
 		if(!(sh.comdiv = *argv++))
 		{
 			errormsg(SH_DICT, 2, e_cneedsarg);
-			errormsg(SH_DICT, ERROR_usage(2), optusage(NULL));
+			errormsg(SH_DICT, ERROR_usage(2), optusage(nullptr));
 			UNREACHABLE();
 		}
 		argc--;
@@ -331,7 +331,7 @@ int sh_argopts(int argc, char *argv[])
 			errormsg(SH_DICT, ERROR_usage(2), "-R requires scriptname");
 			UNREACHABLE();
 		}
-		if(!(kia.file = sfopen(NULL, ap->kiafile, "w+")))
+		if(!(kia.file = sfopen(nullptr, ap->kiafile, "w+")))
 		{
 			errormsg(SH_DICT, ERROR_system(3), e_create, ap->kiafile);
 			UNREACHABLE();
@@ -453,7 +453,7 @@ struct dolnod *sh_argfree(struct dolnod *blk, int flag)
 						if(argr->dolnxt == argblk)
 							break;
 					if(!argr)
-						return NULL;
+						return nullptr;
 					argr->dolnxt = argblk->dolnxt;
 					argr = argblk->dolnxt;
 				}
@@ -489,7 +489,7 @@ struct dolnod *sh_argcreate(char *argv[])
 		*pp++ = sp;
 		sp = strcopy(sp, *argv++) + 1;
 	}
-	*pp = NULL;
+	*pp = nullptr;
 	return dp;
 }
 
@@ -675,14 +675,14 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr, int flag)
 		/*
 		 * When argbuild is aborted (longjmp) from a discipline function (unset
 		 * var access in discipline), we count an arg that is unset at the end of
-		 * the list, generating a double NULL at the end. To avoid a potential
+		 * the list, generating a double nullptr at the end. To avoid a potential
 		 * null pointer dereference later on, use argi to recount the arguments.
 		 * TODO: find/fix root cause, eliminate argi
 		 */
 		argn = *nargs + 1; /* allow room to prepend args */
 		comargn = stkalloc(sh.stk, (unsigned)(argn + 1) * sizeof(char *));
 		comargm = comargn += argn;
-		*comargn = NULL;
+		*comargn = nullptr;
 		if(!argp)
 		{
 			/* reserve an extra null pointer */
@@ -771,7 +771,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sh_setstate(savestates);
 #if SHOPT_DEVFD
 	sh_close(pv[1 - fd]);
-	sh_iosave(-pv[fd], sh.topfd, NULL);
+	sh_iosave(-pv[fd], sh.topfd, nullptr);
 #else
 	/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
 	if(!sh.fifo_tree)

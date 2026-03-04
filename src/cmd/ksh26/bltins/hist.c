@@ -106,7 +106,7 @@ int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += (opt_info.index - 1);
@@ -146,7 +146,7 @@ int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 			if(*arg == 0)
 			{
 				arg = argv[1];
-				range[++flag] = (int)strtol(arg, NULL, 10);
+				range[++flag] = (int)strtol(arg, nullptr, 10);
 				if(*arg == '-')
 					range[flag] += (hist_max(hp) - 1);
 				argv++;
@@ -207,7 +207,7 @@ int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 	}
 	else
 	{
-		if(!(fname = pathtmp(NULL, 0, 0, NULL)))
+		if(!(fname = pathtmp(nullptr, 0, 0, nullptr)))
 		{
 			errormsg(SH_DICT, ERROR_exit(1), e_create, "");
 			UNREACHABLE();
@@ -217,7 +217,7 @@ int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 			errormsg(SH_DICT, ERROR_system(1), e_create, fname);
 			UNREACHABLE();
 		}
-		outfile = sfnew(NULL, sh.outbuff, IOBSIZE, fdo, SFIO_WRITE);
+		outfile = sfnew(nullptr, sh.outbuff, IOBSIZE, fdo, SFIO_WRITE);
 		arg = "\n";
 		nflag++;
 	}
@@ -297,7 +297,7 @@ int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *
 			errormsg(SH_DICT, ERROR_exit(1), e_toodeep, "history");
 			UNREACHABLE();
 		}
-		iop = sfnew(NULL, buff, IOBSIZE, fdo, SFIO_READ);
+		iop = sfnew(nullptr, buff, IOBSIZE, fdo, SFIO_READ);
 		sh_eval(iop, 1); /* this will close fdo */
 		hist_depth--;
 	}
@@ -340,7 +340,7 @@ static void hist_subst(const char *command, int fd, char *replace)
 		UNREACHABLE();
 	}
 	*(newp - 1) = '=';
-	sh_eval(sfopen(NULL, sp, "s"), 1);
+	sh_eval(sfopen(nullptr, sp, "s"), 1);
 }
 
 #else

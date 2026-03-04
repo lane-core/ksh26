@@ -57,7 +57,7 @@ int b_sleep(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
@@ -127,7 +127,7 @@ int b_sleep(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 			if(sflag || tloc == 0 || errno != EINTR || sh.lastsig)
 				break;
 			sh_sigcheck();
-			if(tloc < (now = time(NULL)))
+			if(tloc < (now = time(nullptr)))
 				break;
 			d = (double)(tloc - now);
 		}

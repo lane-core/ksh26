@@ -182,7 +182,7 @@ done:
 #endif /* SHOPT_AUDIT */
 
 static const unsigned char hist_stamp[2] = {HIST_UNDO, HIST_VERSION};
-static const Sfdisc_t hist_disc = {NULL, hist_write, NULL, hist_exceptf, NULL};
+static const Sfdisc_t hist_disc = {nullptr, hist_write, nullptr, hist_exceptf, nullptr};
 
 static void hist_touch(void *handle)
 {
@@ -244,7 +244,7 @@ retry:
 		/* don't allow root a history_file in /tmp */
 		if(sh.userid)
 		{
-			if(!(fname = pathtmp(NULL, 0, 0, NULL)))
+			if(!(fname = pathtmp(nullptr, 0, 0, nullptr)))
 				return 0;
 			fd = sh_open(fname, O_BINARY | O_APPEND | O_CREAT | O_RDWR | O_cloexec, S_IRUSR | S_IWUSR);
 		}
@@ -255,7 +255,7 @@ retry:
 		sh_fcntl(fd, F_SETFD, FD_CLOEXEC); /* set the file to close-on-exec */
 	if(cp = nv_getval(HISTSIZE))
 	{
-		intmax_t m = strtoll(cp, NULL, 10);
+		intmax_t m = strtoll(cp, nullptr, 10);
 		if(m > HIST_MAX)
 			m = HIST_MAX;
 		else if(m < 0)
@@ -270,7 +270,7 @@ retry:
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
-	hp->histfp = sfnew(NULL, hp->histbuff, HIST_BSIZE, fd, SFIO_READ | SFIO_WRITE | SFIO_APPENDWR | SFIO_SHARE);
+	hp->histfp = sfnew(nullptr, hp->histbuff, HIST_BSIZE, fd, SFIO_READ | SFIO_WRITE | SFIO_APPENDWR | SFIO_SHARE);
 	memset((char *)hp->histcmds, 0, sizeof(off_t) * (hp->histmask + 1));
 	hp->histind = 1;
 	hp->histcmds[1] = 2;
@@ -351,7 +351,7 @@ retry:
 					sh_fcntl(fd, F_SETFD, FD_CLOEXEC);
 				tty = ttyname(2);
 				hp->tty = sh_strdup(tty ? tty : "notty");
-				hp->auditfp = sfnew(NULL, NULL, -1, fd, SFIO_WRITE);
+				hp->auditfp = sfnew(nullptr, nullptr, -1, fd, SFIO_WRITE);
 			}
 		}
 	}
@@ -403,7 +403,7 @@ static int hist_check(int fd)
 static int hist_clean(int fd)
 {
 	struct stat statb;
-	return fstat(fd, &statb) >= 0 && (time(NULL) - statb.st_mtime) >= HIST_RECENT;
+	return fstat(fd, &statb) >= 0 && (time(nullptr) - statb.st_mtime) >= HIST_RECENT;
 }
 
 /*
@@ -743,7 +743,7 @@ static ssize_t hist_write(Sfio_t *iop, const void *buff, size_t insize, Sfdisc_t
 #if SHOPT_AUDIT
 	if(hp->auditfp)
 	{
-		time_t t = time(NULL);
+		time_t t = time(nullptr);
 		sfprintf(hp->auditfp, "%u;%ju;%s;%*s%c",
 		         sh_isoption(SH_PRIVILEGED) ? sh.euserid : sh.userid,
 		         (Sfulong_t)t, hp->tty, size, buff, 0);
@@ -757,7 +757,7 @@ static ssize_t hist_write(Sfio_t *iop, const void *buff, size_t insize, Sfdisc_t
 		offset = stktell(sh.stk);
 		stkputs(sh.stk, buff, -1);
 		stkseek(sh.stk, stktell(sh.stk) - 1);
-		timechars = stkprintf(sh.stk, "\t%s\t%x\n", logname, time(NULL));
+		timechars = stkprintf(sh.stk, "\t%s\t%x\n", logname, time(nullptr));
 		lseek(acctfd, 0, SEEK_END);
 		write(acctfd, stkptr(sh.stk, offset), size - 2 + timechars);
 		stkseek(sh.stk, offset);
@@ -960,7 +960,7 @@ int hist_copy(char *s1, int size, int command, int line)
 	History_t *hp = sh.hist_ptr;
 	int count = 0;
 	char *const s1orig = s1;
-	char *const s1max = s1 ? s1 + size : NULL;
+	char *const s1max = s1 ? s1 + size : nullptr;
 	if(!hp)
 		return -1;
 	hist_seek(hp, command);
@@ -1015,7 +1015,7 @@ char *hist_word(char *string, int size, int word)
 	int flag = 0;
 	History_t *hp = hist_ptr;
 	if(!hp)
-		return NULL;
+		return nullptr;
 	hist_copy(string, size, (int)hp->histind - 1, -1);
 	for(quoted = 0; c = *cp; cp++)
 	{
@@ -1078,7 +1078,7 @@ Histloc_t hist_locate(History_t *hp, int command, int line, int lines)
 		int count;
 		while(command <= hp->histind)
 		{
-			count = hist_copy(NULL, 0, command, -1);
+			count = hist_copy(nullptr, 0, command, -1);
 			if(count > line)
 				goto done;
 			line -= count;
@@ -1094,7 +1094,7 @@ Histloc_t hist_locate(History_t *hp, int command, int line, int lines)
 				goto done;
 			if(--command < least)
 				break;
-			line += hist_copy(NULL, 0, command, -1);
+			line += hist_copy(nullptr, 0, command, -1);
 		}
 		command = -1;
 	}

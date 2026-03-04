@@ -158,7 +158,7 @@ extern void nv_optimize_clear(Namval_t *);
 #define nv_optimize(np)         /* no-op */
 #define nv_optimize_clear(np)   /* no-op */
 #define nv_setoptimize(argaddr) /* no-op */
-#define nv_getoptimize() NULL
+#define nv_getoptimize() nullptr
 #endif /* SHOPT_OPTIMIZE */
 extern void nv_outname(sh_stream_t *, char *, int);
 extern void nv_unref(Namval_t *);

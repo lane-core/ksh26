@@ -61,14 +61,14 @@ int b_return(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 done:
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(*argv)
 	{
 		int r;
-		intmax_t l = strtoll(*argv, NULL, 10);
+		intmax_t l = strtoll(*argv, nullptr, 10);
 		if(do_exit)
 		{
 			n = (int)(l & SH_EXITMASK); /* exit: apply bitmask before conversion to avoid undefined int overflow */
@@ -118,7 +118,7 @@ int b_break(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	argv += opt_info.index;

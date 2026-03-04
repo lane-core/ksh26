@@ -166,18 +166,18 @@ void sh_timetraps(void)
 					int oerrno = errno;
 					fcsave(&savefc);
 					job.jobcontrol = 0;
-					job.pwlist = NULL;   /* avoid external commands in the disc funct affecting job list */
+					job.pwlist = nullptr;   /* avoid external commands in the disc funct affecting job list */
 					sh_lexopen(lexp, 0); /* fully reset lexer state */
 					sh_offoption(SH_XTRACE);
 					sh_offoption(SH_VERBOSE);
 					sh_offstate(SH_INTERACTIVE);
 					sh_offstate(SH_TTYWAIT);
-					sh.st.trap[SH_DEBUGTRAP] = NULL;
+					sh.st.trap[SH_DEBUGTRAP] = nullptr;
 					/* indirect: sh_fun has its own polarity frame (polarity boundary) */
 					sh_pushcontext(&checkpoint, SH_JMPTRAP);
 					jmpval = sigsetjmp(checkpoint.buff, 0);
 					if(!jmpval)
-						sh_fun(tp->action, tp->node, NULL);
+						sh_fun(tp->action, tp->node, nullptr);
 					sh_popcontext(&checkpoint);
 					*lexp = savelex;
 					sh.exitval = exitval;
@@ -264,7 +264,7 @@ static void putval(Namval_t *np, const char *val, int flag, Namfun_t *fp)
 	}
 	else
 	{
-		tp = (struct tevent *)nv_stack(np, NULL);
+		tp = (struct tevent *)nv_stack(np, nullptr);
 		sh.st.timetrap = time_delete(tp, sh.st.timetrap);
 		nv_unset(np, 0);
 		free(fp);
@@ -303,7 +303,7 @@ int b_alarm(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 	argv += opt_info.index;
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(argc == 0)
@@ -313,14 +313,14 @@ int b_alarm(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 	}
 	if(argc != 2)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), optusage(nullptr));
 		UNREACHABLE();
 	}
 	np = nv_open(argv[0], sh.var_tree, NV_NOARRAY | NV_VARNAME);
 	if(!nv_isnull(np))
 		nv_unset(np, 0);
 	nv_setattr(np, NV_DOUBLE);
-	tp = sh_newof(NULL, struct tevent, 1, 0);
+	tp = sh_newof(nullptr, struct tevent, 1, 0);
 	tp->fun.disc = &alarmdisc;
 	tp->flags = rflag;
 	tp->node = np;

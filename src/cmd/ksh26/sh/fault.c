@@ -163,7 +163,7 @@ void sh_fault(int sig)
 	}
 #ifdef ERROR_NOTIFY
 	if((error_info.flags & ERROR_NOTIFY) && sh.bltinfun)
-		action = (*sh.bltinfun)(-sig, NULL, NULL);
+		action = (*sh.bltinfun)(-sig, nullptr, nullptr);
 	if(action > 0)
 		goto done;
 #endif
@@ -499,7 +499,7 @@ int sh_trap(const char *trap, int mode)
 			if(mode)
 				sp = (Sfio_t *)trap;
 			else
-				sp = sfopen(NULL, trap, "s");
+				sp = sfopen(nullptr, trap, "s");
 			sh_eval(sp, 0);
 		}
 	}
@@ -569,7 +569,7 @@ void sh_exit(int xno)
 		sh_offstate(SH_STOPOK);
 		sh.trapnote = 0;
 		sh.forked = 1;
-		if(sh_isstate(SH_INTERACTIVE) && (sig = sh_fork(0, NULL)))
+		if(sh_isstate(SH_INTERACTIVE) && (sig = sh_fork(0, nullptr)))
 		{
 			job.curpgid = 0;
 			job.parent = (pid_t)-1;
@@ -600,7 +600,7 @@ void sh_exit(int xno)
 	}
 	/* unlock output pool */
 	sh_offstate(SH_NOTRACK);
-	if(!(pool = sfpool(NULL, sh.outpool, SFIO_WRITE)))
+	if(!(pool = sfpool(nullptr, sh.outpool, SFIO_WRITE)))
 		pool = sh.outpool; /* can't happen? */
 	sfclrlock(pool);
 	if(sh.lastsig == SIGPIPE)
@@ -663,7 +663,7 @@ static void array_notify(Namval_t *np, [[maybe_unused]] void *data)
 		sh_offstate(SH_ERREXIT);
 		sh_chktrap();
 	}
-	nv_scan(sh.var_tree, array_notify, NULL, NV_ARRAY, NV_ARRAY);
+	nv_scan(sh.var_tree, array_notify, nullptr, NV_ARRAY, NV_ARRAY);
 	sh_freeup();
 #if SHOPT_ACCT
 	sh_accend();
@@ -671,7 +671,7 @@ static void array_notify(Namval_t *np, [[maybe_unused]] void *data)
 	if(mbwide() && sh_editor_active())
 		tty_cooked(-1);
 	if((sh_isoption(SH_INTERACTIVE) && sh_isoption(SH_LOGIN_SHELL)) || (!sh_isoption(SH_INTERACTIVE) && (sig == SIGHUP)))
-		job_walk(sfstderr, job_hup, SIGHUP, NULL);
+		job_walk(sfstderr, job_hup, SIGHUP, nullptr);
 	job_close();
 	sfsync((Sfio_t *)sfstdin);
 	sfsync((Sfio_t *)sh.outpool);

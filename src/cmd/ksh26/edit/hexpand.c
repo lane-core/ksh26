@@ -178,7 +178,7 @@ int hist_expand(const char *ln, char **xp)
 	static Sfio_t *wm = 0;           /* word match from !?string? event designator */
 
 	if(!wm)
-		wm = sfopen(NULL, NULL, "swr");
+		wm = sfopen(nullptr, nullptr, "swr");
 
 	hist_setchars(hc);
 
@@ -443,7 +443,7 @@ int hist_expand(const char *ln, char **xp)
 
 	getsel:
 		/* open temp buffer, let sfio do the (re)allocation */
-		tmp = sfopen(NULL, NULL, "swr");
+		tmp = sfopen(nullptr, nullptr, "swr");
 
 		/* push selected words into buffer, squash
 		   whitespace into single blank or a newline */
@@ -541,7 +541,7 @@ int hist_expand(const char *ln, char **xp)
 				c = *++cp;
 
 			sfseek(tmp, 0, SEEK_SET);
-			tmp2 = sfopen(tmp2, NULL, "swr");
+			tmp2 = sfopen(tmp2, nullptr, "swr");
 
 			if(c == 'g' || c == 'a') /* global substitution */
 			{

@@ -136,7 +136,7 @@ int b_cd([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *co
 	dir = argv[0];
 	if(error_info.errors > 0 || argc > 2)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	oldpwd = path_pwd();
@@ -177,7 +177,7 @@ int b_cd([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *co
 	{
 		if((dp = sh_scoped(CDPNOD)->nvalue) && !(cdpath = (Pathcomp_t *)sh.cdpathlist))
 		{
-			if(cdpath = path_addpath(NULL, dp, PATH_CDPATH))
+			if(cdpath = path_addpath(nullptr, dp, PATH_CDPATH))
 				sh.cdpathlist = cdpath;
 		}
 	}
@@ -310,7 +310,7 @@ success:
 	{
 		/* pathcanon() failed to canonicalize the directory, which happens when 'cd' is invoked from a
 		   nonexistent PWD with a relative path as the argument. Reinitialize $PWD as it will be wrong. */
-		sh.pwd = NULL;
+		sh.pwd = nullptr;
 		path_pwd();
 		if(*sh.pwd != '/')
 		{
@@ -318,7 +318,7 @@ success:
 			UNREACHABLE();
 		}
 	}
-	nv_scan(sh_subtracktree(1), rehash, NULL, NV_TAGGED, NV_TAGGED);
+	nv_scan(sh_subtracktree(1), rehash, nullptr, NV_TAGGED, NV_TAGGED);
 	path_newdir(sh.pathlist);
 	path_newdir(sh.cdpathlist);
 	if(pflag && eflag)
@@ -352,7 +352,7 @@ int b_pwd([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *c
 		}
 	if(error_info.errors)
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(*(cp = path_pwd()) != '/' || !test_inode(cp, e_dot))

@@ -238,7 +238,7 @@ int b_enum(int argc, char **argv, Shbltin_t *context)
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
 	{
-		error(ERROR_USAGE | 2, "%s", optusage(NULL));
+		error(ERROR_USAGE | 2, "%s", optusage(nullptr));
 		return 1;
 	}
 	if(sh.subshell && !sh.subshare)
@@ -252,7 +252,7 @@ int b_enum(int argc, char **argv, Shbltin_t *context)
 			errormsg(SH_DICT, ERROR_exit(1), "%s:%s", cp, is_spcbuiltin);
 			UNREACHABLE();
 		}
-		if(!(np = nv_open(cp, NULL, NV_VARNAME | NV_NOADD)) || !(ap = nv_arrayptr(np)) || ap->fun || (sz = ap->nelem & (((1L << ARRAY_BITS) - 1))) < 2)
+		if(!(np = nv_open(cp, nullptr, NV_VARNAME | NV_NOADD)) || !(ap = nv_arrayptr(np)) || ap->fun || (sz = ap->nelem & (((1L << ARRAY_BITS) - 1))) < 2)
 		{
 			error(ERROR_exit(1), "%s must name an array containing at least two elements", cp);
 			UNREACHABLE();
@@ -263,7 +263,7 @@ int b_enum(int argc, char **argv, Shbltin_t *context)
 		i = 0;
 		nv_onattr(tp, NV_UINT16);
 		nv_putval(tp, (char *)&i, NV_INTEGER);
-		nv_putsub(np, NULL, ARRAY_SCAN);
+		nv_putsub(np, nullptr, ARRAY_SCAN);
 		do
 		{
 			sz += strlen(nv_getval(np));
@@ -273,7 +273,7 @@ int b_enum(int argc, char **argv, Shbltin_t *context)
 		ep->iflag = iflag;
 		ep->nelem = n;
 		cp = (char *)&ep->values[n + 1];
-		nv_putsub(np, NULL, ARRAY_SCAN);
+		nv_putsub(np, nullptr, ARRAY_SCAN);
 		ep->values[n] = 0;
 		i = 0;
 		do

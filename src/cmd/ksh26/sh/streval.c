@@ -932,7 +932,7 @@ Arith_t *arith_compile(const char *string, char **last, Sfdouble_t (*fun)(const 
 		{
 			stkseek(sh.stk, 0);
 			*last = (char *)Empty;
-			return NULL;
+			return nullptr;
 		}
 		cur.nextchr = cur.errchr;
 	}

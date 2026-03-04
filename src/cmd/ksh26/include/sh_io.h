@@ -229,8 +229,8 @@ typedef struct sh_stream_s
 #define SH_IO_LASTR 0000020
 
 /* Discipline stack sentinels */
-#define SH_IO_POPSTACK NULL
-#define SH_IO_POPDISC NULL
+#define SH_IO_POPSTACK nullptr
+#define SH_IO_POPDISC nullptr
 
 /* ── standard streams ───────────────────────────────────────── */
 
@@ -316,7 +316,7 @@ _sh_io_read(sh_stream_t *f, void *p, size_t n)
 static inline int
 _sh_io_sync(sh_stream_t *f)
 {
-	return f ? fflush(f->fp) : fflush(NULL);
+	return f ? fflush(f->fp) : fflush(nullptr);
 }
 #define sfsync(f) _sh_io_sync(f)
 

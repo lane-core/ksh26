@@ -242,7 +242,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 			dtview(sh.bltin_tree, dcl_tree);
 		}
 		sh.bltin_tree = dcl_tree;
-		nv_onattr(sh_addbuiltin(cp, b_dummy, NULL), NV_BLTIN | BLT_DCL);
+		nv_onattr(sh_addbuiltin(cp, b_dummy, nullptr), NV_BLTIN | BLT_DCL);
 		sh.bltin_tree = tp;
 	}
 }
@@ -281,7 +281,7 @@ static void dcl_dehacktivate(void)
 	error_info.exit = orig_exit;
 	if(dcl_tree)
 	{
-		dtview(sh.bltin_tree, NULL);
+		dtview(sh.bltin_tree, nullptr);
 		if(!sh.shcomp)
 			dtclear(dcl_tree);
 	}
@@ -315,7 +315,7 @@ static const char *paramsub(const char *str)
 		if(c == '$' && !lit)
 		{
 			if(*str == '(')
-				return NULL;
+				return nullptr;
 			if(sub)
 				continue;
 			if(*str == '{')
@@ -328,7 +328,7 @@ static const char *paramsub(const char *str)
 			}
 		}
 		else if(c == '`')
-			return NULL;
+			return nullptr;
 		else if(c == '[' && !lit)
 			sub++;
 		else if(c == ']' && !lit)
@@ -336,7 +336,7 @@ static const char *paramsub(const char *str)
 		else if(c == '\'')
 			lit = !lit;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
@@ -351,7 +351,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 	{
 		const char *p, *q;
 		if(sh_isoption(SH_NOEXEC) && (ap->argflag & ARG_MAC) &&
-		   ((p = paramsub(ap->argval)) != NULL))
+		   ((p = paramsub(ap->argval)) != nullptr))
 		{
 			for(q = p; !isspace(*q) && *q != '\0'; q++)
 				;
@@ -368,7 +368,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
  */
 static Shnode_t *makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
 {
-	Shnode_t *t = NULL;
+	Shnode_t *t = nullptr;
 	if(!l || !r)
 		sh_syntax(lexp, 0);
 	else
@@ -409,7 +409,7 @@ void *sh_parse(Sfio_t *iop, int flag)
 		sh_onstate(SH_VERBOSE);
 	sh_lexopen(lexp, 0);
 	if(fcfopen(iop) < 0)
-		return NULL;
+		return nullptr;
 	if(fcfile())
 	{
 		char *cp = fcfirst();
@@ -454,7 +454,7 @@ void *sh_parse(Sfio_t *iop, int flag)
 	/* unstack any completed alias expansions */
 	if((sfset(iop, 0, 0) & SFIO_STRING) && !sfreserve(iop, 0, -1))
 	{
-		Sfio_t *sp = sfstack(iop, NULL);
+		Sfio_t *sp = sfstack(iop, nullptr);
 		if(sp)
 			sfclose(sp);
 	}
@@ -542,12 +542,12 @@ void sh_funstaks(struct slnod *slp, int flag)
 				/*
 				 * Since we're dealing with a linked list of stacks, slpold may be inside the allocated region
 				 * pointed to by slpold->slptr, meaning the stkclose() call may invalidate slpold as well as
-				 * slpold->slptr. So if we do 'stkclose(slpold->slptr); slpold->slptr = NULL' as may
+				 * slpold->slptr. So if we do 'stkclose(slpold->slptr); slpold->slptr = nullptr' as may
 				 * seem obvious, the assignment may be a use-after-free of slpold. Therefore, save the pointer
 				 * value and reset the pointer before closing/freeing the stack.
 				 */
 				Stk_t *sp = slpold->slptr;
-				slpold->slptr = NULL;
+				slpold->slptr = nullptr;
 				stkclose(sp);
 			}
 			else
@@ -685,7 +685,7 @@ static struct regnod *syncase(Lex_t *lexp, int esym)
 	int tok = skipnl(lexp, 0);
 	struct regnod *r;
 	if(tok == esym)
-		return NULL;
+		return nullptr;
 	r = stkalloc(sh.stk, sizeof(struct regnod));
 	r->regptr = 0;
 	r->regflag = 0;
@@ -722,7 +722,7 @@ static struct regnod *syncase(Lex_t *lexp, int esym)
 			r->regnxt = 0;
 	}
 	if(lexp->token == EOFSYM)
-		return NULL;
+		return nullptr;
 	return r;
 }
 
@@ -833,7 +833,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		sh_syntax(lexp, 0);
 	if(!(iop = fcfile()))
 	{
-		iop = sfopen(NULL, fcseek(0), "s");
+		iop = sfopen(nullptr, fcseek(0), "s");
 		fcclose();
 		fcfopen(iop);
 	}
@@ -853,7 +853,7 @@ static Shnode_t *funct(Lex_t *lexp)
 			struct comnod *ac;
 			char *cp, **argv, **argv0;
 			int c = -1;
-			t->funct.functargs = ac = (struct comnod *)simple(lexp, SH_NOIO | SH_FUNDEF, NULL);
+			t->funct.functargs = ac = (struct comnod *)simple(lexp, SH_NOIO | SH_FUNDEF, nullptr);
 			if(ac->comset || (ac->comtyp & COMSCAN))
 				sh_syntax(lexp, 2);
 			argv0 = argv = ac->comarg.dp->dolval + ARG_SPARE;
@@ -950,7 +950,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		{
 			Stk_t *slptr_save = slp->slptr;
 			sh.st.staklist = slp->slnext;
-			slp->slptr = NULL;
+			slp->slptr = nullptr;
 			stkclose(slptr_save);
 		}
 		siglongjmp(*sh.jmplist, jmpval);
@@ -999,7 +999,7 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 {
 	int n;
 	Shnode_t *t, **tp;
-	struct comnod *ac = NULL;
+	struct comnod *ac = nullptr;
 	int array = 0, index = 0;
 	Namval_t *np;
 	lexp->assignlevel++;
@@ -1114,7 +1114,7 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 			n = lexp->token;
 			dcl_recursion = 1;
 			dcl_dehacktivate();
-			p = path_search(lexp->arg->argval, NULL, 1);
+			p = path_search(lexp->arg->argval, nullptr, 1);
 			dcl_hacktivate();
 			dcl_recursion = save_recursion;
 			if(p && (np = nv_search(lexp->arg->argval, sh.fun_tree, 0)) && nv_isattr(np, BLT_DCL))
@@ -1135,7 +1135,7 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 		if(n == FUNCTSYM || n == SYMRES)
 			ac = (struct comnod *)funct(lexp);
 		else
-			ac = (struct comnod *)simple(lexp, SH_NOIO | SH_ASSIGN | type | array, NULL);
+			ac = (struct comnod *)simple(lexp, SH_NOIO | SH_ASSIGN | type | array, nullptr);
 		if((n = lexp->token) == RPAREN)
 			break;
 		if(n != NL && n != ';')
@@ -1199,7 +1199,7 @@ static Shnode_t *item(Lex_t *lexp, int flag)
 	int savline = lexp->lastline;
 	int showme = 0, comsub;
 	if(!(flag & SH_NOIO) && (tok == '<' || tok == '>' || lexp->token == IOVNAME))
-		io = inout(lexp, NULL, 1);
+		io = inout(lexp, nullptr, 1);
 	else
 		io = 0;
 	if((tok = lexp->token) && tok != EOFSYM && tok != FUNCTSYM)
@@ -1286,7 +1286,7 @@ static Shnode_t *item(Lex_t *lexp, int flag)
 			t->for_.fortyp |= FLINENO;
 #if SHOPT_KIA
 			if(kia.file)
-				writedefs(lexp, lexp->arg, sh.inlineno, 'v', NULL);
+				writedefs(lexp, lexp->arg, sh.inlineno, 'v', nullptr);
 #endif /* SHOPT_KIA */
 			while((tok = sh_lex(lexp)) == NL)
 				;
@@ -1302,7 +1302,7 @@ static Shnode_t *item(Lex_t *lexp, int flag)
 					t->for_.forlst = memset(getnode(comnod), 0, sizeof(struct comnod));
 				}
 				else
-					t->for_.forlst = (struct comnod *)simple(lexp, SH_NOIO, NULL);
+					t->for_.forlst = (struct comnod *)simple(lexp, SH_NOIO, nullptr);
 				if(lexp->token != NL && lexp->token != ';')
 					sh_syntax(lexp, 0);
 				tok = skipnl(lexp, 0);
@@ -1363,13 +1363,13 @@ static Shnode_t *item(Lex_t *lexp, int flag)
 
 		default:
 			if(io == 0)
-				return NULL;
+				return nullptr;
 			/* FALLTHROUGH */
 		case ';':
 			if(io == 0)
 			{
 				if(!(flag & SH_SEMI))
-					return NULL;
+					return nullptr;
 				if(sh_lex(lexp) == ';')
 					sh_syntax(lexp, 0);
 				showme = FSHOWME;
@@ -1484,7 +1484,7 @@ static Shnode_t *simple(Lex_t *lexp, int flag, struct ionod *io)
 			if(argno >= 0 && argno++ == cmdarg && !(flag & SH_ARRAY) && !(sh_isoption(SH_RESTRICTED) && strchr(argp->argval, '/')))
 			{
 				/* check for builtin command (including path-bound builtins executed by full pathname) */
-				Namval_t *np = nv_bfsearch(argp->argval, sh.fun_tree, (Namval_t **)&t->comnamq, NULL);
+				Namval_t *np = nv_bfsearch(argp->argval, sh.fun_tree, (Namval_t **)&t->comnamq, nullptr);
 				if(np && is_abuiltin(np))
 				{
 					if(cmdarg == 0)
@@ -1588,10 +1588,10 @@ static Shnode_t *simple(Lex_t *lexp, int flag, struct ionod *io)
 			{
 				while(io->ionxt)
 					io = io->ionxt;
-				io->ionxt = inout(lexp, NULL, 0);
+				io->ionxt = inout(lexp, nullptr, 0);
 			}
 			else
-				t->comio = io = inout(lexp, NULL, 0);
+				t->comio = io = inout(lexp, nullptr, 0);
 			if((tok = lexp->token) == IPROCSYM || tok == OPROCSYM)
 				goto procsub;
 		}
@@ -1614,9 +1614,9 @@ static Shnode_t *simple(Lex_t *lexp, int flag, struct ionod *io)
 		if(t->comset && argno == 0)
 			writedefs(lexp, t->comset, line, 'v', t->comarg.ap);
 		else if(np && nv_isattr(np, BLT_DCL))
-			writedefs(lexp, argp, line, 0, NULL);
+			writedefs(lexp, argp, line, 0, nullptr);
 		else if(argp && strcmp(argp->argval, "read") == 0)
-			writedefs(lexp, argp, line, 0, NULL);
+			writedefs(lexp, argp, line, 0, nullptr);
 		else if(argp && *argp->argval == '.' && argp->argval[1] == 0 && (argp = argp->argnxt.ap))
 		{
 			r = kiaentity(lexp, sh_argstr(argp), -1, 'p', 0, 0, kia.script, 'd', 0, "");
@@ -1630,7 +1630,7 @@ static Shnode_t *simple(Lex_t *lexp, int flag, struct ionod *io)
 		int lineno = sh.inlineno - (lexp->token == NL);
 		if((Namval_t *)t->comnamp == SYSSET)
 		{
-			char *prev_argval = NULL;
+			char *prev_argval = nullptr;
 			for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
 			{
 				if(strmatch(ap->argval, "(*eyword|*og|*rackall|*iraw)|([+-][^-]*[hkt]*)|([+-][hkt]*)|([+-])"))
@@ -1928,14 +1928,14 @@ static Shnode_t *test_and(Lex_t *lp)
  */
 static void ere_match(void)
 {
-	Sfio_t *base, *iop = sfopen(NULL, " ~(E)", "s");
+	Sfio_t *base, *iop = sfopen(nullptr, " ~(E)", "s");
 	int c;
 	while(c = fcgetc(), c == ' ' || c == '\t')
 		;
 	if(c)
 		fcseek(-1);
 	if(!(base = fcfile()))
-		base = sfopen(NULL, fcseek(0), "s");
+		base = sfopen(nullptr, fcseek(0), "s");
 	fcclose();
 	sfstack(base, iop);
 	fcfopen(base);
@@ -2033,7 +2033,7 @@ static Shnode_t *test_primary(Lex_t *lexp)
 #endif /* SHOPT_KIA */
 			break;
 		default:
-			return NULL;
+			return nullptr;
 	}
 	skipnl(lexp, 0);
 	return t;

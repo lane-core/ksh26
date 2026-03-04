@@ -41,7 +41,7 @@ typedef sh_stream_t sh_strbuf_t;
 
 /*
  * Finalize the buffer: append NUL, reset write position to start,
- * return pointer to the NUL-terminated string.  NULL on failure.
+ * return pointer to the NUL-terminated string.  nullptr on failure.
  */
 #define sh_strbuf_use(s) sfstruse(s)
 

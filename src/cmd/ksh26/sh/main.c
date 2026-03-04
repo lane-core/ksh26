@@ -73,7 +73,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 	char *nid;
 	int fd;
 
-	if(!file || !*file || (fd = path_open(file, NULL)) < 0)
+	if(!file || !*file || (fd = path_open(file, nullptr)) < 0)
 		return 0;
 	oid = error_info.id;
 	nid = error_info.id = sh_strdup(file);
@@ -115,7 +115,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 	}
 	command = error_info.id;
 	path_pwd();
-	iop = NULL;
+	iop = nullptr;
 	if(sh_isoption(SH_POSIX))
 		sh_onoption(SH_LETOCTAL);
 #if SHOPT_BRACEPAT
@@ -185,7 +185,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 			if(!sh_isoption(SH_NOUSRPROFILE) && !sh_isoption(SH_PRIVILEGED) && sh_isoption(SH_RC))
 			{
 				if(name = sh_mactry(nv_getval(ENVNOD)))
-					name = *name ? sh_strdup(name) : NULL;
+					name = *name ? sh_strdup(name) : nullptr;
 #if SHOPT_SYSRC
 				if(!strmatch(name, "?(.)/./*"))
 					sh_source(iop, e_sysrc);
@@ -208,7 +208,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 		if(sh.comdiv)
 		{
 		shell_c:
-			iop = sfnew(NULL, sh.comdiv, strlen(sh.comdiv), 0, SFIO_STRING | SFIO_READ);
+			iop = sfnew(nullptr, sh.comdiv, strlen(sh.comdiv), 0, SFIO_STRING | SFIO_READ);
 		}
 		else
 		{
@@ -220,7 +220,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 			{
 #if SHOPT_DEVFD
 				/* open stream should have been passed into shell */
-				if(strmatch(name, e_devfdNN) && (fdin = (int)strtol(name + 8, NULL, 10)) > 2)
+				if(strmatch(name, e_devfdNN) && (fdin = (int)strtol(name + 8, nullptr, 10)) > 2)
 				{
 					if(fstat(fdin, &statb) < 0)
 					{
@@ -248,7 +248,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 					sp = 0;
 					if(fdin < 0 && !strchr(name, '/'))
 					{
-						if(path_absolute(name, NULL, 0))
+						if(path_absolute(name, nullptr, 0))
 							sp = stkptr(sh.stk, PATH_OFFSET);
 						if(sp)
 						{
@@ -294,7 +294,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 		}
 		/* If the shell is initialised with std{in,out,err} closed, make the shell's FD state reflect that. */
 		for(i = 0; i <= 2; i++)
-			if(fcntl(i, F_GETFD, NULL) == -1 && errno == EBADF) /* closed at OS level? */
+			if(fcntl(i, F_GETFD, nullptr) == -1 && errno == EBADF) /* closed at OS level? */
 				sh_close(i);                                /* update shell FD state */
 	}
 	else
@@ -442,16 +442,16 @@ static void exfile(Sfio_t *iop, int fno)
 		}
 		/*
 		 * Reset the lexer state and make sure the heredocs file is
-		 * closed and set to NULL. For now we only do this when we get
+		 * closed and set to nullptr. For now we only do this when we get
 		 * here in an interactive shell and we have a leftover heredoc.
 		 */
 		if(sh_isstate(SH_INTERACTIVE) && jmpval == SH_JMPERREXIT && sh.heredocs)
 		{
 			Lex_t *lp;
 			sfclose(sh.heredocs);
-			sh.heredocs = NULL;
+			sh.heredocs = nullptr;
 			lp = (Lex_t *)sh.lex_context;
-			lp->heredoc = NULL;
+			lp->heredoc = nullptr;
 			sh_lexopen(lp, 0);
 		}
 		/* make sure that we own the terminal */
@@ -475,7 +475,7 @@ static void exfile(Sfio_t *iop, int fno)
 	{
 		sh.nextprompt = 1;
 		sh_freeup();
-		stkset(sh.stk, NULL, 0);
+		stkset(sh.stk, nullptr, 0);
 		sh_offstate(SH_STOPOK);
 		sh_offstate(SH_ERREXIT);
 		sh_offstate(SH_VERBOSE);
@@ -500,7 +500,7 @@ static void exfile(Sfio_t *iop, int fno)
 				sh_onstate(SH_MONITOR);
 			if(job.pwlist)
 			{
-				job_walk(sfstderr, job_list, JOB_NFLAG, NULL);
+				job_walk(sfstderr, job_list, JOB_NFLAG, nullptr);
 				job_wait(0);
 			}
 			if((mail = nv_getval(MAILPNOD)) || (mail = nv_getval(MAILNOD)))

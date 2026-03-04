@@ -319,10 +319,10 @@ static char *r_string(void)
 	unsigned long l = sfgetu(in);
 	char *ptr;
 	if(l == 0)
-		return NULL;
+		return nullptr;
 	ptr = stkalloc(sh.stk, (unsigned)l);
 	if(--l > 0 && sfread(in, ptr, (size_t)l) != (size_t)l)
-		return NULL;
+		return nullptr;
 	ptr[l] = 0;
 	return ptr;
 }

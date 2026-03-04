@@ -206,7 +206,7 @@ int b_print(int argc, char *argv[], Shbltin_t *context)
 				/* print to history file */
 				if(!sh_histinit())
 				{
-					opt_info.disc = NULL;
+					opt_info.disc = nullptr;
 					errormsg(SH_DICT, ERROR_system(1), e_history);
 					UNREACHABLE();
 				}
@@ -243,7 +243,7 @@ int b_print(int argc, char *argv[], Shbltin_t *context)
 					vname = nv_open(opt_info.arg, sh.var_tree, NV_VARNAME);
 					if(!vname)
 					{
-						opt_info.disc = NULL;
+						opt_info.disc = nullptr;
 						errormsg(SH_DICT, ERROR_exit(2), e_create, opt_info.arg);
 						UNREACHABLE();
 					}
@@ -278,7 +278,7 @@ int b_print(int argc, char *argv[], Shbltin_t *context)
 							nflag++;
 							argv++;
 						}
-						opt_info.disc = NULL;
+						opt_info.disc = nullptr;
 						goto skip2;
 					}
 				}
@@ -286,7 +286,7 @@ int b_print(int argc, char *argv[], Shbltin_t *context)
 					errormsg(SH_DICT, 2, "%s", opt_info.arg);
 				break;
 			case '?':
-				opt_info.disc = NULL;
+				opt_info.disc = nullptr;
 				/* self-doc: write to standard output */
 				error(ERROR_USAGE | ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
 				return 0;
@@ -294,11 +294,11 @@ int b_print(int argc, char *argv[], Shbltin_t *context)
 #if SHOPT_PRINTF_LEGACY
 skipopts:
 #endif /* SHOPT_PRINTF_LEGACY */
-	opt_info.disc = NULL;
+	opt_info.disc = nullptr;
 	argv += opt_info.index;
 	if(error_info.errors || (argc < 0 && !(format = *argv++)))
 	{
-		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(nullptr));
 		UNREACHABLE();
 	}
 	if(vflag && format)
@@ -340,7 +340,7 @@ skip2:
 	{
 		sh_onstate(SH_NOTRACK);
 		n = SFIO_WRITE | ((n & IOREAD) ? SFIO_READ : 0);
-		sh.sftable[fd] = outfile = sfnew(NULL, sh.outbuff, IOBSIZE, fd, n);
+		sh.sftable[fd] = outfile = sfnew(nullptr, sh.outbuff, IOBSIZE, fd, n);
 		sh_offstate(SH_NOTRACK);
 		sfpool(outfile, sh.outpool, SFIO_WRITE);
 	}
@@ -358,7 +358,7 @@ printf_v:
 		pdata.hdr.reloadf = reload;
 		pdata.nextarg = argv;
 		sh_offstate(SH_STOPOK);
-		pool = sfpool(sfstderr, NULL, SFIO_WRITE);
+		pool = sfpool(sfstderr, nullptr, SFIO_WRITE);
 		do
 		{
 			pdata.argv0 = pdata.nextarg;
@@ -390,7 +390,7 @@ printf_v:
 		/* echo style print */
 		if(nflag && !argv[0])
 		{
-			if(sfsync(NULL) < 0)
+			if(sfsync(nullptr) < 0)
 				exitval = 1;
 		}
 		else if(echolist(outfile, rflag, argv) && !nflag)
@@ -564,7 +564,7 @@ static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
 	char *cp;
 	Sfdouble_t d;
 	ssize_t size;
-	Namval_t *np = nv_open(string, NULL, NV_VARNAME | NV_NOADD);
+	Namval_t *np = nv_open(string, nullptr, NV_VARNAME | NV_NOADD);
 	Namarr_t *ap;
 	static union types_t number;
 	if(!np || nv_isnull(np))
@@ -702,7 +702,7 @@ static const char *mapformat(Sffmt_t *fe)
 			return pm->map;
 		pm++;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static int extend([[maybe_unused]] Sfio_t *sp, void *v, Sffmt_t *fe)
@@ -1066,7 +1066,7 @@ static int extend([[maybe_unused]] Sfio_t *sp, void *v, Sffmt_t *fe)
 				fe->t_str[fe->n_str] = n;
 			}
 			else
-				value->s = fmttmx(NULL, value->ll);
+				value->s = fmttmx(nullptr, value->ll);
 			fe->fmt = 's';
 			fe->size = -1;
 			break;

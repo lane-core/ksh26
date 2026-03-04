@@ -278,7 +278,7 @@ static char *nxtarg(struct test *tp, int mt)
 		if(mt)
 		{
 			tp->ap++;
-			return NULL;
+			return nullptr;
 		}
 		errormsg(SH_DICT, ERROR_exit(2), e_argument);
 		UNREACHABLE();
@@ -612,7 +612,7 @@ int sh_access(const char *name, int mode)
 	if(*name == 0)
 		return -1;
 	if(!sh_isoption(SH_POSIX) && sh_isdevfd(name))
-		return sh_ioaccess((int)strtol(name + 8, NULL, 10), mode);
+		return sh_ioaccess((int)strtol(name + 8, nullptr, 10), mode);
 	/* can't use access function for execute permission with root */
 	if(mode == X_OK && sh.euserid == 0)
 		goto skip;
@@ -664,7 +664,7 @@ skip:
 			if(maxgroups == 0)
 			{
 				/* first time */
-				if((maxgroups = getgroups(0, NULL)) <= 0)
+				if((maxgroups = getgroups(0, nullptr)) <= 0)
 				{
 					/* pre-POSIX system */
 					maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
@@ -717,6 +717,6 @@ static int test_stat(const char *name, struct stat *buff)
 		return fstat(sh.pwdfd, buff);
 #endif
 	if(sh_isdevfd(name))
-		return fstat((int)strtol(name + 8, NULL, 10), buff);
+		return fstat((int)strtol(name + 8, nullptr, 10), buff);
 	return stat(name, buff);
 }
