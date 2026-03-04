@@ -41,12 +41,33 @@ This means:
   to work because the API is identical
 
 
+## Reference documents
+
+This proposal draws on three reference sources:
+
+- **SPEC.md** — Theoretical foundation. Sequent calculus correspondence,
+  duploid framework, critical pair diagnosis, precision vocabulary
+  ("is" / "has the structure of" / "composes like").
+- **`notes/sfio-analysis/`** — Contract-level analysis of legacy sfio.
+  12 files covering data structures, flags, buffer model, read/write
+  paths, lifecycle, disciplines, string/temp streams, ksh integration.
+  Calibrated to SPEC.md's precision vocabulary.
+- **`notes/sfio-rewrite-failure-analysis.md`** — v1 postmortem. Why
+  stdio replacement failed; why the buffer IS the API.
+
+
 ## Polarity architecture
 
 sfio's functions map naturally to the duploid polarity framework from
 SPEC.md. Rather than organizing by implementation priority (tier 1/2/3),
-the reimplementation organizes source files by **polarity role** — what
-each function *is* in the structural vocabulary.
+the reimplementation organizes source files by **polarity role**.
+
+Where the descriptions below say "is," the identification is exact;
+where "has the structure of," the correspondence is shape-level (same
+failure discipline, but full duploid composition laws unverified for
+sfio); where "composes like," the analogy is organizational. See
+SPEC.md §"Tightening the analogies" for the general vocabulary and
+the [sfio-specific analysis](#tightening-the-analogies) below.
 
 ### File layout
 
@@ -70,15 +91,21 @@ Plus headers:
 **Shift mediator** (`sfmode.c`): `_sfmode()` runs at every operation
 entry. It mediates between the stream's current state and the caller's
 expected polarity. GETR restore (`f->next[-1] = f->getr`) undoes STRING
-mode observation. Mode transitions (WRITE→READ, READ→WRITE) are polarity
-boundary crossings — the function's entire purpose is managing these
-shifts.
+mode observation. Mode transitions (WRITE→READ, READ→WRITE) have the
+structure of polarity boundary crossings — they restructure the buffer's
+role but are not cuts in SPEC.md's technical sense (they don't connect a
+producer to a consumer). The function's entire purpose is managing these
+shifts. (Ref: `06-lifecycle.md §_sfmode`)
 
 **Negative polarity** (`sfread.c`): Operations that observe/demand data.
-The LOCKR protocol creates thunks (↓N: suspend computation into storable
-value). `sfreserve(..., SF_LOCKR)` suspends; `sfread(f,buf,0)` forces.
-Every function here demands data from below (fd or discipline chain) and
-presents it upward as a value (pointer, record, byte).
+The LOCKR protocol has the structure of a thunk (↓N): computation (the
+stream's fill/read machinery) is suspended into a storable value (a
+pointer + length). `sfreserve(..., SF_LOCKR)` suspends; `sfread(f,buf,0)`
+forces. The evaluation-strategy match (lazy: frozen until forced) makes
+this one of the stronger structural correspondences, but full duploid
+composition laws are unverified. Every function here demands data from
+below (fd or discipline chain) and presents it upward as a value (pointer,
+record, byte). (Ref: `04-read-path.md §sfreserve`)
 
 **Positive polarity** (`sfwrite.c`): Operations that produce data.
 String stream buffer extension is a positive operation triggering a cut
@@ -87,20 +114,27 @@ mixing by design (see "Polarity-mixing operations" below).
 
 **Interception layer** (`sfdisc.c`): Disciplines sit at the boundary
 between buffer (value) and OS (computation). `Dccache_t` is the non-
-associativity witness: `(push-disc . read) ≠ read . (push-disc)` — if
-buffered data exists when a discipline is pushed, it must be replayed
-through the new discipline, not served directly.
+associativity witness: the composition equation `(h ○ g) • f ≠ h ○ (g • f)`
+maps exactly — if buffered data exists when a discipline is pushed, it
+must be replayed through the new discipline, not served directly. The
+equation match is near-identification; full duploid composition laws
+remain unverified for sfio as a whole. (Ref: `07-disciplines.md §Dccache`)
 
 **Cuts** (`sflife.c`): Restructure context without producing or
 consuming. `sfswap` (identity exchange), `sfstack` (source management),
-`sftmp` with `_tmpexcept` (value→computation substrate promotion — a
-textbook ↑A shift: string buffer becomes fd-backed file when size
-threshold is crossed).
+`sftmp` with `_tmpexcept` (value→computation substrate promotion — has
+the structure of a genuine polarity shift: string buffer becomes fd-backed
+file when size threshold is crossed). The shift direction is perspective-
+dependent: ↑A (return) from the caller's view, ↓N (eval) from stream
+internals. (Ref: `09-string-and-temp.md §_tmpexcept`)
 
 **Format engine** (`sfvprintf.c`): Positive with internal shift. `%!`
-shifts into computation (extf callback). `FMTSET`/`FMTGET` is the
-format engine's own polarity frame — save/restore around the shift,
-analogous to `sh_polarity_enter`/`sh_polarity_leave` in the interpreter.
+shifts into computation (extf callback). `FMTSET`/`FMTGET` has the
+structure of a polarity frame — save/restore around the shift, analogous
+to `sh_polarity_enter`/`sh_polarity_leave` in the interpreter. The
+parallel is organizational: saved state is format context (width, flags,
+precision), not polarity-sensitive interpreter state. (Ref:
+`05-write-path.md §sfvprintf`)
 
 **Neutral** (`sfvle.c`): Pure encoding/decoding with no mode interaction.
 7-bit VLE unsigned (sfputu/sfgetu), 6-bit VLE with zigzag sign
@@ -120,10 +154,10 @@ the library. These are structural features, not bugs:
 (positive/negative release). Both endpoints live in their respective
 files; shared state (the SFIO_PEEK flag) lives in `sfhdr.h`.
 
-This is the clearest polarity boundary crossing in sfio. The reserve
-creates a thunk (suspended computation stored as a value — the locked
-buffer pointer), and the zero-length write/read forces it (resumes
-computation by releasing the lock). Confirmed in ksh source:
+This has the structure of the clearest polarity boundary crossing in
+sfio. The reserve has thunk structure (suspended computation stored as a
+value — the locked buffer pointer), and the zero-length write/read forces
+it (resumes computation by releasing the lock). Confirmed in ksh source:
 - edit.c:539-543 — `sfreserve(sfstderr, LOCKR)` to get write buffer,
   then `sfwrite(sfstderr, ptr, 0)` to release
 - history.c:686-689 — `sfreserve(histfp, LOCKR)` then `sfwrite` to
@@ -140,11 +174,226 @@ to value mode with updated buffer pointers.
 ### 3. sftmp promotion
 
 `_tmpexcept` switches from string (value substrate) to fd (computation
-substrate) when the string buffer exceeds a size threshold. This is
-the cleanest genuine ↑A shift in sfio: a value (in-memory buffer) is
-promoted to a computation substrate (file descriptor) while preserving
-identity. The stream handle is the same before and after; only the
-backing store changes.
+substrate) when the string buffer exceeds a size threshold. This has the
+structure of the cleanest genuine polarity shift in sfio: a value
+(in-memory buffer) is promoted to a computation substrate (file
+descriptor) while preserving identity. The stream handle is the same
+before and after; only the backing store changes. (See
+[C3](#c3-sftmp--polarity-shift) for the full analysis.)
+
+
+## Implementation contracts
+
+The analysis suite (`notes/sfio-analysis/`) documents ~11 implementation-
+critical contracts that the reimplementation must get right. These are the
+non-obvious invariants — the things you only discover when something
+breaks. Organized by target source file.
+
+### Headers (`sfio.h`, `sfhdr.h`)
+
+**B1. Three flag namespaces.** Public flags (`_flags`, `unsigned short`),
+private bits (`bits`, `unsigned short`), and mode flags (`mode`,
+`unsigned int`) live in different `Sfio_t` fields. Wrong-field bugs are
+silent. The reimplementation uses C23 typed enums to make cross-namespace
+mixing a compile-time error.
+(Ref: `02-flags-and-modes.md §Public flags`, `§Private bits`, `§Mode flags`)
+
+**B2. Five-pointer buffer invariant.** The central invariant:
+`_data ≤ _next ≤ min(_endr, _endw) ≤ _endb`. Holds in steady state;
+intermediate violations occur during mode transitions and lock states.
+Every buffer-manipulating function must restore this before returning.
+(Ref: `03-buffer-model.md §Fundamental invariant`)
+
+**B4. NUL sentinel: sfio does NOT guarantee; stk does.** No sfio write
+function writes `*_next = 0` as a deliberate postcondition. The only NUL
+is incidental (sfputr's byte-at-a-time loop, path-dependent). Stk
+explicitly writes a sentinel after every write operation via
+`STK_SENTINEL`. The reimplementation must NOT add a sentinel to sfio
+write functions — it would break stk's `_stkseek`, which deliberately
+omits the sentinel because seek is a positioning operation, not a write.
+(Ref: `05-write-path.md §NUL sentinel contract`)
+
+### `sfmode.c`
+
+**B3. Lock protocol asymmetry.** `SFLOCK(f,l)` ignores the `l` parameter
+entirely — it always acquires. Only `SFOPEN(f,l)` checks `l` to decide
+whether to release. The `l` parameter distinguishes external calls
+(`l=0`, should unlock) from internal recursive calls (`l=1`, leave
+locked). Getting this backwards causes either double-unlock corruption
+or deadlock.
+(Ref: `02-flags-and-modes.md §Lock/unlock protocol`)
+
+### `sfread.c`
+
+**B5. rsrv sharing between sfgetr and sfreserve.** The `Sfrsrv_t` side
+buffer is shared — interleaved record reads (`sfgetr`) and non-record
+reserves (`sfreserve`) on the same stream clobber each other's state.
+`rsrv->slen < 0` means partial record (recoverable via `SF_LASTR`);
+`rsrv->slen == 0` means complete.
+(Ref: `04-read-path.md §sfgetr`, `§Key invariants`)
+
+**B7. GETR destructive NUL.** When `sfgetr` is called with `SF_STRING`
+and `rc != 0`, it overwrites the separator in-place with `'\0'`. Sets
+`f->getr = rc` and `f->mode |= SF_GETR` so that `_sfmode()` can restore
+the byte later. Subsequent reads that don't know about `SF_GETR` see a
+shorter string.
+(Ref: `04-read-path.md §sfgetr §NUL termination`)
+
+**B8. sfungetc sfstack fallback.** When the fast path (`f->next > f->data
+&& f->next[-1] == c`) fails, `sfungetc` creates a string stream via
+`sfnew` and pushes it via `sfstack(f, uf)`. The `_uexcept` discipline
+auto-pops when the unget stream is exhausted. This is a full stream
+stack operation for a single byte.
+(Ref: `04-read-path.md §sfungetc`)
+
+### `sfwrite.c`
+
+**B10. Line buffering trick.** When `SF_LINE` is set, `_endw = _data`.
+Since `_next >= _data` always, every `sfputc` triggers the slow path
+(`_sfflsbuf`), which checks for `'\n'` and flushes on newline. The
+`HIFORLINE` threshold (128 bytes) provides a heuristic: large writes
+skip the line-scan and do a bulk write.
+(Ref: `03-buffer-model.md §Line buffering trick`,
+`05-write-path.md §Line buffering`)
+
+### `sfvprintf.c`
+
+**B9. Shadow pointer optimization.** `sfvprintf` caches `f->next` in
+local `d` and `f->endb` in local `endd` for hot-loop performance.
+Flushes back to `f->next` via `SFEND(f)` before any actual I/O. The
+`SFputc`/`SFwrite` macros operate on the shadow, not the stream — any
+code that reads `f->next` without first calling `SFEND` sees stale data.
+(Ref: `05-write-path.md §sfvprintf §Shadow pointer optimization`)
+
+### `sflife.c`
+
+**B6. sfsetfd F_DUPFD semantics.** `sfsetfd(f, newfd)` uses
+`fcntl(oldfd, F_DUPFD, newfd)`, which finds the **lowest available fd
+≥ newfd**, not necessarily exactly newfd. If fd `newfd` is already open,
+the stream ends up at a different fd.
+(Ref: `06-lifecycle.md §sfsetfd`)
+
+**B11. ksh integration architecture.** ksh maintains three parallel
+arrays (`sh.sftable`, `sh.fdstatus`, `sh.fdptrs`) grown atomically by
+`sh_iovalidfd()`. `sftrack()` (registered via `sfnotify`) keeps them in
+sync with sfio lifecycle events. `sh_iostream()` installs per-fd
+disciplines (slowread, piperead, outexcept). The reimplementation must
+fire the same notification events at the same points, or the parallel
+arrays desynchronize.
+(Ref: `10-ksh-integration.md §The three parallel arrays`, `§sftrack`)
+
+
+## Tightening the analogies
+
+Following SPEC.md's format: gap description, evidence for/against,
+closability assessment. Five correspondences between sfio mechanisms
+and the duploid framework.
+
+### C1. LOCKR ↔ Thunk (↓N)
+
+**Precision**: Structural (has the structure of).
+
+**Evidence for**: The evaluation-strategy match strengthens this
+correspondence significantly. `sfreserve(..., SF_LOCKR)` suspends the
+stream's fill machinery into a storable value (pointer + length); the
+releasing `sfread(f, buf, 0)` forces the thunk. The stream is genuinely
+frozen until explicitly released — lazy, not eager — matching ↓N's
+deferred-until-first-access semantics. SPEC.md §"Tightening the
+analogies" distinguishes thunks (lazy) from futures (eager); by that
+criterion, LOCKR has thunk structure (lazy suspension, not eager
+evaluation).
+(Ref: `04-read-path.md §sfreserve §Polarity`,
+`03-buffer-model.md §SFIO_PEEK state`)
+
+**Evidence against**: Composition laws unverified. Two LOCKR operations
+don't compose in the expected ↓N manner — you can't nest peek/lock
+sequences on the same stream (the second would fail or corrupt state).
+
+**Closability**: Verifying that LOCKR satisfies the ↓N equations
+(naturality of the thunk/force adjunction) within the single-stream
+restriction would close the gap. Not a priority for the reimplementation
+but would confirm the structural claim.
+
+### C2. Dccache ↔ Non-associativity witness
+
+**Precision**: Near-identification.
+
+**Evidence for**: The composition equation maps exactly:
+`(h ○ g) • f ≠ h ○ (g • f)` where `f` is raw I/O, `g` is the old
+discipline chain, and `h` is push-disc. Data that has crossed to value
+mode via (•) cannot be re-processed through a new (○) context. Dccache
+is the explicit mediator restoring correct sequencing — the structural
+role matches SPEC.md §"Non-associativity made concrete" precisely.
+(Ref: `07-disciplines.md §Dccache as non-associativity witness`)
+
+**Evidence against**: Full duploid composition laws (three of four
+associativity equations holding, one failing) are unverified for the
+discipline stack as a whole.
+
+**Closability**: The remaining three equations could be verified by
+showing that discipline composition through same-polarity intermediaries
+is associative. This is likely true (same-direction transformations
+compose associatively) but unproven.
+
+### C3. sftmp ↔ Polarity shift
+
+**Precision**: Structural (has the structure of).
+
+**Evidence for**: `_tmpexcept` changes the computation substrate from
+memory to fd while preserving stream identity — a genuine mode change
+with transparent identity preservation. The `SFIO_ECONT` return makes
+the shift invisible to callers.
+(Ref: `09-string-and-temp.md §_tmpexcept §Polarity`)
+
+**Evidence against**: The shift direction is perspective-dependent: ↑A
+(return) from the caller's view (computation packaged behind value
+interface), ↓N (eval) from stream internals (string forced into fd-backed
+mode). This ambiguity is inherent to the operation, not a gap to close.
+
+**Closability**: Not applicable — the perspective-dependence is a feature
+of the correspondence, not a deficiency. Both readings are structurally
+valid; which label applies depends on the viewpoint.
+
+### C4. Buffer ↔ Polarity boundary
+
+**Precision**: Structural (has the structure of).
+
+**Evidence for**: The buffer mediates between value mode (stored data) and
+computation mode (I/O syscalls). Mode switching restructures the buffer's
+role. The five-pointer system encodes both the value extent and the
+computation state. Lock state freezes the boundary. The analogy is
+productive: it predicts failure modes (e.g., LOCKR violations,
+mode-switching without reconciliation).
+(Ref: `03-buffer-model.md §Polarity analysis`)
+
+**Evidence against**: The buffer is a mediator between modes, not a cut
+in SPEC.md's sense (connecting a producer to a consumer). Mode transitions
+are within-stream state changes, not inter-component boundaries.
+
+**Closability**: This is a useful structural analogy that correctly
+predicts failure discipline. Attempting to force it into a formal cut
+would misrepresent the buffer's role. Keep as structural.
+
+### C5. FMTSET/FMTGET ↔ Polarity frame
+
+**Precision**: Loose (composes like).
+
+**Evidence for**: The save/restore pattern around `extf` callbacks
+parallels `sh_polarity_enter`/`leave`: save format state, call extf
+(computation), read back modified state. Both protect caller state
+across a boundary crossing.
+
+**Evidence against**: Saved state is format context (width, flags,
+precision, base), not polarity-sensitive interpreter state (`sh.prefix`,
+`sh.st`, `sh.var_tree`). The save/restore pattern is a general
+programming idiom; calling it a polarity frame overstates the
+correspondence.
+(Ref: `05-write-path.md §sfvprintf`)
+
+**Closability**: Not closable to structural level. The pattern is a
+useful organizational metaphor that guides where to put the save/restore
+boundaries in the reimplementation, but it doesn't carry formal
+structure.
 
 
 ## Headers strategy
@@ -263,10 +512,11 @@ from 1,434 lines to ~400 lines (in sfvprintf.c, the positive+shift
 polarity file).
 
 Key detail: the FMTSET/FMTGET macros save and restore format state
-around extf calls — this is the format engine's own polarity frame.
-The extf may modify ft->fmt, ft->size, ft->flags, ft->width,
-ft->precis, ft->base, ft->t_str, ft->n_str. After extf returns, we
-read these back to determine how to format the value.
+around extf calls — this has the structure of a polarity frame (loose
+analogy; see [C5](#c5-fmtsetfmtget--polarity-frame)). The extf may
+modify ft->fmt, ft->size, ft->flags, ft->width, ft->precis, ft->base,
+ft->t_str, ft->n_str. After extf returns, we read these back to
+determine how to format the value.
 
 
 ## The discipline system
@@ -287,9 +537,11 @@ which we can implement simply: if data is buffered when a discipline
 is pushed, save it and replay it before reading through the new
 discipline.
 
-Dccache is the non-associativity witness in the interception layer:
+Dccache is the non-associativity witness in the interception layer
+(near-identification — see [C2](#c2-dccache--non-associativity-witness)):
 the order of `push-discipline` and `read` operations matters because
 buffered data predating the discipline must still be served.
+(Ref: `07-disciplines.md §Dccache as non-associativity witness`)
 
 
 ## The _sfmode state machine
@@ -306,8 +558,10 @@ stream is in the right mode. This is the shift mediator — it handles:
 
 The reimplementation is a single `_sfmode()` function (~100 lines) in
 `sfmode.c`, called at the entry of every public function. Each mode
-transition is a polarity boundary crossing; the function's structure
-directly reflects the shift rules.
+transition has the structure of a polarity boundary crossing (see
+[C4](#c4-buffer--polarity-boundary)); the function's structure directly
+reflects the shift rules.
+(Ref: `06-lifecycle.md §_sfmode §Polarity`)
 
 
 ## Implementation sequence

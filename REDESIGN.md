@@ -759,7 +759,10 @@ Same API, same semantics, new code. Drop-in replacement for
 `src/lib/libast/sfio/` — ~2,600 lines in 7 source files (+ headers)
 instead of ~12,800 lines across 78 files.
 
-Source files organized by duploid polarity role:
+Source files organized by duploid polarity role (these are structural
+analogies per the sfio analysis suite calibration — see
+`notes/sfio-rewrite-v2.md §Tightening the analogies` for precision
+levels):
 
 | File | Polarity role | Est. lines |
 |------|---------------|------------|

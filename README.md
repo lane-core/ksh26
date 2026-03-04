@@ -68,8 +68,7 @@ buffer overflows, format string vulnerabilities, signal handler
 safety, and integer overflow.
 
 Details: [REDESIGN.md](REDESIGN.md). Theory: [SPEC.md](SPEC.md).
-Feature direction: [COMPARISON.md](COMPARISON.md). Behavioral
-differences from upstream: [DEVIATIONS.md](DEVIATIONS.md).
+Behavioral differences from upstream: [DEVIATIONS.md](DEVIATIONS.md).
 
 
 ## Changes from ksh93u+m
@@ -108,9 +107,8 @@ Requires: C23 compiler (GCC 14+ / Clang 18+), `just`, POSIX shell.
 
 ## Branches
 
-`main` is the development branch. `legacy` tracks the pre-fork
-`ksh93/ksh` dev branch. Bugfixes found during ksh26 work are
-submitted back to upstream as PRs.
+`main` is the development branch. `legacy` preserves the pre-fork
+state for reference.
 
 
 ## Origin
