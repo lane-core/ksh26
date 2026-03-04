@@ -23,11 +23,13 @@ Any callback can be NULL — operations with NULL handlers pass through to
 the next discipline (or to the raw syscall at the bottom).
 
 `Polarity:` The discipline stack as a whole mediates between the stream's
-buffer (value) and the OS (computation). Individual disciplines are morphisms
-within this pipeline — they transform data at the same logical level (bytes
-→ bytes). The stack's endpoints are the polarity boundary; the links are not
-individually shifts. The exception is `_tmpexcept`, which genuinely changes
-the computation substrate (see [09-string-and-temp](09-string-and-temp.md)).
+buffer (value) and the OS (computation), with the structure of a polarity
+boundary. Individual disciplines compose like morphisms within this pipeline —
+they transform data at the same logical level (bytes → bytes). The stack's
+endpoints define the boundary; the links are not individually shifts. The
+exception is `_tmpexcept`, which has the structure of a genuine polarity shift:
+it changes the computation substrate from memory to fd (see
+[09-string-and-temp](09-string-and-temp.md)).
 
 ---
 
@@ -207,43 +209,70 @@ Complete list of events passed to `disc->exceptf` or raised via `sfraise`:
 
 ## Discipline stack as polarity boundary
 
-The stack as a whole mediates between two representations:
+The stack as a whole mediates between two representations (structural analogy
+to SPEC.md's value/computation distinction — same failure discipline, but full
+composition laws unverified):
 
 - The **top** faces the stream's buffer (value-mode: the data
   that the buffer holds).
 - The **bottom** faces the OS or another subsystem (computation-mode: the
   actual I/O operations).
 
-Individual disciplines are morphisms within this pipeline — they transform
-data at the same logical level (bytes → bytes). The stack's endpoints define
-the polarity boundary; each link is a transformation step, not itself a
-shift. The exception is `_tmpexcept`, which genuinely shifts polarity by
-swapping the computation substrate from memory to fd (see
+Individual disciplines compose like morphisms within this pipeline — they
+transform data at the same logical level (bytes → bytes). The stack's
+endpoints define the analogue of a polarity boundary; each link is a
+transformation step, not itself a shift. The exception is `_tmpexcept`, which
+has the structure of a genuine polarity shift — swapping the computation
+substrate from memory to fd (see
 [09-string-and-temp](09-string-and-temp.md)).
 
 ### Dccache as non-associativity witness
 
-The `Dccache_t` mechanism is a concrete instance of the duploid
-non-associativity from SPEC.md. When a discipline is pushed onto a stream
-with buffered data, those bytes have already passed through the old
-discipline chain (computation → value transformation complete). The new
-discipline expects to transform raw input. Without the cache:
+The `Dccache_t` mechanism has the structure of a concrete instance of the
+duploid non-associativity from SPEC.md §"Non-associativity made concrete."
+When a discipline is pushed onto a stream with buffered data, those bytes
+have already passed through the old discipline chain (computation → value
+transformation complete). The new discipline expects to transform raw input.
+Without the cache, the two bracketings yield different results:
 
 ```
-(push-disc ∘ read) ≠ read ∘ (push-disc)
+f: raw I/O              positive (produces bytes from fd)
+g: old discipline chain positive → negative (transforms bytes, computation context)
+h: push-disc            negative (restructures the transformation pipeline)
+
+(h ○ g) • f    push-disc and old-disc compose through negative intermediary
+               (○, co-Kleisli — context restructuring), forming a combined
+               pipeline. Raw I/O feeds into it through positive intermediary
+               (•, Kleisli — data flow). New disc sees all data.
+
+h ○ (g • f)    Old disc and raw I/O compose through positive intermediary
+               (•, Kleisli — data flow), producing already-transformed
+               buffered data. push-disc then restructures through negative
+               intermediary (○). New disc doesn't see old data.
 ```
 
-The two bracketings yield different results — exactly the non-associativity
-of composition across polarity boundaries. `Dccache_t` is the explicit
-mediator that restores correct sequencing: it replays already-transformed
-bytes without re-transforming them, then seamlessly hands off to the new
-discipline chain for fresh data.
+SPEC.md §"Tightening the analogies" differentiates three composition patterns
+in the duploid: pipeline (•, positive/Kleisli intermediary), sequencing (○,
+negative/co-Kleisli intermediary), and cut (⟨t|e⟩). The Dccache
+non-associativity maps directly to the (+,−) equation failure
+`(h ○ g) • f ≠ h ○ (g • f)`: data that has crossed to value mode via (•)
+cannot be re-processed through a new (○) context without corruption. The
+right bracketing is the broken one — data already transformed by the old
+chain is invisible to the new discipline.
+
+`Dccache_t` is the explicit mediator (analogous to SPEC.md's polarity frame)
+that restores correct sequencing: it replays already-transformed bytes
+without re-transforming them, then seamlessly hands off to the new discipline
+chain for fresh data. (Structural analogy — the non-associativity pattern
+matches, but the full duploid composition laws are unverified for sfio.)
 
 ### SFIO_DCDOWN traversal state
 
 The `SFIO_DCDOWN` bit (in `f->bits`) tracks which direction we're traversing
-the chain. Setting it on entry and clearing on exit is the discipline's
-save/restore of traversal state — analogous to a polarity frame.
+the chain. Setting it on entry and clearing on exit follows the same
+save/restore discipline as polarity frames (save, do work, restore), though
+the state being managed is discipline traversal direction rather than
+polarity-sensitive interpreter state.
 
 ---
 

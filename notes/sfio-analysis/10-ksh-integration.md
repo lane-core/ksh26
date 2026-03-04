@@ -258,12 +258,18 @@ sfswap(sp->saveout, sfstdout);        /* restore original sfstdout */
 
 The returned `iop` is read by macro.c to collect substitution text.
 
-`Polarity:` Command substitution capture is a complete polarity round-trip:
-(1) save computation context (detach stdout), (2) install value target
-(sftmp), (3) execute command (computation produces values into sftmp),
-(4) restore computation context (swap back), (5) reverse the capture
-buffer's polarity (`sfset(iop, SFIO_READ, 1)` — value-producing becomes
-value-consuming). Steps 4–5 are a polarity reversal of the capture buffer.
+`Polarity:` Command substitution capture has the structure of a complete
+polarity round-trip: (1) save computation context (detach stdout),
+(2) install value target (sftmp), (3) execute command (computation produces
+values into sftmp), (4) restore computation context (swap back), (5) reverse
+the capture buffer's mode (`sfset(iop, SFIO_READ, 1)` — value-producing
+becomes value-consuming). Steps 4–5 compose like a polarity reversal of the
+capture buffer. This parallels SPEC.md's `$(cmd)` shift (force then return,
+↓→↑): computation is forced to produce a value that re-enters expansion.
+The save/swap/execute/restore pattern here is the I/O-level counterpart of
+`comsubst()`'s explicit Kleisli bind in macro.c (save `Mac_t` → compute →
+restore), which SPEC.md §"Tightening the analogies" identifies as the
+existence proof for explicit monadic threading in the expansion pipeline.
 
 ### ${ ...; } shared-state comsub
 
@@ -361,7 +367,8 @@ sfswap()                    →  in-place struct swap → sfstdout/sfstderr redi
 sftmp()                     →  anonymous temp file → here-docs + comsub capture
 ```
 
-`Polarity:` I/O redirections are polarity boundary crossings. The sfswap
-operation changes what value flow (which fd) a computation context
+`Polarity:` I/O redirections have the structure of polarity boundary crossings.
+The sfswap operation changes what value flow (which fd) a computation context
 (the shell's execution) connects to — the stream identity (address) is
-the polarity frame that holds stable across the crossing.
+the stable reference that holds across the crossing, analogous to how
+SPEC.md's polarity frames preserve identity across mode transitions.

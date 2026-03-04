@@ -47,7 +47,10 @@ is included).
 
 `Polarity:` The discipline chain (`disc`) mediates between the stream's
 internal buffer (value) and external I/O (computation). The stack as a whole
-is a polarity boundary; individual disciplines are morphisms within it.
+has the structure of a polarity boundary — data crosses from value to
+computation through the chain, and failures occur when the crossing discipline
+is violated (see Dccache in [07-disciplines](07-disciplines.md)). Individual
+disciplines compose like morphisms within this pipeline.
 
 ### Static initialization: SFNEW macro (sfio_t.h)
 
@@ -99,10 +102,14 @@ Disciplines form a singly-linked stack. The `SFDISC()` macro
 non-NULL handler for a given operation.
 
 `Polarity:` The discipline stack as a whole mediates between the stream's
-buffer (value) and the OS (computation). Individual disciplines are morphisms
-within this pipeline — they transform data at the same logical level. The
-exception is `_tmpexcept`, which genuinely shifts polarity by changing the
-computation substrate (see [09-string-and-temp](09-string-and-temp.md)).
+buffer (value) and the OS (computation), with the structure of a polarity
+boundary. Individual disciplines compose like morphisms within this pipeline —
+they transform data at the same logical level. The exception is `_tmpexcept`,
+which has the structure of a genuine polarity shift: it changes the computation
+substrate from string buffer to temp file. The shift direction is
+perspective-dependent (see [09-string-and-temp](09-string-and-temp.md) for
+analysis); the structural point is the mode change with transparent identity
+preservation.
 
 → C23: Typed function pointer aliases with `[[nodiscard]]` on `exceptf` returns.
 

@@ -192,10 +192,14 @@ Iterates until enough data buffered or no progress:
 - Collapses `f->endr = f->endw = f->data` — disables fast-path I/O.
 - Stream is now frozen. Only `sfread(f, ptr, n)` can release.
 
-`Polarity:` SFIO_LOCKR creates a thunk (↓N) — computation (the stream's
-fill/read machinery) is suspended into a storable value (a pointer + length).
-The releasing `sfread(f, ptr, 0)` forces the thunk, completing the deferred
-consumption. The peek/release protocol is a force/return pair.
+`Polarity:` SFIO_LOCKR has the structure of a thunk (↓N) — computation (the
+stream's fill/read machinery) is suspended into a storable value (a pointer +
+length). The releasing `sfread(f, ptr, 0)` forces the thunk, completing the
+deferred consumption. The peek/release protocol composes like a force/return
+pair. Like SFIO_PEEK (see [03-buffer-model](03-buffer-model.md)), this is a
+genuine thunk, not a future: the stream is frozen until explicitly released,
+making the ↓N label exact for both polarity structure and evaluation strategy
+(see SPEC.md §"Tightening the analogies" for the thunk/future distinction).
 
 **Non-locking case:**
 - Advances `f->next += (size >= 0 ? size : n)` — but ONLY when

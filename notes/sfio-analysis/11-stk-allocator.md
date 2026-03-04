@@ -113,10 +113,11 @@ sentinel in `_stkseek`, causing "bad trap" for all pseudosignals and
 - **Writes** are positive (produce data). Sentinel is a postcondition of
   production.
 - **Reads** are negative (observe data). They don't modify the buffer.
-- **Seek** is a cut (restructures context). It repositions the cursor
-  without producing or consuming. A sentinel in a cut violates polarity
-  discipline — the byte at `*_next` after a seek belongs to previously
-  written data, not to the seek operation.
+- **Seek** is a boundary operation (restructures context without connecting
+  a producer to a consumer — not a cut in SPEC.md's sense). It repositions
+  the cursor without producing or consuming. A sentinel during a seek
+  violates polarity discipline — the byte at `*_next` after a seek belongs
+  to previously written data, not to the seek operation.
 
 The test: "does this operation produce new data?" If yes, sentinel. If no
 (seek, freeze, copy), no sentinel.

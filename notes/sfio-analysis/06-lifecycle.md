@@ -108,8 +108,10 @@ first use, (b) read↔write switching for r+w streams, (c) error dispatch.
   For seekable: seek to `here` to establish position.
   For mmap: unmap and re-sfsetbuf.
 
-`Polarity:` Mode switching is a cut — restructures the buffer's role from
-producing (write) to consuming (read) or vice versa.
+`Polarity:` Mode switching has the structure of a polarity boundary crossing —
+restructures the buffer's role from producing (write) to consuming (read) or
+vice versa. Not a cut in SPEC.md's sense (connecting producer to consumer) but
+a mode transition within the stream (see [03-buffer-model](03-buffer-model.md)).
 
 ### Precondition checks
 
@@ -256,8 +258,11 @@ malloc a new Sfio_t. Creates a "dead" destination to hold the displaced
 state.
 
 `Polarity:` sfswap is the fundamental operation for I/O redirections and
-stream stacking. It's a polarity boundary crossing — the identity (address)
-stays fixed while the computational content (state) moves.
+stream stacking. It has the structure of a context exchange — the identity
+(address) stays fixed while the computational content (state) moves. This is
+not a polarity boundary crossing in SPEC.md's sense (value ↔ computation)
+but a structural reorganization analogous to the comonadic extract/extend
+pattern: the stream's context is replaced wholesale.
 
 ---
 

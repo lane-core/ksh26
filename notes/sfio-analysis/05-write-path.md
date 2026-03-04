@@ -304,14 +304,16 @@ Called after every stk write operation:
 | `stkfreeze` | No |
 
 `_stkseek` deliberately omits the sentinel because seek is a positioning
-operation (cut), not a write (positive effect). Code uses seek-back-and-read
+operation (boundary operation), not a write (positive effect). Code uses seek-back-and-read
 patterns where data above `_next` must be preserved. Writing a sentinel in
 seek destroyed the first byte → "bad trap" for all pseudosignals (1777 test
 failures). See [11-stk-allocator](11-stk-allocator.md).
 
 `Polarity:` Writes are positive (produce data, sentinel is postcondition of
-production). Seek is a cut (restructures context). Sentinel in a cut violates
-polarity discipline.
+production). Seek is a boundary operation (restructures context without
+connecting a producer to a consumer — not a cut in SPEC.md's sense). Writing
+a sentinel during a seek violates the polarity discipline: it applies a
+positive-mode postcondition to a context-restructuring operation.
 
 ---
 

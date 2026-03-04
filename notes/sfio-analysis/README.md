@@ -47,15 +47,24 @@ stack allocator identity.
 
 ## Polarity framework
 
-SFIO operations map onto the polarity framework from [SPEC.md](../../SPEC.md):
+SFIO operations map onto the polarity framework from [SPEC.md](../../SPEC.md).
+The mapping is a **structural analogy** — sfio's buffer/syscall boundary has the
+same shape as SPEC.md's value/computation boundary, and the failure modes match,
+but the full composition laws are unverified. Where the annotations below say
+"has the structure of," the correspondence is shape-level; where they say "is,"
+the identification is exact (same composition laws, same failure modes).
 
 - **Positive** (produce data): writes, buffer fills, format output
 - **Negative** (observe/consume data): reads, buffer drains, format input
-- **Cut** (restructure context): seek, mode switch, stack push/pop, sync
+- **Boundary operations** (restructure context): seek, mode switch, stack
+  push/pop, sync — these change the stream's operational state, analogous to
+  polarity boundary crossings in SPEC.md but not cuts in the technical sense
+  (they don't connect a producer to a consumer)
 
 Each document annotates operations with their polarity where it illuminates
-the design. The buffer is the mediating structure between value (data content)
-and computation (I/O syscalls) — it sits at the polarity boundary.
+the design. The buffer has the structure of a mediating object between value
+(data content) and computation (I/O syscalls) — it sits at the analogue of a
+polarity boundary.
 
 ## Living document protocol
 

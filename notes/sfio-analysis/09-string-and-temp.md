@@ -150,15 +150,18 @@ are identity fields — they stay with the address, not the state.
 Returns 1 (SFIO_ECONT) — the operation that triggered the exception
 retries on the now-file-backed stream.
 
-`Polarity:` `_tmpexcept` is the cleanest genuine polarity shift in the sfio
-codebase. The stream starts as pure value (in-memory string buffer, no I/O
-syscalls) and promotes to computation-backed (file descriptor, actual I/O).
-The memcpy identity swap preserves the `Sfio_t*` address (the stable polarity
-frame) while completely changing the computation substrate underneath. The
-`SFIO_ECONT` return means the caller never knows the shift happened — it's
-transparent. This is a textbook ↑A (return) shift: a computation result
-(the file-backed stream) is packaged into a value-mode container (the
-unchanged address) for the original caller.
+`Polarity:` `_tmpexcept` has the structure of the cleanest genuine polarity
+shift in the sfio codebase. The stream starts as pure value (in-memory string
+buffer, no I/O syscalls) and promotes to computation-backed (file descriptor,
+actual I/O). The memcpy identity swap preserves the `Sfio_t*` address as a
+stable identity while completely changing the computation substrate
+underneath. The `SFIO_ECONT` return means the caller never knows the shift
+happened — it's transparent. The shift direction is perspective-dependent:
+from the stream's internals, value → computation (like `eval` forcing a
+string into command mode); from the caller's view, computation is packaged
+behind a value-mode interface (like ↑A/return). The structural point is the
+mode change with transparent identity preservation; the specific ↑/↓ label
+depends on which side of the boundary you stand on.
 
 ---
 

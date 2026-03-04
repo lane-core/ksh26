@@ -122,9 +122,11 @@ reconciled:
 - Buffer is then reset for reading: `_next = _data = _endr` (empty, will
   fill on next read).
 
-`Polarity:` Mode switching is a *cut* — it restructures the buffer's role
-from value-producing (write) to value-consuming (read) or vice versa. The
-seek/flush is the cost of crossing this polarity boundary.
+`Polarity:` Mode switching has the structure of a polarity boundary crossing —
+it restructures the buffer's role from value-producing (write) to
+value-consuming (read) or vice versa. This is not a cut in SPEC.md's sense
+(connecting a producer to a consumer) but a mode transition within the
+stream's own state. The seek/flush is the cost of reconciling the two modes.
 
 ## Lock state
 
@@ -169,11 +171,16 @@ consuming it. While SFIO_PEEK is set:
 
 `Legacy: sfhdr.h:165` — `SFIO_PEEK 00000400`
 
-`Polarity:` SFIO_PEEK is a suspended cut — the buffer is in a state where
-neither production nor consumption can proceed until the peek is released.
-This is structurally a thunk (↓N): a computation is suspended into a
-storable value (the pointer + length) that must be explicitly forced
-(via `sfread(f, buf, 0)` or another `sfreserve`).
+`Polarity:` SFIO_PEEK has the structure of a thunk (↓N): a computation
+(the stream's fill/read machinery) is suspended into a storable value (a
+pointer + length) that must be explicitly forced (via `sfread(f, buf, 0)` or
+another `sfreserve`). SPEC.md §"Tightening the analogies" distinguishes
+thunks (↓N, lazy — deferred until first access) from futures (↓N, eager —
+started immediately). Process substitution (`<(cmd)`) is a future; SFIO_PEEK
+is a genuine thunk — data sits in the buffer without advancing until forced.
+The ↓N label captures the polarity structure in both cases; for SFIO_PEEK it
+also captures the evaluation strategy (lazy), making this one of the closer
+matches between sfio and the formal framework.
 
 ## String stream buffer
 
@@ -260,14 +267,17 @@ separator. Code that needs only the readable extent should check `_endr`.
 
 ## Polarity analysis
 
-The buffer mediates between two polarities:
+The buffer mediates between two modes that have the structure of polarities
+(structural analogy — same shape as SPEC.md's value/computation distinction,
+same failure discipline, but full composition laws unverified):
 
 - **Value** (the data): what's stored between `_data` and `_next` (written) or
   between `_next` and `_endr` (readable). This is the *content*.
 - **Computation** (the I/O): syscalls that move data between buffer and fd.
   Triggered when the buffer boundary is hit (read exhausted or write full).
 
-The five pointers are the *polarity boundary* — they encode both the value
-extent (data range) and the computation state (where in the fill/flush cycle
-we are). Lock state freezes this boundary; mode switching is a polarity
-reversal that must reconcile both sides.
+The five pointers encode both the value extent (data range) and the
+computation state (where in the fill/flush cycle we are), giving them the
+structure of a polarity boundary. Lock state freezes this boundary; mode
+switching has the character of a polarity reversal that must reconcile both
+sides.
