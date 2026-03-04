@@ -28,7 +28,7 @@
 
 #if SHOPT_MULTIBYTE
 #ifndef MARKER
-#define MARKER 0xdfff /* Must be invalid character */
+#define MARKER 0xd'fff /* Must be invalid character */
 #endif
 #endif /* SHOPT_MULTIBYTE */
 

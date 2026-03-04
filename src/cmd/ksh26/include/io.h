@@ -45,9 +45,9 @@
 #define IOCLEX 0100
 #define IOCLOSE (IOSEEK | IONOSEEK)
 
-#define IOSUBSHELL 0x8000    /* must be larger than any file descriptor */
-#define IOPICKFD 0x10000     /* file descriptor number was selected automatically */
-#define IOHERESTRING 0x20000 /* allow here documents to be string streams */
+#define IOSUBSHELL 0x8'000    /* must be larger than any file descriptor */
+#define IOPICKFD 0x1'0000     /* file descriptor number was selected automatically */
+#define IOHERESTRING 0x2'0000 /* allow here documents to be string streams */
 
 #ifndef _ARGNOD_H
 struct ionod;

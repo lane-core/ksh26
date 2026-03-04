@@ -92,8 +92,8 @@ typedef int (*Shwait_f)(int, long, int);
 
 #define MATCH_MAX 64
 
-#define SH_READEVAL 0x4000 /* for sh_eval */
-#define SH_FUNEVAL 0x10000 /* for sh_eval for function load */
+#define SH_READEVAL 0x4'000  /* for sh_eval */
+#define SH_FUNEVAL  0x1'0000 /* for sh_eval for function load */
 
 extern char **sh_argbuild(int *, const struct comnod *, int);
 extern struct dolnod *sh_argfree(struct dolnod *, int);

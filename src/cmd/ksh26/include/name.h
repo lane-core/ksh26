@@ -42,7 +42,7 @@
 #if SHOPT_FIXEDARRAY
 #define ARRAY_FIXED ARRAY_NOCLONE /* For index values */
 #endif                            /* SHOPT_FIXEDARRAY */
-#define NV_FARRAY 0x10000000      /* fixed-size arrays */
+#define NV_FARRAY 0x1000'0000     /* fixed-size arrays */
 #define NV_ASETSUB 8              /* set subscript */
 
 /* These flags are used as options to array_get() */
@@ -90,9 +90,9 @@ struct argnod;
 #define NV_PARAM NV_NODISC /* expansion use positional params */
 
 /* This following are for use with nodes which are not name-values */
-#define NV_TYPE 0x1000000
-#define NV_STATIC 0x2000000
-#define NV_COMVAR 0x4000000
+#define NV_TYPE 0x100'0000
+#define NV_STATIC 0x200'0000
+#define NV_COMVAR 0x400'0000
 #define NV_FUNCTION (NV_RJUST | NV_FUNCT) /* value is shell function */
 #define NV_FPOSIX NV_LJUST                /* POSIX function semantics */
 #define NV_STATICF NV_INTEGER             /* static class function */

@@ -192,7 +192,7 @@ extern const char e_runvi[];
 #define HIST_QUOTE_BR 0x400    /* quote every word on space break */
 #define HIST_GLOBALSUBST 0x800 /* apply substitution globally */
 
-#define HIST_ERROR 0x1000 /* an error occurred */
+#define HIST_ERROR 0x1'000 /* an error occurred */
 
 /* flags to be returned */
 
