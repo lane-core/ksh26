@@ -60,9 +60,9 @@ typedef struct pathcomp
 	unsigned short flags;
 } Pathcomp_t;
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
 struct argnod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* pathname handling routines */
 extern void path_newdir(Pathcomp_t *);

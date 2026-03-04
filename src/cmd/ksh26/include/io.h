@@ -49,9 +49,9 @@
 #define IOPICKFD 0x10000     /* file descriptor number was selected automatically */
 #define IOHERESTRING 0x20000 /* allow here documents to be string streams */
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
 struct ionod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
 #if !_fchdir_osearch_compat

@@ -182,8 +182,8 @@ extern char *sh_getcwd(void);
 #endif
 #define sh_translate(s) _sh_translate(ERROR_dictionary(s))
 
-#define WBITS (sizeof(uint64_t) * 8)
-#define WMASK (0xff)
+constexpr int WBITS = (int)(sizeof(uint64_t) * 8);
+constexpr int WMASK = 0xff;
 static_assert(WBITS == 64, "Shopt_t option macros assume 64-bit words");
 
 #if SHOPT_SCRIPTONLY

@@ -165,23 +165,23 @@ struct arithnod
 };
 
 /* types of ionodes stored in iofile */
-#define IOUFD 0x3f        /* file descriptor number mask */
-#define IOPUT 0x40        /* > redirection operator */
-#define IOAPP 0x80        /* >> redirection operator */
-#define IODOC 0x100       /* << redirection operator */
-#define IOMOV 0x200       /* <& or >& operators */
-#define IOCLOB 0x400      /* noclobber bit */
-#define IORDW 0x800       /* <> redirection operator */
-#define IORAW 0x1000      /* no expansion needed for filename */
-#define IOSTRG 0x2000     /* here-document stored as incore string */
-#define IOSTRIP 0x4000    /* strip leading tabs for here-document */
-#define IOQUOTE 0x8000    /* here-document delimiter was quoted */
-#define IOVNM 0x10000     /* iovname field is non-zero */
-#define IOLSEEK 0x20000   /* seek operators <# or >#  */
-#define IOARITH 0x40000   /* arithmetic seek <# ((expr))  */
-#define IOREWRITE 0x80000 /* rewrite/truncate upon command success: >;word <>;word */
-#define IOCOPY IOCLOB     /* copy skipped lines onto standard output */
-#define IOPROCSUB IOARITH /* process substitution redirection */
+constexpr int IOUFD      = 0x3f;      /* file descriptor number mask */
+constexpr int IOPUT      = 0x40;      /* > redirection operator */
+constexpr int IOAPP      = 0x80;      /* >> redirection operator */
+constexpr int IODOC      = 0x100;     /* << redirection operator */
+constexpr int IOMOV      = 0x200;     /* <& or >& operators */
+constexpr int IOCLOB     = 0x400;     /* noclobber bit */
+constexpr int IORDW      = 0x800;     /* <> redirection operator */
+constexpr int IORAW      = 0x1'000;   /* no expansion needed for filename */
+constexpr int IOSTRG     = 0x2'000;   /* here-document stored as incore string */
+constexpr int IOSTRIP    = 0x4'000;   /* strip leading tabs for here-document */
+constexpr int IOQUOTE    = 0x8'000;   /* here-document delimiter was quoted */
+constexpr int IOVNM      = 0x1'0000;  /* iovname field is non-zero */
+constexpr int IOLSEEK    = 0x2'0000;  /* seek operators <# or >#  */
+constexpr int IOARITH    = 0x4'0000;  /* arithmetic seek <# ((expr))  */
+constexpr int IOREWRITE  = 0x8'0000;  /* rewrite/truncate upon command success: >;word <>;word */
+constexpr int IOCOPY     = IOCLOB;    /* copy skipped lines onto standard output */
+constexpr int IOPROCSUB  = IOARITH;   /* process substitution redirection */
 
 union Shnode_u
 {

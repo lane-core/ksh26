@@ -70,23 +70,23 @@ typedef union Shnode_u Shnode_t;
  * Shell state flags. Used with sh_isstate(), sh_onstate(), sh_offstate().
  * See also shell options below. States 0-5 are also used as shell options.
  */
-#define SH_NOFORK 0     /* set when fork not necessary */
-#define SH_FORKED 7     /* set when process has been forked */
-#define SH_PROFILE 8    /* set when processing profiles */
-#define SH_NOALIAS 9    /* do not expand non-exported aliases */
-#define SH_NOTRACK 10   /* set to disable sftrack() function */
-#define SH_STOPOK 11    /* set for stopable builtins */
-#define SH_GRACE 12     /* set for timeout grace period */
-#define SH_TIMING 13    /* set while timing pipelines */
-#define SH_DEFPATH 14   /* set when using default path */
-#define SH_INIT 15      /* set when initializing the shell */
-#define SH_TTYWAIT 16   /* waiting for keyboard input */
-#define SH_FCOMPLETE 17 /* set for filename completion */
-#define SH_COMPLETE 19  /* set for command completion */
-#define SH_XARG 21      /* set while in xarg (command -x) mode */
-#define SH_NOTILDEXP 22 /* set to disable tilde expansion */
-#define SH_EXEC 23      /* set while in exec(1) */
-#define SH_PROCSUB 24   /* set (also in parent shell) while executing process substitution */
+constexpr int SH_NOFORK    = 0;  /* set when fork not necessary */
+constexpr int SH_FORKED    = 7;  /* set when process has been forked */
+constexpr int SH_PROFILE   = 8;  /* set when processing profiles */
+constexpr int SH_NOALIAS   = 9;  /* do not expand non-exported aliases */
+constexpr int SH_NOTRACK   = 10; /* set to disable sftrack() function */
+constexpr int SH_STOPOK    = 11; /* set for stopable builtins */
+constexpr int SH_GRACE     = 12; /* set for timeout grace period */
+constexpr int SH_TIMING    = 13; /* set while timing pipelines */
+constexpr int SH_DEFPATH   = 14; /* set when using default path */
+constexpr int SH_INIT      = 15; /* set when initializing the shell */
+constexpr int SH_TTYWAIT   = 16; /* waiting for keyboard input */
+constexpr int SH_FCOMPLETE = 17; /* set for filename completion */
+constexpr int SH_COMPLETE  = 19; /* set for command completion */
+constexpr int SH_XARG      = 21; /* set while in xarg (command -x) mode */
+constexpr int SH_NOTILDEXP = 22; /* set to disable tilde expansion */
+constexpr int SH_EXEC      = 23; /* set while in exec(1) */
+constexpr int SH_PROCSUB   = 24; /* set (also in parent shell) while executing process substitution */
 
 /*
  * Shell options (set -o). Used with sh_isoption(), sh_onoption(), sh_offoption().
@@ -94,71 +94,71 @@ typedef union Shnode_u Shnode_t;
  * The short option letters are defined in optksh[] and flagval[] in sh/args.c.
  * The long option names are defined in shtab_options[] in data/options.c.
  */
-#define SH_CFLAG 0
-#define SH_HISTORY 1     /* used also as a state */
-#define SH_ERREXIT 2     /* used also as a state */
-#define SH_VERBOSE 3     /* used also as a state */
-#define SH_MONITOR 4     /* used also as a state */
-#define SH_INTERACTIVE 5 /* used also as a state */
-#define SH_RESTRICTED 6
-#define SH_XTRACE 7
-#define SH_KEYWORD 8
-#define SH_NOUNSET 9
-#define SH_NOGLOB 10
-#define SH_ALLEXPORT 11
-#define SH_FUNCTRACE 12
-#define SH_IGNOREEOF 13
-#define SH_NOCLOBBER 14
-#define SH_MARKDIRS 15
-#define SH_BGNICE 16
+constexpr int SH_CFLAG       = 0;
+constexpr int SH_HISTORY     = 1;  /* used also as a state */
+constexpr int SH_ERREXIT     = 2;  /* used also as a state */
+constexpr int SH_VERBOSE     = 3;  /* used also as a state */
+constexpr int SH_MONITOR     = 4;  /* used also as a state */
+constexpr int SH_INTERACTIVE = 5;  /* used also as a state */
+constexpr int SH_RESTRICTED  = 6;
+constexpr int SH_XTRACE     = 7;
+constexpr int SH_KEYWORD    = 8;
+constexpr int SH_NOUNSET    = 9;
+constexpr int SH_NOGLOB     = 10;
+constexpr int SH_ALLEXPORT  = 11;
+constexpr int SH_FUNCTRACE  = 12;
+constexpr int SH_IGNOREEOF  = 13;
+constexpr int SH_NOCLOBBER  = 14;
+constexpr int SH_MARKDIRS   = 15;
+constexpr int SH_BGNICE     = 16;
 #if !_BLD_ksh || SHOPT_VSH
-#define SH_VI 17
-#define SH_VIRAW 18
+constexpr int SH_VI    = 17;
+constexpr int SH_VIRAW = 18;
 #endif
-#define SH_TFLAG 19
-#define SH_TRACKALL 20
-#define SH_SFLAG 21
-#define SH_NOEXEC 22
+constexpr int SH_TFLAG    = 19;
+constexpr int SH_TRACKALL = 20;
+constexpr int SH_SFLAG    = 21;
+constexpr int SH_NOEXEC   = 22;
 #if !_BLD_ksh || SHOPT_ESH || SHOPT_VSH
-#define SH_NOARROWSRCH 23
+constexpr int SH_NOARROWSRCH = 23;
 #endif
 #if !_BLD_ksh || SHOPT_ESH
-#define SH_GMACS 24
-#define SH_EMACS 25
+constexpr int SH_GMACS = 24;
+constexpr int SH_EMACS = 25;
 #endif
-#define SH_PRIVILEGED 26
-#define SH_NOLOG 28
-#define SH_NOTIFY 29
-#define SH_DICTIONARY 30
-#define SH_GLOBEX 31
-#define SH_PIPEFAIL 32
-#define SH_GLOBSTARS 33
+constexpr int SH_PRIVILEGED = 26;
+constexpr int SH_NOLOG      = 28;
+constexpr int SH_NOTIFY     = 29;
+constexpr int SH_DICTIONARY = 30;
+constexpr int SH_GLOBEX     = 31;
+constexpr int SH_PIPEFAIL   = 32;
+constexpr int SH_GLOBSTARS  = 33;
 #if !_BLD_ksh || SHOPT_GLOBCASEDET || !defined(SHOPT_GLOBCASEDET)
-#define SH_GLOBCASEDET 34
+constexpr int SH_GLOBCASEDET = 34;
 #endif
-#define SH_RC 35
-#define SH_SHOWME 36
-#define SH_LETOCTAL 37
+constexpr int SH_RC       = 35;
+constexpr int SH_SHOWME   = 36;
+constexpr int SH_LETOCTAL = 37;
 #if !_BLD_ksh || SHOPT_BRACEPAT
-#define SH_BRACEEXPAND 42
+constexpr int SH_BRACEEXPAND = 42;
 #endif
 #if !_BLD_ksh || SHOPT_HISTEXPAND
-#define SH_HISTEXPAND 43
+constexpr int SH_HISTEXPAND = 43;
 #if !_BLD_ksh || SHOPT_ESH || SHOPT_VSH
-#define SH_HISTREEDIT 44
-#define SH_HISTVERIFY 45
+constexpr int SH_HISTREEDIT = 44;
+constexpr int SH_HISTVERIFY = 45;
 #endif
 #endif
-#define SH_POSIX 46
+constexpr int SH_POSIX = 46;
 #if !_BLD_ksh || SHOPT_ESH || SHOPT_VSH
-#define SH_MULTILINE 47
-#define SH_NOBACKSLCTRL 48
+constexpr int SH_MULTILINE    = 47;
+constexpr int SH_NOBACKSLCTRL = 48;
 #endif
-#define SH_LOGIN_SHELL 67
+constexpr int SH_LOGIN_SHELL = 67;
 
 #if _BLD_ksh
-#define SH_NOUSRPROFILE 79   /* internal use only */
-#define SH_COMMANDLINE 0x100 /* bit flag for invocation-only options ('set -o' cannot change them) */
+constexpr int SH_NOUSRPROFILE = 79;    /* internal use only */
+constexpr int SH_COMMANDLINE  = 0x100; /* bit flag for invocation-only options */
 #endif
 
 /*

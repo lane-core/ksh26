@@ -15,7 +15,8 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
+#define _ARGNOD_H
 /*
  *	struct to hold a word argument
  *	Written by David Korn
@@ -110,24 +111,24 @@ struct argnod
 #define ARG_SPARE 1
 
 /* legal argument flags */
-#define ARG_RAW 0x1      /* string needs no processing */
-#define ARG_MAKE 0x2     /* bit set during argument expansion */
-#define ARG_MAC 0x4      /* string needs macro expansion */
-#define ARG_EXP 0x8      /* string needs file expansion */
-#define ARG_ASSIGN 0x10  /* argument is an assignment */
-#define ARG_QUOTED 0x20  /* word contained quote characters */
-#define ARG_MESSAGE 0x40 /* contains international string */
-#define ARG_APPEND 0x80  /* for += assignment */
-#define ARG_ARRAY 0x2    /* for typeset -a */
+constexpr int ARG_RAW     = 0x1;  /* string needs no processing */
+constexpr int ARG_MAKE    = 0x2;  /* bit set during argument expansion */
+constexpr int ARG_MAC     = 0x4;  /* string needs macro expansion */
+constexpr int ARG_EXP     = 0x8;  /* string needs file expansion */
+constexpr int ARG_ASSIGN  = 0x10; /* argument is an assignment */
+constexpr int ARG_QUOTED  = 0x20; /* word contained quote characters */
+constexpr int ARG_MESSAGE = 0x40; /* contains international string */
+constexpr int ARG_APPEND  = 0x80; /* for += assignment */
+constexpr int ARG_ARRAY   = 0x2;  /* for typeset -a */
 /* The following can be passed as options to sh_macexpand() */
-#define ARG_ARITH 0x100 /* arithmetic expansion */
+constexpr int ARG_ARITH   = 0x100; /* arithmetic expansion */
 #if SHOPT_OPTIMIZE
-#define ARG_OPTIMIZE 0x200 /* try to optimize */
+constexpr int ARG_OPTIMIZE = 0x200; /* try to optimize */
 #else
-#define ARG_OPTIMIZE 0
-#endif                     /* SHOPT_OPTIMIZE */
-#define ARG_NOGLOB 0x400   /* no file name expansion */
-#define ARG_ARRAYOK 0x1000 /* $x[sub] ==> ${x[sub]} */
+constexpr int ARG_OPTIMIZE = 0;
+#endif /* SHOPT_OPTIMIZE */
+constexpr int ARG_NOGLOB   = 0x400;   /* no file name expansion */
+constexpr int ARG_ARRAYOK  = 0x1'000; /* $x[sub] ==> ${x[sub]} */
 
 extern struct dolnod *sh_argcreate(char *[]);
 extern char *sh_argdolminus(void *);
@@ -138,4 +139,4 @@ extern const char e_subst[];
 extern const char e_exec[];
 extern const char e_devfdNN[];
 
-#endif /* ARG_RAW */
+#endif /* _ARGNOD_H */

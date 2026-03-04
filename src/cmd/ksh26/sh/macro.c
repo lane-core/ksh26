@@ -86,14 +86,17 @@ typedef struct _mac_
 #define ltos(x) fmtint(x, 0)
 
 /* type of macro expansions */
-#define M_BRACE 1     /* ${var}	*/
-#define M_TREE 2      /* ${var.}	*/
-#define M_SIZE 3      /* ${#var}	*/
-#define M_VNAME 4     /* ${!var}	*/
-#define M_SUBNAME 5   /* ${!var[sub]}	*/
-#define M_NAMESCAN 6  /* ${!var*}	*/
-#define M_NAMECOUNT 7 /* ${#var*}	*/
-#define M_TYPE 8      /* ${@var}	*/
+enum mac_mode : int
+{
+	M_BRACE     = 1, /* ${var}	*/
+	M_TREE      = 2, /* ${var.}	*/
+	M_SIZE      = 3, /* ${#var}	*/
+	M_VNAME     = 4, /* ${!var}	*/
+	M_SUBNAME   = 5, /* ${!var[sub]}	*/
+	M_NAMESCAN  = 6, /* ${!var*}	*/
+	M_NAMECOUNT = 7, /* ${#var*}	*/
+	M_TYPE      = 8, /* ${@var}	*/
+};
 
 [[noreturn]] static void mac_error(void);
 static int substring(const char *, size_t, const char *, int[], int);

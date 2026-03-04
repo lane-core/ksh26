@@ -78,9 +78,9 @@ struct Ufunction
 	Namval_t *np;     /* function node pointer */
 };
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
 struct argnod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* attributes of Namval_t items */
 

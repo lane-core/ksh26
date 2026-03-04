@@ -17,7 +17,8 @@
 *                   Chase <nicetrynsa@protonmail.ch>                   *
 *                                                                      *
 ***********************************************************************/
-#ifndef NV_DEFAULT
+#ifndef _NVAL_H
+#define _NVAL_H
 /*
  * David Korn
  * AT&T Labs
@@ -100,7 +101,20 @@ struct Namdecl
 
 /* attributes of name-value node attribute flags */
 
-#define NV_DEFAULT 0
+/* array operation opcodes */
+#define NV_DEFAULT 0 /* must remain a #define for shcmd.h guard */
+enum nv_subop : int
+{
+	/* NV_DEFAULT = 0, — see #define above */
+	NV_AINIT    = 1,
+	NV_AFREE    = 2,
+	NV_ANEXT    = 3,
+	NV_ANAME    = 4,
+	NV_ADELETE  = 5,
+	NV_AADD     = 6,
+	NV_ACURRENT = 7,
+	NV_ASETSUB  = 8,
+};
 /* This defines the attributes for an attributed name-value pair node */
 struct Namval
 {
@@ -132,77 +146,75 @@ static_assert(sizeof(struct Namval) > sizeof(Dtlink_t) + sizeof(char *),
 	"NV_MINSZ requires Namval larger than Dtlink + char*");
 
 /* The following attributes are for internal use */
-#define NV_NOFREE 0x200   /* don't free the space when releasing value */
-#define NV_ARRAY 0x400    /* node is an array */
-#define NV_REF 0x4000     /* reference bit */
-#define NV_TABLE 0x800    /* node is a dictionary table */
-#define NV_MINIMAL 0x1000 /* node does not contain all fields */
+constexpr unsigned int NV_NOFREE = 0x200;   /* don't free the space when releasing value */
+constexpr unsigned int NV_ARRAY  = 0x400;   /* node is an array */
+constexpr unsigned int NV_REF    = 0x4'000; /* reference bit */
+constexpr unsigned int NV_TABLE  = 0x800;   /* node is a dictionary table */
+constexpr unsigned int NV_MINIMAL = 0x1'000; /* node does not contain all fields */
 #if _BLD_ksh
 #if SHOPT_OPTIMIZE
-#define NV_NOOPTIMIZE NV_TABLE /* disable loop invariants optimizer */
+constexpr unsigned int NV_NOOPTIMIZE = NV_TABLE; /* disable loop invariants optimizer */
 #else
-#define NV_NOOPTIMIZE 0
+constexpr unsigned int NV_NOOPTIMIZE = 0;
 #endif /* SHOPT_OPTIMIZE */
 #endif /* _BLD_ksh */
 
-#define NV_INTEGER 0x2 /* integer attribute */
+constexpr unsigned int NV_INTEGER = 0x2; /* integer attribute */
 /* The following attributes are valid only when NV_INTEGER is off */
-#define NV_LTOU 0x4                   /* convert to uppercase */
-#define NV_UTOL 0x8                   /* convert to lowercase */
-#define NV_ZFILL 0x10                 /* right justify and fill with leading zeros */
-#define NV_RJUST 0x20                 /* right justify and blank fill */
-#define NV_LJUST 0x40                 /* left justify and blank fill */
-#define NV_BINARY 0x100               /* fixed size data buffer */
-#define NV_RAW NV_LJUST               /* used only with NV_BINARY */
-#define NV_HOST (NV_RJUST | NV_LJUST) /* map to host filename */
+constexpr unsigned int NV_LTOU   = 0x4;  /* convert to uppercase */
+constexpr unsigned int NV_UTOL   = 0x8;  /* convert to lowercase */
+constexpr unsigned int NV_ZFILL  = 0x10; /* right justify and fill with leading zeros */
+constexpr unsigned int NV_RJUST  = 0x20; /* right justify and blank fill */
+constexpr unsigned int NV_LJUST  = 0x40; /* left justify and blank fill */
+constexpr unsigned int NV_BINARY = 0x100; /* fixed size data buffer */
+constexpr unsigned int NV_RAW    = NV_LJUST;            /* used only with NV_BINARY */
+constexpr unsigned int NV_HOST   = NV_RJUST | NV_LJUST; /* map to host filename */
 
 /* The following attributes do not affect the value */
-#define NV_RDONLY 0x1    /* readonly bit */
-#define NV_EXPORT 0x2000 /* export bit */
-#define NV_TAGGED 0x8000 /* user define tag bit */
+constexpr unsigned int NV_RDONLY  = 0x1;    /* readonly bit */
+constexpr unsigned int NV_EXPORT = 0x2'000; /* export bit */
+constexpr unsigned int NV_TAGGED = 0x8'000; /* user define tag bit */
 
 /* The following are used with NV_INTEGER */
-#define NV_SHORT (NV_RJUST)               /* when integers are not long */
-#define NV_LONG (NV_UTOL)                 /* for long long and long double */
-#define NV_UNSIGN (NV_LTOU)               /* for unsigned quantities */
-#define NV_DOUBLE (NV_INTEGER | NV_ZFILL) /* for floating point */
-#define NV_EXPNOTE (NV_LJUST)             /* for scientific notation */
-#define NV_HEXFLOAT (NV_LTOU)             /* for C99 base16 float notation */
-#define NV_FLTSIZEZERO -1                 /* a float with size of 0 being <0 */
+constexpr unsigned int NV_SHORT      = NV_RJUST;            /* when integers are not long */
+constexpr unsigned int NV_LONG       = NV_UTOL;             /* for long long and long double */
+constexpr unsigned int NV_UNSIGN     = NV_LTOU;             /* for unsigned quantities */
+constexpr unsigned int NV_DOUBLE     = NV_INTEGER | NV_ZFILL; /* for floating point */
+constexpr unsigned int NV_EXPNOTE    = NV_LJUST;            /* for scientific notation */
+constexpr unsigned int NV_HEXFLOAT   = NV_LTOU;             /* for C99 base16 float notation */
+constexpr int NV_FLTSIZEZERO = -1;                          /* a float with size of 0 being <0 */
 
 /* options for nv_open */
+constexpr unsigned int NV_APPEND   = 0x1'0000;     /* append value */
+constexpr unsigned int NV_MOVE     = 0x800'0000;    /* for use with nv_clone */
+constexpr unsigned int NV_ADD      = 8;             /* add node if not found */
+constexpr unsigned int NV_ASSIGN   = NV_NOFREE;     /* assignment is possible */
+constexpr unsigned int NV_NOARRAY  = 0x20'0000;     /* array name not possible */
+constexpr unsigned int NV_IARRAY   = 0x40'0000;     /* for indexed array */
+constexpr unsigned int NV_NOREF    = NV_REF;         /* don't follow reference */
+constexpr unsigned int NV_IDENT    = 0x80;           /* name must be identifier */
+constexpr unsigned int NV_VARNAME  = 0x2'0000;      /* name must be ?(.)id*(.id) */
+constexpr unsigned int NV_NOADD    = 0x4'0000;      /* do not add node */
+constexpr unsigned int NV_NOSCOPE  = 0x8'0000;      /* look only in current scope */
+constexpr unsigned int NV_NOFAIL   = 0x10'0000;     /* return 0 on failure, no msg */
+constexpr unsigned int NV_NODISC   = NV_IDENT;      /* ignore disciplines */
+constexpr unsigned int NV_UNATTR   = 0x80'0000;     /* unset attributes before assignment */
+constexpr unsigned int NV_GLOBAL   = 0x2000'0000;   /* create global variable, ignoring local scope */
 
-#define NV_APPEND 0x10000 /* append value */
-#define NV_MOVE 0x8000000 /* for use with nv_clone */
-#define NV_ADD 8
-/* add node if not found */
-#define NV_ASSIGN NV_NOFREE  /* assignment is possible */
-#define NV_NOARRAY 0x200000  /* array name not possible */
-#define NV_IARRAY 0x400000   /* for indexed array */
-#define NV_NOREF NV_REF      /* don't follow reference */
-#define NV_IDENT 0x80        /* name must be identifier */
-#define NV_VARNAME 0x20000   /* name must be ?(.)id*(.id) */
-#define NV_NOADD 0x40000     /* do not add node */
-#define NV_NOSCOPE 0x80000   /* look only in current scope */
-#define NV_NOFAIL 0x100000   /* return 0 on failure, no msg */
-#define NV_NODISC NV_IDENT   /* ignore disciplines */
-#define NV_UNATTR 0x800000   /* unset attributes before assignment */
-#define NV_GLOBAL 0x20000000 /* create global variable, ignoring local scope */
+constexpr unsigned int NV_FUNCT    = NV_IDENT;  /* option for nv_create */
+constexpr unsigned int NV_BLTINOPT = NV_ZFILL;  /* mark builtins in libcmd */
 
-#define NV_FUNCT NV_IDENT    /* option for nv_create */
-#define NV_BLTINOPT NV_ZFILL /* mark builtins in libcmd */
-
-#define NV_PUBLIC (~(NV_NOSCOPE | NV_ASSIGN | NV_IDENT | NV_VARNAME | NV_NOADD))
+constexpr unsigned int NV_PUBLIC = ~(NV_NOSCOPE | NV_ASSIGN | NV_IDENT | NV_VARNAME | NV_NOADD);
 
 /* numeric types */
-#define NV_INT16 (NV_SHORT | NV_INTEGER)
-#define NV_UINT16 (NV_UNSIGN | NV_SHORT | NV_INTEGER)
-#define NV_INT32 (NV_INTEGER)
-#define NV_UINT32 (NV_UNSIGN | NV_INTEGER)
-#define NV_INT64 (NV_LONG | NV_INTEGER)
-#define NV_UINT64 (NV_UNSIGN | NV_LONG | NV_INTEGER)
-#define NV_FLOAT (NV_SHORT | NV_DOUBLE)
-#define NV_LDOUBLE (NV_LONG | NV_DOUBLE)
+constexpr unsigned int NV_INT16   = NV_SHORT | NV_INTEGER;
+constexpr unsigned int NV_UINT16  = NV_UNSIGN | NV_SHORT | NV_INTEGER;
+constexpr unsigned int NV_INT32   = NV_INTEGER;
+constexpr unsigned int NV_UINT32  = NV_UNSIGN | NV_INTEGER;
+constexpr unsigned int NV_INT64   = NV_LONG | NV_INTEGER;
+constexpr unsigned int NV_UINT64  = NV_UNSIGN | NV_LONG | NV_INTEGER;
+constexpr unsigned int NV_FLOAT   = NV_SHORT | NV_DOUBLE;
+constexpr unsigned int NV_LDOUBLE = NV_LONG | NV_DOUBLE;
 
 /* check/isolate all the bit flags used for numeric types */
 #define nv_isnum(np) (nv_isattr(np, NV_INTEGER) ? nv_isattr(np, NV_DOUBLE | NV_INTEGER | NV_LJUST | NV_LONG | NV_SHORT | NV_UNSIGN) : 0)
@@ -214,31 +226,21 @@ static_assert(sizeof(struct Namval) > sizeof(Dtlink_t) + sizeof(char *),
 #define nv_isarray(np) (nv_isattr((np), NV_ARRAY))
 #define nv_close(np) /* no-op */
 
-/* The following are operations for associative arrays */
-#define NV_AINIT 1    /* initialize */
-#define NV_AFREE 2    /* free array */
-#define NV_ANEXT 3    /* advance to next subscript */
-#define NV_ANAME 4    /* return subscript name */
-#define NV_ADELETE 5  /* delete current subscript */
-#define NV_AADD 6     /* add subscript if not found */
-#define NV_ACURRENT 7 /* return current subscript Namval_t* */
-#define NV_ASETSUB 8  /* set current subscript */
-
 /* The following are for nv_disc */
-#define NV_FIRST 1
-#define NV_LAST 2
-#define NV_POP 3
-#define NV_CLONE 4
+constexpr int NV_FIRST = 1;
+constexpr int NV_LAST  = 2;
+constexpr int NV_POP   = 3;
+constexpr int NV_CLONE = 4;
 
 /* The following are operations for nv_putsub() */
-#define ARRAY_BITS 22
-#define ARRAY_ADD (1L << ARRAY_BITS)   /* add subscript if not found */
-#define ARRAY_SCAN (2L << ARRAY_BITS)  /* For ${array[@]} */
-#define ARRAY_UNDEF (4L << ARRAY_BITS) /* For ${array} */
+constexpr int ARRAY_BITS          = 22;
+constexpr unsigned long ARRAY_ADD   = (1L << 22);  /* add subscript if not found */
+constexpr unsigned long ARRAY_SCAN  = (2L << 22);  /* For ${array[@]} */
+constexpr unsigned long ARRAY_UNDEF = (4L << 22);  /* For ${array} */
 
 /* These are disciplines provided by the library for use with nv_discfun */
-#define NV_DCADD 0      /* used to add named disciplines */
-#define NV_DCRESTRICT 1 /* variable that are restricted in rsh */
+constexpr int NV_DCADD      = 0; /* used to add named disciplines */
+constexpr int NV_DCRESTRICT = 1; /* variable that are restricted in rsh */
 
 /* prototype for array interface */
 extern Namarr_t *nv_arrayptr(Namval_t *);
@@ -291,4 +293,4 @@ extern const Namdisc_t *nv_discfun(int);
 #define nv_size(np) nv_setsize((np), -1)
 #define nv_stack(np, nf) nv_disc(np, nf, 0)
 
-#endif /* NV_DEFAULT */
+#endif /* _NVAL_H */
