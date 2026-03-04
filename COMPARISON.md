@@ -912,26 +912,26 @@ highlighting). The 8 sequences above are sufficient to close this gap.
 ksh26 doesn't need elvish's full Buffer abstraction on day one. The path
 is incremental:
 
-**Phase 1: SGR passthrough.** The display path (`ed_putchar`/`ed_flush`)
-passes through ANSI escape sequences instead of treating them as printable
-characters. This alone enables syntax highlighting as a widget that returns
-pre-colored text. No new data structures.
+1. **SGR passthrough.** The display path (`ed_putchar`/`ed_flush`)
+   passes through ANSI escape sequences instead of treating them as
+   printable characters. This alone enables syntax highlighting as a
+   widget that returns pre-colored text. No new data structures.
 
-**Phase 2: Ghost text (§4.4).** A single `e_ghost` string rendered in dim
-after the cursor. Uses cursor-right and CR to restore position. Enables
-autosuggestions. ~50-100 lines.
+2. **Ghost text (§4.4).** A single `e_ghost` string rendered in dim
+   after the cursor. Uses cursor-right and CR to restore position.
+   Enables autosuggestions. ~50-100 lines.
 
-**Phase 3: Addon region.** A region below the input line for completion
-menus, status information, etc. Uses cursor-down, clear-to-EOL,
-clear-to-EOS. The region is cleared and redrawn on each update. ~150-200
-lines. This is a simplified version of elvish's ExtendDown.
+3. **Addon region.** A region below the input line for completion menus,
+   status information, etc. Uses cursor-down, clear-to-EOL, clear-to-EOS.
+   The region is cleared and redrawn on each update. ~150-200 lines. This
+   is a simplified version of elvish's ExtendDown.
 
-**Phase 4: Delta rendering.** Full old-vs-new buffer comparison for
-flicker-free updates. Only needed if Phase 3's clear-and-redraw produces
-visible flicker, which depends on terminal speed and content size. May
-never be needed.
+4. **Delta rendering.** Full old-vs-new buffer comparison for flicker-free
+   updates. Only needed if the addon region's clear-and-redraw produces
+   visible flicker, which depends on terminal speed and content size. May
+   never be needed.
 
-Each phase is independently useful and doesn't require the next.
+Each step is independently useful and doesn't require the next.
 
 
 ## Part 3: External tool integration
@@ -1607,51 +1607,52 @@ incrementally.
 
 #### The proposal
 
-A phased rendering engine as described in §2.3:
+An incremental rendering engine as described in §2.3:
 
-**Phase 1** (SGR passthrough): ~30 lines. The display path stops counting
-ANSI escape sequences as printable characters. Immediately enables syntax
-highlighting via widget functions that return pre-colored strings.
+1. **SGR passthrough**: ~30 lines. The display path stops counting ANSI
+   escape sequences as printable characters. Immediately enables syntax
+   highlighting via widget functions that return pre-colored strings.
 
-**Phase 2** (ghost text): ~50-100 lines. This is §4.4 — listed separately
-because it's independently valuable.
+2. **Ghost text**: ~50-100 lines. This is §4.4 — listed separately
+   because it's independently valuable.
 
-**Phase 3** (addon region): ~150-200 lines. A region below the input line,
-managed by a simple clear-and-redraw loop. The region is an array of
-strings (one per line). Widgets can set the region content. Used for:
-- Completion menus with descriptions and grouping
-- Status information (git branch, current mode, etc.)
-- Error messages or inline documentation
+3. **Addon region**: ~150-200 lines. A region below the input line,
+   managed by a simple clear-and-redraw loop. The region is an array of
+   strings (one per line). Widgets can set the region content. Used for:
+   - Completion menus with descriptions and grouping
+   - Status information (git branch, current mode, etc.)
+   - Error messages or inline documentation
 
-Data structure: a new `Edit_t` field `e_addon` (array of strings + count).
-Rendering: after drawing the input line, cursor-down into the addon region,
-clear-to-EOS, print each addon line, cursor-up back to the input line.
+   Data structure: a new `Edit_t` field `e_addon` (array of strings +
+   count). Rendering: after drawing the input line, cursor-down into the
+   addon region, clear-to-EOS, print each addon line, cursor-up back to
+   the input line.
 
-**Phase 4** (delta rendering): ~300-500 lines. Full Buffer abstraction
-(Cell grid + cursor) with old-vs-new comparison. Only needed if Phase 3
-produces visible flicker. May be deferred indefinitely.
+4. **Delta rendering**: ~300-500 lines. Full Buffer abstraction (Cell grid
+   + cursor) with old-vs-new comparison. Only needed if the addon region
+   produces visible flicker. May be deferred indefinitely.
 
 #### Why this is a win-win
 
-- **Completion menus with descriptions**: Phase 3 renders structured
-  completion results (§4.2) in a multi-line region below the input.
-  fish/zsh parity for completion UX.
-- **Status bar**: Phase 3 enables a persistent region for git branch,
-  vi mode indicator, etc. Currently these are hacked into the prompt
-  string.
-- **Syntax highlighting**: Phase 1 enables syntax highlighting as a pure
-  widget function — no display path changes beyond SGR passthrough.
-- **Incremental**: each phase is useful independently. No big-bang.
+- **Completion menus with descriptions**: the addon region renders
+  structured completion results (§4.2) in a multi-line region below the
+  input. fish/zsh parity for completion UX.
+- **Status bar**: the addon region enables a persistent region for git
+  branch, vi mode indicator, etc. Currently these are hacked into the
+  prompt string.
+- **Syntax highlighting**: SGR passthrough enables syntax highlighting as
+  a pure widget function — no display path changes beyond passthrough.
+- **Incremental**: each step is useful independently. No big-bang.
 
 #### Cost assessment
 
-- **C work**: Phase 1 is trivial (~30 lines). Phase 2 is small (~100
-  lines). Phase 3 is moderate (~200 lines). Phase 4 is significant
-  (~500 lines) but may be unnecessary.
-- **Risk**: low per phase. Each phase is additive. Phases 1-2 are
-  display-path-only. Phase 3 adds a new region but doesn't change
-  existing rendering. Phase 4 replaces the rendering loop but can be
-  feature-flagged.
+- **C work**: SGR passthrough is trivial (~30 lines). Ghost text is
+  small (~100 lines). The addon region is moderate (~200 lines). Delta
+  rendering is significant (~500 lines) but may be unnecessary.
+- **Risk**: low per step. Each step is additive. SGR passthrough and ghost
+  text are display-path-only. The addon region adds a new region but
+  doesn't change existing rendering. Delta rendering replaces the
+  rendering loop but can be feature-flagged.
 
 
 ### 4.8 POSIX compatibility mode
@@ -1805,7 +1806,7 @@ requires changes to the display path, integration with the lexer, and
 careful handling of terminal compatibility. It should not drive architecture
 decisions.
 
-If the widget system (§4.1) and the rendering engine (§4.7 Phase 1) exist,
+If the widget system (§4.1) and SGR passthrough (§4.7) exist,
 syntax highlighting becomes a widget function that can be added later
 without further C changes — the widget returns SGR-coded text and the
 display path passes it through.
@@ -1831,7 +1832,7 @@ Ranked by the ratio of architectural payoff to implementation cost:
 | 4 | §4.4 Ghost text rendering | Autosuggestions, completion preview | ~100 lines C | None |
 | 5 | §4.2 Structured completion results | Descriptions, grouping, carapace | ~100 lines C | §4.1 |
 | 6 | §4.5 `complete` builtin | Per-command completion registration | ~150 lines C | §4.1 |
-| 7 | §4.7 Inline rendering engine | Completion menus, status bar | ~30-500 lines C (phased) | §4.4 (Phase 2) |
+| 7 | §4.7 Inline rendering engine | Completion menus, status bar | ~30-500 lines C (incremental) | §4.4 (ghost text) |
 | 8 | §4.8 POSIX compatibility mode | Portability boundary | ~50 lines C | None |
 | 9 | §4.6 History search widget | Incremental search | ~0 lines C | §4.1 |
 

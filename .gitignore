@@ -3,6 +3,7 @@ arch
 build
 tgz
 lcl
+.DS_Store
 
 # Flat make libs, binaries, etc
 *.a
@@ -23,7 +24,6 @@ FEATURE/
 /fun/
 /include/
 /lib/
-/man/
 /src/cmd/INIT/crossexec
 /src/cmd/INIT/iffe
 /src/cmd/INIT/mamake

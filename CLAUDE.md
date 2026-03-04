@@ -1,15 +1,18 @@
 # ksh26
 
-Independent fork of ksh93u+m (upstream: `ksh93/ksh`), redesigned to
+Independent fork of ksh93u+m (originated from `ksh93/ksh`), redesigned to
 modern standards. Guided by System L / duploid theory (see `REDESIGN.md`).
+
+This is a fully independent project — not a tracking fork. There are no
+merges from upstream. The `legacy` branch preserves the pre-fork state as
+a reference point for divergence documentation, not as a merge source.
 
 ## Branches
 
 | Branch | Purpose |
 |--------|---------|
 | `main` | Primary development branch. |
-| `legacy` | Tracks upstream `ksh93/ksh` dev. Pre-fork state. |
-| `fix/*` | Bugfix branches off legacy, submitted as PRs to upstream. |
+| `legacy` | Frozen pre-fork state. Reference for divergence documentation. |
 
 ## Building and testing
 
@@ -157,7 +160,7 @@ in a human team, use the agent. When in doubt, use the agent.
 
 2. **Correctness against project materials**: Cross-reference the diff against:
    - This file (CLAUDE.md) — conventions, contracts, known pitfalls
-   - SPEC.md / REDESIGN.md — theoretical constraints, direction status
+   - SPEC.md / REDESIGN.md — theoretical constraints, implementation status
    - Source comments and headers in modified files
    - TODO.md — does this resolve or create tracked issues?
 
@@ -201,56 +204,20 @@ against the expanded understanding rather than patching forward.
 - Opening braces on own line
 - `/* */` comments only (no `//`)
 - C23 dialect (GCC 14+ / Clang 18+)
-- Each upstream PR is squashed into a single commit
 
-## Merge flow: legacy → main
 
-Bugfixes are developed on `fix/*` branches off `legacy` and submitted as PRs to
-upstream (`ksh93/ksh`). When fixes land on legacy, they should be evaluated for
-incorporation into main.
+## Divergence documentation
 
-### When a legacy fix applies cleanly
+When ksh26's architecture handles a known ksh93u+m bug differently (or
+structurally prevents it), document the situation in `notes/divergences/`.
+The `legacy` branch serves as the reference point for comparison.
 
-Cherry-pick or merge. No special documentation needed beyond the commit message.
-
-```sh
-git cherry-pick <commit>    # if it applies cleanly
-```
-
-### When a legacy fix doesn't apply
-
-When main has diverged enough that a legacy fix can't be cherry-picked, document
-the situation. Create a note in `notes/divergences/` with:
-
-- **What the dev fix does**: commit hash, summary, which files it touches
-- **Why it doesn't apply**: what ksh26 changed that conflicts
-- **Whether ksh26 needs it**: is the bug structurally prevented by the refactor,
-  or does it need an equivalent fix?
-- **ksh26 equivalent**: if a fix is needed, what's the ksh26-native approach?
+Each divergence note should cover:
+- What the upstream bug is and how upstream fixed it
+- How ksh26 handles it (structural prevention, different fix, or N/A)
+- Why the approaches differ
 
 Example filename: `NNN-short-description.md`
-
-### Structural prevention
-
-Some legacy bugfixes will be unnecessary on main because the refactored
-architecture prevents the bug class entirely. These are worth documenting as
-evidence that the refactor is working — they're the payoff.
-
-Template:
-
-```markdown
-# NNN: <short description>
-
-## Dev fix
-Commit: <hash>
-Files: <list>
-Summary: <what it fixes>
-
-## ksh26 status: structurally prevented
-The polarity frame API (sh_polarity_enter / sh_polarity_leave)
-handles this boundary crossing. The manual save/restore that the dev
-fix adds is unnecessary because [specific reason].
-```
 
 ## Documentation workflow
 
@@ -260,11 +227,11 @@ The main branch maintains two companion documents:
   duploid framework, critical pair diagnosis, boundary violation taxonomy. This
   is the reference document; it changes only when the theory itself is refined.
 - **REDESIGN.md** — The living implementation tracker. Records what has been built,
-  which call sites are converted, direction status, divergences from dev. Update
-  this as work progresses.
+  which call sites are converted, implementation status, divergences from dev.
+  Update this as work progresses.
 
-When implementing a direction or converting a call site, update REDESIGN.md to
-reflect the new state. When a legacy bugfix is handled differently (or structurally
+When implementing a concrete refactoring or converting a call site, update
+REDESIGN.md to reflect the new state. When a legacy bugfix is handled differently (or structurally
 prevented) on main, add a note to `notes/divergences/` and update the
 divergence table in REDESIGN.md.
 

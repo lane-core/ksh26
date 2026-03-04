@@ -1,6 +1,6 @@
 #!/bin/ksh
 # strbuf-build.ksh — string buffer accumulation via command substitution
-# Exercises: sfstropen/sfstruse (string streams), sfputc, sfvalue
+# Exercises: command substitution I/O path (buffered output via $(print))
 typeset -i i=0
 while (( i < 2000 ))
 do

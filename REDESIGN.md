@@ -227,21 +227,20 @@ propagate further up the continuation stack. The split between locally-caught
 full classified table.
 
 
-## Divergence from dev
+## Divergence from legacy
 
-When a bugfix lands on `dev` and ksh26 handles it differently, the
-situation is documented in `notes/divergences/`:
+When ksh26 handles a known ksh93u+m bug differently, the situation is
+documented in `notes/divergences/`:
 
 | # | File | Summary |
 |---|------|---------|
 | 001 | `001-sh-fun-st-save.md` | `sh_fun` now saves full `sh.st`, not just prefix |
-| 002 | `002-debug-trap-self-unset.md` | Trap preservation in frame API vs dev's inline fix |
+| 002 | `002-debug-trap-self-unset.md` | Trap preservation in frame API vs legacy's inline fix |
 
 
 ## Foundations
 
-Progress against the refactoring directions from
-[SPEC.md §Concrete directions](SPEC.md#concrete-directions):
+Progress against [SPEC.md §Concrete directions](SPEC.md#concrete-directions):
 
 ### Context frames instead of global mutation
 
@@ -780,112 +779,32 @@ See `notes/sfio-rewrite-v2.md` for the full proposal: polarity
 architecture, contract details, elimination analysis, implementation
 sequence, risk assessment.
 
-**Build/test:** `just build-stdio` / `just test-stdio`
+#### What the sfio retirement accomplished (v0.0.1)
 
-**What's implemented:**
+Before the v1 stdio attempts, preparatory work decoupled several subsystems
+from sfio. This work survives in the v0.0.1 baseline:
 
-| Category | Functions | Status |
-|---|---|---|
-| Stream lifecycle | sh_stream_init, sh_stream_new, sh_stream_close, sfnew, sfopen, sftmp | Working |
-| Stream control | sfswap, sfsetfd, sfsetfd_cloexec, sfset, sfsetbuf, sfpool, sfpurge, sfclrlock | Working (sfpool is no-op) |
-| Formatted output | sfprintf→fprintf, sfputc→fputc, sfwrite→fwrite, sfputr, sfnputc, sfprints, sfsprintf | Working (macros) |
-| Read ops | sfgetc, sfread, sfreserve (LOCKR + non-LOCKR), sfgetr, sfmove | Working |
-| Positioning | sfseek, sftell, sfsize | Working |
-| Discipline | sfdisc (push/pop), sfraise, sfrd | Structural; needs event protocol |
-| Stream stacking | sfstack (push/pop), sfstacked | Working |
-| Raw fd ops | sfpkrd (poll+recv peek), sffileno | Working |
-| Integer encoding | sfputu, sfputl, sfgetu, sfgetl | Working |
-| String buffers | sfstropen, sfstrclose, sfstruse, sfstrseek, sfstrtell, sfstrbase, sfstrsize | Working (open_memstream) |
-| Notifications | sfnotify | Working |
-| Not implemented | sfpoll (1 call site, optional), sfkeyprintf (0 call sites) | N/A |
-
-**Key design decisions:**
-
-1. **Wrapper struct** — `sh_stream_t` wraps `FILE*` with metadata (fd,
-   flags, val, disc chain, stack). Enables sfswap (memcpy-swap), sfvalue
-   state tracking, discipline chains, and stream stacking without fighting
-   stdio's opaque `FILE*`.
-
-2. **sfreserve dual-mode consumption** — sfio's sfreserve has two caller
-   contracts that map to the polarity framework:
-
-   - **LOCKR mode (μ-binding / context capture)**: Buffer is bound into a
-     continuation context. Caller reads directly, releases explicitly via
-     `sfread(f,buf,0)`. Data persists across sfreserve calls.
-   - **Non-LOCKR mode (μ̃-binding / let)**: Buffer is a produced value.
-     Consumed on return; next sfreserve reads fresh from FILE*.
-
-   The implementation marks this via `f->data`: LOCKR preserves it;
-   non-LOCKR clears it to NULL after returning the pointer. Prevents the
-   infinite loop where non-LOCKR callers (macro.c) saw stale data.
-
-3. **sfswap SFIO_STATIC preservation** — SFIO_STATIC tracks struct
-   *identity* (is this address a global?), not content. `sfswap(f, NULL)`
-   clears SFIO_STATIC on the heap copy; two-arg swap preserves each
-   struct's original static flag regardless of swapped content.
-
-4. **`_ksh_` prefixed globals** — sfstdin/sfstdout/sfstderr are real
-   pointer variables (not macros) because subshell.c reassigns them.
-   Prefixed `_ksh_` to avoid linker collision with libast's sfextern.c.
-
-**Remaining 79 test failures** — concentrated in polarity-boundary paths:
-
-| Failure class | Likely cause | Where |
-|---|---|---|
-| Here-docs/here-strings | sftmp+sfseek+sfmove chain (positive→cut→negative) | io.c heredoc setup |
-| I/O redirections | sfnew/sfsetfd without FILE* properly initialized | io.c sh_iorenumber |
-| Discipline callbacks | sfdisc event protocol (DPUSH/DPOP/DBUFFER) incomplete | io.c discipline defs |
-| Pipe in subshell | Stream state after fork — FILE* buffers not synced | subshell.c, jobs.c |
-| Edit/interactive | sfpkrd + sfreserve interaction on tty fds | edit/*.c |
-
-#### Replacement roadmap
-
-| sfio feature | Sites | Replacement | Status |
-|---|---|---|---|
-| Formatted I/O (sfprintf, sfwrite, etc.) | ~670 | stdio (fprintf, fwrite) | **Done** (macros) |
-| String streams (sfstropen/sfstruse) | ~40 | `open_memstream()` (POSIX 2008) | **Done** (sh_strbuf) |
-| Temp streams (sftmp) | 9 | `tmpfile()` | **Done** |
-| Standard streams (sfstdin/out/err) | ~350 | sh_stream_t pointer vars | **Done** |
-| Zero-copy reserve (sfreserve) | 21 | Custom buffer + LOCKR protocol | **Done** |
-| Stream stacking (sfstack) | 8 | Linked list on sh_stream_t | **Done** |
-| Disciplines (sfdisc) | 12 | Push/pop chain on sh_stream_t | Structural, needs events |
-| Stream pools (sfpool) | 13 | No-op (stdio self-buffers) | Sufficient for now |
-
-**Net: delete ~11.5k lines of sfio, add ~1200 lines of custom code.**
-(Estimate revised upward from 500 — sfreserve, sfgetr, sfpkrd, and
-integer encoding were more complex than "custom buffer peek".)
+- **stk decoupled** — `Stk_t` is now a real 24-byte struct with 0 sfio
+  symbols. The stack allocator works independently.
+- **Dead code deleted** — unused sfio subsystems identified and removed
+  (scanf, float conversion, mmap paths, popen, poll, stdio compat layer).
+- **sfprintf→stdio macros** — formatted output sites converted to stdio
+  wrappers, reducing the live sfio surface.
 
 #### Other libast subsystems
 
 | Subsystem | Sites | Status | Rationale |
 |---|---|---|---|
-| **stk** (stack allocator) | 273 | Decoupled (Phase 3) | `Stk_t` is now a real 24-byte struct, 0 sfio symbols. |
+| **stk** (stack allocator) | 273 | Decoupled | `Stk_t` is now a real 24-byte struct, 0 sfio symbols. |
 | **cdt** (containers) | 85 | Keep | `dtview()` scope chaining is shell-specific. ~4k lines, stable. |
 | **AST regex** | — | Keep | Working, tested. PCRE2 migration deferred. |
 
-#### Remaining phases
+#### Next steps
 
-```
-Phase 6: Fix the 79 remaining stdio test failures
-         - FILE* lifecycle (sfnew/sfsetfd/_sh_ensure_fp)
-         - Discipline event protocol (DPUSH/DPOP/DBUFFER)
-         - Here-doc I/O path (sftmp+sfseek+sfmove chain)
-         - Fork buffer sync (fflush before fork)
-
-Phase 7: Parity — stdio build passes 115/115
-         - Edit/interactive paths (sfpkrd+sfreserve on tty)
-         - Edge cases from full test suite
-
-Phase 8: Remove sfio from build
-         - Delete libast/sfio/ (80 files, ~11.5k LOC)
-         - Remove KSH_IO_SFIO conditional compilation
-         - sh_io.h becomes the only I/O header
-         - Update configure.sh, build.ninja generation
-
-Phase 9: Post-sfio cleanup
-         - Typed error handling (Result_t, notes/FUTURE.md)
-         - Unicode — utf8proc integration
-```
+The clean-room rewrite plan is fully specified in
+`notes/sfio-rewrite-v2.md` — polarity architecture, contract details,
+elimination analysis, implementation sequence, and risk assessment.
+Implementation has not started.
 
 
 ### Platform targeting
@@ -942,7 +861,7 @@ Nix flake provides these via `buildInputs` so the flake build path never
 needs the fallback.
 
 Man pages `shell.3` and `nval.3` converted from troff to scdoc format
-in `doc/`. The `just doc` recipe processes `doc/*.scd` into
+in `man/`. The `just doc` recipe processes `man/*.scd` into
 `build/$HOSTTYPE/man/`. The main man page `sh.1` (9,723 lines of
 troff) is deferred to a dedicated session.
 

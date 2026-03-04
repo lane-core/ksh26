@@ -252,7 +252,7 @@ doc:
         SCDOC={{BUILDDIR}}/deps/scdoc/scdoc
     fi
     mkdir -p {{BUILDDIR}}/man/man1 {{BUILDDIR}}/man/man3
-    for scd in doc/*.scd; do
+    for scd in man/*.scd; do
         [ -f "$scd" ] || continue
         base=$(basename "$scd" .scd)
         section=${base##*.}
