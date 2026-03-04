@@ -3,13 +3,6 @@ hdr	pthread,stdarg,stddef,stdint,inttypes,types,unistd
 sys	types
 typ	__va_list stdio.h
 
-std	noreturn note{ noreturn ok }end compile{
-	#include <stdlib.h>
-	#include <stdnoreturn.h>
-	noreturn void foo(void) { exit(0); }
-	int main(void) { foo(); }
-}end
-
 cat{
 	#if __clang__
 	#pragma clang diagnostic ignored "-Wmissing-braces"
@@ -50,11 +43,7 @@ cat{
 	#undef	Void_t
 	#define	Void_t		void
 
-	#if _std_noreturn
 	#include <stdnoreturn.h>
-	#else
-	#define noreturn /* empty */
-	#endif /* _std_noreturn */
 }end
 
 if	tst - note{ <stdarg.h>+<wchar.h> works }end compile{
@@ -518,66 +507,17 @@ run{
 	!
 }end
 
-tst - note{ does this compiler have __builtin_unreachable() }end output{
+cat{
 	/*
-	 * To avoid optimizing out the __builtin_unreachable() test call while also avoiding
-	 * executing it, put it in a test function that is called with argc as the argument.
-	 * argc should never be zero on init, but hopefully optimizers aren't that smart.
+	 * UNREACHABLE(): release builds use __builtin_unreachable() for
+	 * optimization; debug builds use abort() for crash diagnostics.
+	 * Note: this header is included by conf.sh probes from libast_work/,
+	 * so it must not #include files outside FEATURE/.
 	 */
-	#include <stdio.h>
-	#include "ast_release.h"
-	void testfn(int a)
-	{
-		switch(a)
-		{
-		case 0:
-			__builtin_unreachable();
-		default:
-	#if _AST_release
-			printf("#   define UNREACHABLE()\t__builtin_unreachable()\n");
+	#if defined(_AST_release) || !defined(DEBUG)
+	#define UNREACHABLE()	__builtin_unreachable()
 	#else
-			printf("#   define UNREACHABLE()\tabort()\n");
+	#define UNREACHABLE()	abort()
 	#endif
-		}
-	}
-	int main(int argc, char *argv[])
-	{
-		testfn(argc);
-		return 0;
-	}
-}end fail{
-	echo '#define UNREACHABLE()	abort()'
 }end
 
-# TODO: remove when we require C99
-tst	has___func__ note{ does this compiler have __func__ }end execute{
-	#include <string.h>
-	int testfn(void)
-	{
-		return strcmp(__func__,"testfn")==0;
-	}
-	int main(void)
-	{
-		return !(testfn && strcmp(__func__,"main")==0);
-	}
-}end
-
-# TODO: remove when we require C99 (use __func__)
-tst	has___FUNCTION__ note{ does this compiler have __FUNCTION__ }end execute{
-	#include <string.h>
-	int testfn(void)
-	{
-		return strcmp(__FUNCTION__,"testfn")==0;
-	}
-	int main(void)
-	{
-		return !(testfn && strcmp(__FUNCTION__,"main")==0);
-	}
-}end
-
-tst	has__Static_assert note{ does this compiler have _Static_assert }end execute{
-	int main(void)
-	{
-		_Static_assert(2 + 2 == 4, "poof goes reality");
-	}
-}end
