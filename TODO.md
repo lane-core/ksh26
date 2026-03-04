@@ -54,3 +54,18 @@ See `notes/posix8-deprecations.md` for the full audit.
 - [ ] **Mount chain (mnt.c → fmtfs.c → fts.c)** (low priority)
   Never called from the shell — only from libast-internal code. Candidate
   for removal as "unused libast subsystems."
+
+## Code quality tooling
+
+- [ ] **Add shellcheck to treefmt** (low priority)
+  Excluded from initial treefmt integration because `configure.sh` and
+  `tests/infra/iffe.sh` use `local` (SC3043) and intentional word splitting
+  on `$CFLAGS` (SC2086). Needs per-file `.shellcheckrc` or `shell=bash`
+  directive to be useful. Revisit when build scripts stabilize.
+
+- [ ] **Investigate include-what-you-use** (post-iffe, post-sfio)
+  IWYU's worst failure modes (templates) don't apply to C, but ksh26's
+  `FEATURE/` generated headers, iffe macros, and cross-platform `#if`
+  conditionals would require extensive mapping files. Prerequisite:
+  replace iffe.sh with configure.sh probes + single `config.h`. Revisit
+  after that migration.

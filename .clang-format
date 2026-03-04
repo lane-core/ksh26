@@ -1,0 +1,17 @@
+BasedOnStyle: LLVM
+
+UseTab: ForIndentation
+TabWidth: 8
+IndentWidth: 8
+
+BreakBeforeBraces: Allman
+SpaceBeforeParens: Never
+PointerAlignment: Right
+IndentCaseLabels: true
+
+ColumnLimit: 0
+SortIncludes: Never
+ReflowComments: false
+
+AllowShortIfStatementsOnASingleLine: WithoutElse
+SpaceBeforeAssignmentOperators: true

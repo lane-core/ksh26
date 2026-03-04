@@ -2,9 +2,14 @@
   description = "ksh26 — independent fork of ksh93u+m";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      treefmt-nix,
+    }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
@@ -12,6 +17,10 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
+
+      treefmtEval = forAllSystems (
+        system: treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix
+      );
     in
     {
       packages = forAllSystems (
@@ -95,7 +104,7 @@
       darwinModules.default = import ./nix/darwin-module.nix;
       nixosModules.default = import ./nix/nixos-module.nix;
 
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+      formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
 
       devShells = forAllSystems (
         system:
@@ -119,6 +128,7 @@
               pkgs.pkg-config
               pkgs.ccache
               pkgs.dash
+              treefmtEval.${system}.config.build.wrapper
             ]
             ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
               pkgs.lldb
@@ -178,6 +188,8 @@
             # Don't install — this is just for running tests
             installPhase = "touch $out";
           });
+
+          formatting = treefmtEval.${system}.config.build.check self;
 
           # asan check — AddressSanitizer + UBSan in nix sandbox
           asan = ksh26.overrideAttrs (old: {
