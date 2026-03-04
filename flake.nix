@@ -127,10 +127,6 @@
               runHook preBuild
               mkdir -p build/$HOSTTYPE/bin
               $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
-              # Base build first (asan shares feature probes via symlinks)
-              sh configure.sh
-              ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
-              # Asan variant
               sh configure.sh --asan
               ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-asan
               runHook postBuild

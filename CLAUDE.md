@@ -60,9 +60,7 @@ iteration output goes to `build/$HOSTTYPE/`.
 | `just build-debug` | Build with debug flags |
 | `just build-asan` | Build with sanitizers |
 | `just test-asan` | Run tests with sanitizers |
-| `just check` | Same as `just test` (alias for CI familiarity) |
-| `just check-asan` | Same as `just test-asan` |
-| `just check-all` | All nix checks (`nix flake check`) |
+| `just check-all` | All nix checks (tests + formatting) |
 
 **Iteration** (local samu, requires devshell):
 
@@ -112,13 +110,13 @@ exit $((Errors<125?Errors:125))
 Inside `nix develop`:
 - **Darwin**: `lldb -- build/$HOSTTYPE/bin/ksh -c '...'`
 - **Linux**: `gdb --args build/$HOSTTYPE/bin/ksh -c '...'`; `valgrind build/$HOSTTYPE/bin/ksh -c '...'`
-- **Compiler cache**: on by default in agent shell (`CC="ccache cc"`); opt out with `CC=cc just build`
+- **Compiler cache**: on by default in agent shell (`CC="ccache cc"`); opt out with `CC=cc` for iteration recipes
 - **LSP/clangd**: `just compile-commands` (generates `compile_commands.json` via samu)
 
 ### Cross-platform checks
 
 ```sh
-just check                                   # local system (same as CI)
+just test                                    # local system
 nix build .#checks.x86_64-linux.default      # explicit Linux (remote builder)
 ```
 
@@ -195,9 +193,8 @@ in a human team, use the agent. When in doubt, use the agent.
    A wrong approach that passes tests is worse than a right approach with
    a failing test.
 
-5. **Build and test**: `just test` must pass (nix-backed, content-addressed
-   — equivalent to `just check`). New warnings must be acknowledged or
-   fixed. Test count must not regress.
+5. **Build and test**: `just test` must pass (nix-backed, content-addressed).
+   New warnings must be acknowledged or fixed. Test count must not regress.
 
 ### Verdict format
 

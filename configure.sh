@@ -18,7 +18,7 @@
 # With --asan, enables AddressSanitizer + UBSan.
 #
 # Flags compose: --debug --asan → build/$HOSTTYPE-debug-asan/
-# Feature probes are shared from the base build via symlinks.
+# Each variant runs its own independent feature probes.
 
 set -o nounset -o errexit
 

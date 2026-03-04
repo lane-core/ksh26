@@ -9,7 +9,7 @@
 #
 # Usage: just build | just test | just clean
 #        just errors | just failures | just log
-#        just check | just check-asan | just check-all
+#        just check-all
 #
 # Override (iteration only): CC=clang just _dev-build
 
@@ -27,7 +27,7 @@ build:
 
 # Run all regression tests (content-addressed)
 test:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
+    nix build .#checks."$(nix eval --impure --raw --expr 'builtins.currentSystem')".default --print-build-logs
 
 # Build with debug flags
 build-debug:
@@ -39,19 +39,9 @@ build-asan:
 
 # Run tests with sanitizers
 test-asan:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
+    nix build .#checks."$(nix eval --impure --raw --expr 'builtins.currentSystem')".asan --print-build-logs
 
-# ── CI checks (nix sandbox) ─────────────────────────────────
-
-# Run the same checks CI runs (build + full test suite in nix sandbox)
-check:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".default --print-build-logs
-
-# Run asan checks in nix sandbox
-check-asan:
-    nix build .#checks."$(nix eval --raw nixpkgs#system)".asan --print-build-logs
-
-# Run all CI checks
+# Run all nix checks (tests + formatting)
 check-all:
     nix flake check --print-build-logs
 
@@ -191,20 +181,11 @@ log what="all" name="":
 doc:
     #!/bin/sh
     set -e
-    SCDOC=""
-    if command -v scdoc >/dev/null 2>&1; then
-        SCDOC=scdoc
-    elif [ -x {{BUILDDIR}}/deps/scdoc/scdoc ]; then
-        SCDOC={{BUILDDIR}}/deps/scdoc/scdoc
-    else
-        printf '%s\n' "scdoc not found, fetching ..."
-        mkdir -p {{BUILDDIR}}/deps
-        git clone --depth 1 --branch 1.11.3 \
-            https://github.com/ddevault/scdoc.git \
-            {{BUILDDIR}}/deps/scdoc 2>/dev/null
-        make -C {{BUILDDIR}}/deps/scdoc
-        SCDOC={{BUILDDIR}}/deps/scdoc/scdoc
+    if ! command -v scdoc >/dev/null 2>&1; then
+        printf 'scdoc not found; run inside nix develop\n' >&2
+        exit 1
     fi
+    SCDOC=scdoc
     mkdir -p {{BUILDDIR}}/man/man1 {{BUILDDIR}}/man/man3
     for scd in man/*.scd; do
         [ -f "$scd" ] || continue
@@ -218,7 +199,7 @@ doc:
 # Uses samu's built-in compdb — no build or bear needed
 compile-commands: bootstrap
     @test -f {{BUILDDIR}}/build.ninja \
-        -a {{BUILDDIR}}/build.ninja -nt configure.sh \
+        && test {{BUILDDIR}}/build.ninja -nt configure.sh \
         || sh configure.sh
     @{{SAMU}} -C {{BUILDDIR}} -t compdb cc > compile_commands.json
     @printf '%s\n' "wrote compile_commands.json ($(grep -c '"file"' compile_commands.json) entries)"
@@ -256,3 +237,4 @@ install prefix="/usr/local": build
     install -d {{prefix}}/bin
     install -m 755 result/bin/ksh {{prefix}}/bin/ksh
     install -m 755 result/bin/shcomp {{prefix}}/bin/shcomp
+    install -m 755 result/bin/pty {{prefix}}/bin/pty
