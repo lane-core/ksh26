@@ -990,7 +990,8 @@ w exit
 
 touch "$tmp/foo bar"
 # needs non-dumb terminal for multiline editing
-((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<!
+# Use relative path to keep line under 80 columns (nix sandbox $tmp is ~65 chars)
+((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
 L tab completion with space in string and -o noglob on
 # https://github.com/ksh93/ksh/pull/413
 # Amended to test that completion keeps working after -o noglob
@@ -999,9 +1000,9 @@ d 40
 p :test-1:
 w set -o noglob
 p :test-2:
-w echo $tmp/foo\\\\ \\t
-r ^:test-2: echo $tmp/foo\\\\ bar \\r\\n$
-r ^$tmp/foo bar\\r\\n$
+w echo foo\\ \t
+r ^:test-2: echo foo\\ bar \r\n$
+r ^foo bar\r\n$
 !
 
 ((SHOPT_HISTEXPAND)) && HISTFILE=$tmp/tmp_histfile tst $LINENO <<!
