@@ -69,6 +69,7 @@
               runHook preInstall
               install -Dm755 build/$HOSTTYPE/bin/ksh "$out/bin/ksh"
               install -Dm755 build/$HOSTTYPE/bin/shcomp "$out/bin/shcomp"
+              install -Dm755 build/$HOSTTYPE/bin/pty "$out/bin/pty"
               runHook postInstall
             '';
 
@@ -128,6 +129,7 @@
               pkgs.pkg-config
               pkgs.ccache
               pkgs.dash
+              pkgs.expect
               treefmtEval.${system}.config.build.wrapper
             ]
             ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
@@ -172,6 +174,8 @@
           default = ksh26.overrideAttrs (old: {
             name = "ksh26-tests";
 
+            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
+
             doCheck = true;
             checkPhase = ''
               # Sanity check: fail if test count drops below expected minimum
@@ -194,6 +198,8 @@
           # asan check — AddressSanitizer + UBSan in nix sandbox
           asan = ksh26.overrideAttrs (old: {
             name = "ksh26-asan-tests";
+
+            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
 
             buildPhase = ''
               runHook preBuild

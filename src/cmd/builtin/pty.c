@@ -114,6 +114,8 @@ static const char usage[] =
 #include <sys/stat.h>
 #include "FEATURE/pty"
 
+extern int b_stty(int, char **, Shbltin_t *);
+
 #define MODE_666 (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 #define MAXNAME 64
 

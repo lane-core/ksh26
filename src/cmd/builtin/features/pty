@@ -19,7 +19,7 @@ tst output{
 	#include	<unistd.h>
 	#include	<sys/types.h>
 	#include	<sys/stat.h>
-	#include	<sfio.h>
+	#include	<stdio.h>
 	int main(void)
 	{
 		int		i;
@@ -34,7 +34,7 @@ tst output{
 			{
 				if (ptsname(fd))
 				{
-					sfprintf(sfstdout, "#define _pty_clone\t\"%s\"\n", ptc[i]);
+					printf("#define _pty_clone\t\"%s\"\n", ptc[i]);
 					close(fd);
 					break;
 				}
@@ -44,7 +44,7 @@ tst output{
 		for (i = 0;; i++)
 			if(i >= (sizeof(pty) / sizeof(pty[0]) - 1) || stat(pty[i], &statb)>=0)
 			{
-				sfprintf(sfstdout, "#define _pty_first\t\"%s\"\n", pty[i]);
+				printf("#define _pty_first\t\"%s\"\n", pty[i]);
 				break;
 			}
 		return 0;

@@ -146,6 +146,7 @@ if $FORCE; then
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
+		"$BUILDDIR_ABS"/pty_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
 		"$BUILDDIR_ABS"/.utf8proc_cache \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
@@ -158,6 +159,7 @@ else
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
+		"$BUILDDIR_ABS"/pty_work/FEATURE/* \
 		"$BUILDDIR_ABS"/.iconv_cache \
 		"$BUILDDIR_ABS"/.utf8proc_cache 2>/dev/null || true
 fi
@@ -267,6 +269,15 @@ UTF8PROC_LIBS="$UTF8PROC_LIBS"
 HAVE_UTF8PROC=$HAVE_UTF8PROC
 EOF
 fi
+
+# ── libutil detection ─────────────────────────────────────────────────
+# On Linux, openpty() lives in libutil (-lutil). On Darwin, it's in
+# the default libraries. The pty command needs this at link time.
+
+UTIL_FLAGS=""
+case $HOSTTYPE in
+linux.*) UTIL_FLAGS="-lutil" ;;
+esac
 
 # ── iffe helper ───────────────────────────────────────────────────────
 # Install the iffe script so we can use it for feature detection.
@@ -575,6 +586,23 @@ run_libcmd_features()
 	run_iffe "$workdir" "$srcdir/features/sockets" &
 	run_iffe "$workdir" "$srcdir/features/ids" &
 	run_iffe "$workdir" "$srcdir/features/utsname" &
+	wait
+
+	# Copy FEATURE results
+	cp -f "$workdir/FEATURE"/* "$FEATDIR/" 2>/dev/null || true
+}
+
+# ── Feature tests: pty ─────────────────────────────────────────────────
+
+run_pty_features()
+{
+	local srcdir=$PACKAGEROOT_ABS/src/cmd/builtin
+	local workdir=$BUILDDIR_ABS/pty_work
+
+	mkdir -p "$workdir/FEATURE"
+
+	printf '%s\n' "configure: running pty feature tests ..."
+	run_iffe "$workdir" "$srcdir/features/pty" -lutil &
 	wait
 
 	# Copy FEATURE results
@@ -1102,11 +1130,11 @@ collect_libast_sources()
 
 collect_libcmd_sources()
 {
-	# Static builtin set (9) + support files (cmdinit, lib).
+	# Static builtin set (10) + support files (cmdinit, lib).
 	# Remaining libcmd sources stay in tree for builtin -f if
 	# dynamic loading is re-enabled.
 	for f in \
-		basename cat cp cut dirname getconf ln mktemp mv \
+		basename cat cp cut dirname getconf ln mktemp mv stty \
 		cmdinit lib \
 	; do
 		printf '%s\n' "src/lib/libcmd/$f.c"
@@ -1277,6 +1305,9 @@ NINJA
 $(collect_ksh26_sources)
 EOF
 
+	# pty needs: its own FEATURE/pty, libcmd headers, AST headers
+	local pty_cflags="-DERROR_CATALOG='\"builtin\"' -I$BUILDDIR_ABS/pty_work -I$src_abs/src/lib/libcmd $ast_std $ast_inc $ast_inc_parent"
+
 	cat >> "$ninja" <<NINJA
 
 build lib/libshell.a: ar $ksh_objs
@@ -1295,7 +1326,18 @@ build bin/shcomp: link obj/ksh26/shcomp.o | lib/libshell.a lib/libcmd.a lib/liba
   libs = -Llib -lshell -lcmd -last -lm $ICONV_FLAGS
   ldflags =
 
-default bin/ksh bin/shcomp
+# ── pty (test utility) ────────────────────────────────────
+build obj/pty/pty.o: cc $src_abs/src/cmd/builtin/pty.c
+  extra_cflags = $pty_cflags
+
+build obj/pty/pty_main.o: cc $src_abs/src/cmd/builtin/pty_main.c
+  extra_cflags = $pty_cflags
+
+build bin/pty: link obj/pty/pty_main.o obj/pty/pty.o | lib/libcmd.a lib/libast.a
+  libs = -Llib -lcmd -last -lm $ICONV_FLAGS $UTIL_FLAGS
+  ldflags =
+
+default bin/ksh bin/shcomp bin/pty
 NINJA
 
 	# ── Test targets ──────────────────────────────────────────
@@ -1311,11 +1353,11 @@ NINJA
 # samu test/basic.C.stamp — run one test
 
 rule test
-  command = sh $test_runner \$in \$mode \$out
+  command = \$wrapper sh $test_runner \$in \$mode \$out
   description = TEST \$desc
 
 rule test_serial
-  command = sh $test_runner \$in \$mode \$out
+  command = \$wrapper sh $test_runner \$in \$mode \$out
   description = TEST \$desc
   pool = serial
 
@@ -1339,11 +1381,18 @@ NINJA
 		*" $name "*) rule="test_serial" ;;
 		esac
 
+		# Extra build dependencies and wrapper for specific tests
+		local extra_deps="" test_wrapper=""
+		case "$name" in
+		pty) extra_deps=" bin/pty"; test_wrapper="unbuffer" ;;
+		esac
+
 		# C locale test
 		cat >> "$ninja" <<NINJA
-build test/${name}.C.stamp: $rule $test_sh | bin/ksh bin/shcomp
+build test/${name}.C.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps
   mode = C
   desc = $name (C)
+  wrapper = $test_wrapper
 NINJA
 		all_stamps="$all_stamps test/${name}.C.stamp"
 
@@ -1352,9 +1401,10 @@ NINJA
 		*" $name "*) ;;
 		*)
 			cat >> "$ninja" <<NINJA
-build test/${name}.C.UTF-8.stamp: $rule $test_sh | bin/ksh bin/shcomp
+build test/${name}.C.UTF-8.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps
   mode = C.UTF-8
   desc = $name (C.UTF-8)
+  wrapper = $test_wrapper
 NINJA
 			all_stamps="$all_stamps test/${name}.C.UTF-8.stamp"
 			;;
@@ -1613,10 +1663,11 @@ install_headers
 # Phase 1: Feature detection
 run_libast_features
 
-# libcmd, ksh26 are independent of each other
+# libcmd, ksh26, pty are independent of each other
 # (they only depend on libast feature headers being installed)
 run_libcmd_features &
 run_ksh26_features &
+run_pty_features &
 wait
 
 {
