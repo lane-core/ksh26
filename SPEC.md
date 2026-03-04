@@ -348,7 +348,9 @@ reduce ⟨μα.c₁|μ̃x.c₂⟩. The polarity frame API (`sh_polarity_enter`/
 `sh_polarity_leave`) enforces at runtime what focalization guarantees at the
 type level: a deterministic reduction order at every boundary crossing. Both
 resolve the same structural problem; the mechanism differs (syntactic prevention
-vs runtime enforcement), but the resolution strategy is the same.
+vs runtime enforcement), but the resolution strategy is the same. See
+§"Tightening the analogies" for incremental steps that narrow the gap between
+runtime enforcement and structural prevention.
 
 ### Non-associativity made concrete: the sh.prefix bugs
 
@@ -458,7 +460,8 @@ The duploid [2, 9] integrates two familiar compositional styles: Kleisli
 (comonadic/CBN — extract from and extend contexts). Both appear as concrete C
 idioms in ksh93. Commands have the structure of oblique maps P → N [9, Table 1]:
 they receive values and enter computation, matching the type signature. Whether
-the full composition laws carry over is unverified (structural analogy). Formal
+the full composition laws carry over is unverified (structural analogy; see
+§"Tightening the analogies" for a refined composition hierarchy). Formal
 definitions stay in the references; this section shows what the patterns look
 like in C.
 
@@ -476,7 +479,8 @@ rather than sequential function calls, but the expansion pipeline has monadic
 structure: each stage is a Kleisli-shaped step (value in → expanded value +
 effects), with `Mac_t`/`Stk_t` state and `siglongjmp` errors as the implicit
 monad. The stages compose within `copyto()`'s character loop rather than via
-explicit bind — structural analogy, not formal Kleisli composition.
+explicit bind — structural analogy, not formal Kleisli composition. See
+§"Tightening the analogies" for what explicit threading would require.
 
 Associativity holds within this pipeline: the stages compose freely because
 they all operate on the same polarity (positive/value). What breaks
@@ -570,6 +574,152 @@ instances.
 
 All four are instances of the same structural problem: **the polarity
 boundary discipline is maintained by convention, not by construction.**
+
+
+### Tightening the analogies
+
+The calibration in §"Monadic and comonadic patterns in C" identified two
+structural analogies (the monadic expansion pipeline and oblique map composition
+laws). Two further correspondences are partial identifications with gaps:
+focalization (§"The critical pair") resolves the same problem by different
+mechanism; process substitution (§"Shifts") has the correct polarity structure
+but a different evaluation strategy. This section examines all four, since the
+analysis informs refactoring priorities.
+
+#### Monadic expansion pipeline → explicit Kleisli threading
+
+**Current gap**: The expansion stages compose within `copyto()`'s character loop
+(macro.c:441) via global `Mac_t` access through `sh.mac_context`, rather than via
+explicit Kleisli bind. The monadic structure is present but implicit.
+
+**Existence proof**: `comsubst()` (macro.c:2244) already IS explicit Kleisli
+composition. It saves the full `Mac_t` state (`Mac_t savemac = *mp`, line 2253),
+enters computation mode via `sh_subshell()`, then restores the expansion context
+(`*mp = savemac`, line 2375). This is save → compute → restore: the Kleisli bind
+`a >>= f` where `a` is the expansion state, `f` is the command substitution, and
+the result is threaded back into the pipeline.
+
+**What would close the gap**: Generalize the `comsubst()` pattern to all stage
+transitions within `copyto()`. Concretely:
+
+- Each handler (`S_DOL`, `S_GRAVE`, `S_BRACE`, etc.) explicitly receives `Mac_t*`
+  as a parameter rather than reaching through `sh.mac_context`
+- Stage boundaries within the character loop use the same save/compute/restore
+  pattern that `comsubst()` uses at the command-substitution boundary
+- The implicit monad (`Mac_t` + `Stk_t` state + `siglongjmp` errors) is named
+  and its bind operation is uniform
+
+Multi-pass restructuring is not needed and would violate POSIX: the standard
+requires tilde, parameter, command sub, and arithmetic expansion to be
+interleaved within a single scan. The character loop is the correct architecture;
+what changes is making the state threading explicit within it.
+
+**Assessment**: Closable to identification. `comsubst()` is the existence proof;
+the remaining work is propagating its discipline to the other handlers.
+
+#### Command composition → duploid composition hierarchy
+
+**Current gap**: §"Oblique maps" treats all command composition uniformly as
+P → N oblique maps. Examination of `sh_exec()` reveals three distinct composition
+patterns, each satisfying a different duploid equation:
+
+| Pattern | Node types | Intermediary | Duploid equation | Mechanism |
+|---|---|---|---|---|
+| Pipeline | TFIL | Positive (pipe fd) | (•) Kleisli | Data flows left → pipe → right |
+| Sequencing | TLST, TAND, TORF | Negative (exec context) | (○) co-Kleisli | Exit status in `sh.exitval`; context shared |
+| Cut | TCOM, TFOR, TSETIO | — (fundamental interaction) | ⟨t \| e⟩ | Values meet computation |
+
+**Pipeline (•)**: The TFIL handler (xec.c:1865) creates actual pipes
+(`sh_pipe(pvn,1)`, line 1906), executes the left subtree with output redirected
+into the pipe, and the right subtree reads from it. The pipe fd is a genuine
+positive intermediary — data produced by the left command is consumed by the
+right. This IS oblique map composition: the (•) equation holds because both
+commands are P → N maps composed through a positive (value/data) link.
+
+**Sequencing (○)**: The TLST handler (xec.c:1978) executes left then right with
+no data link. TAND/TORF (xec.c:1993, 2003) branch on the left command's exit
+status (`sh_exec(...)==0` / `!=0`). Exit status is carried in the execution
+context (negative intermediary), not flowed as a value. This is co-Kleisli
+composition: the (○) equation holds because both commands operate within the
+same negative (computation) context.
+
+**Cut ⟨t|e⟩**: TCOM expands its arguments (value mode), then executes the
+command (computation mode). TFOR expands its word list (value), then iterates
+the body (computation). These are not compositions of commands — they are the
+fundamental cut where a producer meets a consumer. The polarity frame API
+mediates the boundary.
+
+**Assessment**: The correspondence strengthens by differentiating. Individual
+commands are oblique maps (the type signature P → N holds). Their *composition*
+falls into three categories matching three duploid structures. The uniform claim
+was imprecise, not wrong — it described the maps correctly but elided the
+distinct composition mechanisms. Naming the hierarchy makes the non-associativity
+result sharper: the (+,−) failure (§"Non-associativity made concrete") occurs
+specifically when pipeline-style (•) and sequencing-style (○) composition
+interact — when a value-mode intermediary appears inside a computation-mode
+context.
+
+#### Focalization → structural polarity enforcement
+
+**Current gap**: Focalization prevents the critical pair syntactically (type
+system); polarity frames enforce at runtime (save/restore discipline). The
+`sh_node_polarity[]` table (shnodes.h:232) classifies all 16 node types by
+polarity but is currently metadata — `sh_exec()` doesn't query it to determine
+frame discipline.
+
+**Three incremental steps**, each independently moving from convention toward
+construction:
+
+**Step 1 — Runtime depth tracking.** Add a `frame_depth` counter to `Shell_t`.
+Increment on `sh_polarity_enter`, decrement on `sh_polarity_leave`. Assert
+proper nesting in debug builds. This catches frame mismatches (enter without
+leave, double leave) automatically without changing any handler logic. Cost:
+one integer, two assertions. Immediate value: turns silent corruption into
+caught violations.
+
+**Step 2 — Activate the polarity table.** `sh_exec()` queries
+`sh_node_polarity[]` at dispatch time and auto-pushes a lite frame for
+`SH_POL_COMPUTE` nodes that don't already have one. This centralizes the
+frame discipline: instead of each handler deciding whether to push a frame,
+the dispatch loop handles it based on the classification table. Cost: a
+conditional at the top of the switch. Value: reduces the number of sites where
+a missing frame can cause a bug from ~16 (each handler) to 1 (the dispatch
+conditional).
+
+**Step 3 — Split mixed handlers.** Factor TCOM, TFOR, TWH, TSETIO, and TFUN
+into explicit value-phase and computation-phase sub-handlers with a frame
+boundary between them. Instead of a single `case TCOM:` that interleaves
+argument expansion and command execution, there would be `tcom_expand()` (value
+phase — expand arguments, process assignments) and `tcom_execute()` (computation
+phase — dispatch to builtin/external/function) with a polarity frame at the
+boundary. Cost: significant refactoring of the largest handlers. Value: makes
+the polarity boundary structural in the code, not just conventional. This is as
+close to syntactic prevention as C gets without custom static analysis tooling.
+
+**Assessment**: Each step is independently valuable and backwards-compatible.
+Step 1 is nearly free and should be early. Step 2 subsumes many manual frame
+sites. Step 3 is the most invasive but produces code where the polarity boundary
+is visible in the function call graph, not just in save/restore patterns within
+a function.
+
+#### Process substitution: why eagerness is correct
+
+The `<(cmd)` polarity shift (↓N — packaging a computation as a storable value)
+is genuine: a command (negative) is reified as a file path (positive) that can
+appear in word position. But the process runs eagerly — the fd must exist before
+the consumer opens it, because the consumer may be an external program that does
+a synchronous `open(2)`.
+
+This makes `<(cmd)` a **future**, not a **thunk**: same polarity structure (↓N),
+different evaluation strategy. A thunk defers execution until first access; a
+future starts execution immediately and provides the result when ready. The
+eagerness is not a gap to close but a design constraint imposed by POSIX process
+semantics. Lazy evaluation would require the shell to intercept the consumer's
+`open(2)` and start the producer on demand — possible in theory (via FUSE or
+ptrace), but architecturally absurd for a shell.
+
+The analogy label is correct: the polarity shift is exact, the evaluation
+strategy differs from the theoretical thunk.
 
 
 ## The refactoring direction
