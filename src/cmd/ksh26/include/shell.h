@@ -49,6 +49,8 @@ typedef struct
 } Shopt_t;
 
 typedef struct Shell_s Shell_t;
+static_assert(sizeof(Shopt_t) == 4 * sizeof(uint64_t),
+	"Shopt_t must be 4 uint64_t words for 256 options");
 
 #include <shcmd.h>
 

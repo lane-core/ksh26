@@ -54,6 +54,8 @@ struct comnod
 
 #define COMBITS 4
 #define COMMSK ((1 << COMBITS) - 1)
+static_assert(COMBITS == 4,
+	"COMBITS must be 4 (16 node types, determines COMMSK and TSHIFT)");
 #define COMSCAN (01 << COMBITS)
 #define COMFIXED (02 << COMBITS)
 

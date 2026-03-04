@@ -184,6 +184,7 @@ extern char *sh_getcwd(void);
 
 #define WBITS (sizeof(uint64_t) * 8)
 #define WMASK (0xff)
+static_assert(WBITS == 64, "Shopt_t option macros assume 64-bit words");
 
 #if SHOPT_SCRIPTONLY
 #define is_option(s, x) ((x) == SH_INTERACTIVE || (x) == SH_HISTORY ? 0 : ((s)->v[((x) & WMASK) / WBITS] & ((uint64_t)1 << ((x) % WBITS))))

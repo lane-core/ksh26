@@ -128,6 +128,8 @@ struct Namval
 #define NV_DATA "_" /* special class or instance variable */
 #define NV_MINSZ (sizeof(struct Namval) - sizeof(Dtlink_t) - sizeof(char *))
 #define nv_namptr(p, n) ((Namval_t *)((char *)(p) + (n) * NV_MINSZ - sizeof(Dtlink_t)))
+static_assert(sizeof(struct Namval) > sizeof(Dtlink_t) + sizeof(char *),
+	"NV_MINSZ requires Namval larger than Dtlink + char*");
 
 /* The following attributes are for internal use */
 #define NV_NOFREE 0x200   /* don't free the space when releasing value */

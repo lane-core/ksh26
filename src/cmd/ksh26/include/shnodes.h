@@ -247,6 +247,8 @@ constexpr enum sh_polartype sh_node_polarity[] =
 static_assert(
     sizeof(sh_node_polarity) / sizeof(sh_node_polarity[0]) == COMMSK + 1,
     "sh_node_polarity[] must have exactly COMMSK+1 entries (index with tretyp & COMMSK)");
+static_assert(TSHIFT == COMBITS + 4,
+    "TSHIFT must follow COMBITS for test operator positioning");
 
 extern void sh_freeup(void);
 extern void sh_funstaks(struct slnod *, int);
