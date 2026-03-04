@@ -35,14 +35,15 @@ each boundary crossing. Models of computation described by sequent calculus give
 vocabulary for these boundaries; ksh26 uses it to identify every crossing site
 and replace ad-hoc save/restore with a uniform frame API.
 
-[REDESIGN.md](REDESIGN.md) — implementation status.
-[SPEC.md](SPEC.md) — theoretical analysis.
-[DEVIATIONS.md](DEVIATIONS.md) — behavioral differences from upstream.
+- [REDESIGN.md](REDESIGN.md) — implementation status
+- [SPEC.md](SPEC.md) — theoretical analysis
+- [DEVIATIONS.md](DEVIATIONS.md) — behavioral differences from upstream
 
 ## Origin
 
-David Korn, AT&T Bell Labs, 1983. ksh93u+m (Martijn Dekker et al.,
-2020). ksh26 (Lane Biocini, 2025).
+- David Korn, AT&T Bell Labs, 1983
+- ksh93u+m (Martijn Dekker et al., 2020)
+- ksh26 (Lane Biocini, 2026)
 
 ## License
 
