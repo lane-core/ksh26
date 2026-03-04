@@ -1,5 +1,3 @@
-cmd	universe
-
 pth	ed fail{
 	echo '#define _pth_ed	"ed" /* ed not found on standard PATH */'
 }end

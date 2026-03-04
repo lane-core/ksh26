@@ -85,7 +85,6 @@ static const char usage[] =
 "		[+GNU]"
 "		[+POSIX]"
 "		[+SVID]"
-"		[+XBS5]"
 "		[+XOPEN]"
 "		[+XPG]"
 "}"

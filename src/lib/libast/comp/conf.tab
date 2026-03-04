@@ -284,12 +284,7 @@ PATH				AST	CS 1 MU		sh{
 	# DEFPATH should have been exported from package(1)
 	echo "\\"$DEFPATH\\""
 }
-PATH_LEADING_SLASHES		AST	CS 1 M		sh{
-	# HOSTTYPE should have been exported from package(1)
-	case $HOSTTYPE in
-	cygwin.*)	echo "\\"1\\"" ;;  # support UNC paths (with two leading slashes)
-	esac
-}
+PATH_LEADING_SLASHES		AST	CS 1 M
 PATH_MAX			POSIX	PC 1 CDLMUX	MAXPATHLEN 1024
 PBS				POSIX	SC 2 FUW
 PBS_ACCOUNTING			POSIX	SC 2 FUW

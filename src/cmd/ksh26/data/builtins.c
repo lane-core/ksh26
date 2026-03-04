@@ -2024,7 +2024,6 @@ const char sh_optumask[] =
 "}"
 "[+SEE ALSO?\bchmod\b(1)]"
 ;
-const char sh_optuniverse[]	= " [name]";
 const char sh_optunset[] =
 "[-1c?\n@(#)$Id: unset (AT&T Research) 1999-07-07 $\n]"
 "[--catalog?" SH_DICT "]"

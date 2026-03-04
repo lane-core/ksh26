@@ -27,11 +27,6 @@
  */
 
 #include <ast.h>
-#if _AIX /* XXX */
-#undef	major
-#undef	minor
-#undef	makedev
-#endif
 #include <ast_param.h>
 #include <ls.h>
 
