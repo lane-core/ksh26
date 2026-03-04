@@ -43,8 +43,7 @@ then	getmem()
 	{
 		ps -o rss= -p "$$"
 	}
-else	warning 'cannot find method to measure memory usage; skipping tests'
-	exit 0
+else	skip_all 'cannot find method to measure memory usage'
 fi
 
 # Parameters for test blocks.

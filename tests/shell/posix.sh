@@ -24,8 +24,7 @@ typeset -xi testint=123
 
 if ! (set -o posix) 2>/dev/null
 then
-	warning "$SHELL does not have a posix option -- skipping tests"
-	exit 0
+	skip_all "$SHELL does not have a posix option"
 fi
 command set --noposix 2>/dev/null && [[ ! -o posix ]] || err_exit "set --noposix does not work"
 command set --posix 2>/dev/null && [[ -o posix ]] || err_exit "set --posix does not work"

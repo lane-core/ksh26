@@ -31,13 +31,12 @@
 # the trickiest part of the tests is avoiding typeahead
 # in the pty dialogue
 
-((!SHOPT_SCRIPTONLY)) || { warning "interactive shell was compiled out -- tests skipped"; exit 0; }
-whence -q pty || { warning "pty command not found -- tests skipped"; exit 0; }
+((!SHOPT_SCRIPTONLY)) || skip_all "interactive shell was compiled out"
+whence -q pty || skip_all "pty command not found"
 case $(uname -s; [[ $HOSTTYPE == android.* ]] && echo _no_) in
 Darwin | DragonFly | FreeBSD | Linux | MidnightBSD )
 	;;
-* )	warning "pty not confirmed to work correctly on this system -- tests skipped"
-	exit 0 ;;
+* )	skip_all "pty not confirmed to work correctly on this system" ;;
 esac
 
 # On some systems, the stty command does not appear to work correctly on a pty pseudoterminal.
@@ -45,8 +44,7 @@ esac
 if	test -t 0 2>/dev/null </dev/tty && stty_restore=$(stty -g </dev/tty)
 then	trap 'stty "$stty_restore" </dev/tty' EXIT  # note: on ksh, the EXIT trap is also triggered for termination due to a signal
 	stty erase ^H kill ^X </dev/tty >/dev/tty 2>&1
-else	warning "cannot set tty state -- tests skipped"
-	exit 0
+else	skip_all "cannot set tty state"
 fi
 
 bintrue=$(whence -p true)
@@ -96,8 +94,7 @@ fi
 export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb
 
 if	! pty $bintrue < /dev/null
-then	warning "pty command hangs on $bintrue -- tests skipped"
-	exit 0
+then	skip_all "pty command hangs on $bintrue"
 fi
 
 # ksh invokes tput(1) to get terminal escape sequences necessary for multiline editing.
