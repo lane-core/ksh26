@@ -31,10 +31,8 @@
 
 static void assign(Namval_t *, const char *, int, Namfun_t *);
 
-int nv_compare(Dt_t *dict, void *sp, void *dp, Dtdisc_t *disc)
+int nv_compare([[maybe_unused]] Dt_t *dict, void *sp, void *dp, [[maybe_unused]] Dtdisc_t *disc)
 {
-	NOT_USED(dict);
-	NOT_USED(disc);
 	if(sp == dp)
 		return 0;
 	return strcmp((char *)sp, (char *)dp);
@@ -1271,9 +1269,8 @@ struct adata
 	char *attval;
 };
 
-static void delete_fun(Namval_t *np, void *data)
+static void delete_fun(Namval_t *np, [[maybe_unused]] void *data)
 {
-	NOT_USED(data);
 	nv_delete(np, sh.fun_tree, NV_NOFREE);
 }
 

@@ -118,12 +118,11 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 }
 
 /* signal handler for alarm call */
-static void sigalrm(int sig)
+static void sigalrm([[maybe_unused]] int sig)
 {
 	Timer_t *tp, *tplast, *tpold, *tpnext;
 	Sfdouble_t now;
 	static Sfdouble_t left;
-	NOT_USED(sig);
 	left = 0;
 	if(time_state & SIGALRM_CALL)
 		time_state &= ~SIGALRM_CALL;

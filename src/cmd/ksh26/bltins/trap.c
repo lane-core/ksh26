@@ -41,12 +41,10 @@ static const char trapfmt[] = "trap -- %s %s\n";
 static int sig_number(const char *);
 static void sig_list(int);
 
-int b_trap(int argc, char *argv[], Shbltin_t *context)
+int b_trap([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *arg = argv[1];
 	int sig, clear = 0, dflag = 0, lflag = 0, pflag = 0;
-	NOT_USED(argc);
-	NOT_USED(context);
 	while(sig = optget(argv, sh_opttrap))
 		switch(sig)
 		{
@@ -223,13 +221,11 @@ int b_trap(int argc, char *argv[], Shbltin_t *context)
     /* for the dictionary generator */
     int    b_stop(int argc,char *argv[],Shbltin_t *context){}
 #endif
-int b_kill(int argc, char *argv[], Shbltin_t *context)
+int b_kill([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *signame;
 	int sig = SIGTERM, flag = 0, n;
 	int usemenu = 0;
-	NOT_USED(argc);
-	NOT_USED(context);
 	if(**argv == 's') /* <s>top == kill -s STOP */
 	{
 		flag |= S_FLAG;
@@ -311,11 +307,9 @@ endopts:
 /*
  * former default alias suspend='kill -s STOP $$'
  */
-int b_suspend(int argc, char *argv[], Shbltin_t *context)
+int b_suspend([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int n;
-	NOT_USED(argc);
-	NOT_USED(context);
 	while((n = optget(argv, sh_optsuspend)))
 		switch(n)
 		{

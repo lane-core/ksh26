@@ -986,10 +986,9 @@ int job_kill(struct process *pw, int sig)
  * Kill process group with SIGHUP when the session is being disconnected.
  * (As this is called via job_walk(), it must accept the 'sig' argument.)
  */
-int job_hup(struct process *pw, int sig)
+int job_hup(struct process *pw, [[maybe_unused]] int sig)
 {
 	struct process *px;
-	NOT_USED(sig);
 	if(pw->p_pgrp == 0 || (pw->p_flag & P_DISOWN))
 		return 0;
 	job_lock();

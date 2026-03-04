@@ -2287,9 +2287,8 @@ static int scanfilter(Namval_t *np, struct scan *sp)
 /*
  * Handler function to invalidate a path name binding in the hash table
  */
-void nv_rehash(Namval_t *np, void *data)
+void nv_rehash(Namval_t *np, [[maybe_unused]] void *data)
 {
-	NOT_USED(data);
 	if(sh.subshell)
 	{
 		/* invalidate subshell node; if none exists, add a dummy */
@@ -2594,12 +2593,8 @@ static void put_optimize(Namval_t *np, const char *val, int flags, Namfun_t *fp)
 	optimize_clear(np, fp);
 }
 
-static Namfun_t *clone_optimize(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *clone_optimize([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namval_t *mp, [[maybe_unused]] int flags, [[maybe_unused]] Namfun_t *fp)
 {
-	NOT_USED(np);
-	NOT_USED(mp);
-	NOT_USED(flags);
-	NOT_USED(fp);
 	return NULL;
 }
 

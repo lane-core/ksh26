@@ -361,17 +361,15 @@ static void put_optindex(Namval_t *np, const char *val, int flags, Namfun_t *fp)
 		nv_disc(np, fp, NV_POP);
 }
 
-static Sfdouble_t nget_optindex(Namval_t *np, Namfun_t *fp)
+static Sfdouble_t nget_optindex(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	int32_t *lp = np->nvalue;
-	NOT_USED(fp);
 	return (Sfdouble_t)*lp;
 }
 
-static Namfun_t *clone_optindex(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *clone_optindex(Namval_t *np, Namval_t *mp, [[maybe_unused]] int flags, Namfun_t *fp)
 {
 	Namfun_t *dp = (Namfun_t *)sh_malloc(sizeof(Namfun_t));
-	NOT_USED(flags);
 	memcpy(dp, fp, sizeof(Namfun_t));
 	mp->nvalue = np->nvalue;
 	dp->nofree = 0;
@@ -579,26 +577,24 @@ static void put_seconds(Namval_t *np, const char *val, int flags, Namfun_t *fp)
 	*dp = dtime(&tp) - d;
 }
 
-static char *get_seconds(Namval_t *np, Namfun_t *fp)
+static char *get_seconds(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	int places = nv_size(np);
 	struct tms tp;
 	double d;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
-	NOT_USED(fp);
 	timeofday(&tp);
 	d = dtime(&tp) - offset;
 	sfprintf(sh.strbuf, "%.*f", places, d);
 	return sfstruse(sh.strbuf);
 }
 
-static Sfdouble_t nget_seconds(Namval_t *np, Namfun_t *fp)
+static Sfdouble_t nget_seconds(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	struct tms tp;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
-	NOT_USED(fp);
 	timeofday(&tp);
 	return dtime(&tp) - offset;
 }
@@ -692,33 +688,27 @@ static void put_srand(Namval_t *np, const char *val, int flags, Namfun_t *fp)
 		sh.srand_upper_bound = sh_arith(val);
 }
 
-static Sfdouble_t nget_srand(Namval_t *np, Namfun_t *fp)
+static Sfdouble_t nget_srand([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
-	NOT_USED(np);
-	NOT_USED(fp);
 	return (Sfdouble_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
 }
 
-static char *get_srand(Namval_t *np, Namfun_t *fp)
+static char *get_srand([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
-	NOT_USED(np);
-	NOT_USED(fp);
 	return fmtint(n, 1);
 }
 
 /*
  * These three routines are for LINENO
  */
-static Sfdouble_t nget_lineno(Namval_t *np, Namfun_t *fp)
+static Sfdouble_t nget_lineno([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	int d = 1;
 	if(error_info.line > 0)
 		d = error_info.line;
 	else if(error_info.context && error_info.context->line > 0)
 		d = error_info.context->line;
-	NOT_USED(np);
-	NOT_USED(fp);
 	return (Sfdouble_t)d;
 }
 
@@ -746,19 +736,17 @@ static char *get_lineno(Namval_t *np, Namfun_t *fp)
 	return fmtint(n, 1);
 }
 
-static char *get_lastarg(Namval_t *np, Namfun_t *fp)
+static char *get_lastarg(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	char *cp;
 	int pid;
-	NOT_USED(fp);
 	if(sh_isstate(SH_INIT) && (cp = sh.lastarg) && *cp == '*' && (pid = strtol(cp + 1, &cp, 10)) && *cp == '*')
 		nv_putval(np, cp + 1, 0);
 	return sh.lastarg;
 }
 
-static void put_lastarg(Namval_t *np, const char *val, int flags, Namfun_t *fp)
+static void put_lastarg(Namval_t *np, const char *val, int flags, [[maybe_unused]] Namfun_t *fp)
 {
-	NOT_USED(fp);
 	if(flags & NV_INTEGER)
 	{
 		sfprintf(sh.strbuf, "%.*Lg", 12, *((Sfdouble_t *)val));
@@ -966,13 +954,11 @@ static char *get_version(Namval_t *np, Namfun_t *fp)
 	return nv_getv(np, fp);
 }
 
-static Sfdouble_t nget_version(Namval_t *np, Namfun_t *fp)
+static Sfdouble_t nget_version([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	const char *cp = e_version + sizeof e_version - 15; /* version date */
 	int c;
 	Sflong_t t = 0;
-	NOT_USED(np);
-	NOT_USED(fp);
 	while(c = *cp++)
 		if(isdigit(c))
 			t = 10 * t + c - '0';
@@ -1010,9 +996,8 @@ static const Namdisc_t L_ARG_disc = {sizeof(Namfun_t), put_lastarg, get_lastarg}
 
 #define MAX_MATH_ARGS 3
 
-static char *name_math(Namval_t *np, Namfun_t *fp)
+static char *name_math(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
-	NOT_USED(fp);
 	sfprintf(sh.strbuf, ".sh.math.%s", np->nvname);
 	return sfstruse(sh.strbuf);
 }
@@ -1045,10 +1030,8 @@ static void math_init(void)
 	}
 }
 
-static Namval_t *create_math(Namval_t *np, const char *name, int flag, Namfun_t *fp)
+static Namval_t *create_math([[maybe_unused]] Namval_t *np, const char *name, [[maybe_unused]] int flag, Namfun_t *fp)
 {
-	NOT_USED(np);
-	NOT_USED(flag);
 	if(!name)
 		return SH_MATHNOD;
 	if(name[0] != 'a' || name[1] != 'r' || name[2] != 'g' || name[4] || !isdigit(name[3]) || (name[3] == '0' || (name[3] - '0') > MAX_MATH_ARGS))
@@ -1057,13 +1040,11 @@ static Namval_t *create_math(Namval_t *np, const char *name, int flag, Namfun_t 
 	return nv_namptr(sh.mathnodes, name[3] - '1');
 }
 
-static char *get_math(Namval_t *np, Namfun_t *fp)
+static char *get_math([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
 	Namval_t *mp, fake;
 	char *val;
 	int first = 0;
-	NOT_USED(np);
-	NOT_USED(fp);
 	fake.nvname = ".sh.math.";
 	mp = (Namval_t *)dtprev(sh.fun_tree, &fake);
 	while(mp = (Namval_t *)dtnext(sh.fun_tree, mp))
@@ -1078,12 +1059,11 @@ static char *get_math(Namval_t *np, Namfun_t *fp)
 	return val;
 }
 
-static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namfun_t *fp)
+static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, [[maybe_unused]] Namfun_t *fp)
 {
 	Namval_t *mp, fake;
 	char *name;
 	int getname = 0, off = stktell(sh.stk);
-	NOT_USED(fp);
 	fake.nvname = nv_name(np);
 	if(!event)
 	{
@@ -1120,9 +1100,8 @@ static const Namdisc_t LC_disc = {sizeof(Namfun_t), put_lang};
 /*
  * This function will get called whenever a configuration parameter changes
  */
-static int newconf(const char *name, const char *path, const char *value)
+static int newconf(const char *name, [[maybe_unused]] const char *path, const char *value)
 {
-	NOT_USED(path);
 	if(!name)
 		setenviron(value);
 	return 1;
@@ -1539,10 +1518,9 @@ struct Stats
 	int current;
 };
 
-static Namval_t *next_stat(Namval_t *np, Dt_t *root, Namfun_t *fp)
+static Namval_t *next_stat([[maybe_unused]] Namval_t *np, Dt_t *root, Namfun_t *fp)
 {
 	struct Stats *sp = (struct Stats *)fp;
-	NOT_USED(np);
 	if(!root)
 		sp->current = 0;
 	else if(++sp->current >= sp->numnodes)
@@ -1550,13 +1528,12 @@ static Namval_t *next_stat(Namval_t *np, Dt_t *root, Namfun_t *fp)
 	return nv_namptr(sp->nodes, sp->current);
 }
 
-static Namval_t *create_stat(Namval_t *np, const char *name, int flag, Namfun_t *fp)
+static Namval_t *create_stat(Namval_t *np, const char *name, [[maybe_unused]] int flag, Namfun_t *fp)
 {
 	struct Stats *sp = (struct Stats *)fp;
 	const char *cp = name;
 	int i = 0, n;
 	Namval_t *nq = 0;
-	NOT_USED(flag);
 	if(!name)
 		return SH_STATS;
 	while((i = *cp++) && i != '=' && i != '+' && i != '[')
@@ -1590,9 +1567,8 @@ static const Namdisc_t stat_disc =
         0, 0,
         next_stat};
 
-static char *name_stat(Namval_t *np, Namfun_t *fp)
+static char *name_stat(Namval_t *np, [[maybe_unused]] Namfun_t *fp)
 {
-	NOT_USED(fp);
 	sfprintf(sh.strbuf, ".sh.stats.%s", np->nvname);
 	return sfstruse(sh.strbuf);
 }

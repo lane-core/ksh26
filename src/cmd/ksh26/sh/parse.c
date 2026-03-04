@@ -164,11 +164,8 @@ static void typeset_order(const char *str, int line)
 	}
 }
 
-[[noreturn]] static int b_dummy(int argc, char *argv[], Shbltin_t *context)
+[[noreturn]] static int b_dummy([[maybe_unused]] int argc, [[maybe_unused]] char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(argc);
-	NOT_USED(argv[0]);
-	NOT_USED(context);
 	errormsg(SH_DICT, ERROR_PANIC, e_internal);
 	UNREACHABLE();
 }
@@ -2090,11 +2087,10 @@ unsigned long kiaentity(Lex_t *lexp, const char *name, int len, int type, int fi
 }
 #undef hash
 
-static void kia_add(Namval_t *np, void *data)
+static void kia_add(Namval_t *np, [[maybe_unused]] void *data)
 {
 	char *name = nv_name(np);
 	Lex_t *lp = (Lex_t *)data;
-	NOT_USED(data);
 	kiaentity(lp, name + 1, -1, *name, 0, -1, (*name == 'p' ? kia.unknown : kia.script), *((int *)np->nvalue), nv_size(np), "");
 }
 

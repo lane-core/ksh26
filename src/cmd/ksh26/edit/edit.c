@@ -589,14 +589,13 @@ static void flush_notifybuf(void)
  * The fixtime() macro resets the time to the time at entry in
  * this case.  This is not necessary for systems that have select().
  */
-int ed_read(void *context, int fd, char *buff, int size, int reedit)
+int ed_read(void *context, int fd, char *buff, int size, [[maybe_unused]] int reedit)
 {
 	Edit_t *ep = (Edit_t *)context;
 	int rv = -1;
 	int delim = ((ep->e_raw & RAWMODE) ? nttyparm.c_cc[VEOL] : '\n');
 	int mode = -1;
 	int (*waitevent)(int, long, int) = sh.waitevent;
-	NOT_USED(reedit);
 	/* sfpkrd must use select(2) to intercept SIGWINCH for ed_read */
 	if(size < 0)
 	{

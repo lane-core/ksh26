@@ -48,11 +48,10 @@ char *nv_getvtree(Namval_t *, Namfun_t *);
 static void put_tree(Namval_t *, const char *, int, Namfun_t *);
 static char *walk_tree(Namval_t *, Namval_t *, int);
 
-static int read_tree(Namval_t *np, Sfio_t *iop, int n, Namfun_t *dp)
+static int read_tree(Namval_t *np, Sfio_t *iop, int n, [[maybe_unused]] Namfun_t *dp)
 {
 	Sfio_t *sp;
 	int c;
-	NOT_USED(dp);
 	if(n >= 0)
 		return -1;
 	while((c = sfgetc(iop)) && isblank(c))

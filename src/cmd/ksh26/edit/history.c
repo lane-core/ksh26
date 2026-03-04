@@ -1108,11 +1108,10 @@ done:
 /*
  * Handle history file exceptions
  */
-static int hist_exceptf(Sfio_t *fp, int type, void *data, Sfdisc_t *handle)
+static int hist_exceptf(Sfio_t *fp, int type, [[maybe_unused]] void *data, Sfdisc_t *handle)
 {
 	int newfd, oldfd;
 	History_t *hp = (History_t *)handle;
-	NOT_USED(data);
 	if(type == SFIO_WRITE)
 	{
 		if(errno == ENOSPC || hp->histwfail++ >= 10)

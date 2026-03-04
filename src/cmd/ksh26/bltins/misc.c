@@ -59,9 +59,8 @@
 /*
  * Handler function for nv_scan() that unsets a variable's export attribute
  */
-static void noexport(Namval_t *np, void *data)
+static void noexport(Namval_t *np, [[maybe_unused]] void *data)
 {
-	NOT_USED(data);
 	if(sh.subshell && !sh.subshare)
 		sh_assignok(np, 0);
 	nv_offattr(np, NV_EXPORT);
@@ -74,13 +73,12 @@ static void noexport(Namval_t *np, void *data)
 /* for the dictionary generator */
 int    b_redirect(int argc,char *argv[],Shbltin_t *context){}
 #endif
-int b_exec(int argc, char *argv[], Shbltin_t *context)
+int b_exec(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int n;
 	const char *pname;
 	int clear = 0;
 	char *arg0 = 0;
-	NOT_USED(context);
 	sh.st.ioset = 0;
 	while(n = optget(argv, *argv[0] == 'r' ? sh_optredirect : sh_optexec))
 		switch(n)
@@ -172,12 +170,10 @@ int b_exec(int argc, char *argv[], Shbltin_t *context)
 	UNREACHABLE();
 }
 
-int b_let(int argc, char *argv[], Shbltin_t *context)
+int b_let([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int r;
 	char *arg;
-	NOT_USED(argc);
-	NOT_USED(context);
 	while(r = optget(argv, sh_optlet))
 		switch(r)
 		{
@@ -200,11 +196,9 @@ int b_let(int argc, char *argv[], Shbltin_t *context)
 	return r;
 }
 
-int b_eval(int argc, char *argv[], Shbltin_t *context)
+int b_eval([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int r;
-	NOT_USED(argc);
-	NOT_USED(context);
 	while(r = optget(argv, sh_opteval))
 		switch(r)
 		{
@@ -363,29 +357,22 @@ int b_dot_cmd(int n, char *argv[], Shbltin_t *context)
 /*
  * null, true command
  */
-int b_true(int argc, char *argv[], Shbltin_t *context)
+int b_true([[maybe_unused]] int argc, [[maybe_unused]] char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(argc);
-	NOT_USED(argv[0]);
-	NOT_USED(context);
 	return 0;
 }
 
 /*
  * false command
  */
-int b_false(int argc, char *argv[], Shbltin_t *context)
+int b_false([[maybe_unused]] int argc, [[maybe_unused]] char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(argc);
-	NOT_USED(argv[0]);
-	NOT_USED(context);
 	return 1;
 }
 
-int b_shift(int n, char *argv[], Shbltin_t *context)
+int b_shift(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *arg;
-	NOT_USED(context);
 	while((n = optget(argv, sh_optshift)))
 		switch(n)
 		{
@@ -417,9 +404,8 @@ int b_shift(int n, char *argv[], Shbltin_t *context)
 	return 0;
 }
 
-int b_wait(int n, char *argv[], Shbltin_t *context)
+int b_wait(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(context);
 	while((n = optget(argv, sh_optwait)))
 		switch(n)
 		{
@@ -446,11 +432,10 @@ int b_wait(int n, char *argv[], Shbltin_t *context)
 	int    b_fg(int n,char *argv[],Shbltin_t *context){}
 	int    b_disown(int n,char *argv[],Shbltin_t *context){}
 #endif
-int b_bg(int n, char *argv[], Shbltin_t *context)
+int b_bg(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int flag = **argv;
 	const char *optstr = sh_optbg;
-	NOT_USED(context);
 	if(*argv[0] == 'f')
 		optstr = sh_optfg;
 	else if(*argv[0] == 'd')
@@ -487,10 +472,9 @@ int b_bg(int n, char *argv[], Shbltin_t *context)
 	return sh.exitval;
 }
 
-int b_jobs(int n, char *argv[], Shbltin_t *context)
+int b_jobs(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int flag = 0;
-	NOT_USED(context);
 	while((n = optget(argv, sh_optjobs)))
 		switch(n)
 		{
@@ -580,9 +564,8 @@ static void print_cpu_times(void)
 	print_times(utime, stime);
 }
 #endif /* _lib_getrusage */
-int b_times(int argc, char *argv[], Shbltin_t *context)
+int b_times(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(context);
 	/* No options or operands are supported, except --man, etc. */
 	if(argc = optget(argv, sh_opttimes)) switch(argc)
 		{

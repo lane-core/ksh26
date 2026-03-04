@@ -175,11 +175,8 @@ int path_complete(const char *name, const char *suffix, struct argnod **arghead)
 
 #if SHOPT_BRACEPAT
 
-static int checkfmt(Sfio_t *sp, void *vp, Sffmt_t *fp)
+static int checkfmt([[maybe_unused]] Sfio_t *sp, [[maybe_unused]] void *vp, [[maybe_unused]] Sffmt_t *fp)
 {
-	NOT_USED(sp);
-	NOT_USED(vp);
-	NOT_USED(fp);
 	return -1;
 }
 

@@ -114,34 +114,27 @@ static char *nullarg[] = {0, 0};
 static int exitval;
 
 #if !SHOPT_ECHOPRINT
-int B_echo(int argc, char *argv[], Shbltin_t *context)
+int B_echo([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	struct print prdata;
 	prdata.options = sh_optecho + 5;
 	prdata.raw = prdata.echon = 0;
-	NOT_USED(argc);
-	NOT_USED(context);
 	return b_print(0, argv, (Shbltin_t *)&prdata);
 }
 #endif /* SHOPT_ECHOPRINT */
 
-int b_printf(int argc, char *argv[], Shbltin_t *context)
+int b_printf([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	struct print prdata;
-	NOT_USED(argc);
-	NOT_USED(context);
 	memset(&prdata, 0, sizeof(prdata));
 	prdata.options = sh_optprintf;
 	return b_print(-1, argv, (Shbltin_t *)&prdata);
 }
 
-static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
+static int infof([[maybe_unused]] Opt_t *op, ast_wbuf_t *sp, [[maybe_unused]] const char *s, [[maybe_unused]] Optdisc_t *dp)
 {
 	const struct printmap *pm;
 	char c = '%';
-	NOT_USED(op);
-	NOT_USED(s);
-	NOT_USED(dp);
 	for(pm = Pmap; pm->size > 0; pm++)
 		ast_wbuf_printf(sp, "[+%c(%s)q?Equivalent to %s.]", c, pm->name, pm->equivalent);
 	return 1;
@@ -712,7 +705,7 @@ static const char *mapformat(Sffmt_t *fe)
 	return NULL;
 }
 
-static int extend(Sfio_t *sp, void *v, Sffmt_t *fe)
+static int extend([[maybe_unused]] Sfio_t *sp, void *v, Sffmt_t *fe)
 {
 	char *lastchar = "";
 	Sfdouble_t d;
@@ -725,7 +718,6 @@ static int extend(Sfio_t *sp, void *v, Sffmt_t *fe)
 	struct printf *pp = (struct printf *)fe;
 	char *argp = *pp->nextarg;
 	char *w, *s;
-	NOT_USED(sp);
 	if(fe->n_str > 0 && (format == 'T' || format == 'Q') && varname(fe->t_str, fe->n_str) && (!argp || varname(argp, -1)))
 	{
 		if(argp)

@@ -1721,11 +1721,10 @@ Pathcomp_t *path_dirfind(Pathcomp_t *first, const char *name, int c)
 /*
  * get discipline for tracked alias
  */
-static char *talias_get(Namval_t *np, Namfun_t *nvp)
+static char *talias_get(Namval_t *np, [[maybe_unused]] Namfun_t *nvp)
 {
 	Pathcomp_t *pp = np->nvalue;
 	char *ptr;
-	NOT_USED(nvp);
 	if(!pp)
 		return NULL;
 	sh.last_table = 0;

@@ -280,12 +280,11 @@ static const Namdisc_t alarmdisc =
         setdisc,
 };
 
-int b_alarm(int argc, char *argv[], Shbltin_t *context)
+int b_alarm(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int n, rflag = 0;
 	Namval_t *np;
 	struct tevent *tp;
-	NOT_USED(context);
 	while(n = optget(argv, sh_optalarm))
 		switch(n)
 		{

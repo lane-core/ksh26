@@ -35,23 +35,17 @@
 #endif
 
 #ifdef _no_ulimit
-int b_ulimit(int argc, char *argv[], Shbltin_t *context)
+int b_ulimit([[maybe_unused]] int argc, [[maybe_unused]] char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(argc);
-	NOT_USED(argv);
-	NOT_USED(context);
 	errormsg(SH_DICT, ERROR_exit(2), e_nosupport);
 	UNREACHABLE();
 }
 #else
 
-static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
+static int infof([[maybe_unused]] Opt_t *op, ast_wbuf_t *sp, [[maybe_unused]] const char *s, [[maybe_unused]] Optdisc_t *dp)
 {
 	const Limit_t *tp;
 
-	NOT_USED(op);
-	NOT_USED(s);
-	NOT_USED(dp);
 	for(tp = shtab_limits; tp->option; tp++)
 	{
 		ast_wbuf_printf(sp, "[%c=%d:%s?The %s", tp->option, tp - shtab_limits + 1, tp->name, tp->description);
@@ -65,7 +59,7 @@ static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
 #define HARD 2
 #define SOFT 4
 
-int b_ulimit(int argc, char *argv[], Shbltin_t *context)
+int b_ulimit(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *limit;
 	int mode = 0, n;
@@ -79,7 +73,6 @@ int b_ulimit(int argc, char *argv[], Shbltin_t *context)
 	rlim_t i = 0;
 	char tmp[41];
 	Optdisc_t disc;
-	NOT_USED(context);
 	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;
 	disc.infof = infof;

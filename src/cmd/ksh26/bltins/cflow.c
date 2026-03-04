@@ -42,11 +42,10 @@
     /* for the dictionary generator */
     int	b_exit(int n, char *argv[],Shbltin_t *context){}
 #endif
-int b_return(int n, char *argv[], Shbltin_t *context)
+int b_return(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	/* 'return' outside of function, dotscript and profile behaves like 'exit' */
 	const int do_exit = **argv == 'e' || sh.fn_depth == 0 && sh.dot_depth == 0 && (!sh_isstate(SH_PROFILE) || sh.realsubshell);
-	NOT_USED(context);
 	while((n = optget(argv, **argv == 'e' ? sh_optexit : sh_optreturn)))
 		switch(n)
 		{
@@ -102,11 +101,10 @@ done:
     /* for the dictionary generator */
     int	b_continue(int n, char *argv[],Shbltin_t *context){}
 #endif
-int b_break(int n, char *argv[], Shbltin_t *context)
+int b_break(int n, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *arg;
 	int cont = **argv == 'c';
-	NOT_USED(context);
 	while((n = optget(argv, cont ? sh_optcont : sh_optbreak)))
 		switch(n)
 		{

@@ -238,10 +238,8 @@ static void put_chtype(Namval_t *np, const char *val, int flag, Namfun_t *fp)
 	}
 }
 
-static Namfun_t *clone_chtype(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *clone_chtype([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namval_t *mp, int flags, Namfun_t *fp)
 {
-	NOT_USED(np);
-	NOT_USED(mp);
 	if(flags & NV_NODISC)
 		return NULL;
 	return nv_clone_disc(fp, flags);
@@ -467,13 +465,12 @@ static Namfun_t *clone_type(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
 /*
  * return Namval_t* corresponding to child <name> in <np>
  */
-static Namval_t *create_type(Namval_t *np, const char *name, int flag, Namfun_t *fp)
+static Namval_t *create_type(Namval_t *np, const char *name, [[maybe_unused]] int flag, Namfun_t *fp)
 {
 	Namtype_t *dp = (Namtype_t *)fp;
 	const char *cp = name;
 	int i = 0, n;
 	Namval_t *nq = 0;
-	NOT_USED(flag);
 	if(!name)
 		return dp->parent;
 	while((n = *cp++) && n != '=' && n != '+' && n != '[')
@@ -575,10 +572,9 @@ static Namval_t *next_type(Namval_t *np, Dt_t *root, Namfun_t *fp)
 	return nv_namptr(dp->nodes, dp->current);
 }
 
-static Namfun_t *clone_inttype(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *clone_inttype(Namval_t *np, Namval_t *mp, [[maybe_unused]] int flags, Namfun_t *fp)
 {
 	Namfun_t *pp = (Namfun_t *)sh_malloc(fp->dsize);
-	NOT_USED(flags);
 	memcpy(pp, fp, fp->dsize);
 	fp->nofree &= ~1;
 	if(nv_isattr(mp, NV_NOFREE) && mp->nvalue)
@@ -591,14 +587,13 @@ static Namfun_t *clone_inttype(Namval_t *np, Namval_t *mp, int flags, Namfun_t *
 	return pp;
 }
 
-static int typeinfo(Opt_t *op, ast_wbuf_t *out, const char *str, Optdisc_t *fp)
+static int typeinfo([[maybe_unused]] Opt_t *op, ast_wbuf_t *out, const char *str, Optdisc_t *fp)
 {
 	char *cp, **help, buffer[256];
 	Namtype_t *dp;
 	Namval_t *np, *nq, *tp;
 	int n, i, offset = stktell(sh.stk);
 	Sfio_t *sp;
-	NOT_USED(op);
 	np = *(Namval_t **)(fp + 1);
 	stkputs(sh.stk, NV_CLASS, '.');
 	stkputs(sh.stk, np->nvname, 0);

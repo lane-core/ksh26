@@ -545,10 +545,8 @@ sfdisc(sh_stream_t *f, sh_disc_t *d)
  */
 
 sh_stream_t *
-sfpool(sh_stream_t *f1, sh_stream_t *f2, int action)
+sfpool(sh_stream_t *f1, [[maybe_unused]] sh_stream_t *f2, [[maybe_unused]] int action)
 {
-	(void)f2;
-	(void)action;
 	return f1;
 }
 
@@ -589,9 +587,8 @@ int sfstacked(sh_stream_t *f)
 
 /* ── sfclrlock — clear stream lock ─────────────────────────── */
 
-int sfclrlock(sh_stream_t *f)
+int sfclrlock([[maybe_unused]] sh_stream_t *f)
 {
-	(void)f;
 	return 0;
 }
 
@@ -755,11 +752,10 @@ sfstack(sh_stream_t *f1, sh_stream_t *f2)
  * optimization later.
  */
 sh_stream_t *
-sftmp(size_t size)
+sftmp([[maybe_unused]] size_t size)
 {
 	FILE *fp;
 	sh_stream_t *f;
-	(void)size;
 	fp = tmpfile();
 	if(!fp)
 		return NULL;
@@ -1092,11 +1088,8 @@ sfrd(sh_stream_t *f, void *buf, size_t n, sh_disc_t *disc)
  * sfpoll: poll multiple streams for readiness.
  * Only 1 call site (mkservice.c, optional feature). Not implemented.
  */
-int sfpoll(sh_stream_t **fds, int n, int tm)
+int sfpoll([[maybe_unused]] sh_stream_t **fds, [[maybe_unused]] int n, [[maybe_unused]] int tm)
 {
-	(void)fds;
-	(void)n;
-	(void)tm;
 	return -1;
 }
 
@@ -1214,15 +1207,10 @@ sfgetl(sh_stream_t *f)
  * sfkeyprintf: formatted I/O with key lookup.
  * 0 call sites in ksh26. Not implemented.
  */
-int sfkeyprintf(sh_stream_t *f, void *handle, const char *fmt,
-                int (*lookup)(void *, sh_stream_t *, off_t, const char *, int, sh_disc_t *, int),
-                int (*convert)(void *, sh_stream_t *, const char *))
+int sfkeyprintf([[maybe_unused]] sh_stream_t *f, [[maybe_unused]] void *handle, [[maybe_unused]] const char *fmt,
+                [[maybe_unused]] int (*lookup)(void *, sh_stream_t *, off_t, const char *, int, sh_disc_t *, int),
+                [[maybe_unused]] int (*convert)(void *, sh_stream_t *, const char *))
 {
-	(void)f;
-	(void)handle;
-	(void)fmt;
-	(void)lookup;
-	(void)convert;
 	return -1;
 }
 

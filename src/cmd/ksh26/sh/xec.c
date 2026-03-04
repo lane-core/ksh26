@@ -69,9 +69,8 @@ struct funenv
 #if !SHOPT_DEVFD
 static pid_t fifo_save_ppid;
 
-static void fifo_check(void *handle)
+static void fifo_check([[maybe_unused]] void *handle)
 {
-	NOT_USED(handle);
 	if(getppid() != fifo_save_ppid)
 	{
 		unlink(sh.fifo);
@@ -2806,9 +2805,8 @@ int sh_trace(char *argv[], int nl)
 	return 0;
 }
 
-static void timed_out(void *handle)
+static void timed_out([[maybe_unused]] void *handle)
 {
-	NOT_USED(handle);
 	timeout = 0;
 }
 
@@ -2968,10 +2966,9 @@ pid_t sh_fork(int flags, int *jobid)
 /*
  * add exports from previous scope to the new scope
  */
-static void local_exports(Namval_t *np, void *data)
+static void local_exports(Namval_t *np, [[maybe_unused]] void *data)
 {
 	Namval_t *mp;
-	NOT_USED(data);
 	if(!nv_isnull(np) && (mp = nv_search(nv_name(np), sh.var_tree, NV_ADD | NV_NOSCOPE)) && nv_isnull(mp))
 		nv_clone(np, mp, 0);
 }
@@ -3020,7 +3017,7 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
  * to a function that will be executed in the current environment.
  * scope boundary: full sh.st save/restore (polarity boundary)
  */
-int sh_funscope(int argn, char *argv[], int (*fun)(void *), void *arg, int execflg)
+int sh_funscope([[maybe_unused]] int argn, char *argv[], int (*fun)(void *), void *arg, int execflg)
 {
 	char *trap;
 	int nsig;
@@ -3038,7 +3035,6 @@ int sh_funscope(int argn, char *argv[], int (*fun)(void *), void *arg, int execf
 	Namval_t *nspace = sh.namespace;
 	Dt_t *last_root = sh.last_root;
 	Shopt_t save_options;
-	NOT_USED(argn);
 	*prevscope = sh.st;
 	sh.st.prevst = prevscope;
 	sh.st.self = savst;

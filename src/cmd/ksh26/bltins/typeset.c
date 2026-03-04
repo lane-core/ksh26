@@ -89,13 +89,11 @@ static void (*nullscan)(Namval_t *, void *);
     /* for the dictionary generator */
     int    b_export(int argc,char *argv[],Shbltin_t *context){}
 #endif
-int b_readonly(int argc, char *argv[], Shbltin_t *context)
+int b_readonly([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int flag;
 	char *command = argv[0];
 	struct tdata tdata;
-	NOT_USED(argc);
-	NOT_USED(context);
 	memset(&tdata, 0, sizeof(tdata));
 	tdata.aflag = '-';
 	while((flag = optget(argv, *command == 'e' ? sh_optexport : sh_optreadonly)))
@@ -134,14 +132,12 @@ int b_readonly(int argc, char *argv[], Shbltin_t *context)
     /* for the dictionary generator */
     int    b_hash(int argc,char *argv[],Shbltin_t *context){}
 #endif
-int b_alias(int argc, char *argv[], Shbltin_t *context)
+int b_alias([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	unsigned flag = NV_NOARRAY | NV_NOSCOPE | NV_ASSIGN;
 	Dt_t *troot;
 	int rflag = 0, xflag = 0, n;
 	struct tdata tdata;
-	NOT_USED(argc);
-	NOT_USED(context);
 	memset(&tdata, 0, sizeof(tdata));
 	troot = sh.alias_tree;
 	if(*argv[0] == 'h')
@@ -1126,7 +1122,7 @@ Shbltin_f sh_getlib(char *sym, Pathcomp_t *pp)
  * add change or list built-ins
  * adding builtins requires dlopen() interface
  */
-int b_builtin(int argc, char *argv[], Shbltin_t *context)
+int b_builtin([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *arg = 0, *name;
 	int n, r = 0, flag = 0;
@@ -1139,8 +1135,6 @@ int b_builtin(int argc, char *argv[], Shbltin_t *context)
 #if SHOPT_DYNAMIC
 	int list = 0;
 #endif
-	NOT_USED(argc);
-	NOT_USED(context);
 	memset(&tdata, 0, sizeof(tdata));
 	stkp = sh.stk;
 	if(!sh.pathlist)
@@ -1287,10 +1281,9 @@ int b_builtin(int argc, char *argv[], Shbltin_t *context)
 	return r;
 }
 
-int b_set(int argc, char *argv[], Shbltin_t *context)
+int b_set(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	struct tdata tdata;
-	NOT_USED(context);
 	memset(&tdata, 0, sizeof(tdata));
 	tdata.prefix = 0;
 	if(argv[1])
@@ -1315,19 +1308,17 @@ int b_set(int argc, char *argv[], Shbltin_t *context)
  * Non-existent items being deleted give non-zero exit status
  */
 
-int b_unalias(int argc, char *argv[], Shbltin_t *context)
+int b_unalias(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(context);
 	return unall(argc, argv, sh.alias_tree);
 }
 
-int b_unset(int argc, char *argv[], Shbltin_t *context)
+int b_unset(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(context);
 	return unall(argc, argv, sh.var_tree);
 }
 
-static int unall(int argc, char **argv, Dt_t *troot)
+static int unall([[maybe_unused]] int argc, char **argv, Dt_t *troot)
 {
 	Namval_t *np;
 	const char *name;
@@ -1335,7 +1326,6 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	Dt_t *dp;
 	int nflag = 0, all = 0, isfun, jmpval;
 	struct checkpt buff;
-	NOT_USED(argc);
 	if(troot == sh.alias_tree)
 		name = sh_optunalias;
 	else

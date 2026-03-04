@@ -95,10 +95,8 @@ void *sh_argopen(void)
 	return sh_newof(0, Arg_t, 1, 0);
 }
 
-static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
+static int infof([[maybe_unused]] Opt_t *op, ast_wbuf_t *sp, const char *s, [[maybe_unused]] Optdisc_t *dp)
 {
-	NOT_USED(op);
-	NOT_USED(dp);
 	if(*s != ':')
 		ast_wbuf_puts(sp, sh_set);
 	return 1;

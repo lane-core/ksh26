@@ -31,11 +31,9 @@
 #include <nval.h>
 #include "builtins.h"
 
-static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
+static int infof([[maybe_unused]] Opt_t *op, ast_wbuf_t *sp, const char *s, [[maybe_unused]] Optdisc_t *dp)
 {
 	Stk_t *stkp = sh.stk;
-	NOT_USED(op);
-	NOT_USED(dp);
 #if SHOPT_NAMESPACE
 	if((sh.namespace && sh_fsearch(s, 0)) || nv_search(s, sh.fun_tree, 0))
 #else
@@ -53,7 +51,7 @@ static int infof(Opt_t *op, ast_wbuf_t *sp, const char *s, Optdisc_t *dp)
 	return 1;
 }
 
-int b_getopts(int argc, char *argv[], Shbltin_t *context)
+int b_getopts(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *options = error_info.context->id;
 	Namval_t *np;
@@ -64,7 +62,6 @@ int b_getopts(int argc, char *argv[], Shbltin_t *context)
 	struct checkpt buff, *pp;
 	Optdisc_t disc;
 
-	NOT_USED(context);
 	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;
 	disc.infof = infof;

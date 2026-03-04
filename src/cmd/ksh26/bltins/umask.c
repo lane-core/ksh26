@@ -35,11 +35,10 @@
 #define SH_DICT "libshell"
 #endif
 
-int b_umask(int argc, char *argv[], Shbltin_t *context)
+int b_umask(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *mask;
 	int flag = 0, pflag = 0, sflag = 0;
-	NOT_USED(context);
 	while((argc = optget(argv, sh_optumask)))
 		switch(argc)
 		{

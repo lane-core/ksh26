@@ -114,13 +114,12 @@ short b_enum_nelem(Namfun_t *fp)
 	return ((struct Enum *)fp)->nelem;
 }
 
-static int enuminfo(Opt_t *op, ast_wbuf_t *out, const char *str, Optdisc_t *fp)
+static int enuminfo([[maybe_unused]] Opt_t *op, ast_wbuf_t *out, const char *str, Optdisc_t *fp)
 {
 	Namval_t *np;
 	struct Enum *ep;
 	int n = 0;
 	const char *v;
-	NOT_USED(op);
 	np = *(Namval_t **)(fp + 1);
 	ep = (struct Enum *)np->nvfun;
 	if(!ep)
@@ -148,12 +147,9 @@ static int enuminfo(Opt_t *op, ast_wbuf_t *out, const char *str, Optdisc_t *fp)
 	return 0;
 }
 
-static Namfun_t *clone_enum(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *clone_enum([[maybe_unused]] Namval_t *np, [[maybe_unused]] Namval_t *mp, [[maybe_unused]] int flags, Namfun_t *fp)
 {
 	struct Enum *ep, *pp = (struct Enum *)fp;
-	NOT_USED(np);
-	NOT_USED(mp);
-	NOT_USED(flags);
 	ep = sh_newof(0, struct Enum, 1, pp->nelem * sizeof(char *));
 	memcpy(ep, pp, sizeof(struct Enum) + pp->nelem * sizeof(char *));
 	return &ep->hdr;

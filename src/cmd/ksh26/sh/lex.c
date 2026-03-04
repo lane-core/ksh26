@@ -2432,12 +2432,11 @@ struct alias
 /*
  * This code gets called whenever an end of string is found with alias
  */
-static int alias_exceptf(Sfio_t *iop, int type, void *data, Sfdisc_t *handle)
+static int alias_exceptf(Sfio_t *iop, int type, [[maybe_unused]] void *data, Sfdisc_t *handle)
 {
 	struct alias *ap = (struct alias *)handle;
 	Namval_t *np;
 	Lex_t *lp;
-	NOT_USED(data);
 	if(type == 0 || type == SFIO_ATEXIT || !ap)
 		return 0;
 	lp = ap->lp;

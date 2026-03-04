@@ -49,10 +49,9 @@ static int whence(char **, int);
  * In this case return 0 when -v or -V or unknown option, otherwise
  *   the shift count to the command is returned
  */
-int b_command(int argc, char *argv[], Shbltin_t *context)
+int b_command(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int n, flags = 0;
-	NOT_USED(context);
 	opt_info.index = opt_info.offset = 0;
 	while((n = optget(argv, sh_optcommand)))
 		switch(n)
@@ -110,11 +109,9 @@ int b_command(int argc, char *argv[], Shbltin_t *context)
 /*
  * for the whence and type commands
  */
-int b_whence(int argc, char *argv[], Shbltin_t *context)
+int b_whence([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int flags = 0, n;
-	NOT_USED(argc);
-	NOT_USED(context);
 	if(*argv[0] == 't')
 		flags = V_FLAG; /* <t>ype == whence -v */
 	while((n = optget(argv, sh_optwhence)))

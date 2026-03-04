@@ -32,14 +32,13 @@
 #include "FEATURE/time"
 #include "FEATURE/poll"
 
-int b_sleep(int argc, char *argv[], Shbltin_t *context)
+int b_sleep(int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *cp;
 	double d = 0;
 	int sflag = 0;
 	time_t tloc = 0;
 	char *last;
-	NOT_USED(context);
 	if(!(sh.sigflag[SIGALRM] & (SH_SIGFAULT | SH_SIGOFF)))
 		sh_sigtrap(SIGALRM);
 	while((argc = optget(argv, sh_optsleep)))

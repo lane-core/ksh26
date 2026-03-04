@@ -1099,10 +1099,9 @@ static int escape(Emacs_t *ep, genchar *out, int count)
  * This routine process all commands starting with ^X
  */
 
-static void xcommands(Emacs_t *ep, int count)
+static void xcommands(Emacs_t *ep, [[maybe_unused]] int count)
 {
 	int i = ed_getchar(ep->ed, 0);
-	NOT_USED(count);
 	switch(i)
 	{
 		case cntl('X'): /* exchange dot and mark */

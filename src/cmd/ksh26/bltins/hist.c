@@ -39,7 +39,7 @@ static void hist_subst(const char *, int fd, char *);
     /* for the benefit of the dictionary generator */
     int	b_fc(int argc,char *argv[], Shbltin_t *context){}
 #endif
-int b_hist(int argc, char *argv[], Shbltin_t *context)
+int b_hist([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	History_t *hp;
 	char *arg;
@@ -55,8 +55,6 @@ int b_hist(int argc, char *argv[], Shbltin_t *context)
 #endif
 	int checktime = 0;
 	Histloc_t location;
-	NOT_USED(argc);
-	NOT_USED(context);
 	if(!sh_histinit())
 	{
 		errormsg(SH_DICT, ERROR_system(1), e_histopen);
@@ -347,11 +345,8 @@ static void hist_subst(const char *command, int fd, char *replace)
 
 #else
 
-int b_hist(int argc, char *argv[], Shbltin_t *context)
+int b_hist([[maybe_unused]] int argc, [[maybe_unused]] char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
-	NOT_USED(argc);
-	NOT_USED(argv);
-	NOT_USED(context);
 	errormsg(SH_DICT, ERROR_exit(1), e_scriptonly);
 	UNREACHABLE();
 }

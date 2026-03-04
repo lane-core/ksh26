@@ -1668,9 +1668,8 @@ static int io_heredoc(struct ionod *iop, const char *name, int traceon)
  * This write discipline also writes the output on standard error
  * This is used when tracing here-documents
  */
-static ssize_t tee_write(sh_stream_t *iop, const void *buff, size_t n, sh_disc_t *unused)
+static ssize_t tee_write(sh_stream_t *iop, const void *buff, size_t n, [[maybe_unused]] sh_disc_t *unused)
 {
-	NOT_USED(unused);
 	sfwrite(sfstderr, buff, n);
 	return write(sffileno(iop), buff, n);
 }
@@ -1876,10 +1875,9 @@ int sh_ioaccess(int fd, int mode)
 /*
  *  Handle interrupts for slow streams
  */
-static int slowexcept(sh_stream_t *iop, int type, void *data, sh_disc_t *handle)
+static int slowexcept(sh_stream_t *iop, int type, [[maybe_unused]] void *data, sh_disc_t *handle)
 {
 	int n, fno;
-	NOT_USED(data);
 	if(type == SFIO_DPOP || type == SFIO_FINAL)
 		free(handle);
 	if(type == SFIO_WRITE && ERROR_PIPE(errno))
@@ -1939,9 +1937,8 @@ static int slowexcept(sh_stream_t *iop, int type, void *data, sh_disc_t *handle)
 /*
  * called when slowread times out
  */
-static void time_grace(void *handle)
+static void time_grace([[maybe_unused]] void *handle)
 {
-	NOT_USED(handle);
 	timeout = 0;
 	if(sh_isstate(SH_GRACE))
 	{
@@ -1986,11 +1983,10 @@ static ssize_t piperead(sh_stream_t *iop, void *buff, size_t size, sh_disc_t *ha
  * This is the read discipline that is applied to slow devices
  * This routine takes care of prompting for input
  */
-static ssize_t slowread(sh_stream_t *iop, void *buff, size_t size, sh_disc_t *handle)
+static ssize_t slowread(sh_stream_t *iop, void *buff, size_t size, [[maybe_unused]] sh_disc_t *handle)
 {
 	int (*readf)(void *, int, char *, int, int);
 	int reedit = 0, rsize, n, fno;
-	NOT_USED(handle);
 #if SHOPT_ESH
 	if(sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
 		readf = ed_emacsread;
@@ -2216,9 +2212,8 @@ static int io_prompt(sh_stream_t *iop, int flag)
  * This discipline is inserted on write pipes to prevent SIGPIPE
  * from causing an infinite loop
  */
-static int pipeexcept(sh_stream_t *iop, int mode, void *data, sh_disc_t *handle)
+static int pipeexcept(sh_stream_t *iop, int mode, [[maybe_unused]] void *data, sh_disc_t *handle)
 {
-	NOT_USED(data);
 	if(mode == SFIO_DPOP || mode == SFIO_FINAL)
 		free(handle);
 	else if(mode == SFIO_WRITE && ERROR_PIPE(errno))
@@ -2351,12 +2346,11 @@ sh_stream_t *sh_sfeval(char *argv[])
 /*
  * This code gets called whenever an end of string is found with eval
  */
-static int eval_exceptf(sh_stream_t *iop, int type, void *data, sh_disc_t *handle)
+static int eval_exceptf(sh_stream_t *iop, int type, [[maybe_unused]] void *data, sh_disc_t *handle)
 {
 	struct eval *ep = (struct eval *)handle;
 	char *cp;
 	int len;
-	NOT_USED(data);
 	/* no more to do */
 	if(type != SFIO_READ || !(cp = ep->argv[0]))
 	{
@@ -2408,11 +2402,10 @@ static sh_stream_t *subopen(sh_stream_t *sp, off_t offset, long size)
 /*
  * read function for subfile discipline
  */
-static ssize_t subread(sh_stream_t *sp, void *buff, size_t size, sh_disc_t *handle)
+static ssize_t subread([[maybe_unused]] sh_stream_t *sp, void *buff, size_t size, sh_disc_t *handle)
 {
 	struct subfile *disp = (struct subfile *)handle;
 	ssize_t n;
-	NOT_USED(sp);
 	sfseek(disp->oldsp, disp->offset, SEEK_SET);
 	if(disp->left == 0)
 		return 0;
@@ -2428,10 +2421,9 @@ static ssize_t subread(sh_stream_t *sp, void *buff, size_t size, sh_disc_t *hand
 /*
  * exception handler for subfile discipline
  */
-static int subexcept(sh_stream_t *sp, int mode, void *data, sh_disc_t *handle)
+static int subexcept(sh_stream_t *sp, int mode, [[maybe_unused]] void *data, sh_disc_t *handle)
 {
 	struct subfile *disp = (struct subfile *)handle;
-	NOT_USED(data);
 	if(mode == SFIO_CLOSING)
 	{
 		sfdisc(sp, SFIO_POPDISC);

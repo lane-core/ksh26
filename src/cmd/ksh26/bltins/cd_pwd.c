@@ -87,7 +87,7 @@ int sh_diropenat(int dir, const char *path)
 }
 #endif /* _lib_openat */
 
-int b_cd(int argc, char *argv[], Shbltin_t *context)
+int b_cd([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	char *dir;
 	Pathcomp_t *cdpath = 0;
@@ -99,7 +99,6 @@ int b_cd(int argc, char *argv[], Shbltin_t *context)
 #if _lib_openat
 	int newdirfd;
 #endif /* _lib_openat */
-	NOT_USED(context);
 	while((rval = optget(argv, sh_optcd)))
 		switch(rval)
 		{
@@ -330,12 +329,10 @@ success:
 	return 0;
 }
 
-int b_pwd(int argc, char *argv[], Shbltin_t *context)
+int b_pwd([[maybe_unused]] int argc, char *argv[], [[maybe_unused]] Shbltin_t *context)
 {
 	int n, flag = 0;
 	char *cp;
-	NOT_USED(argc);
-	NOT_USED(context);
 	while((n = optget(argv, sh_optpwd)))
 		switch(n)
 		{
