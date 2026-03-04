@@ -23,6 +23,20 @@ why it matters and rough severity.
   discipline uniform across all recursive expansion paths. Not
   urgent — current code is correct.
 
+## POSIX Issue 8 compliance
+
+- [x] `setitimer` → `timer_settime` fallback chain (timers.c)
+- [x] `isascii` → inline `IS_ASCII` macro (macro.c)
+- [x] `gettimeofday` → `clock_gettime` preferred path (timers.c)
+- [ ] `gettimeofday` (libast `tvgettime.c`) — already has
+  `clock_gettime` → `gettimeofday` → `time()` fallback chain. No action needed.
+- [ ] `utime`/`utimes` (libast `tvtouch.c`) — already has
+  `utimensat` → `utimes` → `utime` fallback chain. No action needed.
+- [ ] `ioctl` (libast/libcmd) — terminal control. Will never actually
+  be removed by any real OS. Not actionable.
+
+See `notes/posix8-deprecations.md` for the full audit.
+
 ## Sanitizers
 
 - [ ] **LeakSanitizer false positives** (low priority, future work)

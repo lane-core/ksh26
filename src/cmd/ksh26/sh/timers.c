@@ -23,6 +23,7 @@
 #include	"fault.h"
 #include	"defs.h"
 #include	"FEATURE/time"
+#include	"FEATURE/posix8"
 
 typedef struct _timer
 {
@@ -44,18 +45,56 @@ static char time_state;
 static Sfdouble_t getnow(void)
 {
 	Sfdouble_t now;
+#if _lib_clock_gettime
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	now = ts.tv_sec + 1.e-9*ts.tv_nsec;
+#else
 	struct timeval tp;
 	timeofday(&tp);
 	now = tp.tv_sec + 1.e-6*tp.tv_usec;
+#endif
 	return now+.001;
 }
 
 /*
  * set an alarm for <t> seconds
  */
+#if _lib_timer_create && _lib_timer_settime
+static timer_t ksh_timer;
+static int ksh_timer_created;
+#endif
+
 static Sfdouble_t setalarm(Sfdouble_t t)
 {
-#if defined(_lib_setitimer) && defined(ITIMER_REAL)
+#if _lib_timer_create && _lib_timer_settime
+	struct itimerspec tnew, told;
+	if(!ksh_timer_created)
+	{
+		struct sigevent sev;
+		memset(&sev, 0, sizeof(sev));
+		sev.sigev_notify = SIGEV_SIGNAL;
+		sev.sigev_signo = SIGALRM;
+		if(timer_create(CLOCK_REALTIME, &sev, &ksh_timer) < 0)
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_alarm);
+			UNREACHABLE();
+		}
+		ksh_timer_created = 1;
+	}
+	tnew.it_value.tv_sec = (time_t)t;
+	tnew.it_value.tv_nsec = 1.e9*(t - (Sfdouble_t)tnew.it_value.tv_sec);
+	if(t && tnew.it_value.tv_sec==0 && tnew.it_value.tv_nsec<1000000)
+		tnew.it_value.tv_nsec = 1000000;
+	tnew.it_interval.tv_sec = 0;
+	tnew.it_interval.tv_nsec = 0;
+	if(timer_settime(ksh_timer, 0, &tnew, &told) < 0)
+	{
+		errormsg(SH_DICT,ERROR_system(1),e_alarm);
+		UNREACHABLE();
+	}
+	t = told.it_value.tv_sec + 1.e-9*told.it_value.tv_nsec;
+#elif defined(_lib_setitimer) && defined(ITIMER_REAL)
 	struct itimerval tnew, told;
 	tnew.it_value.tv_sec = t;
 	tnew.it_value.tv_usec = 1.e6*(t- (Sfdouble_t)tnew.it_value.tv_sec);
@@ -234,6 +273,13 @@ void	sh_timerdel(void *handle)
 			tpmin = 0;
 			setalarm((Sfdouble_t)0);
 		}
+#if _lib_timer_create && _lib_timer_settime
+		if(ksh_timer_created)
+		{
+			timer_delete(ksh_timer);
+			ksh_timer_created = 0;
+		}
+#endif
 		signal(SIGALRM,(sh.sigflag[SIGALRM]&SH_SIGFAULT)?sh_fault:SIG_DFL);
 	}
 }

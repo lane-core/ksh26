@@ -1,5 +1,5 @@
 hdr	utime,sys/resource
-lib	getrusage,gettimeofday,setitimer
+lib	clock_gettime,getrusage,gettimeofday,setitimer
 mem	timeval.tv_usec sys/time.h
 tst	lib_2_timeofday note{ 2 arg gettimeofday() }end link{
 	#include <sys/types.h>

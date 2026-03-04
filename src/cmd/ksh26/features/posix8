@@ -8,3 +8,5 @@ lib	pipe2 unistd.h
 lib	dup3 unistd.h
 lib	ppoll signal.h poll.h
 lib	mkostemp stdlib.h
+lib	timer_create unistd.h signal.h time.h
+lib	timer_settime unistd.h signal.h time.h
