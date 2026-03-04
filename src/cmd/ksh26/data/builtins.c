@@ -120,9 +120,6 @@ const struct shtable3 shtab_builtins[] =
 	"times",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(times),
 	"ulimit",	NV_BLTIN|BLT_ENV,		bltin(ulimit),
 	"umask",	NV_BLTIN|BLT_ENV,		bltin(umask),
-#if _cmd_universe
-	"universe",	NV_BLTIN|BLT_ENV,		bltin(universe),
-#endif /* _cmd_universe */
 	"wait",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(wait),
 	"type",		NV_BLTIN|BLT_ENV,		bltin(whence),
 	"whence",	NV_BLTIN|BLT_ENV,		bltin(whence),

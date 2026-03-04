@@ -23,8 +23,6 @@
  * extended to allow some features to be set per-process
  */
 
-#include "univlib.h"
-
 #include <ast.h>
 #include <ast_wbuf.h>
 #include <error.h>
@@ -75,15 +73,6 @@
 #define STANDARD(v)	(streq(v,"standard")||streq(v,"strict")||streq(v,"posix")||streq(v,"xopen"))
 
 #define MAXVAL		256
-
-#if MAXVAL <= UNIV_SIZE
-#undef	MAXVAL
-#define MAXVAL		(UNIV_SIZE+1)
-#endif
-
-#ifndef _UNIV_DEFAULT
-#define _UNIV_DEFAULT	"att"
-#endif
 
 static char		null[1];
 static char		root[2] = "/";
@@ -679,36 +668,6 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		break;
 
 	case OP_universe:
-#if _lib_universe
-		if (getuniverse(fp->value) < 0)
-			strcpy(fp->value, DEFAULT(OP_universe));
-		if (value)
-			setuniverse(value);
-#else
-#ifdef UNIV_MAX
-		n = 0;
-		if (value)
-		{
-			while (n < univ_max && !streq(value, univ_name[n]))
-				n++;
-			if (n >= univ_max)
-			{
-				if (conferror)
-					(*conferror)(&state, &state, 2, "%s: %s: universe value too large", fp->name, value);
-				return NULL;
-			}
-		}
-#ifdef ATT_UNIV
-		n = setuniverse(n + 1);
-		if (!value && n > 0)
-			setuniverse(n);
-#else
-		n = universe(value ? n + 1 : U_GET);
-#endif
-		if (n <= 0 || n >= univ_max)
-			n = 1;
-		strcpy(fp->value, univ_name[n - 1]);
-#else
 		if (value && streq(path, "="))
 		{
 			if (state.synthesizing)
@@ -734,8 +693,6 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		}
 		else
 			initialize(fp, path, "echo", DEFAULT(OP_universe), "ucb", conferror);
-#endif
-#endif
 		break;
 
 	default:

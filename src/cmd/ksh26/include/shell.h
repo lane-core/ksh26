@@ -364,7 +364,6 @@ struct Shell_s
 	char		binscript;
 	char		funload;
 	char		used_pos;	/* used positional parameter */
-	char		universe;
 	char		winch;		/* set upon window size change or 'set -b' notification */
 	unsigned short	lines;		/* current vertical terminal size */
 	unsigned short	columns;	/* current horizontal terminal size */

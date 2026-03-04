@@ -96,9 +96,6 @@ extern int b_let(int, char*[],Shbltin_t*);
 extern int b_read(int, char*[],Shbltin_t*);
 extern int b_ulimit(int, char*[],Shbltin_t*);
 extern int b_umask(int, char*[],Shbltin_t*);
-#if _cmd_universe
-    extern int b_universe(int, char*[],Shbltin_t*);
-#endif /* _cmd_universe */
 extern int b_wait(int, char*[],Shbltin_t*);
 extern int b_whence(int, char*[],Shbltin_t*);
 
@@ -133,9 +130,6 @@ extern const char	e_toomanyops[];
 extern const char	e_toodeep[];
 extern const char	e_badname[];
 extern const char	e_badsyntax[];
-#if _cmd_universe
-    extern const char	e_nouniverse[];
-#endif /* _cmd_universe */
 extern const char	e_histopen[];
 extern const char	e_condition[];
 extern const char	e_badrange[];
@@ -193,9 +187,6 @@ extern const char sh_optulimit[];
 extern const char sh_optumask[];
 extern const char sh_optunalias[];
 extern const char sh_optwait[];
-#if _cmd_universe
-    extern const char sh_optuniverse[];
-#endif /* _cmd_universe */
 extern const char sh_optunset[];
 extern const char sh_optwhence[];
 extern const char sh_opttimes[];

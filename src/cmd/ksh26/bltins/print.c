@@ -100,41 +100,11 @@ static int	exitval;
 #if !SHOPT_ECHOPRINT
    int    B_echo(int argc, char *argv[],Shbltin_t *context)
    {
-	static char bsd_univ;
 	struct print prdata;
 	prdata.options = sh_optecho+5;
 	prdata.raw = prdata.echon = 0;
 	NOT_USED(argc);
 	NOT_USED(context);
-	/* This mess is because /bin/echo on BSD is different */
-	if(!sh.universe)
-	{
-		char *universe;
-		if(universe=astconf("UNIVERSE",0,0))
-			bsd_univ = (strcmp(universe,"ucb")==0);
-		sh.universe = 1;
-	}
-	if(!bsd_univ)
-		return b_print(0,argv,(Shbltin_t*)&prdata);
-	prdata.options = sh_optecho;
-	prdata.raw = 1;
-	while(argv[1] && *argv[1]=='-')
-	{
-		if(strcmp(argv[1],"-n")==0)
-			prdata.echon = 1;
-#if !SHOPT_NOECHOE
-		else if(strcmp(argv[1],"-e")==0)
-			prdata.raw = 0;
-		else if(strcmp(argv[1],"-ne")==0 || strcmp(argv[1],"-en")==0)
-		{
-			prdata.raw = 0;
-			prdata.echon = 1;
-		}
-#endif /* SHOPT_NOECHOE */
-		else
-			break;
-		argv++;
-	}
 	return b_print(0,argv,(Shbltin_t*)&prdata);
    }
 #endif /* SHOPT_ECHOPRINT */
