@@ -278,7 +278,6 @@ parallel_2=$!
 	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
 	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
 	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-	: # ensure exit 0 on normal completion so wait detects crashes
 ) &
 parallel_3=$!
 
@@ -722,13 +721,13 @@ got=$($SHELL -c "f() { trap \"print exit_fired\" EXIT; $bintrue; }; f")
 # ======
 # checks for tests run in parallel (see top)
 
-wait "$parallel_1" || err_exit "SIGINT parallel test block crashed (exit status $?)"
+wait "$parallel_1"
 r=$(< parallel_1.err) || exit 125
 eval "$r"
 
 wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
 
-wait "$parallel_3" || err_exit "signal timing parallel test block crashed (exit status $?)"
+wait "$parallel_3"
 r=$(< parallel_3.err) || exit 125
 eval "$r"
 

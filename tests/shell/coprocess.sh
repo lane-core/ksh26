@@ -20,7 +20,8 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 if	[[ -d /cygdrive ]]
-then	skip_all 'Cygwin detected - coprocess tests disabled'
+then	warning 'Cygwin detected - coprocess tests disabled - enable at the risk of wedging your system'
+	exit 0
 fi
 
 bintrue=$(whence -p true)

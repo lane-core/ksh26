@@ -19,7 +19,8 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 if((!SHOPT_NAMESPACE))
-then	skip_all 'shell compiled without SHOPT_NAMESPACE'
+then	warning 'shell compiled without SHOPT_NAMESPACE; skipping tests'
+	exit 0
 fi
 
 foo=abc

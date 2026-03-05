@@ -25,8 +25,6 @@ function err_exit
 	let Errors+=1
 }
 alias err_exit='err_exit $LINENO'  # inaccurate err_exit name kept for historical integrity :)
-# Convention: include expected vs actual values in err_exit messages for CI diagnostics:
-#   [[ $got == "$exp" ]] || err_exit "description (expected '$exp', got '$got')"
 alias warning='_message "$LINENO" "warning:"'
 
 function skip_all

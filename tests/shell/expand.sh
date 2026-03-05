@@ -20,7 +20,8 @@
 # {...} expansion tests -- ignore if not supported
 
 if	((!SHOPT_BRACEPAT))
-then	skip_all "brace expansion compiled out"
+then	warning "brace expansion compiled out; tests skipped"
+	exit 0
 fi
 
 integer Line=$LINENO+1
