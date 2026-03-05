@@ -777,12 +777,13 @@ even positive-polarity operations (writes) are entangled with negative-
 polarity buffer state through the LOCKR protocol. A dual-representation
 approach would be worse than either approach alone.
 
-The v1 stdio backend (`sh_io_stdio.c`, conditional `KSH_IO_SFIO=0` path)
-has been removed. main is rolled back to v0.0.1 + cherry-picked build
-infrastructure. `sh_io.h` is retained as the type abstraction layer
+The v1 stdio backend has been removed: `src/cmd/ksh26/sh/sh_io_stdio.c`
+deleted, and the conditional `KSH_IO_SFIO` blocks removed from `sh_io.h` and
+`sh_strbuf.h`. `sh_io.h` is retained as the type abstraction layer
 (sfio types aliased to `sh_stream_t` etc.) — it enforces the sfio boundary
-without implementing an alternative backend. Direct `#include <sfio.h>` has
-been consolidated: all ksh26 source files now include `sh_io.h` instead.
+and provides ksh26-specific names for stream operations. Direct
+`#include <sfio.h>` has been consolidated: all ksh26 source files now
+include `sh_io.h` instead.
 
 #### Current approach: clean-room rewrite
 
