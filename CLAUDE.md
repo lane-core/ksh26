@@ -214,6 +214,60 @@ implementation — stop and raise this before attempting fixes. Per the
 discovery-driven restart rule (see agent memory): re-evaluate the design
 against the expanded understanding rather than patching forward.
 
+## Immutable Test Sanctity
+
+The ksh93 test suite represents decades of refined edge-case detection and POSIX compliance verification. These tests are a specification we inherit and must preserve—not code we own and can freely modify.
+
+### Core Principle
+
+When a test fails under the harness but passes outside it, **the framework is deficient, not the test**. The test logic is immutable. You will accommodate the framework to the test, never the reverse.
+
+### Permissible modifications (narrow exceptions)
+
+- Changing the _context_ in which a test executes (environment variables, working directory, file descriptors)
+- Providing required filesystem fixtures or device nodes that the sandbox withholds
+- Adjusting timing thresholds _only_ where the test explicitly measures wall-clock time and provides configuration hooks
+- Wrapping execution to simulate TTY availability where the test requires interactive behavior
+
+### Prohibited modifications (absolute)
+
+- Altering assertion logic, grep patterns, or expected output strings
+- Reordering test sequences or skipping "problematic" tests
+- Replacing `sleep` durations or retry loops
+- Modifying test data files or shell scripts that comprise the test itself
+
+### Failure investigation protocol
+
+When a test fails, follow this hierarchy:
+
+1. **Reproduce outside harness**: `just test-one <name>` (iteration build). If it fails here too, it's a real bug—fix the shell.
+
+2. **Identify missing context**: Does the test need:
+   - A TTY? → Check `tests/contexts/tty.sh` or add adaptation
+   - Specific files in `/tmp`? → Add to `tests/contexts/fixtures.sh`
+   - Particular environment variables? → Add to context
+   - Network access? → Use sandbox escape or mock
+   - Specific UID/GID behavior? → Document for escalation
+
+3. **Escalation path**: If you cannot identify the context deficiency without modifying test logic, document in the failure:
+   - Exact test name and location
+   - Failure mode (exit code, output diff, hang)
+   - What you've tried
+   - Hypothesis about missing context
+
+Do not modify the test as a "workaround."
+
+### Context adaptations
+
+Test context adaptations live in `tests/contexts/` and are sourced by the test runner:
+
+- `default.sh` — Base environment setup (always sourced)
+- `tty.sh` — Pseudo-terminal simulation for job control tests
+- `fixtures.sh` — Filesystem fixtures and required paths
+- `timing.sh` — Timing-sensitive test accommodations
+
+To add a new adaptation, create a `.sh` file in `tests/contexts/` and reference it in `configure.sh`'s test generation.
+
 ## Coding conventions
 
 - Indent with tabs (8-space width)
