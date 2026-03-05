@@ -48,7 +48,7 @@
 #define NTICKS 5 /* number of ticks for typeahead */
 #endif           /* FIORDCHK */
 
-#define MAXCHAR MAXLINE - 2 /* max char per line */
+#define MAXCHAR (MAXLINE - 2) /* max char per line */
 
 #if SHOPT_MULTIBYTE
 #include "lexstates.h"
@@ -56,10 +56,10 @@
 #define gencpy(a, b) ed_gencpy(a, b)
 #define genncpy(a, b, n) ed_genncpy(a, b, n)
 #define genlen(str) ed_genlen(str)
-#define digit(c) ((c & ~STRIP) == 0 && isdigit(c))
-#define is_print(c) ((c & ~STRIP) || isprint(c))
+#define digit(c) (((c) & ~STRIP) == 0 && isdigit(c))
+#define is_print(c) (((c) & ~STRIP) || isprint(c))
 #if !_lib_iswprint && !defined(iswprint)
-#define iswprint(c) ((c & ~0177) || isprint(c))
+#define iswprint(c) (((c) & ~0177) || isprint(c))
 #endif
 static int _isalph(int);
 static int _isblank(int);

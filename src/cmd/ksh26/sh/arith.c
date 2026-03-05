@@ -470,7 +470,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 					if(*val == 0 || *val == '.' || *val == 'x' || *val == 'X')
 						val--;
 				}
-				if(r == LLONG_MAX && errno)
+				if(r == LDBL_LLONG_MAX && errno)
 					c = 'e';
 				else
 					c = *str;
