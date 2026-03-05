@@ -390,7 +390,8 @@ probe_c()
 	local bin=$_probe_dir/probe
 	
 	mkdir -p "$_probe_dir"
-	trap 'rm -rf "$_probe_dir"' EXIT
+	# Expand _probe_dir now (double quotes), not when trap fires (single quotes)
+	trap "rm -rf '$_probe_dir'" EXIT
 	
 	cat > "$src"
 	if $CC_PATH $CFLAGS \
@@ -403,6 +404,8 @@ probe_c()
 		local rc=1
 	fi
 	
+	# Clear trap to prevent referencing stale _probe_dir
+	trap - EXIT
 	return $rc
 }
 
