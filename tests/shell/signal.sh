@@ -330,7 +330,7 @@ rm -f out2
 actual=$( trap 'print -n got_child' SIGCHLD
 	sleep .4 &
 	for	((i=0; i < 4; i++))
-	do 	sleep .15
+	do 	sleep .25
 		print -n $i
 	done)
 expect=01got_child23
