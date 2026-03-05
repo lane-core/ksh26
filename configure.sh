@@ -1483,8 +1483,12 @@ generate_test_runner()
 	local runner_sh
 	runner_sh=$(command -v dash 2>/dev/null || echo /bin/sh)
 	printf '%s\n' "#!$runner_sh" > "$runner"
-	printf '%s\n' "PACKAGEROOT='$PACKAGEROOT_ABS'" >> "$runner"
-	printf '%s\n' "BUILDDIR='$BUILDDIR_ABS'" >> "$runner"
+	# Paths are determined at runtime for Nix sandbox compatibility.
+	# In local dev, these resolve to the build directory.
+	# In Nix builds, these resolve to $out or the build directory.
+	printf '%s\n' '# Runtime path resolution (supports Nix sandbox and local dev)' >> "$runner"
+	printf '%s\n' ': "${PACKAGEROOT:=$(cd "$(dirname "$0")/../.." && pwd)}"' >> "$runner"
+	printf '%s\n' ': "${BUILDDIR:=$PACKAGEROOT/build/'"$HOSTTYPE"'}"' >> "$runner"
 
 	cat >> "$runner" <<'RUNNER'
 
