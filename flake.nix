@@ -97,16 +97,22 @@
                 # Run all tests
                 ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE test
 
-                # Print summary
-                summary="build/$HOSTTYPE/test/summary.log"
-                if [ -f "$summary" ]; then
-                  sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
-                  total=$(wc -l < "$summary" | tr -d ' ')
-                  pass=$(grep -c '^ok' "$summary" || true)
-                  skip=$(grep -c '# SKIP' "$summary" || true)
-                  printf -- '---\n%d/%d pass' "$pass" "$total"
-                  [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
-                  printf '\n'
+                # Aggregate and print summary from per-test result files
+                # (Per-test files reduce parallel write contention vs single summary.log)
+                result_dir="build/$HOSTTYPE/test/results"
+                if [ -d "$result_dir" ]; then
+                  # Single-pass awk: count pass/fail/skip and format failures
+                  awk '
+                    /^ok / { pass++; print > "/dev/stderr"; next }
+                    /^not ok / { fail++; sub(/^not ok - /, "  FAIL: "); print > "/dev/stderr"; next }
+                    /# SKIP/ { skip++ }
+                    END {
+                      total = pass + fail + skip
+                      printf "---\n%d/%d pass", pass, total > "/dev/stderr"
+                      if (skip > 0) printf ", %d skipped", skip > "/dev/stderr"
+                      print "" > "/dev/stderr"
+                    }
+                  ' "$result_dir"/*.txt 2>&1
                 fi
 
                 runHook postCheck
@@ -178,15 +184,20 @@
               fi
               export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
               ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-asan test
-              summary="build/$HOSTTYPE-asan/test/summary.log"
-              if [ -f "$summary" ]; then
-                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
-                total=$(wc -l < "$summary" | tr -d ' ')
-                pass=$(grep -c '^ok' "$summary" || true)
-                skip=$(grep -c '# SKIP' "$summary" || true)
-                printf -- '---\n%d/%d pass' "$pass" "$total"
-                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
-                printf '\n'
+              # Aggregate results from per-test result files
+              result_dir="build/$HOSTTYPE-asan/test/results"
+              if [ -d "$result_dir" ]; then
+                awk '
+                  /^ok / { pass++; print > "/dev/stderr"; next }
+                  /^not ok / { fail++; sub(/^not ok - /, "  FAIL: "); print > "/dev/stderr"; next }
+                  /# SKIP/ { skip++ }
+                  END {
+                    total = pass + fail + skip
+                    printf "---\n%d/%d pass", pass, total > "/dev/stderr"
+                    if (skip > 0) printf ", %d skipped", skip > "/dev/stderr"
+                    print "" > "/dev/stderr"
+                  }
+                ' "$result_dir"/*.txt 2>&1
               fi
               runHook postCheck
             '';
