@@ -28,9 +28,8 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
 
-          ksh26 = 
+          ksh26 = { doCheck ? true }:
             let
-              # Deterministic HOSTTYPE from Nix platform metadata (not runtime probing)
               hostType = 
                 let
                   inherit (pkgs.stdenv.hostPlatform.parsed) kernel cpu;
@@ -51,6 +50,9 @@
 
               nativeBuildInputs = [
                 pkgs.scdoc
+              ] ++ pkgs.lib.optionals doCheck [
+                pkgs.expect
+                pkgs.parallel
               ];
 
               buildInputs = [
@@ -60,16 +62,13 @@
                 pkgs.libiconv
               ];
 
-              # No configure phase — we handle it in buildPhase
               dontConfigure = true;
-
-              # Deterministic HOSTTYPE - same input produces same output regardless of build machine
               HOSTTYPE = hostType;
 
               buildPhase = ''
                 runHook preBuild
 
-                # Bootstrap samu (vendored ninja)
+                # Bootstrap samu
                 mkdir -p build/$HOSTTYPE/bin
                 $CC -o build/$HOSTTYPE/bin/samu src/cmd/INIT/samu/*.c
 
@@ -80,6 +79,37 @@
                 ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE
 
                 runHook postBuild
+              '';
+
+              inherit doCheck;
+
+              checkPhase = pkgs.lib.optionalString doCheck ''
+                runHook preCheck
+
+                # Sanity check: ensure we have expected test count
+                stamp_count=$(grep '^build test: phony' build/$HOSTTYPE/build.ninja \
+                  | tr ' ' '\n' | grep -c '\.stamp$' || true)
+                if (( stamp_count < 114 )); then
+                  echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
+                  exit 1
+                fi
+
+                # Run all tests
+                ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE test
+
+                # Print summary
+                summary="build/$HOSTTYPE/test/summary.log"
+                if [ -f "$summary" ]; then
+                  sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
+                  total=$(wc -l < "$summary" | tr -d ' ')
+                  pass=$(grep -c '^ok' "$summary" || true)
+                  skip=$(grep -c '# SKIP' "$summary" || true)
+                  printf -- '---\n%d/%d pass' "$pass" "$total"
+                  [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
+                  printf '\n'
+                fi
+
+                runHook postCheck
               '';
 
               installPhase = ''
@@ -102,17 +132,14 @@
             };
         in
         {
-          default = ksh26;
+          # Default: build only (fast, for end users)
+          default = ksh26 { doCheck = false; };
 
-          # Used by `just build` — same derivation, explicit target name
-          build = ksh26;
+          # Full validation: build + test (for CI)
+          checked = ksh26 { doCheck = true; };
 
-          build-debug = ksh26.overrideAttrs (old: {
+          build-debug = (ksh26 { doCheck = false; }).overrideAttrs (old: {
             pname = "ksh26-debug";
-
-            # Preserve deterministic HOSTTYPE from parent
-            inherit (old) HOSTTYPE;
-
             buildPhase = ''
               runHook preBuild
               mkdir -p build/$HOSTTYPE/bin
@@ -121,7 +148,6 @@
               ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-debug
               runHook postBuild
             '';
-
             installPhase = ''
               runHook preInstall
               install -Dm755 build/$HOSTTYPE-debug/bin/ksh "$out/bin/ksh"
@@ -131,12 +157,8 @@
             '';
           });
 
-          build-asan = ksh26.overrideAttrs (old: {
+          build-asan = (ksh26 { doCheck = false; }).overrideAttrs (old: {
             pname = "ksh26-asan";
-
-            # Preserve deterministic HOSTTYPE from parent
-            inherit (old) HOSTTYPE;
-
             buildPhase = ''
               runHook preBuild
               mkdir -p build/$HOSTTYPE/bin
@@ -145,7 +167,29 @@
               ./build/$HOSTTYPE/bin/samu -C build/$HOSTTYPE-asan
               runHook postBuild
             '';
-
+            doCheck = true;
+            checkPhase = ''
+              runHook preCheck
+              stamp_count=$(grep '^build test: phony' build/$HOSTTYPE-asan/build.ninja \
+                | tr ' ' '\n' | grep -c '\.stamp$' || true)
+              if (( stamp_count < 114 )); then
+                echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
+                exit 1
+              fi
+              export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
+              ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-asan test
+              summary="build/$HOSTTYPE-asan/test/summary.log"
+              if [ -f "$summary" ]; then
+                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
+                total=$(wc -l < "$summary" | tr -d ' ')
+                pass=$(grep -c '^ok' "$summary" || true)
+                skip=$(grep -c '# SKIP' "$summary" || true)
+                printf -- '---\n%d/%d pass' "$pass" "$total"
+                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
+                printf '\n'
+              fi
+              runHook postCheck
+            '';
             installPhase = ''
               runHook preInstall
               install -Dm755 build/$HOSTTYPE-asan/bin/ksh "$out/bin/ksh"
@@ -168,17 +212,61 @@
 
       formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
 
+      apps = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          diagnose = {
+            type = "app";
+            program = toString (pkgs.writeShellScript "ksh26-diagnose" ''
+              set -eu
+              test_name="''${1:-}"
+              locale="''${2:-C}"
+
+              if [ -z "$test_name" ]; then
+                echo "Usage: nix run .#diagnose -- <test-name> [locale]"
+                echo ""
+                echo "Per Immutable Test Sanctity (CLAUDE.md): investigates context"
+                echo "deficiencies, never test logic."
+                exit 1
+              fi
+
+              echo "=== ksh26 Test Failure Diagnosis ==="
+              echo "Test: $test_name (mode: $locale)"
+              echo ""
+
+              if [ ! -f "tests/shell/''${test_name}.sh" ]; then
+                echo "ERROR: Test not found: tests/shell/''${test_name}.sh"
+                exit 1
+              fi
+
+              echo "Context adaptations:"
+              for ctx in default tty fixtures timing; do
+                [ -f "tests/contexts/''${ctx}.sh" ] && echo "  [✓] contexts/''${ctx}.sh"
+              done
+              echo ""
+
+              nix build .#checks.${system}.default --print-build-logs 2>&1 || true
+
+              echo ""
+              echo "=== Investigation ==="
+              echo "1. Run outside Nix: just test-one $test_name $locale"
+              echo "2. Check contexts: cat tests/contexts/*.sh"
+              echo "3. Debug: just debug $test_name"
+            '');
+          };
+        }
+      );
+
       devShells = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-
-          # Broad memory protection for dev sessions.
-          # Linux: ulimit works. Darwin: no-op (Apple removed RLIMIT_AS),
-          # test runner has its own RSS monitor as fallback.
           memoryHook = ''
             case "$(uname -s)" in
-            Linux) ulimit -v 2097152 2>/dev/null ;; # 2G per process
+            Linux) ulimit -v 2097152 2>/dev/null ;;
             esac
           '';
         in
@@ -200,19 +288,13 @@
               pkgs.gdb
               pkgs.valgrind
             ];
-
-            # Inherit buildInputs (utf8proc, libiconv) from the ksh26 package
             inputsFrom = [ self.packages.${system}.default ];
-
             shellHook = memoryHook;
           };
 
           agent = pkgs.mkShell {
             inputsFrom = [ self.devShells.${system}.default ];
-
-            # ccache by default — override with CC=cc if needed
             env.CC = "ccache cc";
-
             shellHook = memoryHook + ''
               _ht="$(uname -s | tr 'A-Z' 'a-z').$(uname -m | sed 's/aarch64/arm64/;s/i.86/i386/')-$(getconf LONG_BIT 2>/dev/null || echo 64)"
               echo "ksh26 agent shell — $(git rev-parse --short HEAD) on $(git branch --show-current) [$_ht]"
@@ -227,79 +309,15 @@
 
       checks = forAllSystems (
         system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
         {
-          default = self.packages.${system}.build.overrideAttrs (old: {
-            name = "ksh26-tests";
+          # Default check: full build + test
+          default = self.packages.${system}.checked;
 
-            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
-
-            doCheck = true;
-            checkPhase = ''
-              # Sanity check: fail if test count drops below expected minimum
-              stamp_count=$(grep '^build test: phony' build/$HOSTTYPE/build.ninja \
-                | tr ' ' '\n' | grep -c '\.stamp$' || true)
-              if (( stamp_count < 114 )); then
-                echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
-                exit 1
-              fi
-
-              ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE test
-
-              # Print summary
-              summary="build/$HOSTTYPE/test/summary.log"
-              if [ -f "$summary" ]; then
-                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
-                total=$(wc -l < "$summary" | tr -d ' ')
-                pass=$(grep -c '^ok' "$summary" || true)
-                skip=$(grep -c '# SKIP' "$summary" || true)
-                printf -- '---\n%d/%d pass' "$pass" "$total"
-                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
-                printf '\n'
-              fi
-            '';
-
-            # Don't install — this is just for running tests
-            installPhase = "touch $out";
-          });
-
+          # Formatting check
           formatting = treefmtEval.${system}.config.build.check self;
 
-          # asan check — AddressSanitizer + UBSan in nix sandbox
-          asan = self.packages.${system}.build-asan.overrideAttrs (old: {
-            name = "ksh26-asan-tests";
-
-            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.expect ];
-
-            doCheck = true;
-            checkPhase = ''
-              stamp_count=$(grep '^build test: phony' build/$HOSTTYPE-asan/build.ninja \
-                | tr ' ' '\n' | grep -c '\.stamp$' || true)
-              if (( stamp_count < 114 )); then
-                echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
-                exit 1
-              fi
-
-              export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
-              ./build/$HOSTTYPE/bin/samu -k 0 -C build/$HOSTTYPE-asan test
-
-              # Print summary
-              summary="build/$HOSTTYPE-asan/test/summary.log"
-              if [ -f "$summary" ]; then
-                sort "$summary" | grep '^not ok' | sed 's/^not ok - /  FAIL: /' || true
-                total=$(wc -l < "$summary" | tr -d ' ')
-                pass=$(grep -c '^ok' "$summary" || true)
-                skip=$(grep -c '# SKIP' "$summary" || true)
-                printf -- '---\n%d/%d pass' "$pass" "$total"
-                [ "$skip" -gt 0 ] && printf ', %d skipped' "$skip"
-                printf '\n'
-              fi
-            '';
-
-            installPhase = "touch $out";
-          });
+          # ASan check (separate derivation with sanitizers)
+          asan = self.packages.${system}.build-asan;
         }
       );
     };
