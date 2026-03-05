@@ -61,6 +61,25 @@ See `notes/posix8-deprecations.md` for the full audit.
   ShellCheck with appropriate directives, dead code detection, and
   consistency review of probe patterns.
 
+## Shell core (deferred from pre-sfio audit)
+
+- [ ] **macro.c:2303 backtick comsub trailing newline hack** (post-sfio)
+  Trailing `\n` insertion in backtick command substitution prevents a
+  memory leak from stk/sfio interaction during `sh_parse()` end-of-input.
+  Root cause is in the stk/sfio boundary; sfio rewrite will change the
+  underlying machinery. Revisit after sfio is replaced.
+
+- [ ] **args.c:680 longjmp during argbuild leaves double NULL** (post-rewrite)
+  When a discipline function longjmps during argument building, the arg
+  list can end up with a double NULL terminator. The `argi` recount on
+  line 680 is the workaround. Root cause is in discipline dispatch /
+  longjmp unwinding — needs careful analysis of setjmp/longjmp contracts.
+
+- [ ] **init.c:1419 `.sh` and `$0` skipped during shutdown unset** (low priority)
+  `nv_unset()` crashes on these special variables, so `sh_done()` skips
+  them. Causes a shutdown memory leak (OS reclaims anyway). Fix requires
+  understanding special-variable initialization and discipline setup.
+
 ## Code quality tooling
 
 - [ ] **Add shellcheck to treefmt** (low priority)

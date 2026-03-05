@@ -1155,7 +1155,9 @@ collect_ksh26_sources()
 
 emit_ninja()
 {
-	local ninja=$BUILDDIR/build.ninja.new
+	local ninja
+	ninja=$(mktemp "$BUILDDIR/build.ninja.XXXXXX") || return 1
+	trap 'rm -f "$ninja"' RETURN
 	local cc=$CC_PATH
 	local ar=$AR
 
@@ -1368,7 +1370,7 @@ NINJA
 
 	local all_stamps=""
 	local setslocale="locale"
-	local timesensitive="options sigchld subshell"
+	local timesensitive="builtins io options sigchld signal subshell"
 
 	for test_sh in "$tests_dir"/*.sh; do
 		[ -f "$test_sh" ] || continue
@@ -1419,7 +1421,7 @@ NINJA
 
 	local stmts
 	stmts=$(grep -c '^build ' "$ninja")
-	local final=${ninja%.new}
+	local final=$BUILDDIR/build.ninja
 	if cmp -s "$ninja" "$final" 2>/dev/null; then
 		rm -f "$ninja"
 		printf '%s\n' "configure: build.ninja unchanged ($stmts build statements)"
