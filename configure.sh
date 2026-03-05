@@ -1506,6 +1506,21 @@ case $stamp in
 esac
 log="${stamp}.log"
 
+# Helper: format duration as [Xm Ys] or [Ys] or [Y.Zs]
+_format_duration() {
+	local _secs=$1
+	local _mins=$((_secs / 60))
+	local _rem=$((_secs % 60))
+	if [ $_mins -gt 0 ]; then
+		printf '[%dm %ds]' $_mins $_rem
+	elif [ $_secs -lt 10 ]; then
+		# Show decimal for short tests (< 10s)
+		printf '[%.1fs]' "$_secs"
+	else
+		printf '[%ds]' $_secs
+	fi
+}
+
 # Per-test temp directory (cd -P resolves symlinks so $tmp == $PWD in ksh)
 # This MUST be created before sourcing context files (fixtures.sh needs it)
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/ksh26.test.${test_name}.${mode}.XXXXXX") || exit 1
@@ -1569,6 +1584,9 @@ _rss_monitor() {
 # ── Run ──────────────────────────────────────────────────────
 cd "$tmp" || exit 1
 
+# Capture start time for test duration reporting
+_start_time=$(date +%s)
+
 rc=0
 # Per-test timeout (60s). GNU timeout (from coreutils) handles
 # process groups and signal semantics correctly — ksh catches
@@ -1599,12 +1617,17 @@ mkdir -p "$_result_dir"
 desc="${test_name}.${mode}"
 _result_file="$_result_dir/${desc}.txt"
 
+# Calculate test duration
+_end_time=$(date +%s)
+_duration=$((_end_time - _start_time))
+_duration_fmt=$(_format_duration $_duration)
+
 if [ "$rc" -eq 0 ]; then
 	if [ -f "$tmp/.skip_reason" ]; then
 		reason=$(cat "$tmp/.skip_reason")
-		printf 'ok - %s # SKIP %s\n' "$desc" "$reason" > "$_result_file"
+		printf 'ok - %s %s # SKIP %s\n' "$desc" "$_duration_fmt" "$reason" > "$_result_file"
 	else
-		printf 'ok - %s\n' "$desc" > "$_result_file"
+		printf 'ok - %s %s\n' "$desc" "$_duration_fmt" > "$_result_file"
 	fi
 	touch "$stamp"
 	rm -f "$log"
@@ -1627,7 +1650,7 @@ case $rc in
       ;;
 esac
 
-printf 'not ok - %s # %s\n' "$desc" "$detail" > "$_result_file"
+printf 'not ok - %s %s # %s\n' "$desc" "$_duration_fmt" "$detail" > "$_result_file"
 cat "$log" >&2
 rm -f "$stamp"
 exit "$rc"
