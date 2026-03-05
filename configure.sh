@@ -1369,7 +1369,6 @@ pool serial
 NINJA
 
 	local all_stamps=""
-	local setslocale="locale"
 	local timesensitive="builtins io options sigchld signal subshell"
 
 	for test_sh in "$tests_dir"/*.sh; do
@@ -1398,19 +1397,14 @@ build test/${name}.C.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps run-t
 NINJA
 		all_stamps="$all_stamps test/${name}.C.stamp"
 
-		# C.UTF-8 locale test (skip locale.sh — it sets its own locale)
-		case " $setslocale " in
-		*" $name "*) ;;
-		*)
-			cat >> "$ninja" <<NINJA
+		# C.UTF-8 locale test
+		cat >> "$ninja" <<NINJA
 build test/${name}.C.UTF-8.stamp: $rule $test_sh | bin/ksh bin/shcomp$extra_deps run-test.sh test-env.sh
   mode = C.UTF-8
   desc = $name (C.UTF-8)
   wrapper = $test_wrapper
 NINJA
-			all_stamps="$all_stamps test/${name}.C.UTF-8.stamp"
-			;;
-		esac
+		all_stamps="$all_stamps test/${name}.C.UTF-8.stamp"
 	done
 
 	# Phony target to run all tests
