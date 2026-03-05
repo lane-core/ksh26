@@ -102,16 +102,26 @@ else
 fi
 
 # Optimization: -Os if supported, else -O
+# Use here-document instead of pipe to avoid subshell overhead
 _optimize=""
-if printf 'int main(void){return 0;}' | $CC_PATH -Os -x c - -o "$_probe_out" 2>/dev/null; then
+if $CC_PATH -Os -x c - -o "$_probe_out" <<'EOF' 2>/dev/null
+int main(void){return 0;}
+EOF
+then
 	_optimize="-Os"
-elif printf 'int main(void){return 0;}' | $CC_PATH -O -x c - -o "$_probe_out" 2>/dev/null; then
+elif $CC_PATH -O -x c - -o "$_probe_out" <<'EOF' 2>/dev/null
+int main(void){return 0;}
+EOF
+then
 	_optimize="-O"
 fi
 
 # Strict aliasing: disable if the flag is accepted
 _nostrictaliasing=""
-if printf 'int main(void){return 0;}' | $CC_PATH -fno-strict-aliasing -x c - -o "$_probe_out" 2>/dev/null; then
+if $CC_PATH -fno-strict-aliasing -x c - -o "$_probe_out" <<'EOF' 2>/dev/null
+int main(void){return 0;}
+EOF
+then
 	_nostrictaliasing="-fno-strict-aliasing"
 fi
 
@@ -141,8 +151,22 @@ CONFIGURE_SELF=$PACKAGEROOT_ABS/configure.sh
 CACHE_KEY="$CC_PATH $CFLAGS"
 CACHE_KEY_FILE=$BUILDDIR_ABS/.configure_cache_key
 
+# Optimization: Deduplicate cache invalidation logic.
+# Single code path for both --force and compiler-change scenarios.
+_invalidate_cache=false
 if $FORCE; then
 	printf '%s\n' "configure: --force: invalidating all cached probes"
+	_invalidate_cache=true
+elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
+	: # cache key matches — individual probes check their own freshness
+else
+	if [ -f "$CACHE_KEY_FILE" ]; then
+		printf '%s\n' "configure: compiler or flags changed, invalidating probe cache"
+	fi
+	_invalidate_cache=true
+fi
+
+if $_invalidate_cache; then
 	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
 		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
 		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
@@ -150,19 +174,8 @@ if $FORCE; then
 		"$BUILDDIR_ABS"/.iconv_cache \
 		"$BUILDDIR_ABS"/.utf8proc_cache \
 		"$CACHE_KEY_FILE" 2>/dev/null || true
-elif [ -f "$CACHE_KEY_FILE" ] && [ "$(cat "$CACHE_KEY_FILE")" = "$CACHE_KEY" ]; then
-	: # cache key matches — individual probes check their own freshness
-else
-	if [ -f "$CACHE_KEY_FILE" ]; then
-		printf '%s\n' "configure: compiler or flags changed, invalidating probe cache"
-	fi
-	rm -f "$BUILDDIR_ABS"/libast_work/FEATURE/* \
-		"$BUILDDIR_ABS"/libcmd_work/FEATURE/* \
-		"$BUILDDIR_ABS"/ksh26_work/FEATURE/* \
-		"$BUILDDIR_ABS"/pty_work/FEATURE/* \
-		"$BUILDDIR_ABS"/.iconv_cache \
-		"$BUILDDIR_ABS"/.utf8proc_cache 2>/dev/null || true
 fi
+
 printf '%s\n' "$CACHE_KEY" > "$CACHE_KEY_FILE"
 
 # ── Library detection ─────────────────────────────────────────────────
@@ -367,12 +380,18 @@ copy_feature()
 # Compile and run a small C program, capturing stdout. Used for probes
 # that the old build system ran against AST libraries but that don't
 # actually need AST — the originals just used sfio for convenience.
+#
+# Optimization: Use temp directory with single trap instead of per-file cleanup.
 
 probe_c()
 {
-	local src=$BUILDDIR_ABS/probe$$.c
-	local bin=$BUILDDIR_ABS/probe$$
-	trap 'rm -f "$src" "$bin" "${src%.c}.d"' EXIT
+	local _probe_dir=$BUILDDIR_ABS/.probe$$
+	local src=$_probe_dir/probe.c
+	local bin=$_probe_dir/probe
+	
+	mkdir -p "$_probe_dir"
+	trap 'rm -rf "$_probe_dir"' EXIT
+	
 	cat > "$src"
 	if $CC_PATH $CFLAGS \
 		-I"$PACKAGEROOT_ABS/$INCDIR" -I"$BUILDDIR_ABS/include" \
@@ -383,8 +402,7 @@ probe_c()
 	else
 		local rc=1
 	fi
-	rm -f "$src" "$bin" "${src%.c}.d"
-	trap - EXIT
+	
 	return $rc
 }
 
@@ -1116,39 +1134,47 @@ generate_cmd_headers()
 
 # ── Source file discovery ─────────────────────────────────────────────
 # Walk source directories and collect .c files, excluding generated/special files.
+# Results are cached to avoid redundant find(1) calls (each runs twice: emit_ninja
+# and configure_manifest).
+
+_cached_libast_sources=""
+_cached_libcmd_sources=""
+_cached_ksh26_sources=""
 
 collect_libast_sources()
 {
-	# Exclude: lcgen.c (build tool), astmath.c (probe helper),
-	# features/*.c (iffe input, not compiled), conftab.c (generated)
-	find src/lib/libast -name '*.c' \
-		-not -name 'lcgen.c' \
-		-not -name 'astmath.c' \
-		-not -path '*/features/*' \
-		| sort
+	if [ -z "$_cached_libast_sources" ]; then
+		_cached_libast_sources=$(find src/lib/libast -name '*.c' \
+			-not -name 'lcgen.c' \
+			-not -name 'astmath.c' \
+			-not -path '*/features/*' \
+			| sort)
+	fi
+	printf '%s\n' "$_cached_libast_sources"
 }
 
 collect_libcmd_sources()
 {
-	# Static builtin set (10) + support files (cmdinit, lib).
-	# Remaining libcmd sources stay in tree for builtin -f if
-	# dynamic loading is re-enabled.
-	for f in \
-		basename cat cp cut dirname getconf ln mktemp mv stty \
-		cmdinit lib \
-	; do
-		printf '%s\n' "src/lib/libcmd/$f.c"
-	done
+	if [ -z "$_cached_libcmd_sources" ]; then
+		_cached_libcmd_sources=$(for f in \
+			basename cat cp cut dirname getconf ln mktemp mv stty \
+			cmdinit lib \
+		; do
+			printf '%s\n' "src/lib/libcmd/$f.c"
+		done)
+	fi
+	printf '%s\n' "$_cached_libcmd_sources"
 }
 
 collect_ksh26_sources()
 {
-	# All .c files in sh/, bltins/, edit/, data/ subdirectories
-	# Exclude tests/ and the features/ directory
-	find src/cmd/ksh26 -name '*.c' \
-		-not -path '*/tests/*' \
-		-not -path '*/features/*' \
-		| sort
+	if [ -z "$_cached_ksh26_sources" ]; then
+		_cached_ksh26_sources=$(find src/cmd/ksh26 -name '*.c' \
+			-not -path '*/tests/*' \
+			-not -path '*/features/*' \
+			| sort)
+	fi
+	printf '%s\n' "$_cached_ksh26_sources"
 }
 
 # ── Emit build.ninja ──────────────────────────────────────────────────
@@ -1651,10 +1677,15 @@ run_pty_features &
 wait
 
 {
+	# Optimization: Single-pass count instead of two grep -c calls
 	_iffe_cached=0
 	_iffe_ran=0
-	_iffe_cached=$(grep -c cached "$_iffe_log" 2>/dev/null) || _iffe_cached=0
-	_iffe_ran=$(grep -c ran "$_iffe_log" 2>/dev/null) || _iffe_ran=0
+	while read -r _line; do
+		case $_line in
+			cached) _iffe_cached=$((_iffe_cached + 1)) ;;
+			ran) _iffe_ran=$((_iffe_ran + 1)) ;;
+		esac
+	done < "$_iffe_log" 2>/dev/null
 	if [ "$_iffe_cached" -gt 0 ]; then
 		printf '%s\n' "configure: feature probes: $_iffe_ran ran, $_iffe_cached cached"
 	fi
