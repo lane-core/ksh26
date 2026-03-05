@@ -23,11 +23,11 @@ SAMU := BUILDDIR / "bin" / "samu"
 
 # Build ksh26 (content-addressed — any source change triggers rebuild)
 build:
-    nix build .#build --print-build-logs
+    nix build .#default --print-build-logs
 
-# Run all regression tests (content-addressed)
+# Run all regression tests (content-addressed — builds + tests together)
 test:
-    nix build .#checks."$(nix eval --impure --raw --expr 'builtins.currentSystem')".default --print-build-logs
+    nix build .#checked --print-build-logs
 
 # Build with debug flags
 build-debug:
@@ -174,6 +174,94 @@ log what="all" name="":
             printf '\n=== Tests ===\n'; just failures "$dir"
         fi ;;
     esac
+
+# Comprehensive test failure diagnosis: just diagnose <test-name> [locale]
+# Per Immutable Test Sanctity (CLAUDE.md): investigates context deficiencies, not test logic
+diagnose name locale="C": _dev-build
+    #!/bin/sh
+    set -eu
+    dir="{{BUILDDIR}}"
+    test_name="{{name}}"
+    mode="{{locale}}"
+    stamp="$dir/test/${test_name}.${mode}.stamp"
+    log="${stamp}.log"
+
+    echo "=== ksh26 Test Failure Diagnosis ==="
+    echo "Test: $test_name (mode: $mode)"
+    echo "Stamp: $stamp"
+    echo ""
+
+    # Check if test exists
+    if [ ! -f "tests/shell/${test_name}.sh" ]; then
+        echo "ERROR: Test file not found: tests/shell/${test_name}.sh"
+        echo "Available tests:"
+        ls tests/shell/*.sh | sed 's|tests/shell/||; s/\.sh$//' | column -c 80
+        exit 1
+    fi
+
+    # Run the test and capture full output
+    echo "=== Running test with instrumentation ==="
+    rm -f "$stamp"
+    {{SAMU}} -C "$dir" "test/${test_name}.${mode}.stamp" 2>&1 || true
+
+    echo ""
+    echo "=== Exit Status Analysis ==="
+    if [ -f "$stamp" ]; then
+        echo "Result: PASSED (stamp exists)"
+    else
+        echo "Result: FAILED (no stamp)"
+        if [ -f "$log" ]; then
+            echo ""
+            echo "=== Raw Test Output ==="
+            cat "$log"
+            echo ""
+            echo "=== Error Pattern Analysis ==="
+            if grep -q 'FAIL:' "$log" 2>/dev/null; then
+                fail_count=$(grep -c 'FAIL:' "$log")
+                echo "Found $fail_count assertion failures:"
+                grep 'FAIL:' "$log" | head -10
+            fi
+            if grep -q 'SEGV\|segmentation fault' "$log" 2>/dev/null; then
+                echo "CRASH: Segmentation fault detected"
+            fi
+            if grep -q 'timeout' "$log" 2>/dev/null; then
+                echo "TIMEOUT: Test did not complete within time limit"
+            fi
+        else
+            echo "No log file found at: $log"
+        fi
+    fi
+
+    echo ""
+    echo "=== Environment Comparison ==="
+    echo "Host HOSTTYPE: $(uname -s | tr 'A-Z' 'a-z').$(uname -m | sed 's/aarch64/arm64/;s/i.86/i386/')-$(getconf LONG_BIT 2>/dev/null || echo 64)"
+    echo "Build HOSTTYPE: {{HOSTTYPE}}"
+    echo "SHELL: $dir/bin/ksh"
+    if [ -x "$dir/bin/ksh" ]; then
+        echo "KSH_VERSION: $($dir/bin/ksh -c 'echo "$KSH_VERSION"' 2>/dev/null || echo 'unknown')"
+    fi
+
+    echo ""
+    echo "=== Context Adaptations ==="
+    for ctx in default tty fixtures timing; do
+        if [ -f "tests/contexts/${ctx}.sh" ]; then
+            echo "  [✓] contexts/${ctx}.sh exists"
+        else
+            echo "  [ ] contexts/${ctx}.sh missing"
+        fi
+    done
+
+    echo ""
+    echo "=== Investigation Steps (per CLAUDE.md) ==="
+    echo "1. Reproduce outside harness: just test-one $test_name $mode"
+    echo "2. Check context deficiencies: cat tests/contexts/*.sh"
+    echo "3. Compare with Nix build: nix build .#checks.default --print-build-logs"
+    echo ""
+    echo "If test passes outside harness but fails inside:"
+    echo "  → Add context adaptation to tests/contexts/ (don't modify test)"
+    echo ""
+    echo "If test fails in both:"
+    echo "  → Real bug in shell. Fix src/cmd/ksh26/, not the test"
 
 # ── Code tools ───────────────────────────────────────────────
 
