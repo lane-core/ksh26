@@ -315,6 +315,23 @@ void	sh_sigdone(void)
 		if((flag&(SH_SIGDONE|SH_SIGIGNORE|SH_SIGINTERACTIVE)) && !(flag&(SH_SIGFAULT|SH_SIGOFF)))
 			sh_sigtrap(sig);
 	}
+	/*
+	 * Override inherited SIG_IGN for SIGPIPE on new invocations.
+	 * SIGPIPE is critical for pipeline semantics (pipefail, broken pipe
+	 * detection). Build sandboxes and CI systems often set SIGPIPE to
+	 * SIG_IGN to prevent spurious writer deaths — but this breaks
+	 * fundamental shell pipeline behavior if inherited. Other signals
+	 * correctly respect the POSIX inherited-SIG_IGN rule.
+	 */
+	if(!sh_isstate(SH_FORKED))
+	{
+		flag = sh.sigflag[SIGPIPE];
+		if(flag & SH_SIGOFF)
+		{
+			signal(SIGPIPE, sh_fault);
+			sh.sigflag[SIGPIPE] = (flag & ~SH_SIGOFF) | SH_SIGFAULT;
+		}
+	}
 }
 
 /*

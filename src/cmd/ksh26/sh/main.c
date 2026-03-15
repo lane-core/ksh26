@@ -395,11 +395,16 @@ static void	exfile(Sfio_t *iop,int fno)
 		fno = -1;
 	beenhere = 1;
 	sh.infd = fno;
+	/* install handlers for SH_SIGDONE signals (SIGPIPE, SIGTERM, etc.)
+	 * and detect inherited SIG_IGN dispositions. Must run for all shells,
+	 * not just interactive — non-interactive shells in environments that
+	 * set SIGPIPE to SIG_IGN (nix build sandboxes, CI systems) need
+	 * SH_SIGOFF set correctly for command -p, pipefail, and signal traps. */
+	sh_sigdone();
 	if(sh_isstate(SH_INTERACTIVE))
 	{
 		if(nv_isnull(PS1NOD))
 			nv_putval(PS1NOD,(sh.euserid?e_stdprompt:e_supprompt),NV_RDONLY);
-		sh_sigdone();
 		if(sh_histinit())
 			sh_onoption(SH_HISTORY);
 	}
