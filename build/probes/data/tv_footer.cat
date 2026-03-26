@@ -1,0 +1,14 @@
+
+#define tvgetatime(t,s)	((t)->tv_nsec=ST_ATIME_NSEC_GET(s),(t)->tv_sec=(s)->st_atime)
+#define tvgetmtime(t,s)	((t)->tv_nsec=ST_MTIME_NSEC_GET(s),(t)->tv_sec=(s)->st_mtime)
+#define tvgetctime(t,s)	((t)->tv_nsec=ST_CTIME_NSEC_GET(s),(t)->tv_sec=(s)->st_ctime)
+
+#define tvsetatime(t,s)	(ST_ATIME_NSEC_SET(s,(t)->tv_nsec),(s)->st_atime=(t)->tv_sec)
+#define tvsetmtime(t,s)	(ST_MTIME_NSEC_SET(s,(t)->tv_nsec),(s)->st_mtime=(t)->tv_sec)
+#define tvsetctime(t,s)	(ST_CTIME_NSEC_SET(s,(t)->tv_nsec),(s)->st_ctime=(t)->tv_sec)
+
+extern int		tvgettime(Tv_t*);
+extern int		tvsettime(const Tv_t*);
+extern int		tvcmp(const Tv_t*, const Tv_t*);
+extern int		tvtouch(const char*, const Tv_t*, const Tv_t*, const Tv_t*, int);
+extern int		tvsleep(const Tv_t*, Tv_t*);

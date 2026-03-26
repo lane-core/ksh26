@@ -1,0 +1,4 @@
+
+#if _sys_resource
+#	include <sys/resource.h>
+#endif

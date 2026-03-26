@@ -1,0 +1,35 @@
+#undef _def_time
+#include	<times.h>
+#include	<sys/time.h>
+#define _def_time	1
+#undef timeofday
+#if _lib_2_timeofday
+#define timeofday(p)	gettimeofday(p,NULL)
+#else
+#if _lib_1_timeofday
+#define timeofday(p)	gettimeofday(p)
+#endif
+#endif
+/* BSD timeradd and timersub macros */
+#if !defined(timeradd)
+#define	timeradd(tvp, uvp, vvp)						\
+do {								\
+	(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
+	(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
+	if ((vvp)->tv_usec >= 1000000) {			\
+		(vvp)->tv_sec++;				\
+		(vvp)->tv_usec -= 1000000;			\
+	}							\
+} while(0)
+#endif
+#if !defined(timersub)
+#define	timersub(tvp, uvp, vvp)						\
+do {								\
+	(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
+	(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
+	if ((vvp)->tv_usec < 0) {				\
+		(vvp)->tv_sec--;				\
+		(vvp)->tv_usec += 1000000;			\
+	}							\
+} while(0)
+#endif

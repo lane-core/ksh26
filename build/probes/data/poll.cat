@@ -1,0 +1,18 @@
+#if _hdr_poll
+#    include    <poll.h>
+#else
+#   if _sys_poll
+#	include    <sys/poll.h>
+#   endif /* _sys_poll */
+#endif /* _hdr_poll */
+#if _lib_select
+#   ifndef FD_ZERO
+#	define FD_ZERO(x)	(*(x)=0)
+#   endif /* FD_ZERO */
+#   ifndef FD_SET
+#	define FD_SET(n,x)	(*(x)|=(1L<<(n)))
+#   endif /* FD_SET */
+#   if !_typ_fd_set
+	typedef long fd_set;
+#   endif /* _typ_fd_set */
+#endif /* _lib_select */

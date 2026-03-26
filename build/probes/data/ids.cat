@@ -1,0 +1,4 @@
+
+#if !_lib_fsid && _mac_fsid
+#define _lib_fsid	1
+#endif

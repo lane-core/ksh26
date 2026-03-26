@@ -1,0 +1,5 @@
+#define _XOPEN_SOURCE	9900
+#define _POSIX_C_SOURCE 21000101L
+#define _BSD_SOURCE	1	/* OpenBSD needs this */
+#define _NETBSD_SOURCE	1	/* NetBSD needs this */
+#define __BSD_VISIBLE	1	/* FreeBSD needs this */

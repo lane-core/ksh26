@@ -1,0 +1,57 @@
+/* probe: ast-nl_types — NL_* constants + catopen/catgets remapping
+ * Compile+link+run, capture output.
+ * Requires: -D_lib_catopen=0|1 -D_hdr_nl_types=0|1
+ *           -I for FEATURE/limits (workdir with FEATURE/ symlink)
+ */
+#include <stdio.h>
+#if !_lib_catopen
+#undef _hdr_nl_types
+#endif
+#include "FEATURE/limits"
+#if _hdr_nl_types
+#include <nl_types.h>
+#endif
+
+int
+main(void)
+{
+	printf("#include <limits.h>\n");
+	printf("\n");
+	printf("#ifdef __HAIKU__\n");
+	printf("typedef int	nl_item;  /* workaround system header bug */\n");
+	printf("#endif\n");
+#ifndef NL_SETMAX
+	printf("#undef	NL_SETMAX\n");
+	printf("#define NL_SETMAX	1023\n");
+#endif
+#ifndef NL_MSGMAX
+	printf("#undef	NL_MSGMAX\n");
+	printf("#define NL_MSGMAX	32767\n");
+#endif
+#ifndef NL_SETD
+	printf("#undef	NL_SETD\n");
+	printf("#define NL_SETD		1\n");
+#endif
+#ifndef NL_CAT_LOCALE
+	printf("#undef	NL_CAT_LOCALE\n");
+	printf("#define NL_CAT_LOCALE	1\n");
+#endif
+#if _lib_catopen
+	printf("#undef	nl_catd\n");
+	printf("#define	nl_catd		_ast_nl_catd\n");
+	printf("#undef	catopen\n");
+	printf("#define catopen		_ast_catopen\n");
+	printf("#undef	catgets\n");
+	printf("#define	catgets		_ast_catgets\n");
+	printf("#undef	catclose\n");
+	printf("#define catclose	_ast_catclose\n");
+#endif
+	printf("\n");
+	printf("typedef void* nl_catd;\n");
+	printf("\n");
+	printf("extern nl_catd		catopen(const char*, int);\n");
+	printf("extern char*		catgets(nl_catd, int, int, const char*);\n");
+	printf("extern int		catclose(nl_catd);\n");
+	printf("\n");
+	return 0;
+}

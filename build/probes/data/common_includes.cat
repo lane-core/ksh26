@@ -1,0 +1,21 @@
+#ifndef _AST_STD_H
+#	if _hdr_stddef
+#	include	<stddef.h>
+#	endif
+#	if _sys_types
+#	include	<sys/types.h>
+#	endif
+#	if _hdr_stdint
+#	include	<stdint.h>
+#	else
+#		if _hdr_inttypes
+#		include	<inttypes.h>
+#		endif
+#	endif
+#endif
+#ifndef _AST_STD_H
+#	define _def_map_ast	1
+#	if !_def_map_ast
+#		include <ast_map.h>
+#	endif
+#endif
