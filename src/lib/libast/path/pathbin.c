@@ -34,8 +34,11 @@ pathbin(void)
 
 	if ((!(bin = getenv("PATH")) || !*bin) && !(bin = val))
 	{
-		if (!*(bin = astconf("PATH", NULL, NULL)) || !(bin = strdup(bin)))
-			abort();
+		bin = astconf("PATH", NULL, NULL);
+		if (!bin || !*bin)
+			bin = "/bin:/usr/bin";
+		if (!(bin = strdup(bin)))
+			bin = "/bin:/usr/bin";
 		val = bin;
 	}
 	return bin;
