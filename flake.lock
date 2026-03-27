@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "nix-vm-test": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773767398,
+        "narHash": "sha256-VQbYAGMDL32CvTdkVourgUlikoUMpUXzmpoXAH6yFh0=",
+        "owner": "numtide",
+        "repo": "nix-vm-test",
+        "rev": "726069d50924b748f6d464e2f3abfc5e7fb32c30",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "nix-vm-test",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1772624091,
@@ -34,6 +54,7 @@
     },
     "root": {
       "inputs": {
+        "nix-vm-test": "nix-vm-test",
         "nixpkgs": "nixpkgs",
         "treefmt-nix": "treefmt-nix"
       }

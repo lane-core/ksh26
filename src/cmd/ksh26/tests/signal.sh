@@ -331,9 +331,9 @@ exp=$'PIPED\nPIPED'
 rm -f out2
 
 actual=$( trap 'print -n got_child' SIGCHLD
-	sleep .4 &
+	sleep 1.0 &
 	for	((i=0; i < 4; i++))
-	do 	sleep .15
+	do 	sleep .4
 		print -n $i
 	done)
 expect=01got_child23

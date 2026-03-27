@@ -81,6 +81,10 @@ test-linux: _check-linux-builder
 test-linux-asan: _check-linux-builder
     nix build .#checks.aarch64-linux.asan --print-build-logs
 
+# Run full test suite inside a NixOS VM (authoritative linux test)
+test-nixos-vm: _check-linux-builder
+    nix build .#checks.aarch64-linux.nixos --print-build-logs
+
 
 # Run advisory tests on aarch64-linux (nix sandbox — may flake)
 test-linux-advisory-sandbox: _check-linux-builder

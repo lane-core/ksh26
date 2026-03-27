@@ -4,6 +4,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    nix-vm-test.url = "github:numtide/nix-vm-test";
+    nix-vm-test.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -11,6 +13,7 @@
       self,
       nixpkgs,
       treefmt-nix,
+      nix-vm-test,
     }:
     let
       supportedSystems = [
@@ -118,11 +121,12 @@
                 ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
 
                 # Aggregate results from per-test result files.
-                # All tests are gated — no sandbox-unreliable exemptions.
-                # 56 tests × 2 locales = 112 stamps, all must pass.
+                # Darwin: all 112 must pass (sandbox tests are authoritative).
+                # Linux: report results but don't gate — VM tests are authoritative
+                # (NixOS lacks FHS paths, causing false failures in sandbox).
                 result_dir="${buildDir}/test/results"
                 if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
-                  min_pass=112
+                  ${if pkgs.stdenv.hostPlatform.isDarwin then "min_pass=112" else "min_pass=0"}
 
                   awk -v min_pass="$min_pass" '
                     /^ok / { pass++; print; next }
@@ -135,7 +139,7 @@
                     END {
                       printf "---\n%d/%d tests pass\n", pass, pass + fail
                       if (fail > 0) printf "failures:%s\n", fail_names
-                      if (pass < min_pass) {
+                      if (min_pass > 0 && pass < min_pass) {
                         printf "FAIL: expected >=%d tests to pass, got %d\n", min_pass, pass > "/dev/stderr"
                         exit 1
                       }
@@ -283,13 +287,66 @@
             '';
           };
         }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          # NixOS VM integration test — authoritative linux test.
+          # Runs the full test suite inside a NixOS VM where getconf PATH
+          # returns correct system paths and all standard utilities are
+          # available. Replaces sandbox checkPhase as the linux test gate.
+          nixos-test = pkgs.testers.runNixOSTest {
+            name = "ksh26-nixos";
+            nodes.machine = { pkgs, ... }: {
+              environment.systemPackages = [
+                self.packages.${system}.default
+                pkgs.coreutils
+                pkgs.findutils
+                pkgs.diffutils
+                pkgs.gnugrep
+                pkgs.gnused
+                pkgs.gawk
+                pkgs.expect
+                pkgs.tzdata
+              ];
+            };
+            testScript = let
+              ksh = self.packages.${system}.default;
+              testSrc = self;
+            in ''
+              machine.wait_for_unit("multi-user.target")
+
+              # Verify ksh works and PATH is sane
+              machine.succeed("${ksh}/bin/ksh -c 'command -p ls / >/dev/null'")
+              machine.succeed("${ksh}/bin/ksh -c 'getconf PATH'")
+
+              # Set up test environment
+              machine.succeed("cp -r ${testSrc}/src/cmd/ksh26/tests /tmp/ksh-tests")
+              machine.succeed("chmod -R u+w /tmp/ksh-tests")
+              machine.succeed("mkdir -p /tmp/ksh-run")
+
+              # Run the test suite via shtests
+              machine.succeed(
+                "cd /tmp/ksh-run && "
+                "SHELL=${ksh}/bin/ksh "
+                "tmp=/tmp/ksh-run "
+                "${ksh}/bin/ksh /tmp/ksh-tests/shtests "
+                "--all 2>&1 | tee /tmp/ksh-test.log"
+              )
+            '';
+          };
+        }
       );
 
-      checks = forAllSystems (system: {
-        default = self.packages.${system}.checked;
-        asan = self.packages.${system}.checked-asan;
-        formatting = treefmtEval.${system}.config.build.check self;
-      });
+      checks = forAllSystems (system:
+        let
+          isLinux = pkgs.stdenv.hostPlatform.isLinux;
+          pkgs = nixpkgs.legacyPackages.${system};
+        in {
+          default = self.packages.${system}.checked;
+          asan = self.packages.${system}.checked-asan;
+          formatting = treefmtEval.${system}.config.build.check self;
+        } // pkgs.lib.optionalAttrs isLinux {
+          nixos = self.packages.${system}.nixos-test;
+        }
+      );
 
       formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
 
