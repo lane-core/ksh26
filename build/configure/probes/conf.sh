@@ -35,9 +35,14 @@ probe_conf()
 	cat "$LIBAST_SRC/comp/conf.sh" >> "$_conf_dir/conf"
 	chmod +x "$_conf_dir/conf"
 
-	# Run conf.sh: args are conf.tab then CC + flags
+	# Run conf.sh: args are conf.tab then CC + flags.
+	# conf.sh searches $DEFPATH then $PATH for external getconf(1).
+	# Append standard system paths so getconf(1) is found even when
+	# PATH contains only nix store paths (as in nix build sandboxes).
+	_sys_path=$(command -p getconf PATH 2>/dev/null) || _sys_path="/usr/bin:/bin"
 	(
 		cd "$_conf_dir"
+		PATH="$PATH:$_sys_path"
 		"$SHELL" ./conf -v "$_conftab" \
 			"$CC" $CFLAGS_BASE -fno-strict-aliasing
 	) >>"$LOGDIR/conf.log" 2>&1 || true

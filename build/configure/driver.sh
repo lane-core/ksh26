@@ -198,7 +198,7 @@ int main(void) { iconv_open("",""); return 0; }
 			ICONV_LIB=$(pkg-config --libs iconv 2>/dev/null)
 			configure_log "iconv ... pkg-config ($ICONV_LIB)"
 		else
-			configure_log "iconv ... not found (nix devshell provides)"
+			configure_log "iconv ... not found (i18n \$\"...\" will be non-functional)"
 		fi
 
 		# -lm — always needed for ksh arithmetic
@@ -236,6 +236,33 @@ bootstrap_samu()
 	"$CC" $CFLAGS_BASE -o "$SAMU" "$INIT_SRC"/samu/*.c 2>&1 || \
 		die "failed to compile samu"
 	configure_log "samu ... ok"
+}
+
+bootstrap_setsid()
+{
+	_setsid="$BINDIR/setsid"
+	if test -x "$_setsid"; then
+		return 0
+	fi
+	# Portable setsid(2) wrapper for process group isolation.
+	# Tests that broadcast signals (kill -s INT 0) need their own
+	# session so signals don't escape to the test runner.
+	cat >|"$BINDIR/setsid.c" <<-'SETSID'
+	#include <unistd.h>
+	int main(int argc, char **argv) {
+		if (argc < 2) return 1;
+		setsid();
+		execvp(argv[1], argv + 1);
+		return 127;
+	}
+	SETSID
+	if "$CC" $CFLAGS_BASE -o "$_setsid" "$BINDIR/setsid.c" 2>/dev/null; then
+		configure_log "setsid ... ok"
+		rm -f "$BINDIR/setsid.c"
+	else
+		configure_log "setsid ... skipped (tests will run without process group isolation)"
+		rm -f "$BINDIR/setsid.c"
+	fi
 }
 
 write_manifest()

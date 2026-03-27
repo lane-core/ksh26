@@ -117,6 +117,13 @@ cd "$tmp" || exit 1
 # Prevent runaway allocations from killing the machine.
 # Linux: ulimit -v works (kernel-enforced). Darwin: ulimit -v is
 # a no-op (Apple removed RLIMIT_AS), so we poll RSS instead.
+# ── Process group isolation ────────────────────────────────────
+# Tests that broadcast signals (kill -s INT 0) need their own session
+# so signals don't escape to the test runner. Use our setsid helper
+# if available (compiled by configure.sh).
+_setsid=""
+[ -x "$BINDIR/setsid" ] && _setsid="$BINDIR/setsid"
+
 _memlimit_kb=524288  # 512 MiB
 _use_rss_monitor=false
 if ! ulimit -v "$_memlimit_kb" 2>/dev/null; then
@@ -148,17 +155,18 @@ if $_ninja; then
 		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" \"\$test_script\"" >"$log" 2>&1 || rc=$?
 	elif command -v timeout >/dev/null 2>&1; then
 		if $_use_rss_monitor; then
-			timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 &
-			_tpid=$!
-			_rss_monitor "$_tpid" "$_memlimit_kb" &
+			# Monitor runs in background watching this shell's children.
+			# Test runs in foreground so it inherits normal signal
+			# dispositions (SIGINT/SIGQUIT must not be SIG_IGN).
+			_rss_monitor $$ "$_memlimit_kb" &
 			_mpid=$!
-			wait "$_tpid" 2>/dev/null || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
 			kill "$_mpid" 2>/dev/null; wait "$_mpid" 2>/dev/null
 		else
-			timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
 		fi
 	else
-		"$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
+		$_setsid "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
 	fi
 
 	# Per-test result file (avoids parallel write contention on summary)

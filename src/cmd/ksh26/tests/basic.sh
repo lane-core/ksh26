@@ -551,11 +551,11 @@ set -o pipefail
 float start=$SECONDS end
 for ((i=0; i < 2; i++))
 do	print foo
-	sleep .15
+	sleep .5
 done | { read; $bintrue; end=$SECONDS ;}
 (( (SECONDS-start) < .1 )) && err_exit "pipefail not waiting for pipe to finish"
 set +o pipefail
-(( (SECONDS-end) > .2 )) &&  err_exit "pipefail causing $bintrue to wait for other end of pipe"
+(( (SECONDS-end) > .7 )) &&  err_exit "pipefail causing $bintrue to wait for other end of pipe"
 
 if [[ $bintrue ]]
 then	float t0=SECONDS

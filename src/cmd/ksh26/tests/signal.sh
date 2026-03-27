@@ -22,6 +22,12 @@
 # The following tests are run in parallel because they are slow; they are checked at the end
 
 (
+	# Ignore INT in this subshell — the tst scripts use kill -s INT 0
+	# which broadcasts to the process group. Without job control (non-
+	# interactive, CI, sandbox), this subshell shares the process group
+	# and would be killed before collecting results.
+	trap '' INT
+
 	# begin standalone SIGINT test generation
 
 	cat > tst <<-'EOF'

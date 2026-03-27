@@ -65,6 +65,7 @@ putln "  BUILDDIR=$BUILDDIR"
 
 detect_libs
 bootstrap_samu
+bootstrap_setsid
 
 # ── Phase 1: Probes ──────────────────────────────────────────────
 run_probes

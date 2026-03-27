@@ -114,54 +114,29 @@
                 # Darwin sandbox may not expose /usr/share/zoneinfo
                 export TZDIR="''${TZDIR:-${pkgs.tzdata}/share/zoneinfo}"
 
-                # Run all tests in parallel (-k 0 = continue on failure)
+                # Run all tests (-k 0 = continue on failure, collect all results)
                 ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
 
                 # Aggregate results from per-test result files.
-                # sandbox_unreliable: tests that pass on real hardware but fail
-                # intermittently in the nix sandbox due to scheduling jitter.
-                # They bypass the nix gate — NOT because they're optional, but
-                # because the sandbox can't run them reliably. Test locally.
-                sandbox_unreliable="signal sigchld basic options jobs printf path"
-
+                # All tests are gated — no sandbox-unreliable exemptions.
+                # 56 tests × 2 locales = 112 stamps, all must pass.
                 result_dir="${buildDir}/test/results"
                 if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
-                  # Single-pass awk: aggregate results, handle sandbox-unreliable
-                  # tier, enforce regression guard. Exit non-zero if gate fails.
-                  # Sandbox-unreliable tests excluded from gate (both pass and fail).
-                  # max gate = stamp_count - (|sandbox_unreliable| × 2 locales)
-                  # 114 - 14 sandbox-unreliable = 100 gate capacity
-                  # Both platforms: min_pass=100 (all gate tests must pass)
-                  min_pass=100
+                  min_pass=112
 
-                  awk -v sandbox_unreliable="$sandbox_unreliable" -v min_pass="$min_pass" '
-                    BEGIN { split(sandbox_unreliable, su_arr); for (i in su_arr) su[su_arr[i]] = 1 }
-                    /^ok / {
-                      desc = $3; sub(/\.C(\.UTF-8)?$/, "", desc)
-                      if (!(desc in su)) pass++
+                  awk -v min_pass="$min_pass" '
+                    /^ok / { pass++; print; next }
+                    /^not ok / {
+                      fail++
+                      fail_names = fail_names " " $4
                       print
                       next
                     }
-                    /^not ok / {
-                      desc = $4; sub(/\.C(\.UTF-8)?$/, "", desc)
-                      if (desc in su) {
-                        su_fail++
-                        su_names = su_names " " desc
-                        printf "ok - %s # SANDBOX-UNRELIABLE (timing-sensitive)\n", $4
-                      } else {
-                        fail++
-                        fail_names = fail_names " " desc
-                        print
-                      }
-                      next
-                    }
                     END {
-                      gate = pass + fail
-                      printf "---\n%d/%d gate tests pass\n", pass, gate
-                      if (fail > 0) printf "gate failures:%s\n", fail_names
-                      if (su_fail > 0) printf "sandbox-unreliable (not gated):%s\n", su_names
+                      printf "---\n%d/%d tests pass\n", pass, pass + fail
+                      if (fail > 0) printf "failures:%s\n", fail_names
                       if (pass < min_pass) {
-                        printf "FAIL: expected >=%d gate tests to pass, got %d\n", min_pass, pass > "/dev/stderr"
+                        printf "FAIL: expected >=%d tests to pass, got %d\n", min_pass, pass > "/dev/stderr"
                         exit 1
                       }
                     }
@@ -226,61 +201,6 @@
           build-asan = mkKsh {
             variant = "-asan";
             configureFlags = [ "--asan" ];
-          };
-
-          # Sandbox-unreliable tests — serial execution, longer timeout.
-          # These tests pass on real hardware but fail intermittently in the
-          # nix sandbox due to scheduling jitter. Run them serially with a
-          # longer timeout to verify they still pass.
-          checked-sandbox-unreliable = let
-            ksh = mkKsh { };
-            inherit (pkgs) stdenv;
-          in stdenv.mkDerivation {
-            pname = "ksh26-sandbox-unreliable-tests";
-            version = "0.1.0-alpha";
-            src = self;
-            nativeBuildInputs = [ pkgs.expect ];
-            dontConfigure = true;
-            dontBuild = true;
-            doCheck = true;
-            checkPhase = let
-              buildDir = "build/${hostType}";
-            in ''
-              # Bootstrap + configure + build (reuse mkKsh logic)
-              mkdir -p ${buildDir}/bin
-              $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
-              _Msh_DEFPATH="$PATH" sh configure.sh
-              ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
-
-              export KSH_TEST_TIMEOUT=120
-              sandbox_unreliable="signal sigchld basic options jobs printf path"
-              pass=0 fail=0 total=0
-              for name in $sandbox_unreliable; do
-                for locale in C C.UTF-8; do
-                  total=$((total + 1))
-                  rm -f "${buildDir}/test/$name.$locale.stamp"
-                  if ./${buildDir}/bin/samu -j1 -f ${buildDir}/build.ninja \
-                       "test/$name.$locale.stamp" >/dev/null 2>&1; then
-                    pass=$((pass + 1))
-                    echo "ok - $name.$locale"
-                  else
-                    fail=$((fail + 1))
-                    echo "FAIL - $name.$locale"
-                    cat "${buildDir}/test/$name.$locale.stamp.log" 2>/dev/null | grep 'FAIL:' || true
-                  fi
-                done
-              done
-              echo "---"
-              echo "$pass/$total sandbox-unreliable tests pass"
-              if [ "$fail" -gt 0 ]; then
-                echo "FAIL: sandbox-unreliable tests did not all pass" >&2
-                exit 1
-              fi
-            '';
-            installPhase = ''
-              mkdir -p $out
-              echo "sandbox-unreliable tests passed" > $out/result
-            '';
           };
 
           # Sanitizer build + test
@@ -368,7 +288,6 @@
       checks = forAllSystems (system: {
         default = self.packages.${system}.checked;
         asan = self.packages.${system}.checked-asan;
-        sandbox-unreliable = self.packages.${system}.checked-sandbox-unreliable;
         formatting = treefmtEval.${system}.config.build.check self;
       });
 
