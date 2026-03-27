@@ -342,6 +342,18 @@ EOF
 #endif'
 	fi
 
+	# ── std noreturn ──
+	_std_noreturn=0
+	if _mc_compile <<'EOF'
+#include <stdlib.h>
+#include <stdnoreturn.h>
+noreturn void foo(void) { exit(0); }
+int main(void) { foo(); }
+EOF
+	then
+		_std_noreturn=1
+	fi
+
 	# ── UNREACHABLE, __func__, __FUNCTION__, _Static_assert ──
 	_unreachable='#define UNREACHABLE()	abort()'
 	if [ -f "$_inc_dir/ast_release.h" ]; then
@@ -455,6 +467,13 @@ EOF
 #	define __INLINE__	__inline
 #endif
 CATBLOCK
+		# noreturn support
+		if [ "$_std_noreturn" = 1 ]; then
+			echo "#define _std_noreturn	1	/* noreturn ok */"
+			echo "#include <stdnoreturn.h>"
+		else
+			echo "#define noreturn /* empty */"
+		fi
 		echo ""
 		# _ast_LL
 		[ "$_ast_LL" = 1 ] && echo "#define _ast_LL	1	/* LL numeric suffix supported */"

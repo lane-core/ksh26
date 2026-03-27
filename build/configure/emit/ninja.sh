@@ -159,9 +159,14 @@ RULES
 
 		# ── pty binary (for tests) ──────────────────────────
 		printf 'build %s/pty.o: cc_pty %s/pty.c\n' "$OBJDIR" "$PTY_SRC"
-		printf 'build %s/pty_main.o: cc_pty %s/pty_main.c\n' "$OBJDIR" "$PTY_SRC"
-		printf 'build %s/pty: link %s/pty.o %s/pty_main.o %s/libast.a %s/libcmd.a %s/libast.a\n' \
-			"$BINDIR" "$OBJDIR" "$OBJDIR" "$LIBDIR" "$LIBDIR" "$LIBDIR"
+		if test -f "$PTY_SRC/pty_main.c"; then
+			printf 'build %s/pty_main.o: cc_pty %s/pty_main.c\n' "$OBJDIR" "$PTY_SRC"
+			printf 'build %s/pty: link %s/pty.o %s/pty_main.o %s/libast.a %s/libcmd.a %s/libast.a\n' \
+				"$BINDIR" "$OBJDIR" "$OBJDIR" "$LIBDIR" "$LIBDIR" "$LIBDIR"
+		else
+			printf 'build %s/pty: link %s/pty.o %s/libast.a %s/libcmd.a %s/libast.a\n' \
+				"$BINDIR" "$OBJDIR" "$LIBDIR" "$LIBDIR" "$LIBDIR"
+		fi
 		printf '  libs = %s\n\n' "$LIBS"
 
 		# ── Default target ──────────────────────────────────
