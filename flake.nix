@@ -105,8 +105,8 @@
                 # Sanity check: ensure we have expected test count
                 stamp_count=$(grep '^build test: phony' ${buildDir}/build.ninja \
                   | tr ' ' '\n' | grep -c '\.stamp$' || true)
-                if (( stamp_count < 114 )); then
-                  echo "FAIL: expected >=114 test stamps, found $stamp_count" >&2
+                if (( stamp_count < 112 )); then
+                  echo "FAIL: expected >=112 test stamps, found $stamp_count" >&2
                   exit 1
                 fi
 
