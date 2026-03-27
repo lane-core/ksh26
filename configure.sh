@@ -64,6 +64,7 @@ putln "  CFLAGS=$CFLAGS_BASE"
 putln "  BUILDDIR=$BUILDDIR"
 
 detect_libs
+detect_defpath
 bootstrap_samu
 bootstrap_setsid
 

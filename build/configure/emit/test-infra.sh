@@ -150,9 +150,17 @@ if $_ninja; then
 	log="${stamp}.log"
 	mkdir -p "$(dirname "$stamp")" "$(dirname "$log")"
 
+	# Reset all signal dispositions to SIG_DFL before running the test.
+	# The nix-daemon on Linux starts builds with SIGPIPE set to SIG_IGN
+	# (systemd convention). ksh inherits this and marks SIGPIPE as
+	# SH_SIGOFF (untrappable). shtests does `trap + $(kill -l)` to fix
+	# this — we replicate it by having ksh reset signals then exec a
+	# fresh ksh on the test script (exec preserves the reset dispositions).
+	_sig_reset='trap + $(kill -l) 2>/dev/null; exec "$SHELL" "$1"'
+
 	rc=0
 	if [ -n "${_KSH_TTY_WRAPPER:-}" ]; then
-		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" \"\$test_script\"" >"$log" 2>&1 || rc=$?
+		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" -c '$_sig_reset' _ \"\$test_script\"" >"$log" 2>&1 || rc=$?
 	elif command -v timeout >/dev/null 2>&1; then
 		if $_use_rss_monitor; then
 			# Monitor runs in background watching this shell's children.
@@ -160,13 +168,13 @@ if $_ninja; then
 			# dispositions (SIGINT/SIGQUIT must not be SIG_IGN).
 			_rss_monitor $$ "$_memlimit_kb" &
 			_mpid=$!
-			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
 			kill "$_mpid" 2>/dev/null; wait "$_mpid" 2>/dev/null
 		else
-			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
 		fi
 	else
-		$_setsid "$SHELL" "$test_script" >"$log" 2>&1 || rc=$?
+		$_setsid "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
 	fi
 
 	# Per-test result file (avoids parallel write contention on summary)

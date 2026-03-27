@@ -225,6 +225,53 @@ int main(void) { _p = (void*)openpty; return 0; }
 	END
 }
 
+# ── DEFPATH detection ────────────────────────────────────────────
+# Replicates bin/package lines 1649-1720: construct a default PATH
+# from directories where standard utilities actually exist. This is
+# compiled into ksh via conftab.c and used for `command -p` and
+# `getconf PATH`. On NixOS, /usr/bin doesn't exist — utilities are
+# in /run/current-system/sw/bin or nix store paths.
+
+detect_defpath()
+{
+	if [ -n "${DEFPATH:-}" ]; then
+		configure_log "DEFPATH ... $DEFPATH (from environment)"
+		export DEFPATH
+		return 0
+	fi
+	# Try getconf PATH first (NixOS patches glibc to return correct paths)
+	_sys_path=$(PATH="/run/current-system/sw/bin:/usr/bin:/bin:$PATH" getconf PATH 2>/dev/null) \
+		|| _sys_path="/usr/bin:/bin:/usr/sbin:/sbin"
+	# Build DEFPATH from directories that actually contain standard utilities
+	DEFPATH=""
+	_save_ifs="$IFS"; IFS=:
+	for _d in $_sys_path $PATH; do
+		IFS="$_save_ifs"
+		case "$_d" in
+		/*) ;;
+		*) continue ;;
+		esac
+		# Must contain at least one standard utility
+		[ -x "$_d/ls" ] || [ -x "$_d/cat" ] || [ -x "$_d/sh" ] || continue
+		# Dedup
+		case ":$DEFPATH:" in
+		*":$_d:"*) continue ;;
+		esac
+		DEFPATH="${DEFPATH:+$DEFPATH:}$_d"
+	done
+	IFS="$_save_ifs"
+	# NixOS fix: add default profile directory (upstream bin/package lines 1698-1720)
+	if [ -e /etc/NIXOS ] && [ -d /nix/var/nix/profiles/default/bin ]; then
+		case ":$DEFPATH:" in
+		*":/nix/var/nix/profiles/default/bin:"*) ;;
+		*) DEFPATH="${DEFPATH:+$DEFPATH:}/nix/var/nix/profiles/default/bin" ;;
+		esac
+	fi
+	[ -z "$DEFPATH" ] && DEFPATH="/usr/bin:/bin"
+	export DEFPATH
+	configure_log "DEFPATH ... $DEFPATH"
+}
+
 # ── samu bootstrap ───────────────────────────────────────────────
 
 bootstrap_samu()

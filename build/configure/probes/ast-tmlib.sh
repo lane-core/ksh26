@@ -19,61 +19,17 @@ probe_ast_tmlib()
 	_saved="$CFLAGS_BASE"
 	CFLAGS_BASE="$CFLAGS_BASE -I$FEATDIR/libast -I$LIBAST_SRC -I$LIBAST_SRC/comp -I$LIBAST_SRC/include"
 
-	# The tzset_environ test: does tzset() bypass user getenv()?
-	# First check if CC.EXPORT.DYNAMIC is supported — on macOS it is (via -Wl,-export_dynamic)
-	# The test tries to override getenv. If tzset ignores the override, _tzset_environ=1.
-	_tzset_environ=0
-
-	# Check if the linker supports exporting dynamic symbols
-	_has_export_dynamic=0
-	if _mc_link "-Wl,-export_dynamic" <<'EOF'
-int main(void) { return 0; }
-EOF
-	then
-		_has_export_dynamic=1
-	elif _mc_link "-rdynamic" <<'EOF'
-int main(void) { return 0; }
-EOF
-	then
-		_has_export_dynamic=1
-	fi
-
-	if [ "$_has_export_dynamic" = 1 ]; then
-		# Try the actual tzset test with export_dynamic
-		_ed_flag="-Wl,-export_dynamic"
-		# Check which flag works
-		if ! _mc_link "-Wl,-export_dynamic" <<'EOF'
-int main(void) { return 0; }
-EOF
-		then
-			_ed_flag="-rdynamic"
-		fi
-
-		if _mc_execute "$_ed_flag" <<'EOF'
-#include <time.h>
-#include <string.h>
-extern char**	environ;
-extern char *tzname[];
-char* getenv(const char* s)
-{
-	(void)s;
-	return "foo0bar";
-}
-int main(void)
-{
-	tzset();
-	return tzname[0] && !strcmp(tzname[0], "foo") &&
-	       tzname[1] && !strcmp(tzname[1], "bar");
-}
-EOF
-		then
-			_tzset_environ=1
-		fi
-	else
-		# No export dynamic: iffe's test becomes `return 0` (always succeeds),
-		# so _tzset_environ=1 unconditionally — assume tzset bypasses getenv.
-		_tzset_environ=1
-	fi
+	# tzset() on all supported platforms (glibc, macOS, BSDs) bypasses
+	# user getenv() and reads TZ directly from the environ pointer.
+	# AST must inject TZ into environ[0] before calling localtime()
+	# so the C library sees ksh's TZ changes. This is what the
+	# _tzset_environ=1 workaround in tminit.c does.
+	#
+	# The original iffe probe tried to detect this by overriding
+	# getenv() with -rdynamic, but the test is unreliable (crashes
+	# on some platforms, always returns the same answer on others).
+	# Set unconditionally — the workaround is harmless when not needed.
+	_tzset_environ=1
 
 	CFLAGS_BASE="$_saved"
 

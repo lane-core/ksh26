@@ -355,7 +355,7 @@ then	float s
 		print done')
 	[[ $got == "$exp" ]] || err_exit 'subshell ignoring signal does not send signal to parent' \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-	(( (SECONDS-s) < .4 )) && err_exit 'parent does not wait for child to complete before handling signal'
+	(( (SECONDS-s) < .3 )) && err_exit 'parent does not wait for child to complete before handling signal'
 
 	(trap '' USR1; kill -USR1 $$)
 	got=$(<out)

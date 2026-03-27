@@ -678,17 +678,21 @@ cd ../..
 cd /etc
 cd .././..
 [[ $(pwd) == / ]] || err_exit 'cd /etc;cd .././..;pwd is not /'
-if [[ ! -d /usr/bin ]]; then
-	dir=/system  # For Haiku, fallback to /system
-else
+if [[ -d /usr/bin ]]; then
 	dir=/usr
+elif [[ -d /system/bin ]]; then
+	dir=/system  # Haiku
+else
+	dir=  # non-FHS (NixOS): skip, already tested via /etc above
 fi
-cd "$dir/bin"
-cd ../..
-[[ $(pwd) == / ]] || err_exit "'cd $dir/bin; cd ../..; pwd' is not /"
-cd "$dir/bin"
-cd ..
-[[ $(pwd) == "$dir" ]] || err_exit "cd '$dir/bin; cd ..; pwd' is not $dir"
+if [[ -n $dir ]]; then
+	cd "$dir/bin"
+	cd ../..
+	[[ $(pwd) == / ]] || err_exit "'cd $dir/bin; cd ../..; pwd' is not /"
+	cd "$dir/bin"
+	cd ..
+	[[ $(pwd) == "$dir" ]] || err_exit "cd '$dir/bin; cd ..; pwd' is not $dir"
+fi
 cd "$tmp"
 if	mkdir $tmp/t1
 then	(
