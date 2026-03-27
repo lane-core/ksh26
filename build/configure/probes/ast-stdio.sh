@@ -178,10 +178,8 @@ EOF
 #define _FILE_DEFINED	1
 #define _FILE_defined	1
 #define _FILEDEFED	1
-#define __FILE_defined  1
-/* ____FILE_defined intentionally NOT set: let glibc define its
- * internal __FILE type (struct _IO_FILE) so wchar.h prototypes
- * that use __FILE* parameters compile correctly. */
+#define __FILE_defined	1
+#define ____FILE_defined	1
 
 #ifndef __FILE_TAG
 #define __FILE_TAG	_sfio_s
@@ -196,6 +194,10 @@ typedef struct _sfio_s _sfio_FILE;
 
 #define FILE		_sfio_FILE
 #define _FILE		FILE
+
+#if !defined(__FILE) && !__CYGWIN__
+#define __FILE		FILE
+#endif
 
 #if defined(_AST_H) || defined(_SFIO_H)
 
