@@ -88,7 +88,7 @@
             fi
 
             # Run all tests (-k 0 = continue on failure, collect all results)
-            ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
+            ./${buildDir}/bin/samu -k 0 -C ${buildDir} test || true
 
             # Report test results against known total
             result_dir="${buildDir}/test/results"
