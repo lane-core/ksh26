@@ -17,7 +17,7 @@ probe_ast_param()
 
 	_param_content=$(
 		cc="$_param_cc" tmp="$_param_tmp/param" \
-			"$SHELL" "$LIBAST_SRC/features/param.sh"
+			"$SHELL" "$LIBAST_SRC/features/param.sh" 2>/dev/null
 	) || true
 
 	rm -rf "$_param_tmp"

@@ -62,11 +62,6 @@ _check-linux-builder:
         exit 0
     fi
     echo "error: no linux builder found in /etc/nix/machines" >&2
-    echo "" >&2
-    echo "Setup: add to your nix-darwin config:" >&2
-    echo "  imports = [ ksh26.darwinModules.linux-builder ];" >&2
-    echo "" >&2
-    echo "Then rebuild: darwin-rebuild switch" >&2
     exit 1
 
 # Build ksh26 for aarch64-linux from darwin
