@@ -963,11 +963,9 @@ run_one_probe()
 run_probes()
 {
 	probe_init
-	putln "=== Phase 1: Probes ===" >&2
-
 	# Load manifest (registers all probes)
 	. "$CONFIGURE_DIR/manifest.sh"
-	putln "  ${_manifest_count} probes registered" >&2
+	putln "[configure] ${_manifest_count} probes registered" >&2
 
 	# Load generator helpers
 	. "$CONFIGURE_DIR/gen-features.sh"
@@ -975,18 +973,17 @@ run_probes()
 	# Execute probes tier-by-tier.
 	# Uses a temp file (not a pipe) so the while-read loop runs in the
 	# current shell — shell variables set inside probes persist.
-	LOCAL _tier _mf _name _t _deps _type _lib _copies _count; BEGIN
+	LOCAL _tier _mf _name _t _deps _type _lib _copies _n; BEGIN
 		_mf="${_probe_tmpdir}/manifest.txt"
 		putln "$_manifest_probes" >|"$_mf"
 		_tier=0
+		_n=0
 		while test "$_tier" -le 7; do
-			_count=0
-			putln "  tier $_tier:" >&2
-
 			while IFS='|' read -r _name _t _deps _type _lib _copies; do
 				case $_name in ''|'#'*) continue ;; esac
 				test "$_t" -eq "$_tier" || continue
-				_count=$((_count + 1))
+				_n=$((_n + 1))
+				printf '[%d/%d] PROBE %s\n' "$_n" "$_manifest_count" "$_name" >&2
 				run_one_probe "$_name" "$_type" "$_lib"
 			done < "$_mf"
 
@@ -1015,7 +1012,7 @@ run_probes()
 
 run_generators()
 {
-	putln "=== Phase 2: Generators ===" >&2
+	putln "[configure] generating headers" >&2
 
 	# Source emitter modules
 	. "$CONFIGURE_DIR/emit/headers.sh"
@@ -1034,7 +1031,7 @@ run_generators()
 
 run_emitters()
 {
-	putln "=== Phase 3: Emit ===" >&2
+	putln "[configure] emitting build.ninja" >&2
 
 	# Source emitter modules
 	. "$CONFIGURE_DIR/emit/ninja.sh"

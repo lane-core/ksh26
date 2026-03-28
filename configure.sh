@@ -58,10 +58,7 @@ fi
 setup_dirs
 
 # ── Pre-probe setup ──────────────────────────────────────────────
-putln "configure.sh: configuring ksh26 for $HOSTTYPE"
-putln "  CC=$CC"
-putln "  CFLAGS=$CFLAGS_BASE"
-putln "  BUILDDIR=$BUILDDIR"
+putln "configure: ksh26 for $HOSTTYPE (CC=$CC)"
 
 detect_libs
 detect_defpath
@@ -80,4 +77,4 @@ run_emitters
 # ── Finalize ─────────────────────────────────────────────────────
 write_cache_key
 write_manifest
-putln "configure.sh: done"
+putln "configure: done"

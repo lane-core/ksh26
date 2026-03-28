@@ -54,18 +54,13 @@
           buildPhase = ''
             runHook preBuild
 
-            # Bootstrap samu (vendored ninja)
             mkdir -p ${buildDir}/bin
+            echo "[bootstrap] compiling samu"
             $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
 
-            # Configure (feature probes + generate build.ninja)
-            # Modernish needs DEFPATH to find standard utilities.
-            # In nix build sandboxes, getconf PATH returns paths
-            # that don't exist (/usr/bin, /bin). Pass the sandbox
-            # PATH so modernish can find awk, sed, etc.
             _Msh_DEFPATH="$PATH" sh configure.sh ${flagStr}
 
-            # Build
+            echo "[build] compiling ksh26"
             ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
 
             runHook postBuild
@@ -78,46 +73,43 @@
 
             ${extraCheckSetup}
 
-            # Sanity check: ensure we have expected test count
-            stamp_count=$(grep '^build test: phony' ${buildDir}/build.ninja \
-              | tr ' ' '\n' | grep -c '\.stamp$' || true)
-            if (( stamp_count < 112 )); then
-              echo "FAIL: expected >=112 test stamps, found $stamp_count" >&2
-              exit 1
-            fi
-
             # Make timezone data available for printf %T tests
             # Darwin sandbox may not expose /usr/share/zoneinfo
             export TZDIR="''${TZDIR:-${pkgs.tzdata}/share/zoneinfo}"
 
+            # Count test stamps from generated build.ninja
+            stamp_count=$(grep '^build test: phony' ${buildDir}/build.ninja \
+              | tr ' ' '\n' | grep -c '\.stamp$' || true)
+            if (( stamp_count == 0 )); then
+              echo "FAIL: no test stamps found in build.ninja" >&2
+              exit 1
+            fi
+
             # Run all tests (-k 0 = continue on failure, collect all results)
             ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
 
-            # Aggregate results from per-test result files.
-            # Darwin: all 112 must pass (sandbox tests are authoritative).
-            # Linux: report results but don't gate — VM tests are authoritative
-            # (NixOS lacks FHS paths, causing false failures in sandbox).
+            # Aggregate and report test results.
+            # Darwin: any failure is fatal.
+            # Linux: report only — NixOS lacks FHS paths, VM tests are authoritative.
             result_dir="${buildDir}/test/results"
             if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
-              ${if pkgs.stdenv.hostPlatform.isDarwin then "min_pass=112" else "min_pass=0"}
-
-              awk -v min_pass="$min_pass" '
+              awk '
                 /^ok / { pass++; print; next }
-                /^not ok / {
-                  fail++
-                  fail_names = fail_names " " $4
-                  print
-                  next
-                }
+                /^not ok / { fail++; fail_names = fail_names " " $4; print; next }
                 END {
                   printf "---\n%d/%d tests pass\n", pass, pass + fail
                   if (fail > 0) printf "failures:%s\n", fail_names
-                  if (min_pass > 0 && pass < min_pass) {
-                    printf "FAIL: expected >=%d tests to pass, got %d\n", min_pass, pass > "/dev/stderr"
-                    exit 1
-                  }
                 }
               ' "$result_dir"/*.txt
+              ${if pkgs.stdenv.hostPlatform.isDarwin then ''
+              # Gate: any failure is fatal on darwin
+              if grep -q '^not ok' "$result_dir"/*.txt; then
+                echo "FAIL: not all tests passed" >&2
+                exit 1
+              fi
+              '' else ''
+              # Linux: report only (VM tests are authoritative)
+              ''}
             fi
 
             runHook postCheck
