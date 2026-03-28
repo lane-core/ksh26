@@ -1,0 +1,123 @@
+name: ksh26
+version: 1
+description: >
+  ksh26 workflow — proposal → contracts → architecture → tasks.
+  Contracts use normative language (SHALL/MUST), C signatures,
+  polarity annotations, and invariant tables instead of WHEN/THEN scenarios.
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Motivation and scope — why this change, what specs it touches
+    template: proposal.md
+    instruction: |
+      Create the proposal document that establishes WHY this change is needed.
+
+      Sections:
+      - **Why**: 1-2 sentences on the problem or opportunity.
+      - **What Changes**: Bullet list of changes. Mark breaking changes with **BREAKING**.
+      - **Specs Affected**: Which specs are created or modified:
+        - **New**: Capabilities being introduced. Each becomes `specs/<name>/spec.md`.
+        - **Modified**: Existing specs whose contracts change (not just implementation).
+      - **Impact**: Affected source files, APIs, libraries, build system.
+
+      Keep it concise. Focus on "why" not "how" — implementation details
+      belong in architecture.md.
+    requires: []
+
+  - id: contracts
+    generates: "specs/**/*.md"
+    description: >
+      Behavioral contracts: SHALL/MUST invariants, C signatures,
+      polarity annotations, hazard markers
+    template: contracts.md
+    instruction: |
+      Create contract files that define WHAT the system SHALL do.
+
+      Create one spec file per capability listed in the proposal's Specs Affected section.
+      - New capabilities: `specs/<name>/spec.md`
+      - Modified capabilities: delta spec at `specs/<name>/spec.md`
+
+      Delta operations (use ## headers):
+      - **ADDED Requirements**: New invariants or API surface
+      - **MODIFIED Requirements**: Changed behavior — MUST include full updated content
+      - **REMOVED Requirements**: Deprecated — MUST include **Reason** and **Migration**
+
+      Format:
+      - Each requirement: `### Requirement: <name>` followed by normative text
+      - Use SHALL for mandatory behavior, MUST for implementation constraints
+      - C signatures, struct definitions, and invariant tables are first-class content
+      - Polarity annotations (Value, Computation, Mixed, Shift) where applicable
+      - Source location citations: `file.c:function` or `file.h:line`
+      - Hazard markers for non-obvious failure modes
+      - Each requirement MUST have at least one verification criterion:
+        `#### Scenario: <name>` with a concrete check (test, assertion, or build criterion)
+
+      Example:
+      ```
+      ### Requirement: Buffer five-pointer invariant
+
+      In steady state, the Sfio_t buffer pointers SHALL satisfy:
+      `_data ≤ _next ≤ min(_endr, _endw) ≤ _endb`
+
+      **Polarity**: Boundary (mediates value/computation modes)
+      **Hazard**: Intermediate violations occur during mode transitions and lock states.
+      **Source**: sfio.h:Sfio_t, sfmode.c:_sfmode
+
+      #### Scenario: Assertion in debug builds
+      `sfio_check(f)` validates the invariant after every public function return.
+      ```
+
+      Requirements should be verifiable — each verification criterion is a potential
+      test case, assertion, or build-system check.
+    requires:
+      - proposal
+
+  - id: architecture
+    generates: architecture.md
+    description: Design decisions, rationale, risks, and alternatives
+    template: architecture.md
+    instruction: |
+      Create the architecture document that explains HOW to implement the change.
+
+      Sections:
+      - **Context**: Current state, constraints, prior attempts (with postmortem if applicable)
+      - **Goals / Non-Goals**: What this achieves and explicitly excludes
+      - **Decisions**: Key technical choices with rationale (why X over Y?)
+        Include alternatives considered and why they were rejected.
+      - **Risks / Trade-offs**: Known limitations. Format: [Risk] → Mitigation
+      - **Open Questions**: Outstanding decisions or unknowns
+
+      Focus on architecture and approach, not line-by-line implementation.
+      Reference the proposal for motivation and contracts for invariants.
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: Implementation checklist with trackable tasks
+    template: tasks.md
+    instruction: |
+      Create the task list that breaks down the implementation work.
+
+      **IMPORTANT: Follow the template exactly.** The apply phase parses
+      checkbox format to track progress.
+
+      Guidelines:
+      - Group related tasks under ## numbered headings
+      - Each task MUST be a checkbox: `- [ ] X.Y Task description`
+      - Tasks should be small enough to complete in one session
+      - Order tasks by dependency (what must be done first?)
+      - Include build criterion for each group: `just build && just test` or equivalent
+
+      Reference contracts for what must hold, architecture for how to build it.
+    requires:
+      - contracts
+      - architecture
+
+apply:
+  requires: [tasks]
+  tracks: tasks.md
+  instruction: |
+    Read context files, work through pending tasks, mark complete as you go.
+    Pause if you hit blockers or need clarification.
+    Every completed task group MUST pass `just build && just test`.
