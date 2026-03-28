@@ -49,8 +49,6 @@
             pkgs.libiconv
           ];
 
-          inherit configureFlags;
-
           configurePhase = ''
             runHook preConfigure
 
@@ -66,7 +64,7 @@
 
           buildPhase = ''
             runHook preBuild
-            ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
+            ./${buildDir}/bin/samu -C ${buildDir}
             runHook postBuild
           '';
 
@@ -207,7 +205,7 @@
             '';
             buildPhase = ''
               runHook preBuild
-              ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
+              ./${buildDir}/bin/samu -C ${buildDir}
               runHook postBuild
             '';
             doCheck = true;

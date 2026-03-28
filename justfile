@@ -2,7 +2,8 @@
 #
 # Usage:
 #   just build [darwin|linux] [--asan] [--debug]
-#   just test  [darwin|linux] [--asan] [--one NAME] [--debug NAME] [--repeat NAME] [--verbose]
+#   just test  [darwin|linux] [--asan] [--one NAME] [--repeat NAME] [--verbose]
+#   just test  --debug NAME    # run single test under lldb/gdb (local only)
 #
 # Platform is auto-detected from uname. Explicit platform triggers
 # cross-build when different from host (e.g. `just test linux` on darwin
@@ -77,9 +78,11 @@ build *ARGS:
     debug) attr="packages.${sys}.build-debug" ;;
     *)     attr="packages.${sys}.default" ;;
     esac
-    link_args=""
-    if _is_cross "$platform"; then link_args="--out-link result-${platform}"; fi
-    _nix_build "$attr" $link_args
+    if _is_cross "$platform"; then
+        _nix_build "$attr" --out-link "result-${platform}"
+    else
+        _nix_build "$attr"
+    fi
 
 # ── Test ────────────────────────────────────────────────────────
 
@@ -104,6 +107,10 @@ test *ARGS:
             else echo "error: unknown argument: $arg" >&2; exit 1; fi ;;
         esac
     done
+    # Validate flags that require a following argument
+    if [ "$one" = _next ] || [ "$debug_test" = _next ] || [ "$repeat_test" = _next ]; then
+        echo "error: --one/--debug/--repeat requires a test name" >&2; exit 1
+    fi
     : "${platform:=$(_host)}"
     if _is_cross "$platform"; then _require_builder "$platform"; fi
     sys=$(_nix_system "$platform")
@@ -117,12 +124,12 @@ test *ARGS:
         exit $?
     fi
     # Debug — launch debugger (native only)
-    if [ -n "$debug_test" ] && [ "$debug_test" != _next ]; then
+    if [ -n "$debug_test" ]; then
         just debug "$debug_test"
         exit $?
     fi
     # Repeat — flakiness detection (native only)
-    if [ -n "$repeat_test" ] && [ "$repeat_test" != _next ]; then
+    if [ -n "$repeat_test" ]; then
         just _test-repeat "$repeat_test"
         exit $?
     fi
