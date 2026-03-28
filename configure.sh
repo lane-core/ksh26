@@ -58,7 +58,11 @@ fi
 setup_dirs
 
 # ── Pre-probe setup ──────────────────────────────────────────────
-putln "configure: ksh26 for $HOSTTYPE (CC=$CC)"
+if test "$_CROSS_COMPILE" -eq 1; then
+	putln "configure: ksh26 for $HOSTTYPE (CC=$CC, cross-compiling from $(uname -s | tr A-Z a-z).$(uname -m))"
+else
+	putln "configure: ksh26 for $HOSTTYPE (CC=$CC)"
+fi
 
 detect_libs
 detect_defpath

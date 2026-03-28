@@ -16,12 +16,14 @@ parse_options()
 	opt_force=0
 	opt_debug=0
 	opt_asan=0
+	_host_triple=""
 	_sysdep_overrides=""
 	for arg do
 		case $arg in
 		--force)	opt_force=1 ;;
 		--debug)	opt_debug=1 ;;
 		--asan)		opt_asan=1 ;;
+		--host=*)	_host_triple="${arg#--host=}" ;;
 		--with-sysdep-*=*)
 			_key=${arg#--with-sysdep-}
 			_val=${_key#*=}
@@ -35,18 +37,38 @@ parse_options()
 	done
 }
 
+# Map a GNU target triple to our HOSTTYPE format (os.arch-bits).
+triple_to_hosttype()
+{
+	case "$1" in
+	aarch64-linux*|aarch64-*-linux*)	put "linux.aarch64-64" ;;
+	x86_64-linux*|x86_64-*-linux*)		put "linux.x86_64-64" ;;
+	arm-linux*|arm-*-linux*)		put "linux.arm-32" ;;
+	aarch64-*darwin*|arm64-*darwin*)		put "darwin.arm64-64" ;;
+	x86_64-*darwin*)			put "darwin.x86_64-64" ;;
+	*)	die "unknown host triple: $1" ;;
+	esac
+}
+
+_CROSS_COMPILE=0
+
 detect_hosttype()
 {
-	LOCAL _os _arch; BEGIN
-		_os=$(uname -s | tr 'A-Z' 'a-z')
-		_arch=$(uname -m)
-		case $_arch in
-		arm64)		_arch=arm64-64 ;;
-		x86_64)		_arch=x86_64-64 ;;
-		aarch64)	_arch=aarch64-64 ;;
-		esac
-		HOSTTYPE="${_os}.${_arch}"
-	END
+	if not str empty "$_host_triple"; then
+		HOSTTYPE=$(triple_to_hosttype "$_host_triple")
+		_CROSS_COMPILE=1
+	else
+		LOCAL _os _arch; BEGIN
+			_os=$(uname -s | tr 'A-Z' 'a-z')
+			_arch=$(uname -m)
+			case $_arch in
+			arm64)		_arch=arm64-64 ;;
+			x86_64)		_arch=x86_64-64 ;;
+			aarch64)	_arch=aarch64-64 ;;
+			esac
+			HOSTTYPE="${_os}.${_arch}"
+		END
+	fi
 }
 
 setup_paths()
@@ -427,6 +449,8 @@ probe_execute()
 {
 	# Usage: probe_execute SRCFILE [extra_flags]
 	# Compile + link + run. Returns exit code of the program.
+	# Cross-compilation: can't run, return failure.
+	test "$_CROSS_COMPILE" -eq 1 && return 1
 	probe_link "$1" "${2:-}" && "${_probe_tmpdir}/out" 2>/dev/null
 }
 
@@ -435,7 +459,9 @@ probe_output()
 	# Usage: probe_output SRCFILE [extra_flags]
 	# Compile + link + run. Stdout from the program is passed through
 	# to the caller (use $(...) or >> to capture).
+	# Cross-compilation: can't run, return failure.
 	# Returns: exit code of the program.
+	test "$_CROSS_COMPILE" -eq 1 && return 1
 	LOCAL _src _flags; BEGIN
 		_src=$1; _flags=${2:-}
 		probe_link "$_src" "$_flags" || return 1
@@ -751,8 +777,10 @@ _mc_link()
 _mc_execute()
 {
 	# Monolith's probe_execute: compile+link+run C from stdin, check exit code.
+	# Cross-compilation: consume stdin but can't run, return failure.
 	_probe_guard
 	cat >|"${_probe_tmpdir}/mc.c"
+	test "$_CROSS_COMPILE" -eq 1 && return 1
 	if "$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
 		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>/dev/null; then
 		"${_probe_tmpdir}/mc" 2>/dev/null
@@ -765,10 +793,11 @@ _mc_output()
 {
 	# Monolith's probe_output: compile+link+run, capture stdout.
 	# Returns captured output via printf (no trailing newline added).
+	# Cross-compilation: consume stdin, return empty output.
 	_probe_guard
 	cat >|"${_probe_tmpdir}/mc.c"
 	_mco_result=""
-	if "$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
+	if test "$_CROSS_COMPILE" -eq 0 && "$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
 		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>/dev/null; then
 		_mco_result=$("${_probe_tmpdir}/mc" 2>/dev/null) || true
 	fi

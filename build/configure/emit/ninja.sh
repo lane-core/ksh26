@@ -199,6 +199,11 @@ NINJA
 
 		_all_stamps=""
 
+		# Cross-compilation: no test targets (can't run on build host)
+		if test "${_CROSS_COMPILE:-0}" -eq 1; then
+			printf '\n# Tests skipped (cross-compiling)\n'
+		else
+
 		# Load test categories from manifest.
 		# The "timing" category selects the serial pool.
 		# Per-category phony targets are emitted for selective runs.
@@ -267,6 +272,8 @@ NINJA
 			printf '\nbuild test-%s: phony%s\n' "$_cname" "$(cat "$_cf")"
 		done
 		rm -rf "$_cat_dir"
+
+		fi  # end cross-compile guard
 
 	} | atomic_write "$_ninja" && configure_log "build.ninja ... updated" \
 	  || configure_log "build.ninja ... unchanged"
