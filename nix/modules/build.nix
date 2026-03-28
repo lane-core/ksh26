@@ -81,9 +81,8 @@
           checkPhase = lib.optionalString doCheck ''
             runHook preCheck
 
-            # Count test stamps from generated build.ninja
-            stamp_count=$(grep '^build test: phony' ${buildDir}/build.ninja \
-              | tr ' ' '\n' | grep -c '\.stamp$' || true)
+            # Count test stamp rules from generated build.ninja
+            stamp_count=$(grep -c '^build test/.*\.stamp:' ${buildDir}/build.ninja || true)
             if (( stamp_count == 0 )); then
               echo "FAIL: no test stamps found in build.ninja" >&2
               exit 1

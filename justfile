@@ -27,14 +27,10 @@ _host() { uname -s | tr A-Z a-z; }
 _arch() { uname -m | sed "s/arm64/aarch64/"; }
 _nix_system() {
     local plat="${1:-$(_host)}"
+    local arch=$(_arch)
     case "$plat" in
-    darwin) echo "$(_arch)-darwin" ;;
-    linux)
-        if [ "$(_host)" = darwin ]; then
-            echo "aarch64-linux"
-        else
-            echo "$(_arch)-linux"
-        fi ;;
+    darwin) echo "${arch}-darwin" ;;
+    linux)  echo "${arch}-linux" ;;
     *) echo "error: unknown platform: $plat" >&2; return 1 ;;
     esac
 }
