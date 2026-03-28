@@ -20,7 +20,7 @@ probe_ast_sig()
 
 	_sig_content=$(
 		cc="$_sig_cc $_sig_inc" tmp="$_sig_tmp/sig" \
-			"$SHELL" "$LIBAST_SRC/features/sig.sh" 2>/dev/null
+			probe_run "$SHELL" "$LIBAST_SRC/features/sig.sh"
 	) || true
 
 	rm -rf "$_sig_tmp"

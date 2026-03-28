@@ -4,7 +4,7 @@
 #
 # Lifted from monolith probe_ast_fcntl with API translations:
 # - output path from $1
-# - $_PROBE_LOG → 2>/dev/null (driver doesn't expose probe log)
+# - $_PROBE_LOG → 2>>"$LOGDIR/probe.log" (driver doesn't expose probe log)
 
 probe_ast_fcntl()
 {
@@ -28,11 +28,14 @@ probe_ast_fcntl()
 	_fcntl_bin="$_fcntl_work/fcntl_probe"
 
 	# fcntl.c uses printf but has no #include <stdio.h>. iffe's preamble
-	# provided it. We use -include to get the REAL stdio.h, not the ast wrapper.
+	# provided it. Include the standards header FIRST so _GNU_SOURCE is
+	# defined before glibc's <features.h> processes (via stdio.h).
+	# Without this, glibc hides O_DIRECTORY behind __USE_GNU.
 	_fcntl_content=""
-	if "$CC" $CFLAGS_BASE $_fcntl_inc -include stdio.h \
-		-o "$_fcntl_bin" "$_fcntl_work/fcntl.c" $LDFLAGS_BASE 2>/dev/null; then
-		_fcntl_content=$("$_fcntl_bin" 2>/dev/null) || true
+	if probe_run "$CC" $CFLAGS_BASE $_fcntl_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_fcntl_bin" "$_fcntl_work/fcntl.c" $LDFLAGS_BASE; then
+		_fcntl_content=$(probe_run "$_fcntl_bin") || true
 	else
 		echo "configure.sh: warning: fcntl.c probe failed to compile" >&2
 	fi

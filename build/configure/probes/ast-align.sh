@@ -26,9 +26,10 @@ probe_ast_align()
 	_al_bin="$_al_work/align_probe"
 
 	_al_content=""
-	if "$CC" $CFLAGS_BASE $_al_inc -include stdio.h \
-		-o "$_al_bin" "$_al_work/align.c" $LDFLAGS_BASE 2>/dev/null; then
-		_al_content=$("$_al_bin" 2>/dev/null) || true
+	if probe_run "$CC" $CFLAGS_BASE $_al_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_al_bin" "$_al_work/align.c" $LDFLAGS_BASE; then
+		_al_content=$(probe_run "$_al_bin") || true
 	else
 		echo "configure.sh: warning: align.c probe failed to compile" >&2
 	fi

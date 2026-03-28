@@ -211,7 +211,7 @@ EOF
 #include <math.h>
 int main(void) { volatile double r = (double)${_m_name}(0.0); return (int)r; }
 EOF
-		if "$CC" $CFLAGS_BASE -o "$_probe_tmpdir/math.callable" "$_callable_src" $LDFLAGS_BASE -lm 2>/dev/null; then
+		if probe_run "$CC" $CFLAGS_BASE -o "$_probe_tmpdir/math.callable" "$_callable_src" $LDFLAGS_BASE -lm; then
 			eval "_lib_${_m_name}=1"
 			_m_lib="$_m_lib,${_m_name}"
 		else
@@ -219,7 +219,7 @@ EOF
 #include <math.h>
 int main(void) { volatile double r = (double)${_m_name}(0.0,0.0); return (int)r; }
 EOF
-			if "$CC" $CFLAGS_BASE -o "$_probe_tmpdir/math.callable" "$_callable_src" $LDFLAGS_BASE -lm 2>/dev/null; then
+			if probe_run "$CC" $CFLAGS_BASE -o "$_probe_tmpdir/math.callable" "$_callable_src" $LDFLAGS_BASE -lm; then
 				eval "_lib_${_m_name}=1"
 				_m_lib="$_m_lib,${_m_name}"
 			fi

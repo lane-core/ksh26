@@ -64,8 +64,8 @@ int main(void)
 }
 HACKEOF
 		if "$CC" $CFLAGS_BASE $_hack_inc -o "$_hack_bin" "$_hack_src" $LDFLAGS_BASE \
-			2>/dev/null; then
-			_hack_val=$("$_hack_bin" 2>/dev/null) || true
+			2>>"$_PROBE_STDERR"; then
+			_hack_val=$("$_hack_bin" 2>>"$_PROBE_STDERR") || true
 			rm -f "$_hack_bin"
 			if [ -n "$_hack_val" ]; then
 				break

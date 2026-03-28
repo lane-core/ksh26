@@ -13,10 +13,10 @@ probe_ast_libpath()
 
 	# Run the shell script. It prints a single #define line.
 	_lp_define=""
-	_lp_define=$(HOSTTYPE="$HOSTTYPE" "$SHELL" "$LIBAST_SRC/features/libpath.sh" 2>/dev/null) || true
+	_lp_define=$(HOSTTYPE="$HOSTTYPE" "$SHELL" "$LIBAST_SRC/features/libpath.sh" 2>>"$_PROBE_STDERR") || true
 	if [ -z "$_lp_define" ]; then
 		# Fallback: try with sh
-		_lp_define=$(HOSTTYPE="$HOSTTYPE" sh "$LIBAST_SRC/features/libpath.sh" 2>/dev/null) || true
+		_lp_define=$(HOSTTYPE="$HOSTTYPE" sh "$LIBAST_SRC/features/libpath.sh" 2>>"$_PROBE_STDERR") || true
 	fi
 
 	{

@@ -23,10 +23,10 @@ probe_ast_sfinit()
 	_sfi_bin="$_sfi_work/sfinit_probe"
 
 	_sfi_content=""
-	if "$CC" $CFLAGS_BASE $_sfi_inc -include stdio.h \
-		-o "$_sfi_bin" "$_sfi_work/sfinit.c" $LDFLAGS_BASE \
-		>>"$_PROBE_LOG" 2>&1; then
-		_sfi_content=$("$_sfi_bin" 2>>"$_PROBE_LOG") || true
+	if probe_run "$CC" $CFLAGS_BASE $_sfi_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_sfi_bin" "$_sfi_work/sfinit.c" $LDFLAGS_BASE; then
+		_sfi_content=$(probe_run "$_sfi_bin") || true
 	else
 		echo "configure.sh: warning: sfinit.c probe failed to compile" >&2
 	fi

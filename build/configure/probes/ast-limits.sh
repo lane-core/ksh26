@@ -27,9 +27,10 @@ probe_ast_limits()
 	_lim_bin="$_lim_work/limits_probe"
 
 	_lim_content=""
-	if "$CC" $CFLAGS_BASE $_lim_inc -include stdio.h \
-		-o "$_lim_bin" "$_lim_work/limits.c" $LDFLAGS_BASE 2>/dev/null; then
-		_lim_content=$("$_lim_bin" 2>/dev/null) || true
+	if "$CC" $CFLAGS_BASE $_lim_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_lim_bin" "$_lim_work/limits.c" $LDFLAGS_BASE 2>>"$_PROBE_STDERR"; then
+		_lim_content=$("$_lim_bin" 2>>"$_PROBE_STDERR") || true
 	else
 		echo "configure.sh: warning: limits.c probe failed to compile" >&2
 	fi

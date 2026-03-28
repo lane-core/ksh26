@@ -54,11 +54,11 @@ probe_conf()
 
 	# Generate lc.h and lctab.c via lcgen
 	if [ -f "$LIBAST_SRC/port/lcgen.c" ]; then
-		"$CC" $CFLAGS_BASE -o "$_conf_dir/lcgen" \
-			"$LIBAST_SRC/port/lcgen.c" 2>/dev/null || true
+		probe_run "$CC" $CFLAGS_BASE -o "$_conf_dir/lcgen" \
+			"$LIBAST_SRC/port/lcgen.c" || true
 		if [ -x "$_conf_dir/lcgen" ]; then
-			"$_conf_dir/lcgen" "$_inc/lc.h" "$_inc/lctab.c" \
-				< "$LIBAST_SRC/port/lc.tab" 2>/dev/null || true
+			probe_run "$_conf_dir/lcgen" "$_inc/lc.h" "$_inc/lctab.c" \
+				< "$LIBAST_SRC/port/lc.tab" || true
 		fi
 	fi
 

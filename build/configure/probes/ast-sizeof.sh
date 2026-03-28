@@ -41,8 +41,8 @@ EOF
 	_sz_result=""
 	if "$CC" $CFLAGS_BASE $_sz_inc \
 		-o "${_sz_work}/sizeof_probe" "$_sz_src" $LDFLAGS_BASE \
-		2>/dev/null; then
-		_sz_result=$("${_sz_work}/sizeof_probe" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_sz_result=$("${_sz_work}/sizeof_probe" 2>>"$_PROBE_STDERR") || true
 	else
 		echo "configure.sh: warning: sizeof probe failed to compile" >&2
 	fi

@@ -374,9 +374,9 @@ int main(int argc, char **argv) {
 	_exit(n);
 }
 EOF
-	if "$CC" $CFLAGS_BASE -Dfork=______fork -o "${_probe_tmpdir}/mc" "$_ps_src" \
-		$LDFLAGS_BASE 2>/dev/null; then
-		"${_probe_tmpdir}/mc" 2>/dev/null && _ps_val=0 || _ps_val=$?
+	if probe_run "$CC" $CFLAGS_BASE -Dfork=______fork -o "${_probe_tmpdir}/mc" "$_ps_src" \
+		$LDFLAGS_BASE; then
+		probe_run "${_probe_tmpdir}/mc" && _ps_val=0 || _ps_val=$?
 		if [ "$_ps_val" -gt 0 ] 2>/dev/null; then
 			_defs="${_defs}#define _lib_posix_spawn	${_ps_val}	/* posix_spawn exists, it works and it's worth using */
 "
@@ -432,7 +432,7 @@ EOF
 "
 
 	# ── std cleanup (noexecute) ──
-	if ! _mc_execute <<EOF
+	if ! _mc_execute >/dev/null <<EOF
 ${_PROBE_STD_INC}
 #include <stdio.h>
 extern void exit(int);

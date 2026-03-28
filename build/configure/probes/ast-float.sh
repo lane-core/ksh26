@@ -472,10 +472,10 @@ FLOATSRC
 	printf '%s\n' "$_flt_output" >|"$_flt_bigsrc"
 	_flt_bigbin="${_flt_work}/float_big"
 	_flt_big_result=""
-	if "$CC" $CFLAGS_BASE $_flt_inc -include stdio.h \
+	if "$CC" $CFLAGS_BASE $_flt_inc -include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
 		-o "$_flt_bigbin" "$_flt_bigsrc" $LDFLAGS_BASE -lm \
-		2>/dev/null; then
-		_flt_big_result=$("$_flt_bigbin" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_flt_big_result=$("$_flt_bigbin" 2>>"$_PROBE_STDERR") || true
 	else
 		echo "configure.sh: warning: float big output probe failed to compile" >&2
 	fi
@@ -518,10 +518,10 @@ DBLSRC
 )
 	printf '%s\n' "$_flt_dblexp" >|"${_flt_work}/dblexp.c"
 	_flt_dblexp_result=""
-	if "$CC" $CFLAGS_BASE $_flt_inc -include stdio.h \
+	if "$CC" $CFLAGS_BASE $_flt_inc -include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
 		-o "${_flt_work}/dblexp" "${_flt_work}/dblexp.c" $LDFLAGS_BASE \
-		2>/dev/null; then
-		_flt_dblexp_result=$("${_flt_work}/dblexp" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_flt_dblexp_result=$("${_flt_work}/dblexp" 2>>"$_PROBE_STDERR") || true
 	fi
 	rm -f "${_flt_work}/dblexp"
 
@@ -562,10 +562,10 @@ FMAXSRC
 )
 	printf '%s\n' "$_flt_fltmaxexp" >|"${_flt_work}/fmaxexp.c"
 	_flt_fltmaxexp_result=""
-	if "$CC" $CFLAGS_BASE $_flt_inc -include stdio.h \
+	if "$CC" $CFLAGS_BASE $_flt_inc -include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
 		-o "${_flt_work}/fmaxexp" "${_flt_work}/fmaxexp.c" $LDFLAGS_BASE \
-		2>/dev/null; then
-		_flt_fltmaxexp_result=$("${_flt_work}/fmaxexp" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_flt_fltmaxexp_result=$("${_flt_work}/fmaxexp" 2>>"$_PROBE_STDERR") || true
 	fi
 	rm -f "${_flt_work}/fmaxexp"
 
@@ -588,8 +588,8 @@ main(void)
 }
 EOF
 	if "$CC" $CFLAGS_BASE -o "${_flt_work}/ullt" "$_flt_ullt_src" $LDFLAGS_BASE \
-		2>/dev/null; then
-		_flt_ullt=$("${_flt_work}/ullt" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_flt_ullt=$("${_flt_work}/ullt" 2>>"$_PROBE_STDERR") || true
 	fi
 	if [ -z "$_flt_ullt" ]; then
 		_flt_ullt="#define _ast_flt_unsigned_max_t	unsigned long"

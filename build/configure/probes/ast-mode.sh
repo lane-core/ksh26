@@ -27,9 +27,10 @@ probe_ast_mode()
 	_mode_bin="$_mode_work/mode_probe"
 
 	_mode_content=""
-	if "$CC" $CFLAGS_BASE $_mode_inc -include stdio.h \
-		-o "$_mode_bin" "$_mode_work/mode.c" $LDFLAGS_BASE 2>/dev/null; then
-		_mode_content=$("$_mode_bin" 2>/dev/null) || true
+	if "$CC" $CFLAGS_BASE $_mode_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_mode_bin" "$_mode_work/mode.c" $LDFLAGS_BASE 2>>"$_PROBE_STDERR"; then
+		_mode_content=$("$_mode_bin" 2>>"$_PROBE_STDERR") || true
 	else
 		echo "configure.sh: warning: mode.c probe failed to compile" >&2
 	fi

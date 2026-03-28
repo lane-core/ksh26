@@ -88,29 +88,31 @@
             # Run all tests (-k 0 = continue on failure, collect all results)
             ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
 
-            # Aggregate and report test results.
-            # Darwin: any failure is fatal.
-            # Linux: report only — NixOS lacks FHS paths, VM tests are authoritative.
+            # Report test results against known total.
             result_dir="${buildDir}/test/results"
+            pass=0 fail=0
             if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
-              awk '
-                /^ok / { pass++; print; next }
-                /^not ok / { fail++; fail_names = fail_names " " $4; print; next }
-                END {
-                  printf "---\n%d/%d tests pass\n", pass, pass + fail
-                  if (fail > 0) printf "failures:%s\n", fail_names
-                }
-              ' "$result_dir"/*.txt
-              ${if pkgs.stdenv.hostPlatform.isDarwin then ''
-              # Gate: any failure is fatal on darwin
-              if grep -q '^not ok' "$result_dir"/*.txt; then
-                echo "FAIL: not all tests passed" >&2
-                exit 1
-              fi
-              '' else ''
-              # Linux: report only (VM tests are authoritative)
-              ''}
+              while read -r line; do
+                case "$line" in
+                'ok '*)     pass=$((pass + 1)); echo "$line" ;;
+                'not ok '*) fail=$((fail + 1)); echo "$line" ;;
+                esac
+              done < <(cat "$result_dir"/*.txt)
             fi
+            echo "---"
+            echo "$pass/$stamp_count tests pass"
+            if (( pass + fail != stamp_count )); then
+              echo "FAIL: $((stamp_count - pass - fail)) tests did not report results" >&2
+              exit 1
+            fi
+            ${if pkgs.stdenv.hostPlatform.isDarwin then ''
+            if (( fail > 0 )); then
+              echo "FAIL: $fail tests failed" >&2
+              exit 1
+            fi
+            '' else ''
+            # Linux: report only (VM tests are authoritative)
+            ''}
 
             runHook postCheck
           '';
@@ -136,6 +138,7 @@
             cp ${buildDir}/sysdeps "$out/build-artifacts/" 2>/dev/null || true
             cp ${buildDir}/probe_defs.h "$out/build-artifacts/" 2>/dev/null || true
             cp -r ${buildDir}/test "$out/build-artifacts/" 2>/dev/null || true
+            cp -r ${buildDir}/log "$out/build-artifacts/" 2>/dev/null || true
 
             runHook postInstall
           '';

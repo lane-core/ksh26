@@ -30,7 +30,7 @@ if [ ! -t 0 ] || [ ! -t 1 ]; then
 	fi
 
 	# Alternative: expect/unbuffer if available
-	if [ -z "$_KSH_TTY_WRAPPER" ] && command -v unbuffer >/dev/null 2>&1; then
+	if [ -z "${_KSH_TTY_WRAPPER:-}" ] && command -v unbuffer >/dev/null 2>&1; then
 		_KSH_TTY_WRAPPER="unbuffer"
 	fi
 

@@ -132,8 +132,8 @@ NLEOF3
 	_nl_inc="-I$FEATDIR/libast -I$LIBAST_SRC -I$LIBAST_SRC/comp -I$LIBAST_SRC/include"
 	if "$CC" $CFLAGS_BASE $_nl_inc \
 		-o "${_nl_work}/nl_out" "$_nl_out_src" $LDFLAGS_BASE \
-		2>/dev/null; then
-		_nl_out_result=$("${_nl_work}/nl_out" 2>/dev/null) || true
+		2>>"$_PROBE_STDERR"; then
+		_nl_out_result=$("${_nl_work}/nl_out" 2>>"$_PROBE_STDERR") || true
 	else
 		echo "configure.sh: warning: nl_types output probe failed to compile" >&2
 	fi

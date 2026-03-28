@@ -23,10 +23,10 @@ probe_ast_signal()
 	_sig_bin="$_sig_work/signal_probe"
 
 	_sig_content=""
-	if "$CC" $CFLAGS_BASE $_sig_inc -include stdio.h \
-		-o "$_sig_bin" "$_sig_work/signal.c" $LDFLAGS_BASE \
-		>>"$_PROBE_LOG" 2>&1; then
-		_sig_content=$("$_sig_bin" 2>>"$_PROBE_LOG") || true
+	if probe_run "$CC" $CFLAGS_BASE $_sig_inc \
+		-include "$FEATDIR/libast/FEATURE/standards" -include stdio.h \
+		-o "$_sig_bin" "$_sig_work/signal.c" $LDFLAGS_BASE; then
+		_sig_content=$(probe_run "$_sig_bin") || true
 	else
 		echo "configure.sh: warning: signal.c probe failed to compile" >&2
 	fi
