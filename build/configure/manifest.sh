@@ -232,5 +232,5 @@ probe pty		7 "" \
 	complex		pty	""
 
 # ── Summary ─────────────────────────────────────────────────────
-# 58 probes: 43 libast (tiers 0-6) + 10 ksh26 + 4 libcmd + 1 pty (tier 7)
-# All monolith probes present — no eliminations until byte-identical output verified.
+# Probe count is tracked by _manifest_count (computed, not hardcoded).
+# Layout: libast (tiers 0-6), ksh26 + libcmd + pty (tier 7).

@@ -4,7 +4,7 @@
 #
 # Lifted from monolith probe_ast_fcntl with API translations:
 # - output path from $1
-# - $_PROBE_LOG → 2>>"$LOGDIR/probe.log" (driver doesn't expose probe log)
+# - stderr via probe_run (routed by _PROBE_STDERR)
 
 probe_ast_fcntl()
 {

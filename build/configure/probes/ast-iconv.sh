@@ -177,9 +177,9 @@ TSTEOF
 	_ic_tst_inc="-I$_ic_work $ICONV_CFLAGS"
 	_ic_tst_bin="$_ic_work/iconv_tst"
 	_ic_tst_output=""
-	if "$CC" $CFLAGS_BASE $_ic_tst_inc -o "$_ic_tst_bin" "$_ic_work/iconv_tst.c" \
-		$LDFLAGS_BASE >>"$_PROBE_LOG" 2>&1; then
-		_ic_tst_output=$("$_ic_tst_bin" 2>>"$_PROBE_LOG") || true
+	if probe_run "$CC" $CFLAGS_BASE $_ic_tst_inc -o "$_ic_tst_bin" "$_ic_work/iconv_tst.c" \
+		$LDFLAGS_BASE; then
+		_ic_tst_output=$(probe_run "$_ic_tst_bin") || true
 	else
 		echo "configure.sh: warning: iconv tst output{} probe failed to compile" >&2
 	fi

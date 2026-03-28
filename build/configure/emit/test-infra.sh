@@ -207,6 +207,7 @@ if $_ninja; then
 	fi
 
 	# Classify failure
+	_nerr=0
 	case $rc in
 	124)  _detail="timeout" ;;
 	139)  _detail="SEGV signal 11" ;;

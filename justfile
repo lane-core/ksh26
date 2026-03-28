@@ -237,7 +237,7 @@ compile-commands: bootstrap
     @test -f {{ NINJA }} \
         && test {{ NINJA }} -nt configure.sh \
         || sh configure.sh
-    @{{ SAMU }} -C {{ BUILDDIR }} -t compdb cc_ast cc_cmd cc_dll cc_ksh cc_pty > compile_commands.json
+    @{{ SAMU }} -C {{ BUILDDIR }} -t compdb cc_ast cc_cmd cc_ksh cc_pty > compile_commands.json
     @printf '%s\n' "wrote compile_commands.json ($(grep -c '"file"' compile_commands.json) entries)"
 
 # ── Diagnostics ─────────────────────────────────────────────────

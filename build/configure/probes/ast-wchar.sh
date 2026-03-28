@@ -65,13 +65,13 @@ probe_ast_wchar()
 	_nxt_src="${_probe_tmpdir}/mc.c"
 	echo "${_PROBE_STD_INC}
 #include <wchar.h>" >|"$_nxt_src"
-	if "$CC" $CFLAGS_BASE -E "$_nxt_src" >|"${_probe_tmpdir}/mc.i" 2>>"$_PROBE_LOG"; then
+	if "$CC" $CFLAGS_BASE -E "$_nxt_src" >|"${_probe_tmpdir}/mc.i" 2>/dev/null; then
 		_nxt_path=$(sed -n 's/^#[line ]*[0-9][0-9]* *"\([^"]*\/wchar\.h\)".*/\1/p' "${_probe_tmpdir}/mc.i" | \
 			grep -v "$FEATDIR" | grep -v "$LIBAST_SRC" | head -1)
 		if [ -n "$_nxt_path" ]; then
 			echo "${_PROBE_STD_INC}
 #include <../include/wchar.h>" >|"$_nxt_src"
-			if "$CC" $CFLAGS_BASE -E "$_nxt_src" >/dev/null 2>>"$_PROBE_LOG"; then
+			if "$CC" $CFLAGS_BASE -E "$_nxt_src" >/dev/null 2>/dev/null; then
 				_nxt_wchar="../include/wchar.h"
 			else
 				_nxt_wchar="$_nxt_path"
