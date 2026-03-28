@@ -1,11 +1,12 @@
 # ksh26 build system porcelain
 #
-# Two paths:
-#   Validation — nix-backed, content-addressed (just build, just test)
-#   Iteration  — local samu, devshell-only (just test-one, just debug)
+# Usage:
+#   just build [darwin|linux] [--asan] [--debug]
+#   just test  [darwin|linux] [--asan] [--one NAME] [--debug NAME] [--repeat NAME] [--verbose]
 #
-# Validation recipes call nix directly — no `nix develop` wrapper needed.
-# Iteration recipes require the devshell toolchain.
+# Platform is auto-detected from uname. Explicit platform triggers
+# cross-build when different from host (e.g. `just test linux` on darwin
+# uses the linux builder).
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
@@ -16,190 +17,131 @@ SAMU     := BUILDDIR / "bin/samu"
 NINJA    := BUILDDIR / "build.ninja"
 TESTS    := "src/cmd/ksh26/tests"
 
-# ── Validation (nix-backed, content-addressed) ───────────────
-# Any source change → derivation hash changes → nix rebuilds.
-# No changes → ~2-5s cache hit. No stale builds possible.
+# ── Shared helpers ──────────────────────────────────────────────
+# Bash functions sourced by build/test dispatchers.
 
-# Build ksh26 via nix (content-addressed, hermetic)
-build:
-    nix build .#default --print-build-logs
+_helpers := '
+_host() { uname -s | tr A-Z a-z; }
+_arch() { uname -m | sed "s/arm64/aarch64/"; }
+_nix_system() {
+    local plat="${1:-$(_host)}"
+    case "$plat" in
+    darwin) echo "$(_arch)-darwin" ;;
+    linux)
+        if [ "$(_host)" = darwin ]; then
+            echo "aarch64-linux"
+        else
+            echo "$(_arch)-linux"
+        fi ;;
+    *) echo "error: unknown platform: $plat" >&2; return 1 ;;
+    esac
+}
+_is_cross() {
+    [ "${1:-$(_host)}" != "$(_host)" ]
+}
+_require_builder() {
+    local plat="$1"
+    if [ "$(_host)" = darwin ] && [ "$plat" = linux ]; then
+        grep -q linux /etc/nix/machines 2>/dev/null \
+            || { echo "error: no linux builder in /etc/nix/machines" >&2; return 1; }
+    else
+        echo "error: no $plat builder from $(_host)" >&2; return 1
+    fi
+}
+_nix_build() {
+    nix build ".#$1" --print-build-logs "${@:2}"
+}
+'
 
-# Run full test suite via nix
-test:
-    nix build .#checked --print-build-logs
+# ── Build ───────────────────────────────────────────────────────
 
-# Build with debug flags
-build-debug:
-    nix build .#build-debug --print-build-logs
+# Build ksh26: just build [darwin|linux] [--asan] [--debug]
+build *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval '{{ _helpers }}'
+    platform= variant=
+    for arg in {{ ARGS }}; do
+        case "$arg" in
+        darwin|linux) platform="$arg" ;;
+        --asan)       variant=asan ;;
+        --debug)      variant=debug ;;
+        *) echo "error: unknown argument: $arg" >&2; exit 1 ;;
+        esac
+    done
+    : "${platform:=$(_host)}"
+    if _is_cross "$platform"; then _require_builder "$platform"; fi
+    sys=$(_nix_system "$platform")
+    case "$variant" in
+    asan)  attr="packages.${sys}.build-asan" ;;
+    debug) attr="packages.${sys}.build-debug" ;;
+    *)     attr="packages.${sys}.default" ;;
+    esac
+    link_args=""
+    if _is_cross "$platform"; then link_args="--out-link result-${platform}"; fi
+    _nix_build "$attr" $link_args
 
-# Build with sanitizers
-build-asan:
-    nix build .#build-asan
+# ── Test ────────────────────────────────────────────────────────
 
-# Run tests with sanitizers
-test-asan:
-    nix build .#checked-asan --print-build-logs
+# Test ksh26: just test [darwin|linux] [--asan] [--one NAME] [--debug NAME] [--repeat NAME] [--verbose]
+test *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval '{{ _helpers }}'
+    platform= variant= one= debug_test= repeat_test= verbose=
+    for arg in {{ ARGS }}; do
+        case "$arg" in
+        darwin|linux) platform="$arg" ;;
+        --asan)       variant=asan ;;
+        --verbose)    verbose=1 ;;
+        --one)        one=_next ;;
+        --debug)      debug_test=_next ;;
+        --repeat)     repeat_test=_next ;;
+        *)
+            if [ "$one" = _next ]; then one="$arg"
+            elif [ "$debug_test" = _next ]; then debug_test="$arg"
+            elif [ "$repeat_test" = _next ]; then repeat_test="$arg"
+            else echo "error: unknown argument: $arg" >&2; exit 1; fi ;;
+        esac
+    done
+    : "${platform:=$(_host)}"
+    if _is_cross "$platform"; then _require_builder "$platform"; fi
+    sys=$(_nix_system "$platform")
+    # Single test — local samu (native only)
+    if [ -n "$one" ]; then
+        if _is_cross "$platform"; then
+            echo "error: --one requires native platform" >&2; exit 1
+        fi
+        just _dev-build
+        "{{ BUILDDIR }}/bin/samu" -C "{{ BUILDDIR }}" "test/${one}.C.stamp"
+        exit $?
+    fi
+    # Debug — launch debugger (native only)
+    if [ -n "$debug_test" ] && [ "$debug_test" != _next ]; then
+        just debug "$debug_test"
+        exit $?
+    fi
+    # Repeat — flakiness detection (native only)
+    if [ -n "$repeat_test" ] && [ "$repeat_test" != _next ]; then
+        just _test-repeat "$repeat_test"
+        exit $?
+    fi
+    # Full suite via nix
+    attr="checks.${sys}.${variant:-default}"
+    _nix_build "$attr"
+    if [ -n "$verbose" ]; then
+        echo "=== Build Artifacts ==="
+        for f in result/build-artifacts/log/*; do
+            [ -f "$f" ] && echo "--- $(basename "$f") ---" && cat "$f"
+        done 2>/dev/null || echo "(no artifacts — build may have failed)"
+    fi
 
-
-# All nix checks (tests + formatting)
+# All nix checks (tests + formatting, all platforms)
 check-all:
     nix flake check --print-build-logs
 
-# ── Cross-platform (linux from darwin, nix-backed) ────────────
-# Requires a linux builder (nix-darwin linux-builder VM or remote).
-# Setup: import ksh26.darwinModules.linux-builder in your darwin config.
-
-# Private: verify a linux builder is reachable
-[private]
-_check-linux-builder:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    case "$(uname -s)" in
-    Darwin) ;;
-    *) echo "already on linux — use 'just build' / 'just test' directly" >&2; exit 1 ;;
-    esac
-    if grep -q 'linux' /etc/nix/machines 2>/dev/null; then
-        exit 0
-    fi
-    echo "error: no linux builder found in /etc/nix/machines" >&2
-    exit 1
-
-# Build ksh26 for aarch64-linux from darwin
-build-linux: _check-linux-builder
-    nix build .#packages.aarch64-linux.default --print-build-logs --out-link result-linux
-
-# Run full test suite on aarch64-linux from darwin
-test-linux: _check-linux-builder
-    nix build .#checks.aarch64-linux.default --print-build-logs
-
-# Run tests with sanitizers on aarch64-linux from darwin
-test-linux-asan: _check-linux-builder
-    nix build .#checks.aarch64-linux.asan --print-build-logs
-
-# Run full test suite inside a NixOS VM (authoritative linux test)
-test-nixos-vm: _check-linux-builder
-    nix build .#checks.aarch64-linux.nixos --print-build-logs
-
-
-# Run advisory tests on aarch64-linux (nix sandbox — may flake)
-test-linux-advisory-sandbox: _check-linux-builder
-    nix build .#checks.aarch64-linux.advisory --print-build-logs
-
-# ── Linux VM testing (SSH to builder VM, outside nix sandbox) ─
-# Runs tests directly on the linux-builder VM, outside the nix
-# sandbox. Requires: build-linux first, SSH key at ~/.ssh/linux-builder.
-
-_linux-ssh := "ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -i ~/.ssh/linux-builder -p 31022 builder@localhost"
-_linux-scp := "scp -o IdentitiesOnly=yes -i ~/.ssh/linux-builder -P 31022"
-
-# Sync built binary + tests to the linux builder
-_linux-sync: build-linux
-    #!/usr/bin/env bash
-    set -euo pipefail
-    {{ _linux-ssh }} 'rm -rf /tmp/ksh26-test && mkdir -p /tmp/ksh26-test/bin'
-    {{ _linux-scp }} result-linux/bin/ksh result-linux/bin/shcomp builder@localhost:/tmp/ksh26-test/bin/
-    {{ _linux-scp }} -r src/cmd/ksh26/tests builder@localhost:/tmp/ksh26-test/
-
-# Run advisory tests on Linux VM (no sandbox)
-test-linux-advisory: _linux-sync
-    #!/usr/bin/env bash
-    set -uo pipefail
-    {{ _linux-ssh }} '
-    export SHELL=/tmp/ksh26-test/bin/ksh
-    export SHCOMP=/tmp/ksh26-test/bin/shcomp
-    export SHTESTS_COMMON="/tmp/ksh26-test/tests/_common"
-    export ENV=/./dev/null
-    advisory="signal sigchld basic options"
-    pass=0 fail=0 total=0
-    for name in $advisory; do
-      for locale in C C.UTF-8; do
-        total=$((total + 1))
-        case $locale in
-        C)       unset LANG LC_ALL 2>/dev/null ;;
-        C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
-        esac
-        export tmp=$(mktemp -d /tmp/ksh26-adv.XXXXXX)
-        export HOME="$tmp"
-        cd "$tmp"
-        if timeout 60 "$SHELL" "/tmp/ksh26-test/tests/${name}.sh" >/dev/null 2>&1; then
-          pass=$((pass + 1))
-          printf "ok - %s.%s\n" "$name" "$locale"
-        else
-          fail=$((fail + 1))
-          printf "FAIL - %s.%s\n" "$name" "$locale"
-          timeout 60 "$SHELL" "/tmp/ksh26-test/tests/${name}.sh" 2>&1 | grep "FAIL:" | head -5
-        fi
-        cd /; rm -rf "$tmp"
-      done
-    done
-    echo "---"
-    printf "%d/%d advisory tests pass (virtual machine)\n" "$pass" "$total"
-    [ "$fail" -eq 0 ]
-    '
-
-# Run a single test on real Linux hardware
-test-linux-one NAME LOCALE="C": _linux-sync
-    #!/usr/bin/env bash
-    set -uo pipefail
-    {{ _linux-ssh }} '
-    export SHELL=/tmp/ksh26-test/bin/ksh
-    export SHCOMP=/tmp/ksh26-test/bin/shcomp
-    export SHTESTS_COMMON="/tmp/ksh26-test/tests/_common"
-    export ENV=/./dev/null
-    export tmp=$(mktemp -d /tmp/ksh26-one.XXXXXX)
-    export HOME="$tmp"
-    case "{{ LOCALE }}" in
-    C)       unset LANG LC_ALL 2>/dev/null ;;
-    C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
-    esac
-    cd "$tmp"
-    timeout 120 "$SHELL" "/tmp/ksh26-test/tests/{{ NAME }}.sh" 2>&1
-    rc=$?
-    cd /; rm -rf "$tmp"
-    exit $rc
-    '
-
-# Run full test suite on real Linux hardware
-test-linux-real: _linux-sync
-    #!/usr/bin/env bash
-    set -uo pipefail
-    {{ _linux-ssh }} '
-    export SHELL=/tmp/ksh26-test/bin/ksh
-    export SHCOMP=/tmp/ksh26-test/bin/shcomp
-    export SHTESTS_COMMON="/tmp/ksh26-test/tests/_common"
-    export ENV=/./dev/null
-    tests=$(ls /tmp/ksh26-test/tests/*.sh | grep -v _common | sort)
-    pass=0 fail=0 total=0
-    for test_script in $tests; do
-      name=$(basename "$test_script" .sh)
-      for locale in C C.UTF-8; do
-        total=$((total + 1))
-        case $locale in
-        C)       unset LANG LC_ALL 2>/dev/null ;;
-        C.UTF-8) export LANG=C.UTF-8; unset LC_ALL 2>/dev/null ;;
-        esac
-        export tmp=$(mktemp -d /tmp/ksh26-full.XXXXXX)
-        export HOME="$tmp"
-        cd "$tmp"
-        if timeout 120 "$SHELL" "$test_script" >/dev/null 2>&1; then
-          pass=$((pass + 1))
-          printf "ok - %s.%s\n" "$name" "$locale"
-        else
-          fail=$((fail + 1))
-          printf "FAIL - %s.%s\n" "$name" "$locale"
-          timeout 120 "$SHELL" "$test_script" 2>&1 | grep "FAIL:" | head -3
-        fi
-        cd /; rm -rf "$tmp"
-      done
-    done
-    echo "---"
-    printf "%d/%d tests pass (virtual machine)\n" "$pass" "$total"
-    [ "$fail" -eq 0 ] || exit 1
-    '
-
 # ── Iteration (local samu, devshell-only) ─────────────────────
-# These use timestamp-based caching for speed. Not for validation —
-# use `just build` / `just test` for that.
+# These use timestamp-based caching for speed. Not for validation.
 
 # Bootstrap samu from vendored source
 [private]
@@ -230,12 +172,9 @@ configure: bootstrap
 reconfigure: bootstrap
     @CC="${CC:-cc}" ./configure.sh --force
 
-# Run a single test: just test-one basic
-test-one NAME LOCALE="C": _dev-build
-    {{ SAMU }} -C {{ BUILDDIR }} test/{{ NAME }}.{{ LOCALE }}.stamp
-
-# Run a test N times to detect flakiness
-test-repeat NAME N="10" LOCALE="C": _dev-build
+# Private: repeat test N times
+[private]
+_test-repeat NAME N="10" LOCALE="C": _dev-build
     #!/usr/bin/env bash
     set -uo pipefail
     pass=0 fail=0
@@ -249,33 +188,6 @@ test-repeat NAME N="10" LOCALE="C": _dev-build
     done
     printf '%s.%s: %d/%d pass' "{{ NAME }}" "{{ LOCALE }}" "$pass" "{{ N }}"
     (( fail > 0 )) && printf ' (FLAKY)\n' && exit 1 || printf ' (STABLE)\n'
-
-# Run advisory tests on virtual machine (not nix sandbox).
-# These are gated out of `just test` due to sandbox timing jitter
-# but must pass here to confirm correct functionality.
-test-advisory: _dev-build
-    #!/usr/bin/env bash
-    set -uo pipefail
-    advisory=(signal sigchld basic options)
-    pass=0 fail=0 total=0
-    for name in "${advisory[@]}"; do
-        for locale in C C.UTF-8; do
-            ((total++))
-            rm -f "{{ BUILDDIR }}/test/${name}.${locale}.stamp"
-            if {{ SAMU }} -j1 -C "{{ BUILDDIR }}" "test/${name}.${locale}.stamp" >/dev/null 2>&1; then
-                ((pass++))
-                printf 'ok - %s.%s\n' "$name" "$locale"
-            else
-                ((fail++))
-                printf 'FAIL - %s.%s\n' "$name" "$locale"
-                # show the failure details
-                cat "{{ BUILDDIR }}/test/${name}.${locale}.stamp.log" 2>/dev/null | grep 'FAIL:' || true
-            fi
-        done
-    done
-    echo "---"
-    printf '%d/%d advisory tests pass\n' "$pass" "$total"
-    (( fail > 0 )) && exit 1 || exit 0
 
 # Debug a test under lldb/gdb
 debug NAME LOCALE="C": _dev-build
@@ -293,20 +205,6 @@ debug NAME LOCALE="C": _dev-build
     Darwin) lldb -- "{{ BUILDDIR }}/bin/ksh" "{{ TESTS }}/{{ NAME }}.sh" ;;
     *)      gdb --args "{{ BUILDDIR }}/bin/ksh" "{{ TESTS }}/{{ NAME }}.sh" ;;
     esac
-
-# Run iffe regression tests
-test-iffe: _dev-build
-    sh tests/infra/iffe.sh
-    @echo "── sfio regression tests ──"
-    cc -std=c23 -g -O0 \
-        -I {{ BUILDDIR }}/feat/libast/std \
-        -I {{ BUILDDIR }}/feat/libast \
-        -I src/lib/libast/sfio \
-        -I src/lib/libast/include \
-        -o {{ BUILDDIR }}/bin/sfio_test \
-        tests/infra/sfio/sfio_test.c \
-        -L {{ BUILDDIR }}/lib -last -lcmd -last -liconv -lm
-    {{ BUILDDIR }}/bin/sfio_test
 
 # Pass arbitrary args to samu
 samu *ARGS: bootstrap
@@ -381,7 +279,6 @@ log KIND="all" NAME="":
     esac
 
 # Comprehensive test failure diagnosis
-# Per Immutable Test Sanctity (CLAUDE.md): investigates context deficiencies, not test logic
 diagnose NAME LOCALE="C": _dev-build
     #!/bin/sh
     set -eu
@@ -390,79 +287,23 @@ diagnose NAME LOCALE="C": _dev-build
     mode="{{ LOCALE }}"
     stamp="$dir/test/${test_name}.${mode}.stamp"
     log="${stamp}.log"
-
     echo "=== ksh26 Test Failure Diagnosis ==="
     echo "Test: $test_name (mode: $mode)"
-    echo "Stamp: $stamp"
     echo ""
-
-    # Check if test exists
     if [ ! -f "{{ TESTS }}/${test_name}.sh" ]; then
         echo "ERROR: Test file not found: {{ TESTS }}/${test_name}.sh"
-        echo "Available tests:"
         ls {{ TESTS }}/*.sh | sed 's|.*/||; s/\.sh$//' | column -c 80
         exit 1
     fi
-
-    # Run the test and capture full output
-    echo "=== Running test with instrumentation ==="
     rm -f "$stamp"
     {{ SAMU }} -C "$dir" "test/${test_name}.${mode}.stamp" 2>&1 || true
-
     echo ""
-    echo "=== Exit Status Analysis ==="
     if [ -f "$stamp" ]; then
-        echo "Result: PASSED (stamp exists)"
+        echo "Result: PASSED"
     else
-        echo "Result: FAILED (no stamp)"
-        if [ -f "$log" ]; then
-            echo ""
-            echo "=== Raw Test Output ==="
-            cat "$log"
-            echo ""
-            echo "=== Error Pattern Analysis ==="
-            if grep -q 'FAIL:' "$log" 2>/dev/null; then
-                fail_count=$(grep -c 'FAIL:' "$log")
-                echo "Found $fail_count assertion failures:"
-                grep 'FAIL:' "$log" | head -10
-            fi
-            if grep -q 'SEGV\|segmentation fault' "$log" 2>/dev/null; then
-                echo "CRASH: Segmentation fault detected"
-            fi
-            if grep -q 'timeout' "$log" 2>/dev/null; then
-                echo "TIMEOUT: Test did not complete within time limit"
-            fi
-        else
-            echo "No log file found at: $log"
-        fi
+        echo "Result: FAILED"
+        [ -f "$log" ] && cat "$log"
     fi
-
-    echo ""
-    echo "=== Environment ==="
-    echo "HOSTTYPE: {{ HOSTTYPE }}"
-    echo "SHELL: $dir/bin/ksh"
-    if [ -x "$dir/bin/ksh" ]; then
-        echo "KSH_VERSION: $($dir/bin/ksh -c 'echo "$KSH_VERSION"' 2>/dev/null || echo 'unknown')"
-    fi
-
-    echo ""
-    echo "=== Context Adaptations ==="
-    for ctx in default tty fixtures timing; do
-        if [ -f "tests/contexts/${ctx}.sh" ]; then
-            echo "  [ok] contexts/${ctx}.sh"
-        else
-            echo "  [--] contexts/${ctx}.sh missing"
-        fi
-    done
-
-    echo ""
-    echo "=== Investigation Steps (per CLAUDE.md) ==="
-    echo "1. Reproduce outside harness: just test-one $test_name $mode"
-    echo "2. Check context deficiencies: cat tests/contexts/*.sh"
-    echo "3. Compare with nix: just test"
-    echo ""
-    echo "Passes outside harness but fails inside → add context adaptation"
-    echo "Fails in both → real bug, fix src/cmd/ksh26/"
 
 # ── Maintenance ─────────────────────────────────────────────────
 
@@ -482,14 +323,6 @@ clean STAGE="all":
 # Remove all build artifacts (every host)
 cleanall:
     rm -rf build
-
-# Remove debug build artifacts
-clean-debug:
-    rm -rf build/{{HOSTTYPE}}-debug
-
-# Remove asan build artifacts
-clean-asan:
-    rm -rf build/{{HOSTTYPE}}-asan
 
 # Format changed C files (staged + unstaged vs HEAD)
 fmt:
