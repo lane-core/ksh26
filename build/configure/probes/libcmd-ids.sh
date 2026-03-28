@@ -1,5 +1,5 @@
 # probe: libcmd-ids — group/id features
-# Tier 7. Replaces: run_iffe "ids" for group/id features.
+# Tier 7. Detects group/id features.
 # Tests lib probes for group enumeration and session ID functions.
 
 probe_libcmd_ids()

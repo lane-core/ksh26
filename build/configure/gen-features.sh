@@ -46,7 +46,7 @@ copy_features()
 }
 
 # Special case: ast_common.h needs _def_map_ast stripped to avoid
-# circular include (inherited from iffe convention).
+# circular include (legacy AST convention).
 fixup_ast_common()
 {
 	LOCAL _common; BEGIN
@@ -60,8 +60,8 @@ fixup_ast_common()
 
 # ── Install std/ wrapper headers ─────────────────────────────────
 # These intercept <stdio.h>, <assert.h>, <wctype.h> and redirect
-# through AST's wrappers. Installed AFTER probes complete so iffe-era
-# probes (if any remain) don't pick them up via -I.
+# through AST's wrappers. Installed AFTER probes complete so
+# probe compilations don't pick them up via -I.
 
 install_std_wrappers()
 {

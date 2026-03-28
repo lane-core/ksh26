@@ -1,5 +1,5 @@
 # probe: ksh26-posix8 — POSIX Issue 8 features
-# Tier 7. Replaces: run_iffe "posix8" for POSIX Issue 8 detection.
+# Tier 7. Detects POSIX Issue 8 features.
 # Tests headers and lib probes for pipe2, dup3, ppoll, mkostemp,
 # timer_create, timer_settime.
 

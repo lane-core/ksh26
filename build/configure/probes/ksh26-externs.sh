@@ -1,6 +1,5 @@
 # probe: ksh26-externs — ksh extern declarations
-# Tier 7. Replaces: run_iffe "externs" (the stripped version) + supplemental.
-# Handles all of externs natively: hdr, mem, lib, extern, cross{}, output{}.
+# Tier 7. Detects extern declarations: hdr, mem, lib, extern, cross, output.
 
 probe_ksh26_externs()
 {

@@ -1,5 +1,5 @@
 # probe: ksh26-time — ksh time features
-# Tier 7. Replaces: run_iffe "time" for time-related features.
+# Tier 7. Detects time-related features.
 # Tests headers, libs, struct members, and emits timeradd/timersub macros.
 
 probe_ksh26_time()

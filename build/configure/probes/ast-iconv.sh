@@ -1,5 +1,5 @@
 # probe: ast-iconv — iconv detection
-# Tier 6. Source: src/lib/libast/features/iconv — iffe script.
+# Tier 6. Source: src/lib/libast/features/iconv.
 # Probes: hdr iconv, lib iconv_open/iconv_close/iconv, nxt iconv,
 # then compiles and runs a tst output{} C program.
 

@@ -594,7 +594,7 @@ trylibs()
 	END
 }
 
-# ── Batch helpers (iffe vocabulary as shell functions) ───────────
+# ── Batch helpers (feature detection vocabulary) ────────────────
 # These generate #define lines on stdout. Caller captures and
 # writes to the appropriate FEATURE file.
 
@@ -749,7 +749,7 @@ dat()
 	END
 }
 
-# ── try_variants (iffe group mechanism) ──────────────────────────
+# ── try_variants (flag iteration) ────────────────────────────────
 
 try_variants()
 {

@@ -6,8 +6,7 @@ collect_libast_sources()
 	find "$LIBAST_SRC" -name '*.c' -not -path '*/features/*' \
 		-not -path '*/man/*' \
 		-not -name 'sfdcfilter.c' \
-		-not -name 'omitted.c' \
-		-not -name 'mamake.c' | sort
+		-not -name 'omitted.c' | sort
 	putln "$FEATDIR/libast/conftab.c"
 	putln "$FEATDIR/libast/lctab.c"
 }

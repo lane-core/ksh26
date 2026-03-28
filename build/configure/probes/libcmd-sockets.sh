@@ -1,5 +1,5 @@
 # probe: libcmd-sockets — socket features
-# Tier 7. Replaces: run_iffe "sockets" for socket features.
+# Tier 7. Detects socket features.
 # Tests sys/socket.h, arpa/inet.h, netinet/in.h headers and
 # getsockname, getsockopt, inet_ntoa lib probes.
 

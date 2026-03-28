@@ -1,5 +1,5 @@
 # probe: ast-tmx — tmx time types
-# Tier 6. Source: src/lib/libast/features/tmx — iffe script.
+# Tier 6. Source: src/lib/libast/features/tmx.
 # Generates tmx.h with Time_t typedefs. Selects between int8_t, flt8_t,
 # and uint32_t branches based on FEATURE/common content.
 

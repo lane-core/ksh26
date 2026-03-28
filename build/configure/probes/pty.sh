@@ -1,5 +1,5 @@
 # probe: pty — pty features
-# Tier 7. Replaces: run_iffe "pty" + supplemental _pty_clone/_pty_first.
+# Tier 7. Detects pty features, clone device, and first-pty path.
 # Tests headers, libs, extern declarations, and probes for pty clone/first paths.
 
 probe_pty()

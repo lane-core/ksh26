@@ -1,5 +1,5 @@
 # probe: ksh26-cmds — ed path detection
-# Tier 7. Replaces: run_iffe "cmds" for cmd universe, pth ed.
+# Tier 7. Detects cmd universe and pth ed.
 # Pure shell logic, no C compilation.
 
 probe_ksh26_cmds()

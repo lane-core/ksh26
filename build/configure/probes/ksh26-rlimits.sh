@@ -1,5 +1,5 @@
 # probe: ksh26-rlimits — resource limits
-# Tier 7. Replaces: run_iffe "rlimits" for resource limit features.
+# Tier 7. Detects resource limit features.
 # Tests headers, libs, types for rlimit/ulimit support.
 
 probe_ksh26_rlimits()

@@ -1,5 +1,5 @@
 # probe: libcmd-symlink — symlink features
-# Tier 7. Replaces: run_iffe "symlink" for lchmod/lchown detection.
+# Tier 7. Detects lchmod/lchown symlink features.
 # Uses execute{} probes to verify the functions actually work,
 # not just that they link.
 

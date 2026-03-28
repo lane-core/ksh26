@@ -1,5 +1,5 @@
 # probe: ksh26-locale — ksh locale features
-# Tier 7. Replaces: run_iffe "locale" for locale/wchar features.
+# Tier 7. Detects locale/wchar features.
 # Tests headers, libs, and wctrans/towctrans functionality.
 
 probe_ksh26_locale()

@@ -1,5 +1,5 @@
 # probe: libcmd-utsname — hostname/uname features
-# Tier 7. Replaces: run_iffe "utsname" for hostname/uname features.
+# Tier 7. Detects hostname/uname features.
 # Tests lib probes, sys headers, and detects default OS name via uname -o.
 
 probe_libcmd_utsname()

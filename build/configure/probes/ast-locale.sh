@@ -1,5 +1,5 @@
 # probe: ast-locale — shell-based locale detection
-# Tier 6. Source: src/lib/libast/features/locale — iffe script.
+# Tier 6. Source: src/lib/libast/features/locale.
 # A tst run{} block: runs locale -a to find the canonical UTF-8 name.
 
 probe_ast_locale()

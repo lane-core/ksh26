@@ -19,7 +19,7 @@ emit_ninja()
 		_ast_sub_incs="$_ast_sub_incs -I$_d"
 	done
 	# std/ wrappers (stdio.h → ast_stdio.h) are in $FEATDIR/libast/std/,
-	# kept separate from $FEATDIR/libast/ so iffe probes don't pick them up.
+	# kept separate from $FEATDIR/libast/ so probes don't pick them up.
 	_std_inc="-I$FEATDIR/libast/std"
 	_ast_incs="$_std_inc -I$FEATDIR/libast $_ast_sub_incs -I$LIBAST_SRC"
 	_cmd_incs="$_std_inc -I$FEATDIR/libcmd -I$LIBCMD_SRC -I$FEATDIR/libast -I$LIBAST_SRC/include"
