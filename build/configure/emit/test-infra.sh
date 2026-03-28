@@ -37,6 +37,7 @@ CONTEXTS="$PACKAGEROOT/tests/contexts"
 RUNTEST
 	cat >> "$_run_test" <<RUNTEST
 SAFETY_SH="$PACKAGEROOT/tests/lib/safety.sh"
+XFAIL_FILE="$PACKAGEROOT/tests/expected-failures.sh"
 RUNTEST
 	cat >> "$_run_test" <<'RUNTEST'
 
@@ -132,23 +133,25 @@ if ! ulimit -v "$_memlimit_kb" 2>/dev/null; then
 	esac
 fi
 
-# ── Context Adaptations ─────────────────────────────────────
-# Per CLAUDE.md "Immutable Test Sanctity": framework adapts to test, not vice versa.
-. "$CONTEXTS/default.sh"
-for _ctx in tty fixtures timing; do
-	[ -f "$CONTEXTS/$_ctx.sh" ] && . "$CONTEXTS/$_ctx.sh"
-done
-
-# SHOPT_* compile-time options for test filtering
-. "$BUILDDIR/test-env.sh"
-
 # ── Execute ──────────────────────────────────────────────────
 _start=$(date +%s)
 
 if $_ninja; then
-	# Ninja mode: capture output to log for parallel execution
+	# Ninja mode: capture output to log for parallel execution.
+	# Set up log BEFORE sourcing contexts — infrastructure errors
+	# (unbound variables, missing files) must appear in the test log,
+	# not vanish into samu's job capture.
 	log="${stamp}.log"
 	mkdir -p "$(dirname "$stamp")" "$(dirname "$log")"
+	exec 3>&1 4>&2		# save original stdout/stderr for result reporting
+	exec >"$log" 2>&1	# redirect all output to test log
+
+	# Context adaptations (inside capture)
+	. "$CONTEXTS/default.sh"
+	for _ctx in tty paths fixtures timing; do
+		[ -f "$CONTEXTS/$_ctx.sh" ] && . "$CONTEXTS/$_ctx.sh"
+	done
+	. "$BUILDDIR/test-env.sh"
 
 	# Reset all signal dispositions to SIG_DFL before running the test.
 	# The nix-daemon on Linux starts builds with SIGPIPE set to SIG_IGN
@@ -158,24 +161,25 @@ if $_ninja; then
 	# fresh ksh on the test script (exec preserves the reset dispositions).
 	_sig_reset='trap + $(kill -l) 2>/dev/null; exec "$SHELL" "$1"'
 
+	# stdout/stderr already directed to $log via exec above.
 	rc=0
 	if [ -n "${_KSH_TTY_WRAPPER:-}" ]; then
-		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" -c '$_sig_reset' _ \"\$test_script\"" >"$log" 2>&1 || rc=$?
+		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" -c '$_sig_reset' _ \"\$test_script\"" || rc=$?
 	elif command -v timeout >/dev/null 2>&1; then
 		if $_use_rss_monitor; then
-			# Monitor runs in background watching this shell's children.
-			# Test runs in foreground so it inherits normal signal
-			# dispositions (SIGINT/SIGQUIT must not be SIG_IGN).
 			_rss_monitor $$ "$_memlimit_kb" &
 			_mpid=$!
-			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" || rc=$?
 			kill "$_mpid" 2>/dev/null; wait "$_mpid" 2>/dev/null
 		else
-			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
+			$_setsid timeout "${KSH_TEST_TIMEOUT:-60}" "$SHELL" -c "$_sig_reset" _ "$test_script" || rc=$?
 		fi
 	else
-		$_setsid "$SHELL" -c "$_sig_reset" _ "$test_script" >"$log" 2>&1 || rc=$?
+		$_setsid "$SHELL" -c "$_sig_reset" _ "$test_script" || rc=$?
 	fi
+
+	# Restore stdout/stderr for result reporting
+	exec 1>&3 2>&4 3>&- 4>&-
 
 	# Per-test result file (avoids parallel write contention on summary)
 	_result_dir="${BUILDDIR}/test/results"
@@ -213,12 +217,41 @@ if $_ninja; then
 	      fi ;;
 	esac
 
+	# Check expected-failure manifest: if ALL failures match xfail
+	# entries for this platform, report XFAIL (pass) instead of FAIL.
+	_xfail_count=0
+	if [ -f "$XFAIL_FILE" ] && [ -s "$log" ]; then
+		_hostid="$(uname -s | tr A-Z a-z).$(uname -m)"
+		while IFS=' ' read -r _xkw _xt _xl _xp _xr; do
+			[ "$_xkw" = "xfail" ] || continue
+			[ "$_xt" = "$test_name" ] || continue
+			case "$_hostid" in $_xp) ;; *) continue ;; esac
+			if grep -q "	${test_name}\.sh\[${_xl}\]: FAIL:" "$log" 2>/dev/null; then
+				_xfail_count=$((_xfail_count + 1))
+			fi
+		done < "$XFAIL_FILE"
+	fi
+
+	if [ "$_xfail_count" -gt 0 ] && [ "$_nerr" -le "$_xfail_count" ] 2>/dev/null; then
+		# All failures are expected
+		printf 'ok - %s %s # XFAIL %d expected\n' "$_desc" "$_dur_fmt" "$_xfail_count" > "$_result_file"
+		touch "$stamp"
+		rm -f "$log"
+		exit 0
+	fi
+
 	printf 'not ok - %s %s # %s\n' "$_desc" "$_dur_fmt" "$_detail" > "$_result_file"
 	cat "$log" >&2
 	rm -f "$stamp"
 	exit "$rc"
 else
 	# Interactive mode: live output, no stamp management
+	. "$CONTEXTS/default.sh"
+	for _ctx in tty paths fixtures timing; do
+		[ -f "$CONTEXTS/$_ctx.sh" ] && . "$CONTEXTS/$_ctx.sh"
+	done
+	. "$BUILDDIR/test-env.sh"
+
 	if [ -n "${_KSH_TTY_WRAPPER:-}" ]; then
 		eval "$_KSH_TTY_WRAPPER \"\$SHELL\" \"\$test_script\""
 	else

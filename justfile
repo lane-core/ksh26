@@ -3,7 +3,8 @@
 # Usage:
 #   just build [darwin|linux] [--asan] [--debug]
 #   just test  [darwin|linux] [--asan] [--one NAME] [--repeat NAME] [--verbose]
-#   just test  --debug NAME    # run single test under lldb/gdb (local only)
+#   just test  --category fast # run a test category (local samu)
+#   just test  --debug NAME   # run single test under lldb/gdb (local only)
 #
 # Platform is auto-detected from uname. Explicit platform triggers
 # cross-build when different from host (e.g. `just test linux` on darwin
@@ -91,7 +92,7 @@ test *ARGS:
     #!/usr/bin/env bash
     set -euo pipefail
     eval '{{ _helpers }}'
-    platform= variant= one= debug_test= repeat_test= verbose=
+    platform= variant= one= debug_test= repeat_test= verbose= category=
     for arg in {{ ARGS }}; do
         case "$arg" in
         darwin|linux) platform="$arg" ;;
@@ -100,16 +101,18 @@ test *ARGS:
         --one)        one=_next ;;
         --debug)      debug_test=_next ;;
         --repeat)     repeat_test=_next ;;
+        --category)   category=_next ;;
         *)
             if [ "$one" = _next ]; then one="$arg"
             elif [ "$debug_test" = _next ]; then debug_test="$arg"
             elif [ "$repeat_test" = _next ]; then repeat_test="$arg"
+            elif [ "$category" = _next ]; then category="$arg"
             else echo "error: unknown argument: $arg" >&2; exit 1; fi ;;
         esac
     done
     # Validate flags that require a following argument
-    if [ "$one" = _next ] || [ "$debug_test" = _next ] || [ "$repeat_test" = _next ]; then
-        echo "error: --one/--debug/--repeat requires a test name" >&2; exit 1
+    if [ "$one" = _next ] || [ "$debug_test" = _next ] || [ "$repeat_test" = _next ] || [ "$category" = _next ]; then
+        echo "error: --one/--debug/--repeat/--category requires an argument" >&2; exit 1
     fi
     : "${platform:=$(_host)}"
     if _is_cross "$platform"; then _require_builder "$platform"; fi
@@ -131,6 +134,15 @@ test *ARGS:
     # Repeat — flakiness detection (native only)
     if [ -n "$repeat_test" ]; then
         just _test-repeat "$repeat_test"
+        exit $?
+    fi
+    # Category — run a subset of tests (native only, local samu)
+    if [ -n "$category" ]; then
+        if _is_cross "$platform"; then
+            echo "error: --category requires native platform" >&2; exit 1
+        fi
+        just _dev-build
+        "{{ BUILDDIR }}/bin/samu" -C "{{ BUILDDIR }}" "test-${category}"
         exit $?
     fi
     # Full suite via nix

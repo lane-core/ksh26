@@ -198,10 +198,26 @@ pool serial
 NINJA
 
 		_all_stamps=""
-		# Serial pool: reduces scheduling jitter for tests with timing deps.
-		# Distinct from advisory (flake.nix): serial = execution strategy,
-		# advisory = gate policy. A test can be serial but still gate.
-		_timesensitive="builtins io options sigchld signal subshell"
+
+		# Load test categories from manifest.
+		# The "timing" category selects the serial pool.
+		# Per-category phony targets are emitted for selective runs.
+		_categories_file="$PACKAGEROOT/tests/categories.sh"
+		_serial_tests=""
+		if [ -f "$_categories_file" ]; then
+			_serial_tests=$(awk '$1 == "timing" { for(i=2;i<=NF;i++) printf "%s ", $i }' "$_categories_file")
+		fi
+
+		# Track stamps per category for phony targets
+		# (uses temp files since shell can't do associative arrays portably)
+		_cat_dir="${_probe_tmpdir:-/tmp}/categories"
+		mkdir -p "$_cat_dir"
+		if [ -f "$_categories_file" ]; then
+			awk '!/^#/ && NF >= 2 { cat=$1; for(i=2;i<=NF;i++) print cat, $i }' \
+				"$_categories_file" > "$_cat_dir/map"
+		else
+			: > "$_cat_dir/map"
+		fi
 
 		for _test_sh in "$KSH_SRC/tests"/*.sh; do
 			[ -f "$_test_sh" ] || continue
@@ -210,9 +226,9 @@ NINJA
 			# Skip internal files
 			case "$_tname" in _*) continue ;; esac
 
-			# Time-sensitive tests run serially to reduce scheduling jitter
+			# Tests in the "timing" category run serially
 			_rule="test"
-			case " $_timesensitive " in
+			case " $_serial_tests " in
 			*" $_tname "*) _rule="test_serial" ;;
 			esac
 
@@ -233,10 +249,24 @@ NINJA
 				"$_tname" "$_rule" "$_test_sh" "$BINDIR" "$BINDIR" "$_extra_deps" "$_test_runner" "$BUILDDIR"
 			printf '  mode = C.UTF-8\n  desc = %s (C.UTF-8)\n' "$_tname"
 			_all_stamps="$_all_stamps test/${_tname}.C.UTF-8.stamp"
+
+			# Record stamps for each category this test belongs to
+			awk -v t="$_tname" '$2 == t { print $1 }' "$_cat_dir/map" | while read _cat; do
+				printf ' test/%s.C.stamp test/%s.C.UTF-8.stamp' "$_tname" "$_tname" >> "$_cat_dir/$_cat"
+			done
 		done
 
 		# Phony target to run all tests
 		printf '\nbuild test: phony%s\n' "$_all_stamps"
+
+		# Per-category phony targets
+		for _cf in "$_cat_dir"/*; do
+			[ -f "$_cf" ] || continue
+			_cname=${_cf##*/}
+			case "$_cname" in map) continue ;; esac
+			printf '\nbuild test-%s: phony%s\n' "$_cname" "$(cat "$_cf")"
+		done
+		rm -rf "$_cat_dir"
 
 	} | atomic_write "$_ninja" && configure_log "build.ninja ... updated" \
 	  || configure_log "build.ninja ... unchanged"
