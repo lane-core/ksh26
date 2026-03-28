@@ -11,7 +11,6 @@
     }:
     let
       # Map nix platform to the HOSTTYPE that configure.sh computes via uname.
-      # Darwin uname -m reports "arm64" (not "aarch64"); Linux reports "aarch64".
       hostType =
         let
           inherit (pkgs.stdenv.hostPlatform) isDarwin;
@@ -22,19 +21,15 @@
         in
         "${os}.${arch}-${bits}";
 
-      # Core build function. All variants go through here.
+      # Build ksh26. Always succeeds and is cached — no tests here.
       mkKsh =
         {
           variant ? "",
           configureFlags ? [ ],
-          doCheck ? false,
-          extraCheckSetup ? "",
-          checkCategory ? "",
         }:
         let
           buildDir = "build/${hostType}${variant}";
           flagStr = builtins.concatStringsSep " " configureFlags;
-          testTarget = if checkCategory != "" then "test-${checkCategory}" else "test";
         in
         pkgs.stdenv.mkDerivation {
           pname = "ksh26${variant}";
@@ -42,25 +37,15 @@
 
           src = inputs.self;
 
-          nativeBuildInputs = lib.optionals doCheck [
-            pkgs.expect
-            pkgs.tzdata
-          ];
-
           buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
             pkgs.libiconv
           ];
 
           configurePhase = ''
             runHook preConfigure
-
-            # Bootstrap samu (vendored ninja-compatible build tool)
             mkdir -p ${buildDir}/bin
             $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
-
-            # Run configure (feature probes + generate build.ninja)
             _Msh_DEFPATH="$PATH" sh configure.sh ${flagStr}
-
             runHook postConfigure
           '';
 
@@ -70,28 +55,111 @@
             runHook postBuild
           '';
 
-          inherit doCheck;
+          installPhase = ''
+            runHook preInstall
+            install -Dm755 ${buildDir}/bin/ksh "$out/bin/ksh"
+            install -Dm755 ${buildDir}/bin/shcomp "$out/bin/shcomp"
+            install -Dm755 ${buildDir}/bin/pty "$out/bin/pty"
+            runHook postInstall
+          '';
 
-          preCheck = lib.optionalString doCheck ''
-            # Make timezone data available for printf %T tests
+          postInstall = ''
+            mkdir -p "$out/build-artifacts/feat"
+            for l in libast ksh26 libcmd pty; do
+              if [ -d "${buildDir}/feat/$l/FEATURE" ]; then
+                mkdir -p "$out/build-artifacts/feat/$l/FEATURE"
+                cp ${buildDir}/feat/$l/FEATURE/* \
+                  "$out/build-artifacts/feat/$l/FEATURE/" 2>/dev/null || true
+              fi
+              for f in ${buildDir}/feat/$l/*.h; do
+                [ -f "$f" ] && [ ! -L "$f" ] && cp "$f" "$out/build-artifacts/feat/$l/" 2>/dev/null || true
+              done
+            done
+            cp ${buildDir}/sysdeps "$out/build-artifacts/" 2>/dev/null || true
+            cp ${buildDir}/probe_defs.h "$out/build-artifacts/" 2>/dev/null || true
+            cp -r ${buildDir}/log "$out/build-artifacts/" 2>/dev/null || true
+
+            # Export the build directory for test derivations
+            cp -r ${buildDir}/bin "$out/build-artifacts/"
+            cp ${buildDir}/build.ninja "$out/build-artifacts/"
+            cp ${buildDir}/test-env.sh "$out/build-artifacts/"
+          '';
+
+          passthru = {
+            shellPath = "/bin/ksh";
+            inherit configureFlags hostType buildDir;
+          };
+
+          meta = with lib; {
+            description = "ksh26 — the KornShell, redesigned";
+            homepage = "https://github.com/lane-core/ksh26";
+            license = licenses.epl20;
+            platforms = platforms.unix;
+            mainProgram = "ksh";
+          };
+        };
+
+      # Test ksh26. Separate derivation that depends on the build.
+      # The build is cached — only tests rerun.
+      mkTest =
+        {
+          ksh,
+          variant ? "",
+          checkCategory ? "",
+          extraCheckSetup ? "",
+        }:
+        let
+          buildDir = "build/${hostType}${variant}";
+          testTarget = if checkCategory != "" then "test-${checkCategory}" else "test";
+        in
+        pkgs.stdenv.mkDerivation {
+          pname = "ksh26-tests${variant}${lib.optionalString (checkCategory != "") "-${checkCategory}"}";
+          version = "0.1.0-alpha";
+
+          src = inputs.self;
+
+          nativeBuildInputs = [
+            pkgs.expect
+            pkgs.tzdata
+          ];
+
+          buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+            pkgs.libiconv
+          ];
+
+          # Rebuild: bootstrap samu + configure + build (needed for test rules in build.ninja)
+          configurePhase = ''
+            runHook preConfigure
+            mkdir -p ${buildDir}/bin
+            $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
+            _Msh_DEFPATH="$PATH" sh configure.sh ${builtins.concatStringsSep " " (ksh.passthru.configureFlags or [])}
+            runHook postConfigure
+          '';
+
+          buildPhase = ''
+            runHook preBuild
+            ./${buildDir}/bin/samu -C ${buildDir}
+            runHook postBuild
+          '';
+
+          doCheck = true;
+
+          preCheck = ''
             export TZDIR="''${TZDIR:-${pkgs.tzdata}/share/zoneinfo}"
             ${extraCheckSetup}
           '';
 
-          checkPhase = lib.optionalString doCheck ''
+          checkPhase = ''
             runHook preCheck
 
-            # Count test stamp rules from generated build.ninja
             stamp_count=$(grep -c '^build test/.*\.stamp:' ${buildDir}/build.ninja || true)
             if (( stamp_count == 0 )); then
               echo "FAIL: no test stamps found in build.ninja" >&2
               exit 1
             fi
 
-            # Run tests (-k 0 = continue on failure, collect all results)
             ./${buildDir}/bin/samu -k 0 -C ${buildDir} ${testTarget} || true
 
-            # Report test results against known total
             result_dir="${buildDir}/test/results"
             pass=0 fail=0
             if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
@@ -114,61 +182,27 @@
               exit 1
             fi
             '' else ''
-            # Linux: report only (VM tests are authoritative)
+            # Linux: report only (NixOS PATH issues may cause known failures)
             ''}
 
             runHook postCheck
           '';
 
           installPhase = ''
-            runHook preInstall
-            install -Dm755 ${buildDir}/bin/ksh "$out/bin/ksh"
-            install -Dm755 ${buildDir}/bin/shcomp "$out/bin/shcomp"
-            install -Dm755 ${buildDir}/bin/pty "$out/bin/pty"
-            runHook postInstall
+            mkdir -p "$out"
+            cp -r ${buildDir}/test "$out/" 2>/dev/null || true
+            echo "$pass/$stamp_count" > "$out/summary.txt"
           '';
-
-          postInstall = ''
-            # Export build artifacts for inspection
-            mkdir -p "$out/build-artifacts/feat"
-            for l in libast ksh26 libcmd pty; do
-              if [ -d "${buildDir}/feat/$l/FEATURE" ]; then
-                mkdir -p "$out/build-artifacts/feat/$l/FEATURE"
-                cp ${buildDir}/feat/$l/FEATURE/* \
-                  "$out/build-artifacts/feat/$l/FEATURE/" 2>/dev/null || true
-              fi
-              for f in ${buildDir}/feat/$l/*.h; do
-                [ -f "$f" ] && [ ! -L "$f" ] && cp "$f" "$out/build-artifacts/feat/$l/" 2>/dev/null || true
-              done
-            done
-            cp ${buildDir}/sysdeps "$out/build-artifacts/" 2>/dev/null || true
-            cp ${buildDir}/probe_defs.h "$out/build-artifacts/" 2>/dev/null || true
-            cp -r ${buildDir}/test "$out/build-artifacts/" 2>/dev/null || true
-            cp -r ${buildDir}/log "$out/build-artifacts/" 2>/dev/null || true
-          '';
-
-          passthru = {
-            shellPath = "/bin/ksh";
-            inherit configureFlags;
-          };
-
-          meta = with lib; {
-            description = "ksh26 — the KornShell, redesigned";
-            homepage = "https://github.com/lane-core/ksh26";
-            license = licenses.epl20;
-            platforms = platforms.unix;
-            mainProgram = "ksh";
-          };
         };
+
     in
     {
       _module.args.mkKsh = mkKsh;
+      _module.args.mkTest = mkTest;
       _module.args.hostType = hostType;
 
       packages = {
         default = mkKsh { };
-        checked = mkKsh { doCheck = true; };
-        checked-fast = mkKsh { doCheck = true; checkCategory = "fast"; };
         build-debug = mkKsh {
           variant = "-debug";
           configureFlags = [ "--debug" ];
@@ -177,14 +211,18 @@
           variant = "-asan";
           configureFlags = [ "--asan" ];
         };
-        checked-asan = mkKsh {
+
+        # Test derivations — separate from build, can fail without losing the binary
+        checked = mkTest { ksh = self'.packages.default; };
+        checked-fast = mkTest { ksh = self'.packages.default; checkCategory = "fast"; };
+        checked-asan = mkTest {
+          ksh = self'.packages.build-asan;
           variant = "-asan";
-          configureFlags = [ "--asan" ];
-          doCheck = true;
           extraCheckSetup = ''
             export ASAN_OPTIONS="halt_on_error=1:detect_leaks=0"
           '';
         };
+
         crash-debug =
           let
             buildDir = "build/${hostType}-debug";
