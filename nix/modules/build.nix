@@ -49,33 +49,37 @@
             pkgs.libiconv
           ];
 
-          dontConfigure = true;
+          inherit configureFlags;
+
+          configurePhase = ''
+            runHook preConfigure
+
+            # Bootstrap samu (vendored ninja-compatible build tool)
+            mkdir -p ${buildDir}/bin
+            $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
+
+            # Run configure (feature probes + generate build.ninja)
+            _Msh_DEFPATH="$PATH" sh configure.sh ${flagStr}
+
+            runHook postConfigure
+          '';
 
           buildPhase = ''
             runHook preBuild
-
-            mkdir -p ${buildDir}/bin
-            echo "[bootstrap] compiling samu"
-            $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
-
-            _Msh_DEFPATH="$PATH" sh configure.sh ${flagStr}
-
-            echo "[build] compiling ksh26"
             ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
-
             runHook postBuild
           '';
 
           inherit doCheck;
 
+          preCheck = lib.optionalString doCheck ''
+            # Make timezone data available for printf %T tests
+            export TZDIR="''${TZDIR:-${pkgs.tzdata}/share/zoneinfo}"
+            ${extraCheckSetup}
+          '';
+
           checkPhase = lib.optionalString doCheck ''
             runHook preCheck
-
-            ${extraCheckSetup}
-
-            # Make timezone data available for printf %T tests
-            # Darwin sandbox may not expose /usr/share/zoneinfo
-            export TZDIR="''${TZDIR:-${pkgs.tzdata}/share/zoneinfo}"
 
             # Count test stamps from generated build.ninja
             stamp_count=$(grep '^build test: phony' ${buildDir}/build.ninja \
@@ -88,7 +92,7 @@
             # Run all tests (-k 0 = continue on failure, collect all results)
             ./${buildDir}/bin/samu -k 0 -f ${buildDir}/build.ninja test || true
 
-            # Report test results against known total.
+            # Report test results against known total
             result_dir="${buildDir}/test/results"
             pass=0 fail=0
             if [ -d "$result_dir" ] && ls "$result_dir"/*.txt >/dev/null 2>&1; then
@@ -122,7 +126,10 @@
             install -Dm755 ${buildDir}/bin/ksh "$out/bin/ksh"
             install -Dm755 ${buildDir}/bin/shcomp "$out/bin/shcomp"
             install -Dm755 ${buildDir}/bin/pty "$out/bin/pty"
+            runHook postInstall
+          '';
 
+          postInstall = ''
             # Export build artifacts for inspection
             mkdir -p "$out/build-artifacts/feat"
             for l in libast ksh26 libcmd pty; do
@@ -139,8 +146,6 @@
             cp ${buildDir}/probe_defs.h "$out/build-artifacts/" 2>/dev/null || true
             cp -r ${buildDir}/test "$out/build-artifacts/" 2>/dev/null || true
             cp -r ${buildDir}/log "$out/build-artifacts/" 2>/dev/null || true
-
-            runHook postInstall
           '';
 
           passthru.shellPath = "/bin/ksh";
@@ -193,12 +198,17 @@
             buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
               pkgs.libiconv
             ];
-            dontConfigure = true;
-            buildPhase = ''
+            configurePhase = ''
+              runHook preConfigure
               mkdir -p ${buildDir}/bin
               $CC -o ${buildDir}/bin/samu src/cmd/INIT/samu/*.c
               _Msh_DEFPATH="$PATH" sh configure.sh --debug
+              runHook postConfigure
+            '';
+            buildPhase = ''
+              runHook preBuild
               ./${buildDir}/bin/samu -f ${buildDir}/build.ninja
+              runHook postBuild
             '';
             doCheck = true;
             checkPhase = ''
