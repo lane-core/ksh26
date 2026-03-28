@@ -411,7 +411,7 @@ probe_compile()
 	# -include probe_defs.h makes prior-tier results visible to C code.
 	_probe_guard
 	"$CC" $CFLAGS_BASE -include "$PROBE_DEFS" ${2:-} -c "$1" \
-		-o "${_probe_tmpdir}/out.o" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/out.o" 2>/dev/null
 }
 
 probe_link()
@@ -420,14 +420,14 @@ probe_link()
 	# Compile + link. Returns 0 on success.
 	_probe_guard
 	"$CC" $CFLAGS_BASE -include "$PROBE_DEFS" $LDFLAGS_BASE ${2:-} \
-		-o "${_probe_tmpdir}/out" "$1" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/out" "$1" 2>/dev/null
 }
 
 probe_execute()
 {
 	# Usage: probe_execute SRCFILE [extra_flags]
 	# Compile + link + run. Returns exit code of the program.
-	probe_link "$1" "${2:-}" && "${_probe_tmpdir}/out" 2>>"$_PROBE_STDERR"
+	probe_link "$1" "${2:-}" && "${_probe_tmpdir}/out" 2>/dev/null
 }
 
 probe_output()
@@ -456,14 +456,14 @@ probe_nxt()
 		_src="${_probe_tmpdir}/nxt_${_hdr}.c"
 		putln "#include <${_hdr}.h>" >|"$_src"
 		_result=""
-		if "$CC" $CFLAGS_BASE -E "$_src" >|"${_probe_tmpdir}/nxt.i" 2>>"$_PROBE_STDERR"; then
+		if "$CC" $CFLAGS_BASE -E "$_src" >|"${_probe_tmpdir}/nxt.i" 2>/dev/null; then
 			_path=$(sed -n "s/^#[line ]*[0-9][0-9]* *\"\([^\"]*\/${_hdr}\.h\)\".*/\1/p" \
 				"${_probe_tmpdir}/nxt.i" | \
 				grep -v "$FEATDIR" | grep -v "$LIBAST_SRC" | head -1)
 			if not str empty "$_path"; then
 				# Try relative path first
 				putln "#include <../include/${_hdr}.h>" >|"$_src"
-				if "$CC" $CFLAGS_BASE -E "$_src" >/dev/null 2>>"$_PROBE_STDERR"; then
+				if "$CC" $CFLAGS_BASE -E "$_src" >/dev/null 2>/dev/null; then
 					_result="../include/${_hdr}.h"
 				else
 					_result="$_path"
@@ -483,7 +483,7 @@ _probe_stdin_compile()
 	cat >|"${_probe_tmpdir}/stdin.c"
 	"$CC" $CFLAGS_BASE -include "$PROBE_DEFS" ${1:-} \
 		-c "${_probe_tmpdir}/stdin.c" \
-		-o "${_probe_tmpdir}/stdin.o" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/stdin.o" 2>/dev/null
 }
 
 _probe_stdin_link()
@@ -491,7 +491,7 @@ _probe_stdin_link()
 	_probe_guard
 	cat >|"${_probe_tmpdir}/stdin.c"
 	"$CC" $CFLAGS_BASE -include "$PROBE_DEFS" $LDFLAGS_BASE ${1:-} \
-		-o "${_probe_tmpdir}/stdin" "${_probe_tmpdir}/stdin.c" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/stdin" "${_probe_tmpdir}/stdin.c" 2>/dev/null
 }
 
 # ── choose (skalibs pattern) ────────────────────────────────────
@@ -736,7 +736,7 @@ _mc_compile()
 	_probe_guard
 	cat >|"${_probe_tmpdir}/mc.c"
 	"$CC" $CFLAGS_BASE ${1:-} -c \
-		-o "${_probe_tmpdir}/mc.o" "${_probe_tmpdir}/mc.c" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/mc.o" "${_probe_tmpdir}/mc.c" 2>/dev/null
 }
 
 _mc_link()
@@ -745,7 +745,7 @@ _mc_link()
 	_probe_guard
 	cat >|"${_probe_tmpdir}/mc.c"
 	"$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
-		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>/dev/null
 }
 
 _mc_execute()
@@ -754,8 +754,8 @@ _mc_execute()
 	_probe_guard
 	cat >|"${_probe_tmpdir}/mc.c"
 	if "$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
-		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>>"$_PROBE_STDERR"; then
-		"${_probe_tmpdir}/mc" 2>>"$_PROBE_STDERR"
+		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>/dev/null; then
+		"${_probe_tmpdir}/mc" 2>/dev/null
 	else
 		return 1
 	fi
@@ -769,8 +769,8 @@ _mc_output()
 	cat >|"${_probe_tmpdir}/mc.c"
 	_mco_result=""
 	if "$CC" $CFLAGS_BASE $LDFLAGS_BASE ${1:-} \
-		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>>"$_PROBE_STDERR"; then
-		_mco_result=$("${_probe_tmpdir}/mc" 2>>"$_PROBE_STDERR") || true
+		-o "${_probe_tmpdir}/mc" "${_probe_tmpdir}/mc.c" 2>/dev/null; then
+		_mco_result=$("${_probe_tmpdir}/mc" 2>/dev/null) || true
 	fi
 	printf '%s' "$_mco_result"
 }
@@ -891,14 +891,14 @@ _mc_nxt()
 	echo "${_PROBE_STD_INC}
 #include <${_mcn_hdr}.h>" >|"$_mcn_src"
 	_mcn_result=""
-	if "$CC" $CFLAGS_BASE -E "$_mcn_src" >|"${_probe_tmpdir}/nxt.i" 2>>"$_PROBE_STDERR"; then
+	if "$CC" $CFLAGS_BASE -E "$_mcn_src" >|"${_probe_tmpdir}/nxt.i" 2>/dev/null; then
 		_mcn_path=$(sed -n "s/^#[line ]*[0-9][0-9]* *\"\([^\"]*\/${_mcn_hdr}\.h\)\".*/\1/p" \
 			"${_probe_tmpdir}/nxt.i" | \
 			grep -v "$FEATDIR" | grep -v "$LIBAST_SRC" | head -1)
 		if [ -n "$_mcn_path" ]; then
 			echo "${_PROBE_STD_INC}
 #include <../include/${_mcn_hdr}.h>" >|"$_mcn_src"
-			if "$CC" $CFLAGS_BASE -E "$_mcn_src" >/dev/null 2>>"$_PROBE_STDERR"; then
+			if "$CC" $CFLAGS_BASE -E "$_mcn_src" >/dev/null 2>/dev/null; then
 				_mcn_result="../include/${_mcn_hdr}.h"
 			else
 				_mcn_result="$_mcn_path"
