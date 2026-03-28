@@ -10,6 +10,9 @@ generate_test_env()
 		echo "export BUILDDIR='$BUILDDIR'"
 		echo "export BINDIR='$BINDIR'"
 		echo "export KSH_SRC='$KSH_SRC'"
+		[ -n "${TZDIR:-}" ] && echo "export TZDIR='$TZDIR'"
+		echo "# Signal reset: run-test does 'trap + \$(kill -l)' before each test"
+		echo "# to prevent SIGPIPE SIG_IGN inheritance from nix-daemon/systemd"
 
 		# Extract SHOPT_* from generated shopt.h (definitive compiled-in values).
 		# Matches shtests approach: parse #define lines from the header.

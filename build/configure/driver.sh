@@ -294,6 +294,28 @@ detect_defpath()
 	configure_log "DEFPATH ... $DEFPATH"
 }
 
+# ── TZDIR detection ──────────────────────────────────────────────
+
+detect_tzdir()
+{
+	TZDIR="${TZDIR:-}"
+	if [ -z "$TZDIR" ]; then
+		for _d in /usr/share/zoneinfo /usr/share/lib/zoneinfo \
+			  /usr/lib/locale/TZ /share/zoneinfo; do
+			if [ -d "$_d" ] && [ -f "$_d/UTC" ]; then
+				TZDIR="$_d"
+				break
+			fi
+		done
+	fi
+	if [ -n "$TZDIR" ]; then
+		export TZDIR
+		configure_log "TZDIR ... $TZDIR"
+	else
+		configure_log "TZDIR ... not found (printf %%T tests may fail)"
+	fi
+}
+
 # ── samu bootstrap ───────────────────────────────────────────────
 
 bootstrap_samu()

@@ -136,13 +136,16 @@ test *ARGS:
         just _test-repeat "$repeat_test"
         exit $?
     fi
-    # Category — run a subset of tests (native only, local samu)
+    # Category — run a subset of tests
     if [ -n "$category" ]; then
         if _is_cross "$platform"; then
-            echo "error: --category requires native platform" >&2; exit 1
+            # Cross: use nix check for the category
+            _nix_build "checks.${sys}.${category}"
+        else
+            # Native: local samu
+            just _dev-build
+            "{{ BUILDDIR }}/bin/samu" -C "{{ BUILDDIR }}" "test-${category}"
         fi
-        just _dev-build
-        "{{ BUILDDIR }}/bin/samu" -C "{{ BUILDDIR }}" "test-${category}"
         exit $?
     fi
     # Full suite via nix

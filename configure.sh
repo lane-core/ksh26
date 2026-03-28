@@ -66,6 +66,7 @@ fi
 
 detect_libs
 detect_defpath
+detect_tzdir
 bootstrap_samu
 bootstrap_setsid
 

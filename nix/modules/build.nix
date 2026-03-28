@@ -29,10 +29,12 @@
           configureFlags ? [ ],
           doCheck ? false,
           extraCheckSetup ? "",
+          checkCategory ? "",
         }:
         let
           buildDir = "build/${hostType}${variant}";
           flagStr = builtins.concatStringsSep " " configureFlags;
+          testTarget = if checkCategory != "" then "test-${checkCategory}" else "test";
         in
         pkgs.stdenv.mkDerivation {
           pname = "ksh26${variant}";
@@ -87,8 +89,8 @@
               exit 1
             fi
 
-            # Run all tests (-k 0 = continue on failure, collect all results)
-            ./${buildDir}/bin/samu -k 0 -C ${buildDir} test || true
+            # Run tests (-k 0 = continue on failure, collect all results)
+            ./${buildDir}/bin/samu -k 0 -C ${buildDir} ${testTarget} || true
 
             # Report test results against known total
             result_dir="${buildDir}/test/results"
@@ -146,7 +148,10 @@
             cp -r ${buildDir}/log "$out/build-artifacts/" 2>/dev/null || true
           '';
 
-          passthru.shellPath = "/bin/ksh";
+          passthru = {
+            shellPath = "/bin/ksh";
+            inherit configureFlags;
+          };
 
           meta = with lib; {
             description = "ksh26 — the KornShell, redesigned";
@@ -164,6 +169,7 @@
       packages = {
         default = mkKsh { };
         checked = mkKsh { doCheck = true; };
+        checked-fast = mkKsh { doCheck = true; checkCategory = "fast"; };
         build-debug = mkKsh {
           variant = "-debug";
           configureFlags = [ "--debug" ];

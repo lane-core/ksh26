@@ -16,6 +16,7 @@
       checks =
         {
           default = self'.packages.checked;
+          fast = self'.packages.checked-fast;
           asan = self'.packages.checked-asan;
           formatting = treefmtEval.config.build.check inputs.self;
         }
